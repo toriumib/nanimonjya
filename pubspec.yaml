@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.5 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -35,8 +35,11 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  google_mobile_ads: ^3.0.0
+  google_mobile_ads: ^5.1.0
   change_app_package_name: ^1.1.0
+  firebase_core: ^3.4.0
+  # cloud_firestore: ^5.0.0
+  # firebase_auth: ^5.1.1
 
 dev_dependencies:
   flutter_test:
@@ -47,20 +50,29 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
+  assets: # このインデント
+    - assets/images/
+  # - assets/images/char1.jpg
+  # - assets/images/char2.jpg
+  # - assets/images/char3.jpg
+  # - assets/images/char4.jpg
+  # - assets/images/char5.jpg
+  # - assets/images/char6.jpg
+  # - assets/images/char7.jpg
+  # - assets/images/char8.jpg
+  # - assets/images/char9.jpg
+  # - assets/images/char10.jpg
+  # - assets/images/char11.jpg
+  # - assets/images/char12.jpg
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

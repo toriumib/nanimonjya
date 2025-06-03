@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255569645888",
+    "project_id": "nanimonjya",
+    "storage_bucket": "nanimonjya.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255569645888:android:ccb5680cd9de5a615daaa5",
+        "android_client_info": {
+          "package_name": "com.kengo.marubatusokketu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8vyg42Esz8zm16DuG3DJWDWFGZ_VlwnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

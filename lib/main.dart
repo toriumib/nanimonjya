@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:untitled/views/home.dart';
+import 'screens/player_selection_screen.dart'; // 作成する画面
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+Future<void> main() async {
+  //わからない　スキップ
+  // Flutterアプリの初期化を保証
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    demoProjectId: "demo-project-id",
+  );
+  // Google Mobile Ads SDK を初期化
   MobileAds.instance.initialize();
   runApp(const MyApp());
 }
@@ -14,12 +22,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ナンジャモンジャ風ゲーム', // アプリタイトル変更
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(title: '＋で即決、時には自分で決断'),
-      debugShowCheckedModeBanner: false,
+      // 最初にプレイヤー人数選択画面を表示
+      home: const PlayerSelectionScreen(),
+      debugShowCheckedModeBanner: false, // デバッグバナーを非表示
     );
   }
 }

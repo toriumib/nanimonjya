@@ -2,7 +2,7 @@ plugins {
   id "com.android.application"
   id "kotlin-android"
   id "dev.flutter.flutter-gradle-plugin"
-//   id "com.google.gms.google-services"
+  id "com.google.gms.google-services"
 //   id "com.google.firebase.crashlytics"
 }
 def localProperties = new Properties()
@@ -43,12 +43,12 @@ android {
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+  sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 
     sourceSets {
@@ -64,6 +64,8 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true // multidexサポートライブラリを使用する
+
     }
 
     signingConfigs {
@@ -84,13 +86,8 @@ android {
 flutter {
     source '../..'
 }
-def kotlin_version = "1.7.10"
+def kotlin_version = "1.9.10"
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
-android {
-   defaultConfig {
-       minSdkVersion 19
-       multiDexEnabled true // multidexサポートライブラリを使用する
-   }
-}
+
