@@ -20,7 +20,9 @@ class _GameScreenState extends State<GameScreen> {
   // --- ゲーム状態 ---
   // TODO: assets/images/ に配置した画像ファイル名に合わせてください
   final List<String> _characterImageFiles = List.generate(
-      12, (index) => 'assets/images/char${index + 1}.jpg'); // 12 *種類* の画像ファイルパス
+    12,
+    (index) => 'assets/images/char${index + 1}.jpg',
+  ); // 12 *種類* の画像ファイルパス
   late List<String> _deck; // 山札 (画像のパス)
   late List<int> _scores; // 各プレイヤーのスコア
   final Set<String> _seenImages = {}; // 一度出た画像のパスを記録
@@ -80,7 +82,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     setState(() {
-      // 前のカードが場にあれば場札に追加
+      // 前のカードが場札にあれば場札に追加
       if (_currentImagePath != null) {
         _fieldCards.add(_currentImagePath!);
       }
@@ -112,13 +114,22 @@ class _GameScreenState extends State<GameScreen> {
     if (!_canSelectPlayer) return; // 選択不可なら何もしない
 
     setState(() {
-      // 場札の枚数 + 今出たカードの1枚分 をポイントとして加算
-      _scores[playerIndex] += _fieldCards.length + 1;
+      // 場札の枚数をポイントとして加算
+      _scores[playerIndex] += _fieldCards.length;
       _fieldCards.clear(); // 場札をリセット
       _canSelectPlayer = false; // ポイント獲得後は選択不可に
 
       // 次のカードをめくる
       // 少し間を置いてから次のカードへ
+      Future.delayed(const Duration(milliseconds: 800), _drawNextCard);
+    });
+  }
+
+  // 「わからない」が選択された時の処理
+  void _skipCard() {
+    setState(() {
+      // 現在のカードは場札に追加されるため、_drawNextCard内で処理される
+      _canSelectPlayer = false; // 選択不可に
       Future.delayed(const Duration(milliseconds: 800), _drawNextCard);
     });
   }
@@ -132,10 +143,8 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => ResultScreen(
-          scores: _scores,
-          playerCount: widget.playerCount,
-        ),
+        builder: (context) =>
+            ResultScreen(scores: _scores, playerCount: widget.playerCount),
       ),
     );
   }
@@ -167,11 +176,16 @@ class _GameScreenState extends State<GameScreen> {
                     children: List.generate(widget.playerCount, (index) {
                       return Chip(
                         avatar: CircleAvatar(
-                            backgroundColor: Colors.blue.shade800,
-                            child: Text('${index + 1}',
-                                style: const TextStyle(color: Colors.white))),
-                        label: Text('P${index + 1}: ${_scores[index]} 点',
-                            style: const TextStyle(fontSize: 16)),
+                          backgroundColor: Colors.blue.shade800,
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        label: Text(
+                          'P${index + 1}: ${_scores[index]} 点',
+                          style: const TextStyle(fontSize: 16),
+                        ),
                         elevation: 2,
                       );
                     }),
@@ -180,11 +194,14 @@ class _GameScreenState extends State<GameScreen> {
 
                   // --- 場札表示 ---
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
                     decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8)),
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Text(
                       '現在の場札: ${_fieldCards.length} 枚',
                       style: const TextStyle(fontSize: 16),
@@ -195,7 +212,8 @@ class _GameScreenState extends State<GameScreen> {
                   // --- カード（画像）表示エリア ---
                   ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height *
+                      maxHeight:
+                          MediaQuery.of(context).size.height *
                           0.35, // 高さを画面の割合で制限
                     ),
                     child: AspectRatio(
@@ -203,8 +221,10 @@ class _GameScreenState extends State<GameScreen> {
                       aspectRatio: 3 / 4,
                       child: Container(
                         decoration: BoxDecoration(
-                          border:
-                              Border.all(color: Colors.grey.shade400, width: 2),
+                          border: Border.all(
+                            color: Colors.grey.shade400,
+                            width: 2,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                           color: Colors.white, // 画像がない時の背景色
                           boxShadow: [
@@ -220,8 +240,11 @@ class _GameScreenState extends State<GameScreen> {
                             ? Center(
                                 child: _deck.isNotEmpty
                                     ? const CircularProgressIndicator()
-                                    : const Text('ゲーム終了',
-                                        style: TextStyle(fontSize: 18)))
+                                    : const Text(
+                                        'ゲーム終了',
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                              )
                             : ClipRRect(
                                 // 画像を角丸にする
                                 borderRadius: BorderRadius.circular(10.0),
@@ -231,8 +254,12 @@ class _GameScreenState extends State<GameScreen> {
                                   // 画像読み込みエラー時の代替表示
                                   errorBuilder: (context, error, stackTrace) =>
                                       const Center(
-                                          child: Icon(Icons.error_outline,
-                                              color: Colors.red, size: 50)),
+                                        child: Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red,
+                                          size: 50,
+                                        ),
+                                      ),
                                 ),
                               ),
                       ),
@@ -248,11 +275,12 @@ class _GameScreenState extends State<GameScreen> {
                         : Text(
                             _isFirstAppearance ? '初登場！名前をつけて！' : '見たことある！名前は？',
                             style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: _isFirstAppearance
-                                    ? Colors.green.shade700
-                                    : Colors.red.shade700),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _isFirstAppearance
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                   ),
@@ -280,26 +308,45 @@ class _GameScreenState extends State<GameScreen> {
 
   // 操作ボタン（プレイヤー選択 or 次へ）を生成するメソッド
   Widget _buildActionButtons() {
-    // プレイヤー選択が可能な状態の場合
+    // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (_canSelectPlayer) {
-      return Wrap(
-        spacing: 10.0,
-        runSpacing: 10.0,
-        alignment: WrapAlignment.center,
-        children: List.generate(widget.playerCount, (index) {
-          return ElevatedButton(
-            onPressed: () => _awardPoints(index),
+      return Column(
+        children: [
+          Wrap(
+            spacing: 10.0,
+            runSpacing: 10.0,
+            alignment: WrapAlignment.center,
+            children: List.generate(widget.playerCount, (index) {
+              return ElevatedButton(
+                onPressed: () => _awardPoints(index),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent, // ポイント獲得ボタンの色
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  'プレイヤー ${index + 1} GET!',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 10), // ボタン間のスペース
+          // 「わからない」ボタンを追加
+          ElevatedButton(
+            onPressed: _skipCard,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent, // ポイント獲得ボタンの色
+              backgroundColor: Colors.orange, // わからないボタンの色
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: Text('プレイヤー ${index + 1} GET!',
-                style: const TextStyle(color: Colors.white)),
-          );
-        }),
+            child: const Text('わからない', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       );
     }
-    // 初登場カードの後 or ポイント獲得後の場合
+    // 初登場カードの後 or ポイント獲得後 (または「わからない」選択後)
     else if (_currentImagePath != null && _deck.isNotEmpty) {
       return ElevatedButton.icon(
         onPressed: _drawNextCard,

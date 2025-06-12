@@ -8,9 +8,7 @@ Future<void> main() async {
   //わからない　スキップ
   // Flutterアプリの初期化を保証
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    demoProjectId: "demo-project-id",
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Google Mobile Ads SDK を初期化
   MobileAds.instance.initialize();
   runApp(const MyApp());

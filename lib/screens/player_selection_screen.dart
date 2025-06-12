@@ -10,41 +10,27 @@ class PlayerSelectionScreen extends StatefulWidget {
 }
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
-  final TextEditingController _controller =
-      TextEditingController(text: '2'); // 初期値を2に設定
-  int _playerCount = 2; // デフォルトのプレイヤー人数
+  // TextEditingControllerは不要になるため削除
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  // プレイヤー人数を保持する変数。初期値は2人
+  int _playerCount = 2;
 
+  // ゲーム開始処理
   void _startGame() {
-    final count = int.tryParse(_controller.text);
-    if (count != null && count >= 2) {
-      // GameScreen にプレイヤー人数を渡して遷移
-      Navigator.pushReplacement(
-        // この画面に戻れないように置き換え
-        context,
-        MaterialPageRoute(
-          builder: (context) => GameScreen(playerCount: count),
-        ),
-      );
-    } else {
-      // エラーメッセージ表示
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('プレイヤーは2人以上で入力してください。')),
-      );
-    }
+    // GameScreen にプレイヤー人数を渡して遷移
+    Navigator.pushReplacement(
+      // この画面に戻れないように置き換え
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameScreen(playerCount: _playerCount),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('プレイヤー人数を選択'),
-      ),
+      appBar: AppBar(title: const Text('プレイヤー人数を選択')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(30.0),
@@ -52,31 +38,48 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const Text(
-                'ゲームに参加する人数を入力してください (2人以上)',
+                'ゲームに参加する人数を選択してください (2人〜6人)',
                 style: TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                // 数字のみ入力可能にする
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: '人数',
-                  border: OutlineInputBorder(),
-                  hintText: '2', // 例を表示
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20),
-                onSubmitted: (_) => _startGame(), // エンターキーで開始
+              // プレイヤー人数選択ボタン
+              Wrap(
+                spacing: 10.0, // ボタン間の横方向スペース
+                runSpacing: 10.0, // ボタン間の縦方向スペース
+                alignment: WrapAlignment.center,
+                children: List.generate(5, (index) {
+                  // 2人から6人までなので、6 - 2 + 1 = 5個のボタンを生成
+                  int count = index + 2; // プレイヤー人数は2から始まる
+                  return ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _playerCount = count; // 選択された人数を更新
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _playerCount == count
+                          ? Colors
+                                .blueAccent // 選択中のボタンの色
+                          : Colors.grey, // それ以外のボタンの色
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                        vertical: 15,
+                      ),
+                      textStyle: const TextStyle(fontSize: 20),
+                    ),
+                    child: Text('$count 人'),
+                  );
+                }),
               ),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: _startGame,
                 style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 50,
+                    vertical: 15,
+                  ),
                   textStyle: const TextStyle(fontSize: 20),
                 ),
                 child: const Text('ゲーム開始'),
