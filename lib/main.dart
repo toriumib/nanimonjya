@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'screens/player_selection_screen.dart'; // 作成する画面
+import 'screens/top_screen.dart'; // トップ画面をインポート
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       // 最初にプレイヤー人数選択画面を表示
-      home: const PlayerSelectionScreen(),
+      home: const TopScreen(), // 最初の画面をTopScreenに変更
       debugShowCheckedModeBanner: false, // デバッグバナーを非表示
     );
   }

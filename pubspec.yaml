@@ -40,6 +40,10 @@ dependencies:
   firebase_core: ^3.4.0
   cloud_firestore: ^5.0.0
   firebase_auth: ^5.1.1
+  firebase_storage: ^12.4.6 # この行を修正
+  image_picker: ^1.1.0 # 画像選択に利用
+  uuid: ^4.4.0 # これも追加されているか確認
+
 
 dev_dependencies:
   flutter_test:
