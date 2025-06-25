@@ -40,48 +40,59 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   }
 
   /// 画像をFirebase Storageにアップロードする機能
-  /// ギャラリーから画像を選択し、Storageに保存し、そのURLを状態に保持します。
+  /// ギャラリーから複数画像を選択し、Storageに保存し、そのURLを状態に保持します。
   Future<void> _uploadImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
+    // pickImage() から pickMultiImage() に変更して複数ファイル選択に対応
+    final List<XFile> images = await _picker.pickMultiImage(); // ★ここを変更★
+    if (images.isEmpty) return; // 画像が選択されなかった場合
 
     setState(() {
       _isUploading = true;
     });
 
     try {
-      final String fileName = '${_uuid.v4()}.jpg';
-      final Reference ref = _storage.ref().child('game_images').child(fileName);
+      // 選択された各画像をループでアップロード
+      for (final XFile image in images) {
+        // ★ループを追加★
+        final String fileName = '${_uuid.v4()}.jpg';
+        final Reference ref = _storage
+            .ref()
+            .child('game_images')
+            .child(fileName);
 
-      // ★ここから修正・追加：Web対応の画像アップロードロジック★
-      UploadTask uploadTask;
-      if (kIsWeb) {
-        // Webの場合、バイトデータを直接アップロード
-        final Uint8List? bytes = await image.readAsBytes();
-        if (bytes == null) {
-          throw Exception('Failed to read image bytes for web upload.');
+        UploadTask uploadTask;
+        if (kIsWeb) {
+          // Webの場合、バイトデータを直接アップロード
+          final Uint8List? bytes = await image.readAsBytes();
+          if (bytes == null) {
+            debugPrint(
+              'Web upload: Failed to read image bytes for ${image.name}. Skipping.',
+            );
+            continue; // この画像のアップロードはスキップ
+          }
+          uploadTask = ref.putData(bytes);
+        } else {
+          // モバイル/デスクトップの場合、Fileからアップロード
+          uploadTask = ref.putFile(File(image.path));
         }
-        uploadTask = ref.putData(bytes);
-      } else {
-        // モバイル/デスクトップの場合、Fileからアップロード
-        // DartのFileクラスは'dart:io'パッケージにあり、Webでは利用できないため、kIsWebで分岐します。
-        uploadTask = ref.putFile(File(image.path));
-      }
-      // ★修正・追加ここまで★
 
-      final TaskSnapshot snapshot = await uploadTask;
-      final String downloadUrl = await snapshot.ref.getDownloadURL();
+        final TaskSnapshot snapshot = await uploadTask;
+        final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+        setState(() {
+          _uploadedImageUrls.add(downloadUrl); // アップロード成功したURLを追加
+        });
+      }
 
       setState(() {
-        _uploadedImageUrls.add(downloadUrl);
         _isUploading = false;
       });
+      // 複数アップロードの場合は、成功メッセージも複数形に
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('画像のアップロードに成功しました！')));
+      ).showSnackBar(const SnackBar(content: Text('全ての画像のアップロードに成功しました！')));
     } catch (e) {
       debugPrint('画像のアップロードに失敗しました: $e');
-      // エラーメッセージをより詳細に表示するために toString() を使用
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('画像のアップロードに失敗しました: ${e.toString()}')),
       );
@@ -93,14 +104,24 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
   /// 新しいルームを作成し、そのルームに参加します。
   /// 画像がアップロードされていない場合は、デフォルトの画像パスを使用します。
+  /// ユーザーがカスタム画像をアップロードした場合は、12枚以上の画像が必要となります。
   Future<void> _createRoom() async {
     final String roomId = _uuid.v4().substring(0, 6).toUpperCase(); // 短いルームID
 
-    // 使用する画像URLリストを決定
     List<String> finalImageUrls;
     if (_uploadedImageUrls.isNotEmpty) {
-      finalImageUrls = _uploadedImageUrls;
+      // ユーザーがカスタム画像をアップロードした場合
+      if (_uploadedImageUrls.length < 12) {
+        // ★ここから修正・追加：画像枚数チェック★
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('カスタム画像を使用する場合、12枚以上の画像をアップロードしてください。')),
+        );
+        return; // 12枚未満の場合はルーム作成を中断
+        // ★修正・追加ここまで★
+      }
+      finalImageUrls = _uploadedImageUrls; // 12枚以上アップロードされている場合はそれを使用
     } else {
+      // ユーザーが画像をアップロードしなかった場合、デフォルト画像を使用
       finalImageUrls = _defaultCharacterImageFiles;
     }
 
@@ -202,7 +223,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
           children: <Widget>[
             // オフライン画像をデフォルトで使用するため、アップロードは任意となる
             const Text(
-              '必要であれば、ゲームに使用する独自の画像をアップロードしてください。',
+              '必要であれば、ゲームに使用する独自の画像をアップロードしてください。\n(カスタム画像を使用する場合は12枚以上必須)', // 説明文も更新
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
