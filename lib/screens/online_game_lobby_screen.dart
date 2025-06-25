@@ -3,7 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:io';
+import 'dart:io'; // モバイル/デスクトップ向けに必要
+
+// Web対応のために'flutter/foundation.dart'をインポート
+import 'package:flutter/foundation.dart'; // ★追加★
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 
@@ -49,7 +52,22 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     try {
       final String fileName = '${_uuid.v4()}.jpg';
       final Reference ref = _storage.ref().child('game_images').child(fileName);
-      final UploadTask uploadTask = ref.putFile(File(image.path));
+
+      // ★ここから修正・追加：Web対応の画像アップロードロジック★
+      UploadTask uploadTask;
+      if (kIsWeb) {
+        // Webの場合、バイトデータを直接アップロード
+        final Uint8List? bytes = await image.readAsBytes();
+        if (bytes == null) {
+          throw Exception('Failed to read image bytes for web upload.');
+        }
+        uploadTask = ref.putData(bytes);
+      } else {
+        // モバイル/デスクトップの場合、Fileからアップロード
+        // DartのFileクラスは'dart:io'パッケージにあり、Webでは利用できないため、kIsWebで分岐します。
+        uploadTask = ref.putFile(File(image.path));
+      }
+      // ★修正・追加ここまで★
 
       final TaskSnapshot snapshot = await uploadTask;
       final String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -63,9 +81,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       ).showSnackBar(const SnackBar(content: Text('画像のアップロードに成功しました！')));
     } catch (e) {
       debugPrint('画像のアップロードに失敗しました: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('画像のアップロードに失敗しました: $e')));
+      // エラーメッセージをより詳細に表示するために toString() を使用
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('画像のアップロードに失敗しました: ${e.toString()}')),
+      );
       setState(() {
         _isUploading = false;
       });
@@ -107,7 +126,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       debugPrint('ルームの作成に失敗しました: $e');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('ルームの作成に失敗しました: $e')));
+      ).showSnackBar(SnackBar(content: Text('ルームの作成に失敗しました: ${e.toString()}')));
     }
   }
 
