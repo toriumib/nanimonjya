@@ -43,6 +43,8 @@ dependencies:
   firebase_storage: ^12.4.6 # この行を修正
   image_picker: ^1.1.0 # 画像選択に利用
   uuid: ^4.4.0 # これも追加されているか確認
+  cloud_functions: ^5.5.1 # 最新バージョンを確認して追加
+  just_audio: ^0.9.36   # 最新バージョンを確認して追加
 
 
 dev_dependencies:

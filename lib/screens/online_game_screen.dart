@@ -4,6 +4,11 @@ import 'dart:math';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
 
+// Google Cloud Functions と音声再生のためのインポートを追加
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:just_audio/just_audio.dart';
+import 'dart:convert'; // Base64デコードのために必要
+
 class OnlineGameScreen extends StatefulWidget {
   final String roomId;
   final String myPlayerId; // 自身のプレイヤーIDを受け取る
@@ -22,6 +27,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   final AdMob _adMob = AdMob();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Random _random = Random();
+  final AudioPlayer _audioPlayer = AudioPlayer(); // AudioPlayer インスタンスを追加
 
   Stream<DocumentSnapshot>? _roomStream;
 
@@ -40,6 +46,30 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     _adMob.loadBanner();
     _roomStream = _firestore.collection('rooms').doc(widget.roomId).snapshots();
     _initializeOnlineGame();
+
+    // ルームデータの変更を監視し、スコアの更新があった場合に実況をトリガー
+    _roomStream!.listen((DocumentSnapshot snapshot) {
+      if (snapshot.exists) {
+        final Map<String, dynamic> roomData =
+            snapshot.data() as Map<String, dynamic>;
+        final Map<String, int> newScores = Map<String, int>.from(
+          roomData['scores'] ?? {},
+        );
+
+        // スコアが前回から変更されている場合にのみ実況
+        // ただし、頻繁な更新によるAPI呼び出しを防ぐため、注意深く実装する必要があります。
+        // ここではシンプルに、スコアマップが変更されたら実況を試みます。
+        // より高度な制御が必要な場合は、タイマーや状態フラグを導入してください。
+        if (_scores.toString() != newScores.toString()) {
+          // シンプルな変更検知
+          _scores = newScores; // 内部状態を更新
+          _announceGameStatus(newScores); // 実況を呼び出す
+        }
+
+        // ゲーム状態をロード
+        _loadGameState(roomData);
+      }
+    });
   }
 
   /// ゲームの初期化とプレイヤーの参加処理
@@ -128,7 +158,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     });
 
     // ゲーム開始後の最初のカードをめくる
-    _drawNextCardOnline(roomRef);
+    _drawNextCardOnline(_firestore.collection('rooms').doc(widget.roomId));
+    // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
+    // 必要であれば、ゲーム開始を告げる特定のアナウンスをトリガーすることも可能。
   }
 
   /// Firestoreのデータからゲーム状態をロード
@@ -149,6 +181,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   @override
   void dispose() {
     _adMob.disposeBanner();
+    _audioPlayer.dispose(); // AudioPlayer のリソース解放
     super.dispose();
   }
 
@@ -190,6 +223,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'canSelectPlayer': !isFirst,
         'turnCount': turnCount,
       });
+      // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
     });
   }
 
@@ -219,12 +253,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'fieldCards': [],
         'canSelectPlayer': false,
       });
-
-      Future.delayed(
-        const Duration(milliseconds: 800),
-        () => _drawNextCardOnline(roomRef),
-      );
+      // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
     });
+    Future.delayed(
+      const Duration(milliseconds: 800),
+      () => _drawNextCardOnline(roomRef),
+    );
   }
 
   /// 「わからない」が選択された時の処理（オンライン版）
@@ -243,6 +277,84 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       const Duration(milliseconds: 800),
       () => _drawNextCardOnline(roomRef),
     );
+  }
+
+  // ゲーム状況をアナウンスするメソッド（Cloud Functions経由でTTSを呼び出す）
+  Future<void> _announceGameStatus(Map<String, int> currentScores) async {
+    if (!mounted) {
+      // Widgetがdisposeされていないか確認
+      debugPrint("Widget not mounted. Skipping TTS.");
+      return;
+    }
+
+    // currentScores が初期化されていない、または空の場合のハンドリング
+    if (currentScores.isEmpty && widget.myPlayerId != null) {
+      // ゲーム開始時やまだ誰も参加していない場合の特殊なアナウンス
+      await _audioPlayer.stop(); // 既存の再生を停止
+      _playTts("オンラインゲームを開始します！");
+      return;
+    }
+
+    // スコアをプレイヤーIDでソートして表示順序を安定させる
+    List<MapEntry<String, int>> sortedScores = currentScores.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    int maxScore = 0;
+    List<String> leadingPlayerIds = [];
+
+    for (var entry in sortedScores) {
+      if (entry.value > maxScore) {
+        maxScore = entry.value;
+        leadingPlayerIds = [entry.key];
+      } else if (entry.value == maxScore && entry.value > 0) {
+        leadingPlayerIds.add(entry.key);
+      }
+    }
+
+    String commentary = "";
+    if (maxScore == 0) {
+      commentary = "まだ誰もポイントを獲得していません！";
+    } else if (leadingPlayerIds.length == 1) {
+      String leadingPlayerAlias = leadingPlayerIds[0] == widget.myPlayerId
+          ? "あなた"
+          : "プレイヤー${sortedScores.indexWhere((e) => e.key == leadingPlayerIds[0]) + 1}";
+      commentary = "${leadingPlayerAlias}が${maxScore}点でリードしています！";
+    } else {
+      List<String> leadingPlayerAliases = leadingPlayerIds.map((id) {
+        return id == widget.myPlayerId
+            ? "あなた"
+            : "プレイヤー${sortedScores.indexWhere((e) => e.key == id) + 1}";
+      }).toList();
+      String players = leadingPlayerAliases.join("と");
+      commentary = "${players}が${maxScore}点で同点リード中！激戦です！";
+    }
+
+    _playTts(commentary); // 実況テキストをTTSで読み上げ
+  }
+
+  // Text-to-Speech API を呼び出し、音声を再生するヘルパーメソッド
+  Future<void> _playTts(String text) async {
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
+        'synthesizeSpeech',
+      );
+      final HttpsCallableResult result = await callable.call({'text': text});
+      final String audioBase64 = result.data['audioContent'];
+
+      final audioBytes = base64Decode(audioBase64);
+      await _audioPlayer.setAudioSource(
+        AudioSource.uri(
+          // ★ここを 'uri' に修正★
+          Uri.parse(
+            'data:audio/mpeg;base64,${base64Encode(audioBytes)}',
+          ), // ★Data URI schemeを使用★
+        ),
+      );
+      await _audioPlayer.play();
+    } catch (e) {
+      debugPrint('Cloud TTS 呼び出しまたは再生エラー: $e');
+      // 例: エラー時はOS標準TTSにフォールバックすることも可能
+    }
   }
 
   @override
@@ -293,6 +405,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                   builder: (context) => ResultScreen(
                     scores: resultScores,
                     playerCount: sortedScores.length, // 実際のプレイヤー数
+                    isOnline: true, // オンラインゲームであることをResultScreenに伝える
+                    roomId: widget.roomId, // ルームIDをResultScreenに渡す
+                    myPlayerId: widget.myPlayerId, // プレイヤーIDをResultScreenに渡す
                   ),
                 ),
               );

@@ -3,6 +3,10 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 const firestore = admin.firestore();
 
+// Google Cloud Text-to-Speech クライアントをインポート
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+const ttsClient = new TextToSpeechClient();
+
 // ルームのプレイヤー数が揃ったときにゲームを開始する例
 // 実際には、プレイヤーが「ゲーム開始」ボタンを押すなど、明示的なトリガーの方が良い場合もあります。
 exports.startGameOnPlayerCount = functions.firestore
@@ -86,7 +90,31 @@ exports.startGameOnPlayerCount = functions.firestore
         return null;
     });
 
-// TODO: 他のゲームロジック（カードをめくる、ポイント獲得など）もCloud Functionsに移行することを検討
-// 例:
-// exports.drawCard = functions.https.onCall(async (data, context) => { ... });
-// exports.awardPoints = functions.https.onCall(async (data, context) => { ... });
+// 新しい Cloud Function: テキストを音声に変換して返す
+exports.synthesizeSpeech = functions.https.onCall(async (data, context) => {
+    // リクエストからテキストを取得
+    const text = data.text;
+    if (!text) {
+        throw new functions.https.HttpsError('invalid-argument', 'テキストが指定されていません。');
+    }
+
+    // 音声合成のリクエストを構築
+    const request = {
+        input: { text: text },
+        // ここで声の設定（言語、性別、声の種類など）をカスタマイズできます。
+        // 詳細はこちらを参照: https://cloud.google.com/text-to-speech/docs/voices
+        voice: { languageCode: 'ja-JP', name: 'ja-JP-Wavenet-B', ssmlGender: 'FEMALE' }, // 例: 日本語、Wavenet-B、女性の声
+        audioConfig: { audioEncoding: 'MP3' }, // MP3形式で音声データを取得
+    };
+
+    try {
+        // Text-to-Speech API を呼び出し
+        const [response] = await ttsClient.synthesizeSpeech(request);
+        // 音声データをBase64エンコードしてクライアントに返します
+        const audioContent = response.audioContent.toString('base64');
+        return { audioContent: audioContent };
+    } catch (error) {
+        console.error('音声合成エラー:', error);
+        throw new functions.https.HttpsError('internal', '音声合成に失敗しました。', error.message);
+    }
+});
