@@ -45,31 +45,48 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     super.initState();
     _adMob.loadBanner();
     _roomStream = _firestore.collection('rooms').doc(widget.roomId).snapshots();
-    _initializeOnlineGame();
 
     // ルームデータの変更を監視し、スコアの更新があった場合に実況をトリガー
-    _roomStream!.listen((DocumentSnapshot snapshot) {
-      if (snapshot.exists) {
-        final Map<String, dynamic> roomData =
-            snapshot.data() as Map<String, dynamic>;
-        final Map<String, int> newScores = Map<String, int>.from(
-          roomData['scores'] ?? {},
-        );
+    _roomStream!.listen(
+      (DocumentSnapshot snapshot) {
+        // StreamBuilder の snapshot.hasError は listen にはないため、onError で処理
+        // ここでは DocumentSnapshot のデータ処理のみを行う
+        if (snapshot.exists) {
+          final Map<String, dynamic> roomData =
+              snapshot.data() as Map<String, dynamic>;
+          final Map<String, int> newScores = Map<String, int>.from(
+            roomData['scores'] ?? {},
+          );
 
-        // スコアが前回から変更されている場合にのみ実況
-        // ただし、頻繁な更新によるAPI呼び出しを防ぐため、注意深く実装する必要があります。
-        // ここではシンプルに、スコアマップが変更されたら実況を試みます。
-        // より高度な制御が必要な場合は、タイマーや状態フラグを導入してください。
-        if (_scores.toString() != newScores.toString()) {
-          // シンプルな変更検知
-          _scores = newScores; // 内部状態を更新
-          _announceGameStatus(newScores); // 実況を呼び出す
+          // スコアが前回から変更されている場合にのみ実況
+          if (_scores.toString() != newScores.toString()) {
+            _scores = newScores; // 内部状態を更新
+            _announceGameStatus(newScores); // 実況を呼び出す
+          }
+
+          // ゲーム状態をロード
+          _loadGameState(roomData);
+        } else {
+          // ドキュメントが存在しない（削除されたなど）場合の処理
+          debugPrint('Room document does not exist.');
+          // 例: Navigator.pop(context); などでロビーに戻す処理
         }
+      },
+      onError: (error) {
+        // Stream.listen のエラーハンドリング
+        debugPrint('Stream Listener Error: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('オンラインゲーム中にエラーが発生しました: ${error.toString()}')),
+        );
+      },
+      onDone: () {
+        // ストリームが終了した場合のコールバック（オプション）
+        debugPrint('Stream is done.');
+      },
+      cancelOnError: false, // エラーが発生してもストリームをキャンセルしない
+    );
 
-        // ゲーム状態をロード
-        _loadGameState(roomData);
-      }
-    });
+    _initializeOnlineGame(); // これを listen の後に移動
   }
 
   /// ゲームの初期化とプレイヤーの参加処理
@@ -149,7 +166,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'scores': initialScores,
         'fieldCards': [],
         'seenImages': [],
-        'currentCard': null,
+        'currentCard': null, // 最初のカードは後でめくる
         'isFirstAppearance': true,
         'canSelectPlayer': false,
         'turnCount': 0,
@@ -158,18 +175,18 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     });
 
     // ゲーム開始後の最初のカードをめくる
+    // これにより、StreamListenerが検知してUIと実況が更新される
     _drawNextCardOnline(_firestore.collection('rooms').doc(widget.roomId));
-    // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
-    // 必要であれば、ゲーム開始を告げる特定のアナウンスをトリガーすることも可能。
   }
 
   /// Firestoreのデータからゲーム状態をロード
   void _loadGameState(Map<String, dynamic> data) {
     setState(() {
       _currentImagePath = data['currentCard'] as String?;
-      _isFirstAppearance = data['isFirstAppearance'] as bool;
-      _canSelectPlayer = data['canSelectPlayer'] as bool;
-      _turnCount = data['turnCount'] as int;
+      _isFirstAppearance =
+          data['isFirstAppearance'] as bool? ?? true; // null許容に
+      _canSelectPlayer = data['canSelectPlayer'] as bool? ?? false; // null許容に
+      _turnCount = data['turnCount'] as int? ?? 0; // null許容に
       _fieldCards = List<String>.from(data['fieldCards'] ?? []);
       _seenImages = Set<String>.from(data['seenImages'] ?? []);
 
@@ -193,7 +210,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
       List<dynamic> deck = List<dynamic>.from(data['deck'] ?? []);
       List<dynamic> fieldCards = List<dynamic>.from(data['fieldCards'] ?? []);
-      Set<String> seenImages = Set<String>.from(data['seenImages'] ?? []);
+      Set<String> seenImages = Set<String>.from(
+        data['seenImages'] ?? [],
+      ); // ここでSetに変換して操作
       int turnCount = data['turnCount'] as int;
       String? previousCard = data['currentCard'] as String?;
 
@@ -202,6 +221,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         return;
       }
 
+      // 前のカードが場札にある場合、場札に追加
       if (previousCard != null) {
         fieldCards.add(previousCard);
       }
@@ -209,18 +229,19 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       String nextCard = deck.removeLast();
       turnCount++;
 
+      // この画像が初めて出たかチェック
       bool isFirst = !seenImages.contains(nextCard);
       if (isFirst) {
-        seenImages.add(nextCard);
+        seenImages.add(nextCard); // 初めてなら記録
       }
 
       transaction.update(roomRef, {
         'deck': deck,
         'fieldCards': fieldCards,
-        'seenImages': seenImages.toList(),
+        'seenImages': seenImages.toList(), // Firestoreに保存する際はListに戻す
         'currentCard': nextCard,
         'isFirstAppearance': isFirst,
-        'canSelectPlayer': !isFirst,
+        'canSelectPlayer': !isFirst, // 初登場でなければプレイヤー選択可能
         'turnCount': turnCount,
       });
       // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
@@ -236,7 +257,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       DocumentSnapshot currentRoom = await transaction.get(roomRef);
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
-      if (!(data['canSelectPlayer'] as bool)) {
+      if (!(data['canSelectPlayer'] as bool? ?? false)) {
+        // null許容に
         return; // 既に誰かがポイントを獲得したか、まだ選択できない状態
       }
 
@@ -250,14 +272,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
       transaction.update(roomRef, {
         'scores': scores,
-        'fieldCards': [],
-        'canSelectPlayer': false,
+        'fieldCards': [], // 場札をリセット
+        'canSelectPlayer': false, // ポイント獲得後は選択不可に
       });
       // StreamListener がスコア変更を検知して _announceGameStatus を呼び出すため、ここでは直接呼び出さない。
     });
     Future.delayed(
       const Duration(milliseconds: 800),
-      () => _drawNextCardOnline(roomRef),
+      () => _drawNextCardOnline(roomRef), // 次のカードをめくる
     );
   }
 
@@ -267,15 +289,16 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       DocumentSnapshot currentRoom = await transaction.get(roomRef);
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
-      if (!(data['canSelectPlayer'] as bool)) {
+      if (!(data['canSelectPlayer'] as bool? ?? false)) {
+        // null許容に
         return; // 既に誰かがポイントを獲得したか、まだ選択できない状態
       }
 
-      transaction.update(roomRef, {'canSelectPlayer': false});
+      transaction.update(roomRef, {'canSelectPlayer': false}); // 選択不可に
     });
     Future.delayed(
       const Duration(milliseconds: 800),
-      () => _drawNextCardOnline(roomRef),
+      () => _drawNextCardOnline(roomRef), // 次のカードをめくる
     );
   }
 
@@ -287,46 +310,44 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       return;
     }
 
-    // currentScores が初期化されていない、または空の場合のハンドリング
-    if (currentScores.isEmpty && widget.myPlayerId != null) {
-      // ゲーム開始時やまだ誰も参加していない場合の特殊なアナウンス
-      await _audioPlayer.stop(); // 既存の再生を停止
-      _playTts("オンラインゲームを開始します！");
-      return;
-    }
+    String commentary;
 
-    // スコアをプレイヤーIDでソートして表示順序を安定させる
-    List<MapEntry<String, int>> sortedScores = currentScores.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-
-    int maxScore = 0;
-    List<String> leadingPlayerIds = [];
-
-    for (var entry in sortedScores) {
-      if (entry.value > maxScore) {
-        maxScore = entry.value;
-        leadingPlayerIds = [entry.key];
-      } else if (entry.value == maxScore && entry.value > 0) {
-        leadingPlayerIds.add(entry.key);
-      }
-    }
-
-    String commentary = "";
-    if (maxScore == 0) {
-      commentary = "まだ誰もポイントを獲得していません！";
-    } else if (leadingPlayerIds.length == 1) {
-      String leadingPlayerAlias = leadingPlayerIds[0] == widget.myPlayerId
-          ? "あなた"
-          : "プレイヤー${sortedScores.indexWhere((e) => e.key == leadingPlayerIds[0]) + 1}";
-      commentary = "${leadingPlayerAlias}が${maxScore}点でリードしています！";
+    // ゲーム開始時の初期スコアが空のケースを考慮
+    if (currentScores.isEmpty ||
+        currentScores.values.every((score) => score == 0)) {
+      commentary = "オンラインゲームを開始します！まだ誰もポイントを獲得していません！";
     } else {
-      List<String> leadingPlayerAliases = leadingPlayerIds.map((id) {
-        return id == widget.myPlayerId
+      // スコアをプレイヤーIDでソートして表示順序を安定させる
+      List<MapEntry<String, int>> sortedScores = currentScores.entries.toList()
+        ..sort((a, b) => a.key.compareTo(b.key)); // プレイヤーIDでソート
+
+      int maxScore = 0;
+      List<String> leadingPlayerIds = [];
+
+      for (var entry in sortedScores) {
+        if (entry.value > maxScore) {
+          maxScore = entry.value;
+          leadingPlayerIds = [entry.key];
+        } else if (entry.value == maxScore && entry.value > 0) {
+          // 0点同士は同点リードとしない
+          leadingPlayerIds.add(entry.key);
+        }
+      }
+
+      if (leadingPlayerIds.length == 1) {
+        String leadingPlayerAlias = leadingPlayerIds[0] == widget.myPlayerId
             ? "あなた"
-            : "プレイヤー${sortedScores.indexWhere((e) => e.key == id) + 1}";
-      }).toList();
-      String players = leadingPlayerAliases.join("と");
-      commentary = "${players}が${maxScore}点で同点リード中！激戦です！";
+            : "プレイヤー${sortedScores.indexWhere((e) => e.key == leadingPlayerIds[0]) + 1}";
+        commentary = "${leadingPlayerAlias}が${maxScore}点でリードしています！";
+      } else {
+        List<String> leadingPlayerAliases = leadingPlayerIds.map((id) {
+          return id == widget.myPlayerId
+              ? "あなた"
+              : "プレイヤー${sortedScores.indexWhere((e) => e.key == id) + 1}";
+        }).toList();
+        String players = leadingPlayerAliases.join("と");
+        commentary = "${players}が${maxScore}点で同点リード中！激戦です！";
+      }
     }
 
     _playTts(commentary); // 実況テキストをTTSで読み上げ
@@ -344,10 +365,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       final audioBytes = base64Decode(audioBase64);
       await _audioPlayer.setAudioSource(
         AudioSource.uri(
-          // ★ここを 'uri' に修正★
-          Uri.parse(
-            'data:audio/mpeg;base64,${base64Encode(audioBytes)}',
-          ), // ★Data URI schemeを使用★
+          // Data URI schemeを使用
+          Uri.parse('data:audio/mpeg;base64,${base64Encode(audioBytes)}'),
         ),
       );
       await _audioPlayer.play();
@@ -367,9 +386,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: _roomStream,
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('エラー: ${snapshot.error}'));
-          }
+          // snapshot.hasError の代わりに StreamListener の onError でエラーハンドリング
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -384,9 +401,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           _canSelectPlayer = roomData['canSelectPlayer'] as bool? ?? false;
           _turnCount = roomData['turnCount'] as int? ?? 0;
           _fieldCards = List<String>.from(roomData['fieldCards'] ?? []);
-          _scores = Map<String, int>.from(
-            roomData['scores'] ?? {},
-          ); // マップとして読み込む
+          _seenImages = Set<String>.from(roomData['seenImages'] ?? []);
+
+          // スコアマップを直接更新
+          _scores = Map<String, int>.from(roomData['scores'] ?? {});
 
           // スコアをプレイヤーIDでソートして表示順序を安定させる
           List<MapEntry<String, int>> sortedScores = _scores.entries.toList()
@@ -663,40 +681,28 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
   /// 操作ボタン（オンライン版）を生成するメソッド
   Widget _buildActionButtonsOnline(Map<String, dynamic> roomData) {
-    bool canAct = roomData['canSelectPlayer'] as bool? ?? false; // null許容に
-    Map<String, dynamic> rawScores = roomData['scores'] ?? {};
-    List<String> playerIds = rawScores.keys.toList()
-      ..sort(); // プレイヤーIDをソートして表示順序を固定
+    bool canAct = roomData['canSelectPlayer'] as bool? ?? false;
+    // Map<String, dynamic> rawScores = roomData['scores'] ?? {}; // 不要になったためコメントアウト
+    // List<String> playerIds = rawScores.keys.toList()..sort(); // 不要になったためコメントアウト
 
     // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (canAct) {
       return Column(
         children: [
-          Wrap(
-            spacing: 10.0,
-            runSpacing: 10.0,
-            alignment: WrapAlignment.center,
-            children: playerIds.map((playerId) {
-              return ElevatedButton(
-                onPressed: () => _awardPointsOnline(
-                  _firestore.collection('rooms').doc(widget.roomId),
-                  playerId,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.myPlayerId == playerId
-                      ? Colors.red.shade700
-                      : Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                child: Text(
-                  '${widget.myPlayerId == playerId ? "あなた" : playerId.split('_').last} GET!',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              );
-            }).toList(),
+          // 自分のIDに合致する場合のみボタンを表示
+          ElevatedButton(
+            onPressed: () => _awardPointsOnline(
+              _firestore.collection('rooms').doc(widget.roomId),
+              widget.myPlayerId, // 自分のプレイヤーIDを渡す
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700, // 自分のボタンは強調色に
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text(
+              'GET!', // シンプルに「GET!」ボタンとする
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           const SizedBox(height: 10),
 
