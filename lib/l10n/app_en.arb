@@ -33,6 +33,7 @@
   "winner": "{winnerText} Wins!",
   "noWinner": "No Winner",
   "tie": "{winnerText} Tie!",
+  "andSeparator": " and ",
   "finalScore": "-- Final Score --",
   "playerScore": "Player {playerNum}: {score} Points",
   "playAgainSameMembers": "Play Again with Same Members",
@@ -59,5 +60,9 @@
   "loadingChoices": "Generating AI choices...",
   "aiError": "AI Error",
   "retry": "Retry",
-  "unknown": "Unknown"
+  "unknown": "Unknown",
+  "you": "You",
+  "player": "Player {playerNum}",
+  "leadingPlayer": "{playerAlias} is leading with {score} points!",
+  "tieLead": "{players} are tied for the lead with {score} points!"
 }

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Toddles-Bobbles Glean';
+  String get appTitle => 'Nanjamonja Game';
 
   @override
   String get playOnline => 'Play Online';
@@ -123,6 +123,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get andSeparator => ' and ';
+
+  @override
   String get finalScore => '-- Final Score --';
 
   @override
@@ -210,4 +213,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknown => 'Unknown';
+
+  @override
+  String get you => 'You';
+
+  @override
+  String player(Object playerNum) {
+    return 'Player $playerNum';
+  }
+
+  @override
+  String leadingPlayer(Object playerAlias, Object score) {
+    return '$playerAlias is leading with $score points!';
+  }
+
+  @override
+  String tieLead(Object players, Object score) {
+    return '$players are tied for the lead with $score points!';
+  }
 }

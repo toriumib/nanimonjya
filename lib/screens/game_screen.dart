@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
-import 'package:just_audio/just_audio.dart'; // ★BGM用にjust_audioを追加★
+import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
+
+// 多言語対応のために追加
+import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
 
 class GameScreen extends StatefulWidget {
   final int playerCount; // プレイヤー人数を受け取る
@@ -17,7 +20,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final AdMob _adMob = AdMob();
   final Random _random = Random();
-  final AudioPlayer _bgmPlayer = AudioPlayer(); // ★BGM用のAudioPlayerを追加★
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用のAudioPlayerを追加
 
   // --- ゲーム状態 ---
   // TODO: assets/images/ に配置した画像ファイル名に合わせてください
@@ -42,7 +45,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _adMob.loadBanner(); // バナー広告の読み込み開始
     _initializeGame();
-    _startBGM(); // ★BGM再生を開始★
+    _startBGM(); // BGM再生を開始
   }
 
   void _initializeGame() {
@@ -67,11 +70,11 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     _adMob.disposeBanner(); // 画面破棄時に広告も破棄
-    _bgmPlayer.dispose(); // ★BGM用プレイヤーを解放★
+    _bgmPlayer.dispose(); // BGM用プレイヤーを解放
     super.dispose();
   }
 
-  // ★BGM再生用のメソッドを追加★
+  // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
       await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
@@ -160,9 +163,11 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('ナンジャモンジャ (ターン: $_turnCount)'),
+        title: Text(localizations.turn(_turnCount)), // ★修正★
         automaticallyImplyLeading: false, // 戻るボタン非表示
       ),
       body: Column(
@@ -192,7 +197,10 @@ class _GameScreenState extends State<GameScreen> {
                           ),
                         ),
                         label: Text(
-                          'P${index + 1}: ${_scores[index]} 点',
+                          localizations.playerScore(
+                            index + 1,
+                            _scores[index],
+                          ), // ★修正★
                           style: const TextStyle(fontSize: 16),
                         ),
                         elevation: 2,
@@ -212,7 +220,9 @@ class _GameScreenState extends State<GameScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '現在の場札: ${_fieldCards.length} 枚',
+                      localizations.currentFieldCards(
+                        _fieldCards.length,
+                      ), // ★修正★
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
@@ -249,10 +259,7 @@ class _GameScreenState extends State<GameScreen> {
                             ? Center(
                                 child: _deck.isNotEmpty
                                     ? const CircularProgressIndicator()
-                                    : const Text(
-                                        'ゲーム終了',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
+                                    : Text(localizations.gameEnd), // ★修正★
                               )
                             : ClipRRect(
                                 // 画像を角丸にする
@@ -282,7 +289,9 @@ class _GameScreenState extends State<GameScreen> {
                     child: _currentImagePath == null
                         ? const SizedBox.shrink() // 何も表示しない
                         : Text(
-                            _isFirstAppearance ? '初登場！名前をつけて！' : '見たことある！名前は？',
+                            _isFirstAppearance
+                                ? localizations.firstAppearance
+                                : localizations.seenBefore, // ★修正★
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -317,6 +326,8 @@ class _GameScreenState extends State<GameScreen> {
 
   // 操作ボタン（プレイヤー選択 or 次へ）を生成するメソッド
   Widget _buildActionButtons() {
+    final localizations = AppLocalizations.of(context)!;
+
     // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (_canSelectPlayer) {
       return Column(
@@ -336,7 +347,10 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
                 child: Text(
-                  'プレイヤー ${index + 1} GET!',
+                  localizations.playerScore(
+                    index + 1,
+                    localizations.get,
+                  ), // ★修正★
                   style: const TextStyle(color: Colors.white),
                 ),
               );
@@ -350,7 +364,7 @@ class _GameScreenState extends State<GameScreen> {
               backgroundColor: Colors.orange, // わからないボタンの色
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text('わからない', style: TextStyle(color: Colors.white)),
+            child: Text(localizations.skip),
           ),
         ],
       );
@@ -360,7 +374,7 @@ class _GameScreenState extends State<GameScreen> {
       return ElevatedButton.icon(
         onPressed: _drawNextCard,
         icon: const Icon(Icons.navigate_next),
-        label: const Text('次のカードをめくる'),
+        label: Text(localizations.nextCard),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
           textStyle: const TextStyle(fontSize: 16),

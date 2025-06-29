@@ -5,10 +5,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart'; // Web対応のために必要
-import 'package:just_audio/just_audio.dart'; // ★BGM用にjust_audioを追加★
+import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
+
+// 多言語対応のために追加
+import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
 
 class OnlineGameLobbyScreen extends StatefulWidget {
   const OnlineGameLobbyScreen({super.key});
@@ -23,7 +26,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
   final Uuid _uuid = const Uuid();
-  final AudioPlayer _bgmPlayer = AudioPlayer(); // ★BGM用のAudioPlayerを追加★
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用のAudioPlayerを追加
 
   final List<String> _defaultCharacterImageFiles = List.generate(
     12,
@@ -37,17 +40,17 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   @override
   void initState() {
     super.initState();
-    _startBGM(); // ★BGM再生を開始★
+    _startBGM(); // BGM再生を開始
   }
 
   @override
   void dispose() {
     _roomIdController.dispose();
-    _bgmPlayer.dispose(); // ★BGM用プレイヤーを解放★
+    _bgmPlayer.dispose(); // BGM用プレイヤーを解放
     super.dispose();
   }
 
-  // ★BGM再生用のメソッドを追加★
+  // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
       await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
@@ -219,8 +222,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+
     return Scaffold(
-      appBar: AppBar(title: const Text('オンライン対戦ロビー')),
+      appBar: AppBar(title: Text(localizations.roomLobby)), // ★修正★
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -230,7 +235,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('テキストモード (AIの名前生成)'),
+                Text(localizations.textMode), // ★修正★
                 Switch(
                   value: _isVoiceMode,
                   onChanged: (bool newValue) {
@@ -239,14 +244,14 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                     });
                   },
                 ),
-                const Text('通話モード (AI実況ON)'),
+                Text(localizations.voiceMode), // ★修正★
               ],
             ),
             const SizedBox(height: 20),
 
-            const Text(
-              '必要であれば、ゲームに使用する独自の画像をアップロードしてください。\n(カスタム画像を使用する場合は12枚以上必須)',
-              style: TextStyle(fontSize: 16),
+            Text(
+              localizations.uploadImagesPrompt, // ★修正★
+              style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
@@ -262,14 +267,20 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                       ),
                     )
                   : const Icon(Icons.upload_file),
-              label: Text(_isUploading ? 'アップロード中...' : '画像をアップロード'),
+              label: Text(
+                _isUploading
+                    ? localizations.uploading
+                    : localizations.uploadImage,
+              ), // ★修正★
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              'アップロード済み画像数: ${_uploadedImageUrls.length}',
+              localizations.uploadedImagesCount(
+                _uploadedImageUrls.length,
+              ), // ★修正★
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
@@ -302,21 +313,21 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                 textStyle: const TextStyle(fontSize: 18),
                 backgroundColor: Colors.green,
               ),
-              child: const Text('新しいルームを作成'),
+              child: Text(localizations.createRoom), // ★修正★
             ),
             const SizedBox(height: 40),
 
-            const Text(
-              'または、合言葉を入力して既存のルームに参加',
-              style: TextStyle(fontSize: 16),
+            Text(
+              localizations.joinExistingRoom, // ★修正★
+              style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _roomIdController,
-              decoration: const InputDecoration(
-                labelText: '合言葉を入力',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: localizations.enterPasscode, // ★修正★
+                border: const OutlineInputBorder(),
                 hintText: '例: ABCDEF',
               ),
               textAlign: TextAlign.center,
@@ -330,7 +341,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('ルームに参加'),
+              child: Text(localizations.joinRoom), // ★修正★
             ),
           ],
         ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreのために追加
+import 'package:untitled/l10n/app_localizations.dart';
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
+
+// 多言語対応のために追加
 
 class ResultScreen extends StatelessWidget {
   final List<int> scores;
@@ -41,12 +44,18 @@ class ResultScreen extends StatelessWidget {
         // 既存のプレイヤーリストと画像URLを取得
         List<dynamic> players = data['players'] ?? [];
         List<dynamic> imageUrls = data['imageUrls'] ?? [];
+        // ゲームモードも引き継ぐ
+        String gameMode = data['gameMode'] as String? ?? 'voice';
 
         // スコアをリセット
         Map<String, int> initialScores = {};
         for (String playerId in players.cast<String>()) {
           initialScores[playerId] = 0;
         }
+
+        // プレイヤーの順番をリシャッフルして設定
+        List<String> shuffledPlayerOrder = List<String>.from(players)
+          ..shuffle();
 
         // ルームの状態をwaitingに戻す
         transaction.update(roomRef, {
@@ -60,18 +69,24 @@ class ResultScreen extends StatelessWidget {
           'canSelectPlayer': false,
           'turnCount': 0,
           'gameStarted': false, // ゲーム開始フラグもリセット
+          'characterNames': {}, // キャラクター名をリセット
+          'playerOrder': shuffledPlayerOrder, // プレイヤーの順番をリセット
+          'currentPlayerIndex': 0, // インデックスをリセット
+          'playersAttemptedCurrentCard': {}, // 回答済みプレイヤーをリセット
+          'gameMode': gameMode, // ゲームモードは維持
           // imageUrlsとplayersリストは保持したまま
         });
       });
 
       // リセットが成功したらオンラインゲーム画面に戻る
-      // OnlineGameScreenはFirestoreの購読によって'waiting'状態を検知し、
-      // 適切なUIを表示するはずです。
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              OnlineGameScreen(roomId: roomId!, myPlayerId: myPlayerId!),
+          builder: (context) => OnlineGameScreen(
+            roomId: roomId!,
+            myPlayerId: myPlayerId!,
+            isVoiceMode: isOnline ? true : false,
+          ), // isVoiceModeを適切に渡す
         ), // スタックをクリア
         (Route<dynamic> route) => false,
       );
@@ -85,6 +100,9 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 多言語対応の文字列にアクセスするためのインスタンス
+    final localizations = AppLocalizations.of(context)!; // ★追加★
+
     // 最高スコアと勝者を決定
     int maxScore = 0;
     List<int> winners = [];
@@ -101,20 +119,23 @@ class ResultScreen extends StatelessWidget {
     // 勝者表示テキストを作成
     String winnerText;
     if (winners.isEmpty || maxScore == 0) {
-      winnerText = '勝者なし';
+      winnerText = localizations.noWinner; // ★修正★
     } else if (winners.length == 1) {
-      winnerText = 'プレイヤー ${winners[0] + 1} の勝利！';
+      winnerText = localizations.playerScore(winners[0] + 1, ''); // 勝者番号を渡す
+      winnerText = localizations.winner(
+        localizations.playerScore(winners[0] + 1, ''),
+      ); // ★修正★
     } else {
       // 勝者のインデックスに+1して表示用文字列リスト作成
       final winnerNumbers = winners
-          .map((index) => 'プレイヤー ${index + 1}')
+          .map((index) => localizations.playerScore(index + 1, '')) // プレイヤーN
           .toList();
-      winnerText = '${winnerNumbers.join(' と ')} の勝利！ (同点)';
+      winnerText = localizations.tie(winnerNumbers.join('と')); // ★修正★
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ゲーム結果'),
+        title: Text(localizations.gameResult), // ★修正★
         automaticallyImplyLeading: false, // 戻るボタン非表示
       ),
       body: Center(
@@ -125,7 +146,7 @@ class ResultScreen extends StatelessWidget {
             children: <Widget>[
               // 勝者表示
               Text(
-                '🏆 $winnerText 🏆',
+                winnerText, // ★修正★
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -134,9 +155,12 @@ class ResultScreen extends StatelessWidget {
               const SizedBox(height: 40),
 
               // 最終スコア表示
-              const Text(
-                '-- 最終スコア --',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                localizations.finalScore, // ★修正★
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 15),
               Card(
@@ -153,7 +177,10 @@ class ResultScreen extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5.0),
                         child: Text(
-                          'プレイヤー ${index + 1}: ${scores[index]} 点',
+                          localizations.playerScore(
+                            index + 1,
+                            scores[index],
+                          ), // ★修正★
                           style: const TextStyle(fontSize: 18),
                         ),
                       );
@@ -187,7 +214,11 @@ class ResultScreen extends StatelessWidget {
                   ),
                   textStyle: const TextStyle(fontSize: 18),
                 ),
-                child: Text(isOnline ? 'もう一度同じメンバーで遊ぶ' : 'もう一度遊ぶ'),
+                child: Text(
+                  isOnline
+                      ? localizations.playAgainSameMembers
+                      : localizations.playAgain,
+                ), // ★修正★
               ),
             ],
           ),

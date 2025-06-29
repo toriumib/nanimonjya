@@ -28,6 +28,7 @@
   "winner": "🏆 {winnerText} の勝利！ 🏆",
   "noWinner": "勝者なし",
   "tie": "🏆 {winnerText} の勝利！ (同点) 🏆",
+  "andSeparator": " と ",
   "finalScore": "-- 最終スコア --",
   "playerScore": "プレイヤー {playerNum}: {score} 点",
   "playAgainSameMembers": "もう一度同じメンバーで遊ぶ",
@@ -54,5 +55,9 @@
   "loadingChoices": "AIが名前を生成中...",
   "aiError": "AIエラー",
   "retry": "再試行",
-  "unknown": "不明"
+  "unknown": "不明",
+  "you": "あなた",
+  "player": "プレイヤー{playerNum}",
+  "leadingPlayer": "{playerAlias}が{score}点でリードしています！",
+  "tieLead": "{players}が{score}点で同点リード中！激戦です！"
 }

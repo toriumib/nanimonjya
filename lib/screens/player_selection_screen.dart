@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // 数字入力制限のため
 import 'game_screen.dart'; // 次の画面
 
+// 多言語対応のために追加
+import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
+
 class PlayerSelectionScreen extends StatefulWidget {
   const PlayerSelectionScreen({super.key});
 
@@ -10,8 +13,6 @@ class PlayerSelectionScreen extends StatefulWidget {
 }
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
-  // TextEditingControllerは不要になるため削除
-
   // プレイヤー人数を保持する変数。初期値は2人
   int _playerCount = 2;
 
@@ -29,17 +30,20 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 多言語対応の文字列にアクセスするためのインスタンス
+    final localizations = AppLocalizations.of(context)!; // ★追加★
+
     return Scaffold(
-      appBar: AppBar(title: const Text('プレイヤー人数を選択')),
+      appBar: AppBar(title: Text(localizations.playerCountSelection)), // ★修正★
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(30.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Text(
-                'ゲームに参加する人数を選択してください (2人〜6人)',
-                style: TextStyle(fontSize: 18),
+              Text(
+                localizations.selectPlayerCountPrompt, // ★修正★
+                style: const TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -68,7 +72,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                       ),
                       textStyle: const TextStyle(fontSize: 20),
                     ),
-                    child: Text('$count 人'),
+                    child: Text(localizations.players(count)), // ★修正★
                   );
                 }),
               ),
@@ -82,7 +86,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                   ),
                   textStyle: const TextStyle(fontSize: 20),
                 ),
-                child: const Text('ゲーム開始'),
+                child: Text(localizations.gameStart), // ★修正★
               ),
             ],
           ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/l10n/app_localizations.dart';
 import 'player_selection_screen.dart'; // オフラインモード
 import 'online_game_lobby_screen.dart'; // オンラインモード
+
+// 多言語対応のために追加
 
 class TopScreen extends StatefulWidget {
   const TopScreen({super.key});
@@ -38,9 +41,10 @@ class _TopScreenState extends State<TopScreen>
 
   @override
   Widget build(BuildContext context) {
+    // 多言語対応の文字列にアクセスするためのインスタンス
+    final localizations = AppLocalizations.of(context)!; // ★追加★
+
     return Scaffold(
-      // 背景画像は削除されたため、Scaffoldのbodyが直接Columnの子になります。
-      // appBarは引き続き不要と判断し、タイトルはbody内で大きく表示します。
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -49,15 +53,14 @@ class _TopScreenState extends State<TopScreen>
             Padding(
               padding: const EdgeInsets.only(bottom: 50.0),
               child: Text(
-                'ナンジャモンジャ', // タイトルテキスト
+                localizations.appTitle, // ★修正★
                 style: TextStyle(
-                  fontSize: 48, // 大きなフォントサイズ
+                  fontSize: 48,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor, // テーマのプライマリーカラーを使用
+                  color: Theme.of(context).primaryColor,
                   shadows: [
-                    // テキストに影をつけて目立たせる
                     Shadow(
-                      offset: Offset(2.0, 2.0),
+                      offset: const Offset(2.0, 2.0),
                       blurRadius: 4.0,
                       color: Colors.black.withOpacity(0.3),
                     ),
@@ -87,12 +90,11 @@ class _TopScreenState extends State<TopScreen>
                       ),
                       textStyle: const TextStyle(fontSize: 22),
                       shape: RoundedRectangleBorder(
-                        // ボタンの角を丸く
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      elevation: 8, // 影を強めに
+                      elevation: 8,
                     ),
-                    child: const Text('オンラインで遊ぶ'),
+                    child: Text(localizations.playOnline), // ★修正★
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
@@ -111,12 +113,11 @@ class _TopScreenState extends State<TopScreen>
                       ),
                       textStyle: const TextStyle(fontSize: 22),
                       shape: RoundedRectangleBorder(
-                        // ボタンの角を丸く
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      elevation: 8, // 影を強めに
+                      elevation: 8,
                     ),
-                    child: const Text('オフラインで遊ぶ'),
+                    child: Text(localizations.playOffline), // ★修正★
                   ),
                 ],
               ),

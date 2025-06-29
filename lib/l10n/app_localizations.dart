@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'{winnerText} Tie!'**
   String tie(Object winnerText);
 
+  /// No description provided for @andSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get andSeparator;
+
   /// No description provided for @finalScore.
   ///
   /// In en, this message translates to:
@@ -457,6 +463,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get unknown;
+
+  /// No description provided for @you.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get you;
+
+  /// No description provided for @player.
+  ///
+  /// In en, this message translates to:
+  /// **'Player {playerNum}'**
+  String player(Object playerNum);
+
+  /// No description provided for @leadingPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'{playerAlias} is leading with {score} points!'**
+  String leadingPlayer(Object playerAlias, Object score);
+
+  /// No description provided for @tieLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{players} are tied for the lead with {score} points!'**
+  String tieLead(Object players, Object score);
 }
 
 class _AppLocalizationsDelegate

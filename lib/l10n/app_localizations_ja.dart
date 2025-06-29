@@ -123,6 +123,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get andSeparator => ' と ';
+
+  @override
   String get finalScore => '-- 最終スコア --';
 
   @override
@@ -210,4 +213,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get unknown => '不明';
+
+  @override
+  String get you => 'あなた';
+
+  @override
+  String player(Object playerNum) {
+    return 'プレイヤー$playerNum';
+  }
+
+  @override
+  String leadingPlayer(Object playerAlias, Object score) {
+    return '$playerAliasが$score点でリードしています！';
+  }
+
+  @override
+  String tieLead(Object players, Object score) {
+    return '$playersが$score点で同点リード中！激戦です！';
+  }
 }
