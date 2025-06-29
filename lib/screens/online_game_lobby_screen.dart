@@ -73,10 +73,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     final List<XFile> images = await _picker.pickMultiImage();
     if (images.isEmpty) return;
 
-    // ★画像枚数制限のチェック (12枚まで)★
+    // 画像枚数制限のチェック (12枚まで)
     if (images.length > 12) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("too many image")), // 新しいローカライズキーが必要
+        SnackBar(content: Text(localizations.tooManyImages(12))), // ローカライズキーを使用
       );
       return;
     }
@@ -99,13 +99,15 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             );
             continue;
           }
-          // ★Webでの画像サイズ制限チェック★
+          // Webでの画像サイズ制限チェック
           if (bytes.length > _maxImageSizeBytes) {
             debugPrint(
               'Web upload: Image ${imageFile.name} is too large (${bytes.length} bytes). Skipping.',
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Image is too large")), // 新しいローカライズキーが必要
+              SnackBar(
+                content: Text(localizations.imageTooLarge(imageFile.name)),
+              ), // ローカライズキーを使用
             );
             continue; // この画像はスキップ
           }
@@ -124,15 +126,15 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       for (int i = 0; i < images.length; i++) {
         final XFile image = images[i];
 
-        // ★モバイルでの画像サイズ制限チェック★
+        // モバイルでの画像サイズ制限チェック
         // kIsWebでなければFileのlengthを確認
         if (!kIsWeb && await image.length() > _maxImageSizeBytes) {
           debugPrint(
             'Mobile upload: Image ${image.name} is too large (${await image.length()} bytes). Skipping.',
           );
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Image is large")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(localizations.imageTooLarge(image.name))),
+          ); // ローカライズキーを使用
           continue; // この画像はスキップ
         }
 
@@ -144,6 +146,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
         UploadTask uploadTask;
         if (kIsWeb) {
+          // imageBytesList[uploadedCount] は、アップロード済み枚数ではなく、
+          // 選択された images リストと imageBytesList のインデックスi を使うべき
+          // ただし、continue でスキップされた画像がある場合、imageBytesList のインデックスと images のインデックスがずれる
+          // そのため、uploadedCount を使って imageBytesList の正しい要素を参照するロジックに変更
           uploadTask = ref.putData(
             imageBytesList[uploadedCount],
           ); // 事前に読み込んだバイトデータを使用
@@ -163,14 +169,26 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       setState(() {
         _isUploading = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('全ての画像のアップロードに成功しました！')));
+      if (uploadedCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.uploadSuccessWithCount(uploadedCount)),
+          ),
+        ); // ローカライズキーを使用
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.noImagesUploaded),
+          ), // ローカライズキーを使用
+        );
+      }
     } catch (e) {
       debugPrint('画像のアップロードに失敗しました: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizations.uploadFailed(e.toString()))),
-      ); // ★修正★
+        SnackBar(
+          content: Text(localizations.uploadFailed(e.toString())),
+        ), // ローカライズキーを使用
+      );
       setState(() {
         _isUploading = false;
       });
@@ -181,7 +199,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 画像がアップロードされていない場合は、デフォルトの画像パスを使用します。
   /// ユーザーがカスタム画像をアップロードした場合は、12枚以上の画像が必要となります。
   Future<void> _createRoom() async {
-    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+    final localizations = AppLocalizations.of(context)!;
 
     final String roomId = _uuid.v4().substring(0, 6).toUpperCase();
 
@@ -189,7 +207,9 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     if (_uploadedImageUrls.isNotEmpty) {
       if (_uploadedImageUrls.length < 12) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('カスタム画像を使用する場合、12枚以上の画像をアップロードしてください。')),
+          SnackBar(
+            content: Text(localizations.customImagesMin(12)),
+          ), // ローカライズキーを使用
         );
         return;
       }
@@ -217,12 +237,15 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         'characterNames': {},
         'playerOrder': [],
         'currentPlayerIndex': 0,
+        'readyPlayerIds': [],
       });
       _joinRoom(roomId);
     } catch (e) {
       debugPrint('ルームの作成に失敗しました: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('create room failed: ${e.toString()}')),
+        SnackBar(
+          content: Text(localizations.errorCreatingRoom(e.toString())),
+        ), // ローカライズキーを使用
       );
     }
   }
@@ -230,7 +253,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 既存のルームに合言葉で参加します。
   /// ルームが存在し、かつ満員でない場合にのみ参加を許可します。
   Future<void> _joinRoom(String roomId) async {
-    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+    final localizations = AppLocalizations.of(context)!;
 
     DocumentReference roomRef = _firestore.collection('rooms').doc(roomId);
 
@@ -239,7 +262,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         DocumentSnapshot freshSnap = await transaction.get(roomRef);
 
         if (!freshSnap.exists) {
-          throw Exception('room not found');
+          throw Exception(localizations.roomNotFoundForPasscode); // ローカライズキーを使用
         }
 
         Map<String, dynamic> roomData =
@@ -247,10 +270,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         List<dynamic> players = roomData['players'] ?? [];
 
         if (players.length >= 6) {
-          throw Exception(localizations.roomFull); // ★修正★
+          throw Exception(localizations.roomFull);
         }
         if (roomData['status'] == 'playing') {
-          throw Exception(localizations.roomInGame); // ★修正★
+          throw Exception(localizations.roomInGame);
         }
 
         final String myPlayerId = 'player_${_uuid.v4().substring(0, 8)}';
@@ -279,7 +302,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(localizations.errorJoiningRoom(e.toString())),
-        ), // ★修正★
+        ), // ローカライズキーを使用
       );
     }
   }

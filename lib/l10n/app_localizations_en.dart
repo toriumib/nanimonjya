@@ -231,4 +231,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String tieLead(Object players, Object score) {
     return '$players are tied for the lead with $score points!';
   }
+
+  @override
+  String get tellOthersRoomId => 'Tell this Room ID to other players.';
+
+  @override
+  String tooManyImages(Object count) {
+    return 'You can upload up to $count images.';
+  }
+
+  @override
+  String imageTooLarge(Object imageName) {
+    return 'Image \'$imageName\' is too large (max 5MB).';
+  }
+
+  @override
+  String uploadSuccessWithCount(Object count) {
+    return 'Uploaded $count image(s) successfully!';
+  }
+
+  @override
+  String get noImagesUploaded => 'No images were uploaded.';
+
+  @override
+  String customImagesMin(Object count) {
+    return 'When using custom images, at least $count images are required.';
+  }
+
+  @override
+  String errorCreatingRoom(Object error) {
+    return 'Failed to create room: $error';
+  }
+
+  @override
+  String get roomNotFoundForPasscode =>
+      'Room not found for the given passcode.';
 }

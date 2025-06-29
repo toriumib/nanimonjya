@@ -7,37 +7,48 @@ const { VertexAI } = require('@google-cloud/vertexai');
 
 // Vertex AI の初期化
 const projectId = 'nanimonjya'; // ★あなたのプロジェクトIDに置き換えてください★
-const location = 'us-central1'; // ★Vertex AIが利用可能なリージョンを選択してください★ (例: us-central1, asia-northeast1など)
+const location = 'us-central1'; // ★Vertex AIが利用可能なリージョンを選択してください★
 const vertex_ai = new VertexAI({ project: projectId, location: location });
 
 // Gemini Pro モデルの初期化 (テキスト生成用)
-const model = 'gemini-2.0-flash-lite-001'
-const generativeModel = vertex_ai.preview.getGenerativeModel({ // ★修正された行★
+const model = 'gemini-2.0-flash-lite-001';
+const generativeModel = vertex_ai.preview.getGenerativeModel({
     model: model,
 });
 
 
-// ルームのプレイヤー数が揃ったときにゲームを開始する例
+// ルームのプレイヤー数が揃い、全員が準備完了したらゲームを開始する
 exports.startGameOnPlayerCount = functions.firestore
     .document('rooms/{roomId}')
     .onUpdate(async (change, context) => {
         const newData = change.after.data();
-        const previousData = change.before.data();
+        const previousData = change.before.data(); // 以前のデータも引き続き比較に使う
 
-        // 状態がwaitingで、プレイヤー数が変化し、かつゲーム開始に必要な人数に達した場合
+        const roomId = context.params.roomId;
+
+        // ゲーム開始条件をチェック
+        // 1. ルームが 'waiting' ステータスであること
+        // 2. まだゲームが始まっていないこと
+        // 3. プレイヤーが2人以上いること
+        // 4. 全ての参加プレイヤーが readyPlayerIds に含まれていること (全員が準備完了)
         if (newData.status === 'waiting' &&
-            newData.players && newData.players.length !== (previousData.players ? previousData.players.length : 0) && // players配列の長さで変化を検知
-            newData.players.length >= 2 && // 例えば2人以上で開始
-            !newData.gameStarted) {
+            !newData.gameStarted &&
+            newData.players && newData.players.length >= 2 && // 最低2人
+            newData.readyPlayerIds && newData.readyPlayerIds.length === newData.players.length && // 全員準備完了
+            // readyPlayerIds の数が変化したとき、または players の数が変化したときにトリガー
+            (newData.readyPlayerIds.length !== (previousData.readyPlayerIds ? previousData.readyPlayerIds.length : 0) ||
+             newData.players.length !== (previousData.players ? previousData.players.length : 0))
+            ) {
 
-            const roomId = context.params.roomId;
+            // ゲーム開始に必要な画像が12枚あるかチェック
             const imageUrls = newData.imageUrls;
-
             if (!imageUrls || imageUrls.length < 12) {
-                console.log(`Room ${roomId} does not have enough images.`);
+                console.log(`Room ${roomId} does not have enough images (${imageUrls ? imageUrls.length : 0}/12). Game cannot start.`);
+                // 必要に応じてクライアントにエラー通知する処理を追加
                 return null;
             }
 
+            // デッキを生成してシャッフル (既存ロジック)
             let fullDeck = [];
             for (let url of imageUrls) {
                 for (let i = 0; i < 5; i++) {
@@ -53,17 +64,18 @@ exports.startGameOnPlayerCount = functions.firestore
             }
             fullDeck = shuffleArray(fullDeck);
 
+            // プレイヤーの初期スコアを決定 (既存ロジック)
             const initialScores = {};
             newData.players.forEach(playerId => {
                 initialScores[playerId] = 0;
             });
 
-            // プレイヤーの順番をシャッフルして設定
-            const playerIdsForOrder = [...newData.players]; // コピーを作成
-            const shuffledPlayerOrder = shuffleArray(playerIdsForOrder); // シャッフル
+            // プレイヤーの順番をシャッフルして設定 (既存ロジック)
+            const playerIdsForOrder = [...newData.players];
+            const shuffledPlayerOrder = shuffleArray(playerIdsForOrder);
 
             await firestore.collection('rooms').doc(roomId).update({
-                status: 'playing',
+                status: 'playing', // ステータスを「プレイ中」に
                 deck: fullDeck,
                 scores: initialScores,
                 fieldCards: [],
@@ -73,16 +85,15 @@ exports.startGameOnPlayerCount = functions.firestore
                 isFirstAppearance: true,
                 canSelectPlayer: false,
                 turnCount: 0,
-                gameStarted: true,
+                gameStarted: true, // ゲームが開始されたことを示すフラグ
                 playerOrder: shuffledPlayerOrder, // プレイヤーの順番を保存
                 currentPlayerIndex: 0, // 最初のプレイヤーのインデックス
-                playersAttemptedCurrentCard: {}, // ★追加: 現在のカードで回答済みのプレイヤーを記録★
-
-                
+                playersAttemptedCurrentCard: {}, // 現在のカードで回答済みのプレイヤーを記録
+                readyPlayerIds: [], // ゲーム開始時に準備完了状態をリセット
             });
             console.log(`Game started for room: ${roomId}`);
 
-            // 最初のカードをめくる処理をトリガー
+            // 最初のカードをめくる処理をトリガー (既存ロジック)
             await firestore.runTransaction(async (transaction) => {
                 const roomDoc = await transaction.get(firestore.collection('rooms').doc(roomId));
                 let currentDeck = roomDoc.data().deck;
@@ -98,7 +109,9 @@ exports.startGameOnPlayerCount = functions.firestore
                     });
                 }
             });
+            return null;
         }
+        console.log(`Room ${roomId}: Not all conditions met for game start. Current players: ${newData.players ? newData.players.length : 0}, Ready: ${newData.readyPlayerIds ? newData.readyPlayerIds.length : 0}.`);
         return null;
     });
 
@@ -135,7 +148,7 @@ exports.generateSimilarNames = functions.https.onCall(async (data, context) => {
     const scriptType = data.scriptType;
     const numToGenerate = data.numToGenerate || 4;
 
-    console.log(`[generateSimilarNames] Function started. Original: ${originalName}, Script: ${scriptType}, Num: ${numToGenerate}`); // ★追加★
+    console.log(`[generateSimilarNames] Function started. Original: ${originalName}, Script: ${scriptType}, Num: ${numToGenerate}`);
 
     if (!originalName || typeof originalName !== 'string') {
         throw new functions.https.HttpsError('invalid-argument', 'originalName (string) is required.');
@@ -146,7 +159,6 @@ exports.generateSimilarNames = functions.https.onCall(async (data, context) => {
 
     try {
         let prompt;
-        // プロンプトエンジニアリングで文字種を指示し、結果をカンマ区切りで要求する
         if (scriptType === 'hiragana') {
             prompt = `「${originalName}」というひらがなの名前を基に、似た響きや雰囲気を持つひらがなの名前を${numToGenerate}個生成してください。結果はカンマ区切りで、余計な説明や箇条書きマークは含めないでください。例: 名前A,名前B,名前C`;
         } else if (scriptType === 'kanji') {
@@ -160,7 +172,7 @@ exports.generateSimilarNames = functions.https.onCall(async (data, context) => {
             prompt = `「${originalName}」という名前を基に、似た響きや雰囲気を持つ名前を${numToGenerate}個生成してください。結果はカンマ区切りで、余計な説明や箇条書きマークは含めないでください。例: 名前A,名前B,名前C`;
         }
 
-        console.log(`[generateSimilarNames] Prompt: ${prompt}`); // ★追加★
+        console.log(`[generateSimilarNames] Prompt: ${prompt}`);
 
         const request = {
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -169,40 +181,37 @@ exports.generateSimilarNames = functions.https.onCall(async (data, context) => {
         const result = await generativeModel.generateContent(request);
         const response = result.response;
         const generatedText = response.candidates[0].content.parts[0].text;
-        console.log(`[generateSimilarNames] Raw response from Gemini: ${generatedText}`); // ★追加★
+        console.log(`[generateSimilarNames] Raw response from Gemini: ${generatedText}`);
 
         let generatedNames = generatedText
             .split(',')
             .map(name => name.trim())
-            .filter(name => name.length > 0 && name.length <= 8 && name !== originalName); // 空でない、8文字以内、元の名前と異なるものだけフィルター
+            .filter(name => name.length > 0 && name.length <= 8 && name !== originalName);
         
-        console.log(`[generateSimilarNames] Parsed names before fallback: ${generatedNames}`); // ★追加★
+        console.log(`[generateSimilarNames] Parsed names before fallback: ${generatedNames}`);
 
-        // 期待する数に満たない場合は、フォールバックとして適当な名前を追加する
-        // AIの生成が完璧でないことを考慮し、ユニークなダミー名を追加
-        const fallbackNames = ['モコ', 'ピコ', 'フワ', 'ギザ', 'ポム', 'クルル', 'ニャー', 'ハニャ', 'ワンダー', 'ミラクル']; // ダミー名リスト
+        const fallbackNames = ['モコ', 'ピコ', 'フワ', 'ギザ', 'ポム', 'クルル', 'ニャー', 'ハニャ', 'ワンダー', 'ミラクル'];
         let fallbackIndex = 0;
         while (generatedNames.length < numToGenerate) {
             const dummyName = fallbackNames[fallbackIndex % fallbackNames.length];
-            if (!generatedNames.includes(dummyName)) { // 重複しないように
+            if (!generatedNames.includes(dummyName)) {
                 generatedNames.push(dummyName);
             }
             fallbackIndex++;
-            if (fallbackIndex > fallbackNames.length * 2) { // 無限ループ防止
+            if (fallbackIndex > fallbackNames.length * 2) {
                 break;
             }
         }
 
-        // 期待する数よりも多い場合は切り詰める
         if (generatedNames.length > numToGenerate) {
             generatedNames = generatedNames.slice(0, numToGenerate);
         }
 
-        console.log(`[generateSimilarNames] Final names to return: ${generatedNames}`); // ★追加★
+        console.log(`[generateSimilarNames] Final names to return: ${generatedNames}`);
         return { similarNames: generatedNames };
 
     } catch (error) {
-        console.error('[generateSimilarNames] Error in try block:', error); // ★既存のエラーログを強化★
+        console.error('[generateSimilarNames] Error in try block:', error);
         throw new functions.https.HttpsError('internal', '名前の生成に失敗しました。', error.message);
     }
 });

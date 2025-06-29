@@ -1,7 +1,8 @@
 [
     {
       "origin": ["https://nanimonjya.web.app"], 
-      "method": ["GET"],
-      "maxAgeSeconds": 3600
+      "method": ["GET", "PUT", "POST"], 
+      "maxAgeSeconds": 3600,
+      "responseHeader": ["Content-Type", "x-firebase-storage-download-tokens"] 
     }
   ]

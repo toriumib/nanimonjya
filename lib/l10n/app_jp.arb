@@ -59,5 +59,13 @@
   "you": "あなた",
   "player": "プレイヤー{playerNum}",
   "leadingPlayer": "{playerAlias}が{score}点でリードしています！",
-  "tieLead": "{players}が{score}点で同点リード中！激戦です！"
+  "tieLead": "{players}が{score}点で同点リード中！激戦です！",
+  "tellOthersRoomId": "このルームIDを他のプレイヤーに教えてください。", 
+  "tooManyImages": "画像を{count}枚までしかアップロードできません。", 
+  "imageTooLarge": "画像「{imageName}」は大きすぎます (最大5MB)。", 
+  "uploadSuccessWithCount": "{count}枚の画像を正常にアップロードしました！", 
+  "noImagesUploaded": "画像がアップロードされませんでした。", 
+  "customImagesMin": "カスタム画像を使用する場合、最低{count}枚の画像が必要です。", 
+  "errorCreatingRoom": "ルームの作成に失敗しました: {error}", 
+  "roomNotFoundForPasscode": "指定された合言葉のルームが見つかりません。" 
 }

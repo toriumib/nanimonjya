@@ -487,6 +487,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{players} are tied for the lead with {score} points!'**
   String tieLead(Object players, Object score);
+
+  /// No description provided for @tellOthersRoomId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell this Room ID to other players.'**
+  String get tellOthersRoomId;
+
+  /// No description provided for @tooManyImages.
+  ///
+  /// In en, this message translates to:
+  /// **'You can upload up to {count} images.'**
+  String tooManyImages(Object count);
+
+  /// No description provided for @imageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Image \'{imageName}\' is too large (max 5MB).'**
+  String imageTooLarge(Object imageName);
+
+  /// No description provided for @uploadSuccessWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded {count} image(s) successfully!'**
+  String uploadSuccessWithCount(Object count);
+
+  /// No description provided for @noImagesUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No images were uploaded.'**
+  String get noImagesUploaded;
+
+  /// No description provided for @customImagesMin.
+  ///
+  /// In en, this message translates to:
+  /// **'When using custom images, at least {count} images are required.'**
+  String customImagesMin(Object count);
+
+  /// No description provided for @errorCreatingRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create room: {error}'**
+  String errorCreatingRoom(Object error);
+
+  /// No description provided for @roomNotFoundForPasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Room not found for the given passcode.'**
+  String get roomNotFoundForPasscode;
 }
 
 class _AppLocalizationsDelegate
