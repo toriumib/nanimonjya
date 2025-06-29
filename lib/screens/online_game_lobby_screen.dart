@@ -11,7 +11,7 @@ import 'package:just_audio/just_audio.dart';
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
+import 'package:untitled/l10n/app_localizations.dart';
 
 class OnlineGameLobbyScreen extends StatefulWidget {
   const OnlineGameLobbyScreen({super.key});
@@ -36,6 +36,9 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   List<String> _uploadedImageUrls = [];
   bool _isUploading = false;
   bool _isVoiceMode = false; // デフォルトをテキストモード (false) に変更
+
+  // 画像の最大サイズ (5MB)
+  static const int _maxImageSizeBytes = 5 * 1024 * 1024;
 
   @override
   void initState() {
@@ -65,15 +68,74 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 画像をFirebase Storageにアップロードする機能
   /// ギャラリーから複数画像を選択し、Storageに保存し、そのURLを状態に保持します。
   Future<void> _uploadImage() async {
+    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+
     final List<XFile> images = await _picker.pickMultiImage();
     if (images.isEmpty) return;
+
+    // ★画像枚数制限のチェック (12枚まで)★
+    if (images.length > 12) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("too many image")), // 新しいローカライズキーが必要
+      );
+      return;
+    }
 
     setState(() {
       _isUploading = true;
     });
 
+    int uploadedCount = 0; // 実際にアップロードされた枚数
+
     try {
-      for (final XFile image in images) {
+      // Webの場合、全てのバイトデータを事前に読み込む
+      List<Uint8List> imageBytesList = [];
+      if (kIsWeb) {
+        for (final XFile imageFile in images) {
+          final Uint8List? bytes = await imageFile.readAsBytes();
+          if (bytes == null) {
+            debugPrint(
+              'Web upload: Failed to read image bytes for ${imageFile.name}. Skipping.',
+            );
+            continue;
+          }
+          // ★Webでの画像サイズ制限チェック★
+          if (bytes.length > _maxImageSizeBytes) {
+            debugPrint(
+              'Web upload: Image ${imageFile.name} is too large (${bytes.length} bytes). Skipping.',
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Image is too large")), // 新しいローカライズキーが必要
+            );
+            continue; // この画像はスキップ
+          }
+          imageBytesList.add(bytes);
+        }
+        if (imageBytesList.isEmpty && images.isNotEmpty) {
+          // 少なくとも1枚は選択したが、全て読み込みに失敗した場合
+          throw Exception(
+            'Failed to read any valid image bytes for upload on web.',
+          );
+        }
+      }
+
+      // 選択された各画像をループでアップロード
+      // Webとモバイルでループ対象が変わる
+      for (int i = 0; i < images.length; i++) {
+        final XFile image = images[i];
+
+        // ★モバイルでの画像サイズ制限チェック★
+        // kIsWebでなければFileのlengthを確認
+        if (!kIsWeb && await image.length() > _maxImageSizeBytes) {
+          debugPrint(
+            'Mobile upload: Image ${image.name} is too large (${await image.length()} bytes). Skipping.',
+          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Image is large")));
+          continue; // この画像はスキップ
+        }
+
         final String fileName = '${_uuid.v4()}.jpg';
         final Reference ref = _storage
             .ref()
@@ -82,14 +144,9 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
         UploadTask uploadTask;
         if (kIsWeb) {
-          final Uint8List? bytes = await image.readAsBytes();
-          if (bytes == null) {
-            debugPrint(
-              'Web upload: Failed to read image bytes for ${image.name}. Skipping.',
-            );
-            continue;
-          }
-          uploadTask = ref.putData(bytes);
+          uploadTask = ref.putData(
+            imageBytesList[uploadedCount],
+          ); // 事前に読み込んだバイトデータを使用
         } else {
           uploadTask = ref.putFile(File(image.path));
         }
@@ -98,8 +155,9 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         final String downloadUrl = await snapshot.ref.getDownloadURL();
 
         setState(() {
-          _uploadedImageUrls.add(downloadUrl);
+          _uploadedImageUrls.add(downloadUrl); // アップロード成功したURLを追加
         });
+        uploadedCount++; // 実際にアップロードできた枚数をカウント
       }
 
       setState(() {
@@ -111,8 +169,8 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     } catch (e) {
       debugPrint('画像のアップロードに失敗しました: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('画像のアップロードに失敗しました: ${e.toString()}')),
-      );
+        SnackBar(content: Text(localizations.uploadFailed(e.toString()))),
+      ); // ★修正★
       setState(() {
         _isUploading = false;
       });
@@ -123,6 +181,8 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 画像がアップロードされていない場合は、デフォルトの画像パスを使用します。
   /// ユーザーがカスタム画像をアップロードした場合は、12枚以上の画像が必要となります。
   Future<void> _createRoom() async {
+    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+
     final String roomId = _uuid.v4().substring(0, 6).toUpperCase();
 
     List<String> finalImageUrls;
@@ -161,15 +221,17 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       _joinRoom(roomId);
     } catch (e) {
       debugPrint('ルームの作成に失敗しました: ${e.toString()}');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('ルームの作成に失敗しました: ${e.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('create room failed: ${e.toString()}')),
+      );
     }
   }
 
   /// 既存のルームに合言葉で参加します。
   /// ルームが存在し、かつ満員でない場合にのみ参加を許可します。
   Future<void> _joinRoom(String roomId) async {
+    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+
     DocumentReference roomRef = _firestore.collection('rooms').doc(roomId);
 
     try {
@@ -177,7 +239,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         DocumentSnapshot freshSnap = await transaction.get(roomRef);
 
         if (!freshSnap.exists) {
-          throw Exception('指定された合言葉のルームが見つかりません。');
+          throw Exception('room not found');
         }
 
         Map<String, dynamic> roomData =
@@ -185,10 +247,10 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         List<dynamic> players = roomData['players'] ?? [];
 
         if (players.length >= 6) {
-          throw Exception('このルームは満員です。');
+          throw Exception(localizations.roomFull); // ★修正★
         }
         if (roomData['status'] == 'playing') {
-          throw Exception('このルームは既にゲーム中です。');
+          throw Exception(localizations.roomInGame); // ★修正★
         }
 
         final String myPlayerId = 'player_${_uuid.v4().substring(0, 8)}';
@@ -215,17 +277,19 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ルームへの参加に失敗しました: ${e.toString()}')),
+        SnackBar(
+          content: Text(localizations.errorJoiningRoom(e.toString())),
+        ), // ★修正★
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.roomLobby)), // ★修正★
+      appBar: AppBar(title: Text(localizations.roomLobby)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -235,7 +299,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(localizations.textMode), // ★修正★
+                Text(localizations.textMode),
                 Switch(
                   value: _isVoiceMode,
                   onChanged: (bool newValue) {
@@ -244,13 +308,13 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                     });
                   },
                 ),
-                Text(localizations.voiceMode), // ★修正★
+                Text(localizations.voiceMode),
               ],
             ),
             const SizedBox(height: 20),
 
             Text(
-              localizations.uploadImagesPrompt, // ★修正★
+              localizations.uploadImagesPrompt,
               style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -271,16 +335,14 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                 _isUploading
                     ? localizations.uploading
                     : localizations.uploadImage,
-              ), // ★修正★
+              ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              localizations.uploadedImagesCount(
-                _uploadedImageUrls.length,
-              ), // ★修正★
+              localizations.uploadedImagesCount(_uploadedImageUrls.length),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
@@ -313,12 +375,12 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                 textStyle: const TextStyle(fontSize: 18),
                 backgroundColor: Colors.green,
               ),
-              child: Text(localizations.createRoom), // ★修正★
+              child: Text(localizations.createRoom),
             ),
             const SizedBox(height: 40),
 
             Text(
-              localizations.joinExistingRoom, // ★修正★
+              localizations.joinExistingRoom,
               style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -326,7 +388,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             TextField(
               controller: _roomIdController,
               decoration: InputDecoration(
-                labelText: localizations.enterPasscode, // ★修正★
+                labelText: localizations.enterPasscode,
                 border: const OutlineInputBorder(),
                 hintText: '例: ABCDEF',
               ),
@@ -341,7 +403,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: Text(localizations.joinRoom), // ★修正★
+              child: Text(localizations.joinRoom),
             ),
           ],
         ),
