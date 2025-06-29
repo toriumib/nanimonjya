@@ -13,7 +13,7 @@ import 'dart:convert'; // Base64デコードのために必要
 import 'package:flutter/services.dart';
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
+import 'package:untitled/l10n/app_localizations.dart';
 
 class OnlineGameScreen extends StatefulWidget {
   final String roomId;
@@ -58,6 +58,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   int _currentPlayerIndex = 0; // 現在名前をつけるプレイヤーのインデックス
   Map<String, bool> _playersAttemptedCurrentCard = {}; // 現在のカードで回答済みのプレイヤーを記録
 
+  // ★追加: 表示遅延制御用のタイムスタンプ★
+  DateTime? _displayDelayCompleteTimestamp;
+
   @override
   void initState() {
     super.initState();
@@ -87,8 +90,59 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           // ゲーム状態をロード
           _loadGameState(roomData);
 
+          // ★表示遅延後のカード遷移を制御するロジック★
+          if (_displayDelayCompleteTimestamp != null) {
+            final now = DateTime.now().toUtc();
+            final expectedCompletionTime = _displayDelayCompleteTimestamp!.add(
+              const Duration(seconds: 2),
+            ); // 2秒の表示遅延
+
+            if (now.isAfter(expectedCompletionTime)) {
+              // 遅延時間が経過していれば、次のカードへ進める (現在の行動プレイヤーのみがトリガー)
+              final String? currentNamerId =
+                  (_playerOrder.isNotEmpty &&
+                      _currentPlayerIndex >= 0 &&
+                      _currentPlayerIndex < _playerOrder.length)
+                  ? _playerOrder[_currentPlayerIndex]
+                  : null;
+
+              // canSelectPlayer が false になっており、かつ自分がお手つき/回答したプレイヤーであれば、自分が次のカードをめくる責任を持つ
+              if (!_canSelectPlayer &&
+                  (currentNamerId == widget.myPlayerId ||
+                      _playersAttemptedCurrentCard.containsKey(
+                            widget.myPlayerId,
+                          ) &&
+                          _playersAttemptedCurrentCard[widget.myPlayerId] ==
+                              true)) {
+                _advanceCardAfterDelay();
+              }
+            } else {
+              // まだ遅延時間中の場合、残りの時間だけ待機
+              final remainingDuration = expectedCompletionTime.difference(now);
+              Future.delayed(remainingDuration, () {
+                if (mounted) {
+                  // Widgetがまだマウントされているか確認
+                  final String? currentNamerId =
+                      (_playerOrder.isNotEmpty &&
+                          _currentPlayerIndex >= 0 &&
+                          _currentPlayerIndex < _playerOrder.length)
+                      ? _playerOrder[_currentPlayerIndex]
+                      : null;
+                  if (!_canSelectPlayer &&
+                      (currentNamerId == widget.myPlayerId ||
+                          _playersAttemptedCurrentCard.containsKey(
+                                widget.myPlayerId,
+                              ) &&
+                              _playersAttemptedCurrentCard[widget.myPlayerId] ==
+                                  true)) {
+                    _advanceCardAfterDelay();
+                  }
+                }
+              });
+            }
+          }
+
           // テキストモードで、カードが既出になったタイミングで選択肢を生成
-          // かつ、まだ選択肢が生成されておらず、AI生成中でない場合
           if (!widget.isVoiceMode &&
               !_isFirstAppearance &&
               _canSelectPlayer &&
@@ -99,24 +153,41 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             _generateAndShowChoices(_characterNames[_currentImagePath!]!);
           }
         } else {
-          // ドキュメントが存在しない（削除されたなど）場合の処理
           debugPrint('Room document does not exist.');
-          // 例: Navigator.pop(context); などでロビーに戻す処理
         }
       },
       onError: (error) {
-        // Stream.listen のエラーハンドリング
         debugPrint('Stream Listener Error: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('オンラインゲーム中にエラーが発生しました: ${error.toString()}')),
         );
       },
       onDone: () {
-        // ストリームが終了した場合のコールバック（オプション）
         debugPrint('Stream is done.');
       },
-      cancelOnError: false, // エラーが発生してもストリームをキャンセルしない
+      cancelOnError: false,
     );
+  }
+
+  // ★追加: 遅延後に次のカードへ進めるメソッド★
+  Future<void> _advanceCardAfterDelay() async {
+    final roomRef = _firestore.collection('rooms').doc(widget.roomId);
+    await _firestore.runTransaction((transaction) async {
+      final roomSnap = await transaction.get(roomRef);
+      final roomData = roomSnap.data() as Map<String, dynamic>;
+
+      // すでに次のカードへ進んでいる場合は何もしない
+      if (roomData['displayDelayCompleteTimestamp'] == null) {
+        return;
+      }
+
+      transaction.update(roomRef, {
+        'displayDelayCompleteTimestamp': null, // タイムスタンプをリセット
+        'canSelectPlayer': false, // 次のカードへ進むので選択不可に
+      });
+    });
+    // トランザクション完了後に次のカードをめくる
+    _drawNextCardOnline(_firestore.collection('rooms').doc(widget.roomId));
   }
 
   /// ゲームの初期化とプレイヤーの参加処理
@@ -129,7 +200,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     if (roomSnapshot.exists) {
       Map<String, dynamic> data = roomSnapshot.data() as Map<String, dynamic>;
 
-      // ルームに自分のプレイヤーIDが存在しない場合（新規参加など）は追加
       final Map<String, dynamic> initialScoresCheck =
           data['scores'] as Map<String, dynamic>? ?? {};
       if (!initialScoresCheck.containsKey(widget.myPlayerId)) {
@@ -141,13 +211,13 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           Map<String, dynamic> currentScores = Map<String, dynamic>.from(
             roomDataFromTransaction['scores'] as Map<String, dynamic>? ?? {},
           );
-          currentScores[widget.myPlayerId] = 0; // 自分のスコアを0で追加
+          currentScores[widget.myPlayerId] = 0;
 
           List<dynamic> playersList = List.from(
             roomDataFromTransaction['players'] ?? [],
           );
           if (!playersList.contains(widget.myPlayerId)) {
-            playersList.add(widget.myPlayerId); // プレイヤーリストにも追加
+            playersList.add(widget.myPlayerId);
           }
 
           transaction.update(roomRef, {
@@ -157,7 +227,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         });
       }
 
-      // ゲーム状態をロード
       _loadGameState(data);
     }
   }
@@ -169,7 +238,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       DocumentSnapshot currentRoom = await transaction.get(roomRef);
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
-      // 既にゲームが始まっている場合は何もしない
       if (data['status'] == 'playing') {
         return;
       }
@@ -181,40 +249,36 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           fullDeck.add(url);
         }
       }
-      fullDeck.shuffle(_random); // デッキをシャッフル
+      fullDeck.shuffle(_random);
 
-      // 参加しているプレイヤー全員のスコアを初期化（既存スコアをリセット）
       Map<String, dynamic> initialScores = {};
       (data['players'] as List<dynamic>).forEach((playerId) {
-        // playersリストから初期化
         initialScores[playerId] = 0;
       });
 
-      // プレイヤーの順番をシャッフルして設定
       List<String> shuffledPlayerOrder = List<String>.from(
         data['players'] as List<dynamic>,
       )..shuffle(_random);
 
-      // ゲーム状態をFirestoreに更新
       transaction.update(roomRef, {
-        'status': 'playing', // ステータスを「プレイ中」に
+        'status': 'playing',
         'deck': fullDeck,
         'scores': initialScores,
         'fieldCards': [],
         'seenImages': [],
-        'characterNames': {}, // キャラクター名を保存するマップ
+        'characterNames': {},
         'currentCard': null,
         'isFirstAppearance': true,
         'canSelectPlayer': false,
         'turnCount': 0,
         'gameStarted': true,
-        'playerOrder': shuffledPlayerOrder, // プレイヤーの順番を保存
-        'currentPlayerIndex': 0, // 最初のプレイヤーのインデックス
-        'playersAttemptedCurrentCard': {}, // 現在のカードで回答済みのプレイヤーを記録
+        'playerOrder': shuffledPlayerOrder,
+        'currentPlayerIndex': 0,
+        'playersAttemptedCurrentCard': {},
+        'displayDelayCompleteTimestamp': null, // 初期化
       });
     });
 
-    // ゲーム開始後の最初のカードをめくる
     _drawNextCardOnline(roomRef);
   }
 
@@ -229,37 +293,41 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       _seenImages = Set<String>.from(data['seenImages'] ?? []);
       _scores = Map<String, int>.from(data['scores'] ?? {});
 
-      // テキストモード用: キャラクター名をロード
       _characterNames = Map<String, String>.from(data['characterNames'] ?? {});
-      // _nameInputController.clear(); // 名前入力フィールドは常にクリアせず、自分のターンでUIからクリア
-      // 選択肢もクリア（新しいカードがめくられた時やターンが変わった時）
       _choiceNames.clear();
-      _isLoadingChoices = false; // ローディング状態をリセット
+      _isLoadingChoices = false;
 
-      // プレイヤーの順番と現在名前をつけるプレイヤーのインデックスをロード
       _playerOrder = List<String>.from(data['playerOrder'] ?? []);
       _currentPlayerIndex = data['currentPlayerIndex'] as int? ?? 0;
       _playersAttemptedCurrentCard = Map<String, bool>.from(
         data['playersAttemptedCurrentCard'] ?? {},
       );
+
+      // ★ロード処理: displayDelayCompleteTimestamp★
+      final timestampData = data['displayDelayCompleteTimestamp'];
+      if (timestampData is Timestamp) {
+        _displayDelayCompleteTimestamp = timestampData.toDate();
+      } else {
+        _displayDelayCompleteTimestamp = null;
+      }
     });
   }
 
   @override
   void dispose() {
     _adMob.disposeBanner();
-    _audioPlayer.dispose(); // 実況用プレイヤーを解放
-    _bgmPlayer.dispose(); // BGM用プレイヤーを解放
-    _nameInputController.dispose(); // テキスト入力コントローラーの解放
+    _audioPlayer.dispose();
+    _bgmPlayer.dispose();
+    _nameInputController.dispose();
     super.dispose();
   }
 
   // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
-      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
-      _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
-      _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
+      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3');
+      _bgmPlayer.setLoopMode(LoopMode.one);
+      _bgmPlayer.setVolume(0.5);
       _bgmPlayer.play();
     } catch (e) {
       debugPrint("Error loading BGM: $e");
@@ -283,7 +351,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         return;
       }
 
-      // 前のカードが場札にある場合、場札に追加
       if (previousCard != null) {
         fieldCards.add(previousCard);
       }
@@ -291,24 +358,23 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       String nextCard = deck.removeLast();
       turnCount++;
 
-      // この画像が初めて出たかチェック
       bool isFirst = !seenImages.contains(nextCard);
       if (isFirst) {
-        seenImages.add(nextCard); // 初めてなら記録
+        seenImages.add(nextCard);
       }
 
       transaction.update(roomRef, {
         'deck': deck,
         'fieldCards': fieldCards,
-        'seenImages': seenImages.toList(), // Firestoreに保存する際はListに戻す
+        'seenImages': seenImages.toList(),
         'currentCard': nextCard,
         'isFirstAppearance': isFirst,
-        'canSelectPlayer': !isFirst, // 初登場でなければプレイヤー選択可能
+        'canSelectPlayer': !isFirst,
         'turnCount': turnCount,
-        'playersAttemptedCurrentCard': {}, // 新しいカードで回答済みプレイヤーをリセット
+        'playersAttemptedCurrentCard': {},
+        'displayDelayCompleteTimestamp': null, // 次のカードなのでリセット
       });
     });
-    // StreamListener がスコア変更を検知してUIを更新し、必要な実況や選択肢生成をトリガー
   }
 
   /// プレイヤーがポイントを獲得する処理（オンライン版）
@@ -321,7 +387,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
       if (!(data['canSelectPlayer'] as bool? ?? false)) {
-        return; // 既に誰かがポイントを獲得したか、まだ選択できない状態
+        return;
       }
 
       List<dynamic> fieldCards = List<dynamic>.from(data['fieldCards'] ?? []);
@@ -336,15 +402,11 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'fieldCards': [],
         'canSelectPlayer': false, // 正解したので即座に選択不可
         'playersAttemptedCurrentCard': {}, // 正解が出たのでリセット
+        'displayDelayCompleteTimestamp':
+            FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
       });
-
-      // 正解が出た場合は、すぐに次のカードへ進める
-      Future.delayed(
-        const Duration(milliseconds: 800),
-        () => _drawNextCardOnline(roomRef),
-      );
     });
-    // トランザクション外の遅延呼び出しは、トランザクション内の処理が完了してから実行される
+    // _advanceCardAfterDelay によって次のカードへ進む
   }
 
   /// 「わからない」が選択された時の処理（オンライン版）
@@ -354,7 +416,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
       if (!(data['canSelectPlayer'] as bool? ?? false)) {
-        return; // 既に誰かがポイントを獲得したか、まだ選択できない状態
+        return;
       }
 
       Map<String, bool> playersAttempted = Map<String, bool>.from(
@@ -362,21 +424,20 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       );
       List<String> allPlayers = List<String>.from(data['players'] ?? []);
 
-      // 自分をお手つき/スキップ済みとして記録
       playersAttempted[widget.myPlayerId] = true;
 
       // Firestoreを更新
       transaction.update(roomRef, {
-        'playersAttemptedCurrentCard': playersAttempted, // 回答済みプレイヤーを更新
+        'playersAttemptedCurrentCard': playersAttempted,
       });
 
       // 全員がお手つき/スキップ済みになったら次のカードへ進める
       if (playersAttempted.length >= allPlayers.length) {
-        transaction.update(roomRef, {'canSelectPlayer': false}); // 全員回答済みなら選択不可
-        Future.delayed(
-          const Duration(milliseconds: 800),
-          () => _drawNextCardOnline(roomRef),
-        );
+        transaction.update(roomRef, {
+          'canSelectPlayer': false, // 全員回答済みなら選択不可
+          'displayDelayCompleteTimestamp':
+              FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
+        });
       } else {
         // まだ回答していないプレイヤーがいる場合は、カードはそのまま維持
         // canSelectPlayer は true のままなので、他のプレイヤーが引き続き操作できる
@@ -470,12 +531,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
   // テキストモード専用: 名前入力処理
   Future<void> _handleNameSubmission(String name) async {
-    final localizations = AppLocalizations.of(context)!; // ★追加★
+    final localizations = AppLocalizations.of(context)!;
 
     if (name.isEmpty || name.length > 8 || _currentImagePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizations.nameTooLong)), // ★修正★
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(localizations.nameTooLong)));
       return;
     }
     // Firestoreに名前を保存するトランザクション
@@ -496,32 +557,30 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       int currentPlayerIndex = roomData['currentPlayerIndex'] as int? ?? 0;
 
       int nextPlayerIndex = (currentPlayerIndex + 1) % playerOrder.length;
-      // String nextNamerId = playerOrder[nextPlayerIndex]; // Firestoreにはインデックスのみ保存で十分
 
       transaction.update(roomRef, {
         'characterNames': currentNames,
         'currentPlayerIndex': nextPlayerIndex,
+        'canSelectPlayer': false, // 名前をつけた後は選択不可にする
+        'displayDelayCompleteTimestamp':
+            FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
       });
     });
 
     _nameInputController.clear(); // 入力フィールドをクリア
-    // 次のカードへ進む
-    Future.delayed(const Duration(milliseconds: 800), () {
-      _drawNextCardOnline(_firestore.collection('rooms').doc(widget.roomId));
-    });
+    // _advanceCardAfterDelay によって次のカードへ進む
   }
 
   // テキストモード専用: AIによる名前生成と選択肢表示
   Future<void> _generateAndShowChoices(String correctName) async {
-    final localizations = AppLocalizations.of(context)!; // ★追加★
+    final localizations = AppLocalizations.of(context)!;
 
     setState(() {
       _isLoadingChoices = true;
-      _choiceNames.clear(); // 新しい生成前にクリア
+      _choiceNames.clear();
     });
 
     try {
-      // 名前から文字種を推測
       String scriptType = _determineScriptType(correctName);
 
       final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
@@ -530,40 +589,35 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       final HttpsCallableResult result = await callable.call({
         'originalName': correctName,
         'scriptType': scriptType,
-        'numToGenerate': 6, // 6つの似た名前を生成 (合計7択にするため)
+        'numToGenerate': 6,
       });
 
       List<String> generatedNames = List<String>.from(
         result.data['similarNames'] ?? [],
       );
 
-      // 正解の名前とAIが生成した名前を混ぜて選択肢を作成
       List<String> choices = [correctName, ...generatedNames];
-
-      // 同じ名前が複数入らないようにユニークにする
       choices = choices.toSet().toList();
 
-      // 常に7択になるように調整（足りない場合はダミー追加、多すぎる場合は切り詰め）
       final List<String> dummyNames = [
         localizations.unknown,
         localizations.aiError,
         localizations.retry,
-      ]; // ★修正: ダミー名をローカライズ★
+      ];
       int dummyIndex = 0;
       while (choices.length < 7) {
         final String currentDummy = dummyNames[dummyIndex % dummyNames.length];
         if (!choices.contains(currentDummy)) {
-          // 重複を避けて追加
           choices.add(currentDummy);
         }
         dummyIndex++;
-        if (dummyIndex > dummyNames.length * 2) break; // 無限ループ防止
+        if (dummyIndex > dummyNames.length * 2) break;
       }
 
       if (choices.length > 7) {
         choices = choices.sublist(0, 7);
       }
-      choices.shuffle(); // 最後にもう一度シャッフル
+      choices.shuffle();
 
       setState(() {
         _choiceNames = choices;
@@ -573,7 +627,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       debugPrint('AI名前生成エラー: $e');
       setState(() {
         _isLoadingChoices = false;
-        // エラー時はフォールバックとして、正解名といくつかのダミー名を混ぜる
         _choiceNames = [
           correctName,
           localizations.aiError,
@@ -582,7 +635,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           localizations.unknown,
           '?',
           '??',
-        ].toList()..shuffle(); // ★修正: ダミー名をローカライズ★
+        ].toList()..shuffle();
       });
     }
   }
@@ -590,19 +643,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // 文字種を推測する簡易ヘルパー関数 (必要に応じて精密化)
   String _determineScriptType(String text) {
     if (text.contains(RegExp(r'[\u4e00-\u9faf]'))) {
-      // 漢字
       return 'kanji';
     } else if (text.contains(RegExp(r'[\u3040-\u309F]'))) {
-      // ひらがな
       return 'hiragana';
     } else if (text.contains(RegExp(r'[\u30A0-\u30FF]'))) {
-      // カタカナ
       return 'katakana';
     } else if (text.contains(RegExp(r'[a-zA-Z]'))) {
-      // 英字
       return 'english';
     }
-    return 'other'; // その他
+    return 'other';
   }
 
   // テキストモード専用: 選択肢が選ばれた時の処理
@@ -611,24 +660,20 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     final correctName = _characterNames[_currentImagePath!];
 
     if (selectedName == correctName) {
-      // 正解の場合、ポイントを付与
       await _awardPointsOnline(
         _firestore.collection('rooms').doc(widget.roomId),
         widget.myPlayerId,
       );
     } else {
-      // 不正解の場合、自分をお手つき済みとして記録し、他のプレイヤーの回答を待つ
       await _skipCardOnline(_firestore.collection('rooms').doc(widget.roomId));
     }
-    _choiceNames.clear(); // 選択肢をクリア
-    // 次のカードへ進むのは _awardPointsOnline/_skipCardOnline の中で呼ばれる
+    _choiceNames.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!; // ★追加★
+    final localizations = AppLocalizations.of(context)!;
 
-    // 現在名前をつけるべきプレイヤーのIDを計算
     String? currentNamerId;
     if (_playerOrder.isNotEmpty &&
         _currentPlayerIndex >= 0 &&
@@ -638,7 +683,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.gameStart), // ★修正★
+        title: Text(localizations.gameStart),
         automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<DocumentSnapshot>(
@@ -648,7 +693,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text(localizations.roomNotFound)); // ★修正★
+            return Center(child: Text(localizations.roomNotFound));
           }
 
           Map<String, dynamic> roomData =
@@ -661,24 +706,25 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           _seenImages = Set<String>.from(roomData['seenImages'] ?? []);
           _characterNames = Map<String, String>.from(
             roomData['characterNames'] ?? {},
-          ); // 最新の名前マップをロード
-          _playerOrder = List<String>.from(
-            roomData['playerOrder'] ?? [],
-          ); // プレイヤー順をロード
-          _currentPlayerIndex =
-              roomData['currentPlayerIndex'] as int? ?? 0; // 現在のプレイヤーインデックスをロード
+          );
+          _playerOrder = List<String>.from(roomData['playerOrder'] ?? []);
+          _currentPlayerIndex = roomData['currentPlayerIndex'] as int? ?? 0;
           _playersAttemptedCurrentCard = Map<String, bool>.from(
             roomData['playersAttemptedCurrentCard'] ?? {},
-          ); // ロード処理
+          );
 
-          // スコアマップを直接更新
+          final timestampData = roomData['displayDelayCompleteTimestamp'];
+          if (timestampData is Timestamp) {
+            _displayDelayCompleteTimestamp = timestampData.toDate();
+          } else {
+            _displayDelayCompleteTimestamp = null;
+          }
+
           _scores = Map<String, int>.from(roomData['scores'] ?? {});
 
-          // スコアをプレイヤーIDでソートして表示順序を安定させる
           List<MapEntry<String, int>> sortedScores = _scores.entries.toList()
             ..sort((a, b) => a.key.compareTo(b.key));
 
-          // ゲーム終了判定
           if (roomData['status'] == 'finished') {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               List<int> resultScores = sortedScores
@@ -700,7 +746,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             return const SizedBox.shrink();
           }
 
-          // ゲームがまだ開始されていない場合（waiting状態）の表示
           if (roomData['status'] == 'waiting') {
             int currentPlayersCount =
                 (roomData['players'] as List<dynamic>).length;
@@ -713,16 +758,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                   const CircularProgressIndicator(),
                   const SizedBox(height: 20),
                   Text(
-                    localizations.waitingForPlayers, // ★修正★
+                    localizations.waitingForPlayers,
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
-                  // ルームIDの表示とコピーボタン
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '${localizations.roomId}: ${widget.roomId}', // ★修正★
+                        '${localizations.roomId}: ${widget.roomId}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -733,18 +777,16 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: widget.roomId));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(localizations.copiedRoomId),
-                            ), // ★修正★
+                            SnackBar(content: Text(localizations.copiedRoomId)),
                           );
                         },
-                        tooltip: localizations.copyRoomId, // ★修正★
+                        tooltip: localizations.copyRoomId,
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "roomID", // ★修正★
+                    localizations.tellOthersRoomId,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
@@ -765,10 +807,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     child: Text(
                       canStartGame
                           ? localizations.startGame
-                          : localizations.playersNeeded(
-                              currentPlayersCount,
-                              2,
-                            ), // ★修正★
+                          : localizations.playersNeeded(currentPlayersCount, 2),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -776,7 +815,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: Text(localizations.joinRoom), // ★修正★
+                    child: Text(localizations.joinRoom),
                   ),
                 ],
               ),
@@ -800,7 +839,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         children: sortedScores.map((entry) {
                           String playerId = entry.key;
                           int score = entry.value;
-                          // 現在名前をつけるべきプレイヤーの表示を強調
                           bool isMyTurnToName =
                               !widget.isVoiceMode &&
                               _isFirstAppearance &&
@@ -809,13 +847,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                           return Chip(
                             avatar: CircleAvatar(
                               backgroundColor: widget.myPlayerId == playerId
-                                  ? Colors
-                                        .orange // 自分のチップの色
+                                  ? Colors.orange
                                   : isMyTurnToName
                                   ? Colors.green
-                                  : Colors.blue.shade800, // 名前付けターンなら緑色
+                                  : Colors.blue.shade800,
                               child: Text(
-                                playerId.split('_').last, // IDの最後の部分を表示
+                                playerId.split('_').last,
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ),
@@ -823,7 +860,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                               localizations.playerScore(
                                 sortedScores.indexOf(entry) + 1,
                                 score,
-                              ), // ★修正★
+                              ),
                               style: const TextStyle(fontSize: 16),
                             ),
                             elevation: 2,
@@ -843,9 +880,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          localizations.currentFieldCards(
-                            _fieldCards.length,
-                          ), // ★修正★
+                          localizations.currentFieldCards(_fieldCards.length),
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -879,7 +914,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                                 ? Center(
                                     child: (roomData['deck'] as List).isNotEmpty
                                         ? const CircularProgressIndicator()
-                                        : Text(localizations.gameEnd), // ★修正★
+                                        : Text(localizations.gameEnd),
                                   )
                                 : ClipRRect(
                                     borderRadius: BorderRadius.circular(10.0),
@@ -942,7 +977,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                             : Text(
                                 _isFirstAppearance
                                     ? localizations.firstAppearance
-                                    : localizations.seenBefore, // ★修正★
+                                    : localizations.seenBefore,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -963,7 +998,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                               ? localizations.myNameTurn
                               : localizations.otherPlayersTurn(
                                   _playerOrder.indexOf(currentNamerId!) + 1,
-                                ), // ★修正★
+                                ),
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.blueGrey,
@@ -995,7 +1030,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
   /// 操作ボタン（オンライン版）を生成するメソッド
   Widget _buildActionButtonsOnline(Map<String, dynamic> roomData) {
-    final localizations = AppLocalizations.of(context)!; // ★追加★
+    final localizations = AppLocalizations.of(context)!;
 
     bool canAct = roomData['canSelectPlayer'] as bool? ?? false;
     // 現在名前をつけるべきプレイヤーのID
@@ -1031,9 +1066,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                 ),
               ),
               child: Text(
-                hasAttempted
-                    ? localizations.answered
-                    : localizations.get, // ★修正★
+                hasAttempted ? localizations.answered : localizations.get,
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -1053,9 +1086,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                 ),
               ),
               child: Text(
-                hasAttempted
-                    ? localizations.skipped
-                    : localizations.skip, // ★修正★
+                hasAttempted ? localizations.skipped : localizations.skip,
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -1068,7 +1099,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             _firestore.collection('rooms').doc(widget.roomId),
           ),
           icon: const Icon(Icons.navigate_next),
-          label: Text(localizations.nextCard), // ★修正★
+          label: Text(localizations.nextCard),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
             textStyle: const TextStyle(fontSize: 16),
@@ -1088,7 +1119,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
               TextField(
                 controller: _nameInputController,
                 decoration: InputDecoration(
-                  labelText: localizations.charNamePrompt, // ★修正★
+                  labelText: localizations.charNamePrompt,
                   border: const OutlineInputBorder(),
                 ),
                 maxLength: 8, // 8文字制限
@@ -1098,14 +1129,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
               ElevatedButton(
                 onPressed: () =>
                     _handleNameSubmission(_nameInputController.text.trim()),
-                child: Text(localizations.nameIt), // ★修正★
+                child: Text(localizations.nameIt),
               ),
             ],
           );
         } else {
           // 自分のターンではない場合、名前付けは他のプレイヤー待ち
           return Text(
-            localizations.opponentNaming, // ★修正★
+            localizations.opponentNaming,
             style: const TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           );
@@ -1152,9 +1183,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                   ),
                 ),
                 child: Text(
-                  hasAttempted
-                      ? localizations.skipped
-                      : localizations.skip, // ★修正★
+                  hasAttempted ? localizations.skipped : localizations.skip,
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -1169,7 +1198,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             _firestore.collection('rooms').doc(widget.roomId),
           ),
           icon: const Icon(Icons.navigate_next),
-          label: Text(localizations.nextCard), // ★修正★
+          label: Text(localizations.nextCard),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
             textStyle: const TextStyle(fontSize: 16),

@@ -90,6 +90,8 @@ exports.startGameOnPlayerCount = functions.firestore
                 currentPlayerIndex: 0, // 最初のプレイヤーのインデックス
                 playersAttemptedCurrentCard: {}, // 現在のカードで回答済みのプレイヤーを記録
                 readyPlayerIds: [], // ゲーム開始時に準備完了状態をリセット
+                displayDelayCompleteTimestamp: null, 
+                lastNamedCharacterData: null,
             });
             console.log(`Game started for room: ${roomId}`);
 

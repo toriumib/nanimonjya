@@ -535,6 +535,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Room not found for the given passcode.'**
   String get roomNotFoundForPasscode;
+
+  /// No description provided for @namedCharacterConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'\'{charName}\' named by {playerName}!'**
+  String namedCharacterConfirmation(Object charName, Object playerName);
 }
 
 class _AppLocalizationsDelegate

@@ -266,4 +266,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get roomNotFoundForPasscode =>
       'Room not found for the given passcode.';
+
+  @override
+  String namedCharacterConfirmation(Object charName, Object playerName) {
+    return '\'$charName\' named by $playerName!';
+  }
 }

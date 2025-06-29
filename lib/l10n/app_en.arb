@@ -65,12 +65,13 @@
   "player": "Player {playerNum}",
   "leadingPlayer": "{playerAlias} is leading with {score} points!",
   "tieLead": "{players} are tied for the lead with {score} points!",
-  "tellOthersRoomId": "Tell this Room ID to other players.", 
-  "tooManyImages": "You can upload up to {count} images.", 
-  "imageTooLarge": "Image '{imageName}' is too large (max 5MB).", 
-  "uploadSuccessWithCount": "Uploaded {count} image(s) successfully!", 
-  "noImagesUploaded": "No images were uploaded.", 
-  "customImagesMin": "When using custom images, at least {count} images are required.", 
-  "errorCreatingRoom": "Failed to create room: {error}", 
-  "roomNotFoundForPasscode": "Room not found for the given passcode." 
+  "tellOthersRoomId": "Tell this Room ID to other players.",
+  "tooManyImages": "You can upload up to {count} images.",
+  "imageTooLarge": "Image '{imageName}' is too large (max 5MB).",
+  "uploadSuccessWithCount": "Uploaded {count} image(s) successfully!",
+  "noImagesUploaded": "No images were uploaded.",
+  "customImagesMin": "When using custom images, at least {count} images are required.",
+  "errorCreatingRoom": "Failed to create room: {error}",
+  "roomNotFoundForPasscode": "Room not found for the given passcode.",
+  "namedCharacterConfirmation": "'{charName}' named by {playerName}!"
 }
