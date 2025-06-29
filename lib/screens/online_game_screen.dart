@@ -58,8 +58,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   int _currentPlayerIndex = 0; // 現在名前をつけるプレイヤーのインデックス
   Map<String, bool> _playersAttemptedCurrentCard = {}; // 現在のカードで回答済みのプレイヤーを記録
 
-  // ★追加: 表示遅延制御用のタイムスタンプ★
+  // 表示遅延制御用のタイムスタンプ
   DateTime? _displayDelayCompleteTimestamp;
+  // 最後に名前がつけられたキャラの情報 (Firestoreからロード)
+  Map<String, dynamic>? _lastNamedCharacterData;
 
   @override
   void initState() {
@@ -90,66 +92,67 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           // ゲーム状態をロード
           _loadGameState(roomData);
 
-          // ★表示遅延後のカード遷移を制御するロジック★
-          if (_displayDelayCompleteTimestamp != null) {
+          // ★表示遅延後のカード遷移を制御するロジックをより堅牢に★
+          if (_displayDelayCompleteTimestamp != null &&
+              _lastNamedCharacterData != null) {
             final now = DateTime.now().toUtc();
             final expectedCompletionTime = _displayDelayCompleteTimestamp!.add(
               const Duration(seconds: 2),
             ); // 2秒の表示遅延
 
-            if (now.isAfter(expectedCompletionTime)) {
-              // 遅延時間が経過していれば、次のカードへ進める (現在の行動プレイヤーのみがトリガー)
-              final String? currentNamerId =
-                  (_playerOrder.isNotEmpty &&
-                      _currentPlayerIndex >= 0 &&
-                      _currentPlayerIndex < _playerOrder.length)
-                  ? _playerOrder[_currentPlayerIndex]
-                  : null;
+            // カードを進める責任を持つプレイヤーかをチェック
+            final String? currentNamerId =
+                (_playerOrder.isNotEmpty &&
+                    _currentPlayerIndex >= 0 &&
+                    _currentPlayerIndex < _playerOrder.length)
+                ? _playerOrder[_currentPlayerIndex]
+                : null;
+            final bool isResponsiblePlayer =
+                (currentNamerId == widget.myPlayerId) || // 命名者
+                (_playersAttemptedCurrentCard.containsKey(widget.myPlayerId) &&
+                    _playersAttemptedCurrentCard[widget.myPlayerId] == true &&
+                    _playersAttemptedCurrentCard.length >=
+                        (roomData['players'] as List)
+                            .length); // または全員回答済み時の最終アクション担当者
 
-              // canSelectPlayer が false になっており、かつ自分がお手つき/回答したプレイヤーであれば、自分が次のカードをめくる責任を持つ
-              if (!_canSelectPlayer &&
-                  (currentNamerId == widget.myPlayerId ||
-                      _playersAttemptedCurrentCard.containsKey(
-                            widget.myPlayerId,
-                          ) &&
-                          _playersAttemptedCurrentCard[widget.myPlayerId] ==
-                              true)) {
+            if (now.isAfter(expectedCompletionTime)) {
+              // 遅延時間が既に経過している場合、責任を持つプレイヤーが次のカードへ進める
+              if (isResponsiblePlayer) {
+                debugPrint(
+                  'Delay already passed, advancing card directly by ${widget.myPlayerId}',
+                );
                 _advanceCardAfterDelay();
               }
             } else {
               // まだ遅延時間中の場合、残りの時間だけ待機
               final remainingDuration = expectedCompletionTime.difference(now);
-              Future.delayed(remainingDuration, () {
-                if (mounted) {
-                  // Widgetがまだマウントされているか確認
-                  final String? currentNamerId =
-                      (_playerOrder.isNotEmpty &&
-                          _currentPlayerIndex >= 0 &&
-                          _currentPlayerIndex < _playerOrder.length)
-                      ? _playerOrder[_currentPlayerIndex]
-                      : null;
-                  if (!_canSelectPlayer &&
-                      (currentNamerId == widget.myPlayerId ||
-                          _playersAttemptedCurrentCard.containsKey(
-                                widget.myPlayerId,
-                              ) &&
-                              _playersAttemptedCurrentCard[widget.myPlayerId] ==
-                                  true)) {
-                    _advanceCardAfterDelay();
+              if (remainingDuration.inMilliseconds > 0) {
+                Future.delayed(remainingDuration, () {
+                  if (mounted && _displayDelayCompleteTimestamp != null) {
+                    // 遅延中に状態が変わっていないか再確認
+                    if (isResponsiblePlayer) {
+                      debugPrint(
+                        'Delay finished, advancing card by ${widget.myPlayerId}',
+                      );
+                      _advanceCardAfterDelay();
+                    }
                   }
-                }
-              });
+                });
+              }
             }
           }
 
           // テキストモードで、カードが既出になったタイミングで選択肢を生成
+          // かつ、まだ選択肢が生成されておらず、AI生成中でない場合
+          // かつ、名前確認の遅延中ではない場合（重要：これがないと遅延中に選択肢が出てしまう）
           if (!widget.isVoiceMode &&
               !_isFirstAppearance &&
               _canSelectPlayer &&
               _choiceNames.isEmpty &&
               !_isLoadingChoices &&
               _currentImagePath != null &&
-              _characterNames.containsKey(_currentImagePath!)) {
+              _characterNames.containsKey(_currentImagePath!) &&
+              _displayDelayCompleteTimestamp == null) {
             _generateAndShowChoices(_characterNames[_currentImagePath!]!);
           }
         } else {
@@ -157,19 +160,21 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         }
       },
       onError: (error) {
+        // Stream.listen のエラーハンドリング
         debugPrint('Stream Listener Error: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('オンラインゲーム中にエラーが発生しました: ${error.toString()}')),
         );
       },
       onDone: () {
+        // ストリームが終了した場合のコールバック（オプション）
         debugPrint('Stream is done.');
       },
-      cancelOnError: false,
+      cancelOnError: false, // エラーが発生してもストリームをキャンセルしない
     );
   }
 
-  // ★追加: 遅延後に次のカードへ進めるメソッド★
+  // 遅延後に次のカードへ進めるメソッド
   Future<void> _advanceCardAfterDelay() async {
     final roomRef = _firestore.collection('rooms').doc(widget.roomId);
     await _firestore.runTransaction((transaction) async {
@@ -184,6 +189,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       transaction.update(roomRef, {
         'displayDelayCompleteTimestamp': null, // タイムスタンプをリセット
         'canSelectPlayer': false, // 次のカードへ進むので選択不可に
+        'lastNamedCharacterData': null, // 名前確認フェーズ終了でリセット
       });
     });
     // トランザクション完了後に次のカードをめくる
@@ -275,7 +281,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'playerOrder': shuffledPlayerOrder,
         'currentPlayerIndex': 0,
         'playersAttemptedCurrentCard': {},
-        'displayDelayCompleteTimestamp': null, // 初期化
+        'displayDelayCompleteTimestamp': null,
+        'lastNamedCharacterData': null,
       });
     });
 
@@ -303,13 +310,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         data['playersAttemptedCurrentCard'] ?? {},
       );
 
-      // ★ロード処理: displayDelayCompleteTimestamp★
       final timestampData = data['displayDelayCompleteTimestamp'];
       if (timestampData is Timestamp) {
         _displayDelayCompleteTimestamp = timestampData.toDate();
       } else {
         _displayDelayCompleteTimestamp = null;
       }
+      _lastNamedCharacterData =
+          data['lastNamedCharacterData'] as Map<String, dynamic>?;
     });
   }
 
@@ -372,7 +380,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'canSelectPlayer': !isFirst,
         'turnCount': turnCount,
         'playersAttemptedCurrentCard': {},
-        'displayDelayCompleteTimestamp': null, // 次のカードなのでリセット
+        'displayDelayCompleteTimestamp': null,
+        'lastNamedCharacterData': null, // 次のカードなのでリセット
       });
     });
   }
@@ -400,10 +409,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       transaction.update(roomRef, {
         'scores': scores,
         'fieldCards': [],
-        'canSelectPlayer': false, // 正解したので即座に選択不可
-        'playersAttemptedCurrentCard': {}, // 正解が出たのでリセット
+        'canSelectPlayer': false,
+        'playersAttemptedCurrentCard': {},
         'displayDelayCompleteTimestamp':
-            FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
+            FieldValue.serverTimestamp(), // 遅延開始タイムスタンプを設定
       });
     });
     // _advanceCardAfterDelay によって次のカードへ進む
@@ -434,23 +443,17 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       // 全員がお手つき/スキップ済みになったら次のカードへ進める
       if (playersAttempted.length >= allPlayers.length) {
         transaction.update(roomRef, {
-          'canSelectPlayer': false, // 全員回答済みなら選択不可
+          'canSelectPlayer': false,
           'displayDelayCompleteTimestamp':
-              FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
+              FieldValue.serverTimestamp(), // 遅延開始タイムスタンプを設定
         });
-      } else {
-        // まだ回答していないプレイヤーがいる場合は、カードはそのまま維持
-        // canSelectPlayer は true のままなので、他のプレイヤーが引き続き操作できる
-      }
+      } else {}
     });
-    // ここにFuture.delayedを入れると、上記のロジックと衝突する可能性があるので注意
-    // 次のカードへ進むのはトランザクション内の条件分岐で制御する
   }
 
   // 通話モード専用: ゲーム状況をアナウンスするメソッド（Cloud Functions経由でTTSを呼び出す）
   Future<void> _announceGameStatus(Map<String, int> currentScores) async {
     if (!widget.isVoiceMode || !mounted) {
-      // 通話モードでなければ実行しない、Widgetがdisposeされていないか確認
       debugPrint("Not in Voice Mode or Widget not mounted. Skipping TTS.");
       return;
     }
@@ -458,14 +461,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     String commentary;
     final localizations = AppLocalizations.of(context)!;
 
-    // ゲーム開始時の初期スコアが空のケースを考慮
     if (currentScores.isEmpty ||
         currentScores.values.every((score) => score == 0)) {
-      commentary = AppLocalizations.of(context)!.gameStart; // ★修正★
+      commentary = localizations.gameStart;
     } else {
-      // スコアをプレイヤーIDでソートして表示順序を安定させる
       List<MapEntry<String, int>> sortedScores = currentScores.entries.toList()
-        ..sort((a, b) => a.key.compareTo(b.key)); // プレイヤーIDでソート
+        ..sort((a, b) => a.key.compareTo(b.key));
 
       int maxScore = 0;
       List<String> leadingPlayerIds = [];
@@ -475,7 +476,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           maxScore = entry.value;
           leadingPlayerIds = [entry.key];
         } else if (entry.value == maxScore && entry.value > 0) {
-          // 0点同士は同点リードとしない
           leadingPlayerIds.add(entry.key);
         }
       }
@@ -495,15 +495,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           return id == widget.myPlayerId
               ? localizations.you
               : localizations.player(
-                  sortedScores.indexOf(id as MapEntry<String, int>) +
-                      1, //TODO:おかしいかも
+                  sortedScores.indexOf(id as MapEntry<String, int>) + 1,
                 );
         }).toList();
         String players = leadingPlayerAliases.join(localizations.andSeparator);
         commentary = localizations.tieLead(players, maxScore);
       }
     }
-    _playTts(commentary); // 実況テキストをTTSで読み上げ
+    _playTts(commentary);
   }
 
   // 通話モード専用: Text-to-Speech API を呼び出し、音声を再生するヘルパーメソッド
@@ -518,14 +517,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       final audioBytes = base64Decode(audioBase64);
       await _audioPlayer.setAudioSource(
         AudioSource.uri(
-          // Data URI schemeを使用
           Uri.parse('data:audio/mpeg;base64,${base64Encode(audioBytes)}'),
         ),
       );
       await _audioPlayer.play();
     } catch (e) {
       debugPrint('Cloud TTS 呼び出しまたは再生エラー: $e');
-      // 例: エラー時はOS標準TTSにフォールバックすることも可能
     }
   }
 
@@ -563,7 +560,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'currentPlayerIndex': nextPlayerIndex,
         'canSelectPlayer': false, // 名前をつけた後は選択不可にする
         'displayDelayCompleteTimestamp':
-            FieldValue.serverTimestamp(), // ★追加: 遅延開始タイムスタンプを設定★
+            FieldValue.serverTimestamp(), // 遅延開始タイムスタンプを設定
+        'lastNamedCharacterData': {
+          // 最後に名前がつけられたキャラの情報を保存
+          'imagePath': _currentImagePath,
+          'name': name,
+          'namedBy': widget.myPlayerId, // 名前をつけたプレイヤーID
+          'timestamp': FieldValue.serverTimestamp(),
+        },
       });
     });
 
@@ -577,7 +581,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
     setState(() {
       _isLoadingChoices = true;
-      _choiceNames.clear();
+      _choiceNames.clear(); // 新しい生成前にクリア
     });
 
     try {
@@ -589,7 +593,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       final HttpsCallableResult result = await callable.call({
         'originalName': correctName,
         'scriptType': scriptType,
-        'numToGenerate': 6,
+        'numToGenerate': 6, // 6つの似た名前を生成 (合計7択にするため)
       });
 
       List<String> generatedNames = List<String>.from(
@@ -611,7 +615,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           choices.add(currentDummy);
         }
         dummyIndex++;
-        if (dummyIndex > dummyNames.length * 2) break;
+        if (dummyIndex > dummyNames.length * 2) break; // 無限ループ防止
       }
 
       if (choices.length > 7) {
@@ -643,15 +647,19 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // 文字種を推測する簡易ヘルパー関数 (必要に応じて精密化)
   String _determineScriptType(String text) {
     if (text.contains(RegExp(r'[\u4e00-\u9faf]'))) {
+      // 漢字
       return 'kanji';
     } else if (text.contains(RegExp(r'[\u3040-\u309F]'))) {
+      // ひらがな
       return 'hiragana';
     } else if (text.contains(RegExp(r'[\u30A0-\u30FF]'))) {
+      // カタカナ
       return 'katakana';
     } else if (text.contains(RegExp(r'[a-zA-Z]'))) {
+      // 英字
       return 'english';
     }
-    return 'other';
+    return 'other'; // その他
   }
 
   // テキストモード専用: 選択肢が選ばれた時の処理
@@ -679,6 +687,17 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         _currentPlayerIndex >= 0 &&
         _currentPlayerIndex < _playerOrder.length) {
       currentNamerId = _playerOrder[_currentPlayerIndex];
+    }
+
+    // 名前確認フェーズ（displayDelayCompleteTimestampが設定されている間）
+    bool isInNameConfirmationPhase =
+        _displayDelayCompleteTimestamp != null &&
+        _lastNamedCharacterData != null;
+    String? namedCharName;
+    String? namedCharId;
+    if (isInNameConfirmationPhase) {
+      namedCharName = _lastNamedCharacterData!['name'] as String?;
+      namedCharId = _lastNamedCharacterData!['namedBy'] as String?;
     }
 
     return Scaffold(
@@ -719,6 +738,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           } else {
             _displayDelayCompleteTimestamp = null;
           }
+          _lastNamedCharacterData =
+              roomData['lastNamedCharacterData'] as Map<String, dynamic>?;
 
           _scores = Map<String, int>.from(roomData['scores'] ?? {});
 
@@ -839,6 +860,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         children: sortedScores.map((entry) {
                           String playerId = entry.key;
                           int score = entry.value;
+                          // 現在名前をつけるべきプレイヤーの表示を強調
                           bool isMyTurnToName =
                               !widget.isVoiceMode &&
                               _isFirstAppearance &&
@@ -847,12 +869,13 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                           return Chip(
                             avatar: CircleAvatar(
                               backgroundColor: widget.myPlayerId == playerId
-                                  ? Colors.orange
+                                  ? Colors
+                                        .orange // 自分のチップの色
                                   : isMyTurnToName
                                   ? Colors.green
-                                  : Colors.blue.shade800,
+                                  : Colors.blue.shade800, // 名前付けターンなら緑色
                               child: Text(
-                                playerId.split('_').last,
+                                playerId.split('_').last, // IDの最後の部分を表示
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ),
@@ -1007,8 +1030,36 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         ),
                       const SizedBox(height: 20),
 
-                      // --- 操作ボタンエリア (モードによって分岐) ---
-                      _buildActionButtonsOnline(roomData),
+                      // ★名前確認フェーズのUI (新しいブロック)★
+                      if (isInNameConfirmationPhase) // 名前確認フェーズの場合
+                        Column(
+                          children: [
+                            Text(
+                              localizations.namedCharacterConfirmation(
+                                namedCharName ?? localizations.unknown, // 名前
+                                namedCharId == widget.myPlayerId
+                                    ? localizations
+                                          .you // 名付けたのが自分なら「あなた」
+                                    : localizations.player(
+                                        _playerOrder.indexOf(namedCharId!) + 1,
+                                      ), // 名付けたプレイヤー
+                              ),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "wait",
+                              style: TextStyle(color: Colors.grey),
+                            ), // 次のターン準備中...
+                            const CircularProgressIndicator(), // ローディング表示
+                          ],
+                        )
+                      else // 通常の操作ボタンエリア
+                        _buildActionButtonsOnline(roomData),
                     ],
                   ),
                 ),
