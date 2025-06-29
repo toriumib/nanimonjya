@@ -3,10 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:io'; // モバイル/デスクトップ向けに必要
+import 'dart:io';
 
-// Web対応のために'flutter/foundation.dart'をインポート
-import 'package:flutter/foundation.dart'; // ★追加★
+import 'package:flutter/foundation.dart'; // Web対応のために必要
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 
@@ -24,7 +23,6 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   final ImagePicker _picker = ImagePicker();
   final Uuid _uuid = const Uuid();
 
-  // オフラインモードで使用しているデフォルト画像をここに定義
   final List<String> _defaultCharacterImageFiles = List.generate(
     12,
     (index) => 'assets/images/char${index + 1}.jpg',
@@ -32,6 +30,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
   List<String> _uploadedImageUrls = [];
   bool _isUploading = false;
+  bool _isVoiceMode = false; // ★修正: デフォルトをテキストモード (false) に変更★
 
   @override
   void dispose() {
@@ -42,18 +41,15 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 画像をFirebase Storageにアップロードする機能
   /// ギャラリーから複数画像を選択し、Storageに保存し、そのURLを状態に保持します。
   Future<void> _uploadImage() async {
-    // pickImage() から pickMultiImage() に変更して複数ファイル選択に対応
-    final List<XFile> images = await _picker.pickMultiImage(); // ★ここを変更★
-    if (images.isEmpty) return; // 画像が選択されなかった場合
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.isEmpty) return;
 
     setState(() {
       _isUploading = true;
     });
 
     try {
-      // 選択された各画像をループでアップロード
       for (final XFile image in images) {
-        // ★ループを追加★
         final String fileName = '${_uuid.v4()}.jpg';
         final Reference ref = _storage
             .ref()
@@ -62,17 +58,15 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
         UploadTask uploadTask;
         if (kIsWeb) {
-          // Webの場合、バイトデータを直接アップロード
           final Uint8List? bytes = await image.readAsBytes();
           if (bytes == null) {
             debugPrint(
               'Web upload: Failed to read image bytes for ${image.name}. Skipping.',
             );
-            continue; // この画像のアップロードはスキップ
+            continue;
           }
           uploadTask = ref.putData(bytes);
         } else {
-          // モバイル/デスクトップの場合、Fileからアップロード
           uploadTask = ref.putFile(File(image.path));
         }
 
@@ -80,14 +74,13 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         final String downloadUrl = await snapshot.ref.getDownloadURL();
 
         setState(() {
-          _uploadedImageUrls.add(downloadUrl); // アップロード成功したURLを追加
+          _uploadedImageUrls.add(downloadUrl);
         });
       }
 
       setState(() {
         _isUploading = false;
       });
-      // 複数アップロードの場合は、成功メッセージも複数形に
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('全ての画像のアップロードに成功しました！')));
@@ -106,18 +99,16 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   /// 画像がアップロードされていない場合は、デフォルトの画像パスを使用します。
   /// ユーザーがカスタム画像をアップロードした場合は、12枚以上の画像が必要となります。
   Future<void> _createRoom() async {
-    final String roomId = _uuid.v4().substring(0, 6).toUpperCase(); // 短いルームID
+    final String roomId = _uuid.v4().substring(0, 6).toUpperCase();
 
     List<String> finalImageUrls;
     if (_uploadedImageUrls.isNotEmpty) {
       // ユーザーがカスタム画像をアップロードした場合
       if (_uploadedImageUrls.length < 12) {
-        // ★ここから修正・追加：画像枚数チェック★
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('カスタム画像を使用する場合、12枚以上の画像をアップロードしてください。')),
         );
         return; // 12枚未満の場合はルーム作成を中断
-        // ★修正・追加ここまで★
       }
       finalImageUrls = _uploadedImageUrls; // 12枚以上アップロードされている場合はそれを使用
     } else {
@@ -129,22 +120,26 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       // ルームの初期状態をFirestoreに設定
       await _firestore.collection('rooms').doc(roomId).set({
         'createdAt': FieldValue.serverTimestamp(),
-        'status': 'waiting', // 初期状態は'waiting'
-        'players': [], // 参加プレイヤーIDのリスト
-        'imageUrls': finalImageUrls, // 使用する画像URL/パスリスト
-        'deck': [], // ゲーム開始時にシャッフルされたデッキ
-        'fieldCards': [], // 場札
-        'seenImages': [], // 見たことのある画像
-        'scores': {}, // プレイヤーごとのスコア
-        'currentCard': null, // 現在表示中のカード
+        'status': 'waiting',
+        'players': [],
+        'imageUrls': finalImageUrls,
+        'deck': [],
+        'fieldCards': [],
+        'seenImages': [],
+        'scores': {},
+        'currentCard': null,
         'isFirstAppearance': true,
         'canSelectPlayer': false,
         'turnCount': 0,
-        'gameStarted': false, // ゲームが開始されたかどうかのフラグ
+        'gameStarted': false,
+        'gameMode': _isVoiceMode ? 'voice' : 'text', // ゲームモードを保存
+        'characterNames': {}, // キャラクター名を保存するマップ
+        'playerOrder': [], // プレイヤーが名前をつける順番
+        'currentPlayerIndex': 0, // 現在名前をつけるプレイヤーのインデックス
       });
       _joinRoom(roomId); // 作成後、自動的に参加
     } catch (e) {
-      debugPrint('ルームの作成に失敗しました: $e');
+      debugPrint('ルームの作成に失敗しました: ${e.toString()}');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('ルームの作成に失敗しました: ${e.toString()}')));
@@ -168,7 +163,6 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             freshSnap.data() as Map<String, dynamic>;
         List<dynamic> players = roomData['players'] ?? [];
 
-        // 最大プレイヤー数チェック (例: 6人まで)
         if (players.length >= 6) {
           throw Exception('このルームは満員です。');
         }
@@ -176,32 +170,25 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
           throw Exception('このルームは既にゲーム中です。');
         }
 
-        // プレイヤーIDを生成 (アプリ起動ごとにユニークなID)
-        // ここでの_myPlayerIdは、OnlineGameScreenで使うものと一致させる必要がある
-        // 実際にはFirebase Authenticationで永続的なIDを使うべきだが、今回は簡易化
         final String myPlayerId = 'player_${_uuid.v4().substring(0, 8)}';
 
-        // 既にこのIDが参加者リストにあるかチェック（同一デバイスからの再接続など）
         if (players.contains(myPlayerId)) {
-          // 既に存在する場合は、そのままゲーム画面へ
           debugPrint('既にこのプレイヤーはルームに参加しています。');
         } else {
-          // プレイヤーIDを参加者リストに追加
           players.add(myPlayerId);
-          // スコアマップにこのプレイヤーの初期スコアを設定
           Map<String, dynamic> scores = roomData['scores'] ?? {};
           scores[myPlayerId] = 0;
 
           transaction.update(roomRef, {'players': players, 'scores': scores});
         }
-        // ルームに参加成功したらゲーム画面へ遷移
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => OnlineGameScreen(
               roomId: roomId,
               myPlayerId: myPlayerId,
-            ), // プレイヤーIDを渡す
+              isVoiceMode: roomData['gameMode'] == 'voice', // ルームのモードを渡す
+            ),
           ),
         );
       });
@@ -221,9 +208,26 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // オフライン画像をデフォルトで使用するため、アップロードは任意となる
+            // ゲームモード選択トグル
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('テキストモード (AIの名前生成)'),
+                Switch(
+                  value: _isVoiceMode,
+                  onChanged: (bool newValue) {
+                    setState(() {
+                      _isVoiceMode = newValue;
+                    });
+                  },
+                ),
+                const Text('通話モード (AI実況ON)'),
+              ],
+            ),
+            const SizedBox(height: 20),
+
             const Text(
-              '必要であれば、ゲームに使用する独自の画像をアップロードしてください。\n(カスタム画像を使用する場合は12枚以上必須)', // 説明文も更新
+              '必要であれば、ゲームに使用する独自の画像をアップロードしてください。\n(カスタム画像を使用する場合は12枚以上必須)',
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -273,9 +277,8 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
               ),
             const SizedBox(height: 40),
 
-            // ルーム作成セクション
             ElevatedButton(
-              onPressed: _createRoom, // 画像アップロードがなくても作成できるようにする
+              onPressed: _createRoom,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
@@ -300,7 +303,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
               ),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 20),
-              textCapitalization: TextCapitalization.characters, // 大文字に変換
+              textCapitalization: TextCapitalization.characters,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
