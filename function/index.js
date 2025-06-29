@@ -76,6 +76,9 @@ exports.startGameOnPlayerCount = functions.firestore
                 gameStarted: true,
                 playerOrder: shuffledPlayerOrder, // プレイヤーの順番を保存
                 currentPlayerIndex: 0, // 最初のプレイヤーのインデックス
+                playersAttemptedCurrentCard: {}, // ★追加: 現在のカードで回答済みのプレイヤーを記録★
+
+                
             });
             console.log(`Game started for room: ${roomId}`);
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
+import 'package:just_audio/just_audio.dart'; // ★BGM用にjust_audioを追加★
 
 class GameScreen extends StatefulWidget {
   final int playerCount; // プレイヤー人数を受け取る
@@ -16,6 +17,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final AdMob _adMob = AdMob();
   final Random _random = Random();
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // ★BGM用のAudioPlayerを追加★
 
   // --- ゲーム状態 ---
   // TODO: assets/images/ に配置した画像ファイル名に合わせてください
@@ -40,23 +42,18 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _adMob.loadBanner(); // バナー広告の読み込み開始
     _initializeGame();
+    _startBGM(); // ★BGM再生を開始★
   }
 
   void _initializeGame() {
-    // --- ★★★ 山札生成ロジックの変更 ★★★ ---
     _deck = []; // いったん空にする
-    // 12種類の画像ファイルパスそれぞれに対してループ
     for (String imagePath in _characterImageFiles) {
-      // 各画像パスを5回ずつ山札リストに追加する
       for (int i = 0; i < 5; i++) {
         _deck.add(imagePath);
       }
     }
-    // 生成された合計60枚(12種類 x 5枚)の山札をシャッフル
     _deck.shuffle(_random);
-    // --- ★★★ 変更ここまで ★★★ ---
 
-    // --- 他の初期化処理 (変更なし) ---
     _scores = List.filled(widget.playerCount, 0); // スコアを0で初期化
     _seenImages.clear(); // 見たことのある画像種類のリセット
     _fieldCards.clear(); // 場札のリセット
@@ -64,14 +61,26 @@ class _GameScreenState extends State<GameScreen> {
     _isFirstAppearance = true;
     _canSelectPlayer = false;
     _turnCount = 0;
-    // 最初のカードを少し遅れて表示
     Future.delayed(const Duration(milliseconds: 500), _drawNextCard);
   }
 
   @override
   void dispose() {
     _adMob.disposeBanner(); // 画面破棄時に広告も破棄
+    _bgmPlayer.dispose(); // ★BGM用プレイヤーを解放★
     super.dispose();
+  }
+
+  // ★BGM再生用のメソッドを追加★
+  Future<void> _startBGM() async {
+    try {
+      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
+      _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
+      _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
+      _bgmPlayer.play();
+    } catch (e) {
+      debugPrint("Error loading BGM: $e");
+    }
   }
 
   // カードをめくる（次の画像を表示する）処理

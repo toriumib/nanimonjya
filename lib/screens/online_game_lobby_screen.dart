@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart'; // Web対応のために必要
+import 'package:just_audio/just_audio.dart'; // ★BGM用にjust_audioを追加★
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 
@@ -22,6 +23,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
   final Uuid _uuid = const Uuid();
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // ★BGM用のAudioPlayerを追加★
 
   final List<String> _defaultCharacterImageFiles = List.generate(
     12,
@@ -30,12 +32,31 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
   List<String> _uploadedImageUrls = [];
   bool _isUploading = false;
-  bool _isVoiceMode = false; // ★修正: デフォルトをテキストモード (false) に変更★
+  bool _isVoiceMode = false; // デフォルトをテキストモード (false) に変更
+
+  @override
+  void initState() {
+    super.initState();
+    _startBGM(); // ★BGM再生を開始★
+  }
 
   @override
   void dispose() {
     _roomIdController.dispose();
+    _bgmPlayer.dispose(); // ★BGM用プレイヤーを解放★
     super.dispose();
+  }
+
+  // ★BGM再生用のメソッドを追加★
+  Future<void> _startBGM() async {
+    try {
+      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
+      _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
+      _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
+      _bgmPlayer.play();
+    } catch (e) {
+      debugPrint("Error loading BGM: $e");
+    }
   }
 
   /// 画像をFirebase Storageにアップロードする機能
@@ -103,21 +124,18 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
     List<String> finalImageUrls;
     if (_uploadedImageUrls.isNotEmpty) {
-      // ユーザーがカスタム画像をアップロードした場合
       if (_uploadedImageUrls.length < 12) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('カスタム画像を使用する場合、12枚以上の画像をアップロードしてください。')),
         );
-        return; // 12枚未満の場合はルーム作成を中断
+        return;
       }
-      finalImageUrls = _uploadedImageUrls; // 12枚以上アップロードされている場合はそれを使用
+      finalImageUrls = _uploadedImageUrls;
     } else {
-      // ユーザーが画像をアップロードしなかった場合、デフォルト画像を使用
       finalImageUrls = _defaultCharacterImageFiles;
     }
 
     try {
-      // ルームの初期状態をFirestoreに設定
       await _firestore.collection('rooms').doc(roomId).set({
         'createdAt': FieldValue.serverTimestamp(),
         'status': 'waiting',
@@ -132,12 +150,12 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         'canSelectPlayer': false,
         'turnCount': 0,
         'gameStarted': false,
-        'gameMode': _isVoiceMode ? 'voice' : 'text', // ゲームモードを保存
-        'characterNames': {}, // キャラクター名を保存するマップ
-        'playerOrder': [], // プレイヤーが名前をつける順番
-        'currentPlayerIndex': 0, // 現在名前をつけるプレイヤーのインデックス
+        'gameMode': _isVoiceMode ? 'voice' : 'text',
+        'characterNames': {},
+        'playerOrder': [],
+        'currentPlayerIndex': 0,
       });
-      _joinRoom(roomId); // 作成後、自動的に参加
+      _joinRoom(roomId);
     } catch (e) {
       debugPrint('ルームの作成に失敗しました: ${e.toString()}');
       ScaffoldMessenger.of(
@@ -187,7 +205,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             builder: (context) => OnlineGameScreen(
               roomId: roomId,
               myPlayerId: myPlayerId,
-              isVoiceMode: roomData['gameMode'] == 'voice', // ルームのモードを渡す
+              isVoiceMode: roomData['gameMode'] == 'voice',
             ),
           ),
         );

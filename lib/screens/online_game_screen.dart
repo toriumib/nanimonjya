@@ -3,17 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
-import 'package:flutter/services.dart'; // ★追加★
 
 // Google Cloud Functions と音声再生のためのインポートを追加
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:convert'; // Base64デコードのために必要
 
+// クリップボード機能のために追加
+import 'package:flutter/services.dart';
+
 class OnlineGameScreen extends StatefulWidget {
   final String roomId;
   final String myPlayerId; // 自身のプレイヤーIDを受け取る
-  final bool isVoiceMode; // ★追加: 通話モードかテキストモードか
+  final bool isVoiceMode; // 通話モードかテキストモードか
 
   const OnlineGameScreen({
     Key? key,
@@ -31,6 +33,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Random _random = Random();
   final AudioPlayer _audioPlayer = AudioPlayer(); // AudioPlayer インスタンスを追加
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用のAudioPlayerを追加
 
   Stream<DocumentSnapshot>? _roomStream;
 
@@ -43,19 +46,23 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   List<String> _fieldCards = [];
   Set<String> _seenImages = {};
 
-  // ★テキストモード用の状態変数★
+  // テキストモード用の状態変数
   final TextEditingController _nameInputController = TextEditingController();
   Map<String, String> _characterNames = {}; // 画像URL -> 名前 のマップ
   List<String> _choiceNames = []; // 選択肢の名前リスト
   bool _isLoadingChoices = false; // AIの名前生成中か
   List<String> _playerOrder = []; // プレイヤーが名前をつける順番
   int _currentPlayerIndex = 0; // 現在名前をつけるプレイヤーのインデックス
+  Map<String, bool> _playersAttemptedCurrentCard = {}; // 現在のカードで回答済みのプレイヤーを記録
 
   @override
   void initState() {
     super.initState();
     _adMob.loadBanner();
     _roomStream = _firestore.collection('rooms').doc(widget.roomId).snapshots();
+
+    _initializeOnlineGame();
+    _startBGM(); // BGM再生を開始
 
     // ルームデータの変更を監視し、スコアの更新があった場合に実況をトリガー
     _roomStream!.listen(
@@ -107,8 +114,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       },
       cancelOnError: false, // エラーが発生してもストリームをキャンセルしない
     );
-
-    _initializeOnlineGame();
   }
 
   /// ゲームの初期化とプレイヤーの参加処理
@@ -194,14 +199,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'scores': initialScores,
         'fieldCards': [],
         'seenImages': [],
+        'characterNames': {}, // キャラクター名を保存するマップ
         'currentCard': null,
         'isFirstAppearance': true,
         'canSelectPlayer': false,
         'turnCount': 0,
         'gameStarted': true,
-        'characterNames': {}, // キャラクター名を保存するマップ
         'playerOrder': shuffledPlayerOrder, // プレイヤーの順番を保存
         'currentPlayerIndex': 0, // 最初のプレイヤーのインデックス
+        'playersAttemptedCurrentCard': {}, // 現在のカードで回答済みのプレイヤーを記録
       });
     });
 
@@ -230,15 +236,31 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       // プレイヤーの順番と現在名前をつけるプレイヤーのインデックスをロード
       _playerOrder = List<String>.from(data['playerOrder'] ?? []);
       _currentPlayerIndex = data['currentPlayerIndex'] as int? ?? 0;
+      _playersAttemptedCurrentCard = Map<String, bool>.from(
+        data['playersAttemptedCurrentCard'] ?? {},
+      );
     });
   }
 
   @override
   void dispose() {
     _adMob.disposeBanner();
-    _audioPlayer.dispose(); // AudioPlayer のリソース解放
+    _audioPlayer.dispose(); // 実況用プレイヤーを解放
+    _bgmPlayer.dispose(); // BGM用プレイヤーを解放
     _nameInputController.dispose(); // テキスト入力コントローラーの解放
     super.dispose();
+  }
+
+  // BGM再生用のメソッド
+  Future<void> _startBGM() async {
+    try {
+      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
+      _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
+      _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
+      _bgmPlayer.play();
+    } catch (e) {
+      debugPrint("Error loading BGM: $e");
+    }
   }
 
   /// カードをめくる処理（オンライン版）
@@ -280,7 +302,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'isFirstAppearance': isFirst,
         'canSelectPlayer': !isFirst, // 初登場でなければプレイヤー選択可能
         'turnCount': turnCount,
-        // playerOrderとcurrentPlayerIndexはそのまま、名前入力時や選択時に更新
+        'playersAttemptedCurrentCard': {}, // 新しいカードで回答済みプレイヤーをリセット
       });
     });
     // StreamListener がスコア変更を検知してUIを更新し、必要な実況や選択肢生成をトリガー
@@ -304,21 +326,22 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         data['scores'] ?? {},
       );
 
-      // 自分のスコアを更新
       scores[playerKey] = (scores[playerKey] as int? ?? 0) + fieldCards.length;
 
       transaction.update(roomRef, {
         'scores': scores,
-        'fieldCards': [], // 場札をリセット
-        'canSelectPlayer': false, // ポイント獲得後は選択不可に
+        'fieldCards': [],
+        'canSelectPlayer': false, // 正解したので即座に選択不可
+        'playersAttemptedCurrentCard': {}, // 正解が出たのでリセット
       });
+
+      // 正解が出た場合は、すぐに次のカードへ進める
+      Future.delayed(
+        const Duration(milliseconds: 800),
+        () => _drawNextCardOnline(roomRef),
+      );
     });
-    Future.delayed(
-      const Duration(milliseconds: 800),
-      () => _drawNextCardOnline(
-        _firestore.collection('rooms').doc(widget.roomId),
-      ), // 次のカードをめくる
-    );
+    // トランザクション外の遅延呼び出しは、トランザクション内の処理が完了してから実行される
   }
 
   /// 「わからない」が選択された時の処理（オンライン版）
@@ -331,14 +354,33 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         return; // 既に誰かがポイントを獲得したか、まだ選択できない状態
       }
 
-      transaction.update(roomRef, {'canSelectPlayer': false}); // 選択不可に
+      Map<String, bool> playersAttempted = Map<String, bool>.from(
+        data['playersAttemptedCurrentCard'] ?? {},
+      );
+      List<String> allPlayers = List<String>.from(data['players'] ?? []);
+
+      // 自分をお手つき/スキップ済みとして記録
+      playersAttempted[widget.myPlayerId] = true;
+
+      // Firestoreを更新
+      transaction.update(roomRef, {
+        'playersAttemptedCurrentCard': playersAttempted, // 回答済みプレイヤーを更新
+      });
+
+      // 全員がお手つき/スキップ済みになったら次のカードへ進める
+      if (playersAttempted.length >= allPlayers.length) {
+        transaction.update(roomRef, {'canSelectPlayer': false}); // 全員回答済みなら選択不可
+        Future.delayed(
+          const Duration(milliseconds: 800),
+          () => _drawNextCardOnline(roomRef),
+        );
+      } else {
+        // まだ回答していないプレイヤーがいる場合は、カードはそのまま維持
+        // canSelectPlayer は true のままなので、他のプレイヤーが引き続き操作できる
+      }
     });
-    Future.delayed(
-      const Duration(milliseconds: 800),
-      () => _drawNextCardOnline(
-        _firestore.collection('rooms').doc(widget.roomId),
-      ), // 次のカードをめくる
-    );
+    // ここにFuture.delayedを入れると、上記のロジックと衝突する可能性があるので注意
+    // 次のカードへ進むのはトランザクション内の条件分岐で制御する
   }
 
   // 通話モード専用: ゲーム状況をアナウンスするメソッド（Cloud Functions経由でTTSを呼び出す）
@@ -531,7 +573,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           '？',
           '？？',
           '？？？',
-        ].toList()..shuffle(); // より多いダミー名
+        ].toList()..shuffle();
       });
     }
   }
@@ -566,7 +608,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         widget.myPlayerId,
       );
     } else {
-      // 不正解の場合、「わからない」と同じ処理
+      // 不正解の場合、自分をお手つき済みとして記録し、他のプレイヤーの回答を待つ
       await _skipCardOnline(_firestore.collection('rooms').doc(widget.roomId));
     }
     _choiceNames.clear(); // 選択肢をクリア
@@ -614,6 +656,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           ); // プレイヤー順をロード
           _currentPlayerIndex =
               roomData['currentPlayerIndex'] as int? ?? 0; // 現在のプレイヤーインデックスをロード
+          _playersAttemptedCurrentCard = Map<String, bool>.from(
+            roomData['playersAttemptedCurrentCard'] ?? {},
+          ); // ロード処理
 
           // スコアマップを直接更新
           _scores = Map<String, int>.from(roomData['scores'] ?? {});
@@ -662,6 +707,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
+                  // ルームIDの表示とコピーボタン
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -823,7 +869,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                                     child:
                                         _currentImagePath!.startsWith('assets/')
                                         ? Image.asset(
-                                            // assets/ なら Image.asset
                                             _currentImagePath!,
                                             fit: BoxFit.contain,
                                             errorBuilder:
@@ -837,7 +882,6 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                                                     ),
                                           )
                                         : Image.network(
-                                            // それ以外なら Image.network
                                             _currentImagePath!,
                                             fit: BoxFit.contain,
                                             loadingBuilder: (context, child, loadingProgress) {
@@ -939,35 +983,43 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       currentNamerId = _playerOrder[_currentPlayerIndex];
     }
 
+    // 現在のプレイヤーが既にお手つき/スキップ済みか
+    bool hasAttempted =
+        _playersAttemptedCurrentCard.containsKey(widget.myPlayerId) &&
+        _playersAttemptedCurrentCard[widget.myPlayerId] == true;
+
     // ★通話モードのボタン★
     if (widget.isVoiceMode) {
       if (canAct) {
         return Column(
           children: [
             ElevatedButton(
-              onPressed: () => _awardPointsOnline(
-                _firestore.collection('rooms').doc(widget.roomId),
-                widget.myPlayerId, // 自分のプレイヤーIDを渡す
-              ),
+              onPressed: hasAttempted
+                  ? null
+                  : () => _awardPointsOnline(
+                      _firestore.collection('rooms').doc(widget.roomId),
+                      widget.myPlayerId,
+                    ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700, // 自分のボタンは強調色に
+                backgroundColor: Colors.red.shade700,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
                 ),
               ),
-              child: const Text(
-                'GET!', // シンプルに「GET!」ボタンとする
-                style: TextStyle(color: Colors.white),
+              child: Text(
+                hasAttempted ? '回答済み' : 'GET!',
+                style: const TextStyle(color: Colors.white),
               ),
             ),
             const SizedBox(height: 10),
 
-            // 「わからない」ボタンを追加
             ElevatedButton(
-              onPressed: () => _skipCardOnline(
-                _firestore.collection('rooms').doc(widget.roomId),
-              ),
+              onPressed: hasAttempted
+                  ? null
+                  : () => _skipCardOnline(
+                      _firestore.collection('rooms').doc(widget.roomId),
+                    ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 padding: const EdgeInsets.symmetric(
@@ -975,7 +1027,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                   vertical: 12,
                 ),
               ),
-              child: const Text('わからない', style: TextStyle(color: Colors.white)),
+              child: Text(
+                hasAttempted ? 'スキップ済み' : 'わからない',
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -1041,7 +1096,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                 alignment: WrapAlignment.center,
                 children: _choiceNames.map((name) {
                   return ElevatedButton(
-                    onPressed: () => _handleChoiceSelection(name),
+                    onPressed: hasAttempted
+                        ? null
+                        : () => _handleChoiceSelection(name),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 15,
@@ -1055,9 +1112,11 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () => _skipCardOnline(
-                  _firestore.collection('rooms').doc(widget.roomId),
-                ),
+                onPressed: hasAttempted
+                    ? null
+                    : () => _skipCardOnline(
+                        _firestore.collection('rooms').doc(widget.roomId),
+                      ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey,
                   padding: const EdgeInsets.symmetric(
@@ -1065,7 +1124,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     vertical: 12,
                   ),
                 ),
-                child: const Text('スキップ'),
+                child: Text(
+                  hasAttempted ? 'スキップ済み' : 'スキップ',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ],
           );
