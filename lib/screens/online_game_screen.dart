@@ -333,7 +333,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
-      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3');
+      await _bgmPlayer.setAsset('assets/audio/op.10-4.mp3');
       _bgmPlayer.setLoopMode(LoopMode.one);
       _bgmPlayer.setVolume(0.5);
       _bgmPlayer.play();

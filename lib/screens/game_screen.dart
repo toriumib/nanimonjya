@@ -77,7 +77,9 @@ class _GameScreenState extends State<GameScreen> {
   // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
-      await _bgmPlayer.setAsset('assets/audio/for_siciliano.mp3'); // BGMファイルのパス
+      await _bgmPlayer.setAsset(
+        'assets/audio/op9-2-Nocturne.mp3',
+      ); // BGMファイルのパス
       _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
       _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
       _bgmPlayer.play();
