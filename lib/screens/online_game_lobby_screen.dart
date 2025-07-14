@@ -4,14 +4,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuthをインポート
+import 'package:flutter/foundation.dart'; // kIsWebのために追加
+import 'package:just_audio/just_audio.dart'; // BGMのために追加
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
+import 'top_screen.dart'; // Top画面に戻るため追加
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart';
+import 'package:untitled/l10n/app_localizations.dart'; // プロジェクトの実際のパスに合わせてください
 
 class OnlineGameLobbyScreen extends StatefulWidget {
   const OnlineGameLobbyScreen({super.key});
@@ -73,13 +74,18 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
 
     final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isEmpty) return;
+    if (images.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("noImagesSelected")));
+      return;
+    }
 
     // 画像枚数制限のチェック (12枚まで)
     if (images.length > 12) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizations.tooManyImages(12))), // ローカライズキーを使用
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(localizations.tooManyImages(12))));
       return;
     }
 
@@ -87,56 +93,41 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
       _isUploading = true;
     });
 
-    int uploadedCount = 0; // 実際にアップロードされた枚数
+    List<String> successfullyUploadedUrls = []; // 今回のバッチでアップロードに成功したURLを追跡
 
     try {
-      // Webの場合、全てのバイトデータを事前に読み込む
-      List<Uint8List> imageBytesList = [];
-      if (kIsWeb) {
-        for (final XFile imageFile in images) {
-          final Uint8List? bytes = await imageFile.readAsBytes();
+      for (final XFile imageFile in images) {
+        Uint8List? bytes;
+        int fileSize = 0;
+
+        if (kIsWeb) {
+          bytes = await imageFile.readAsBytes();
           if (bytes == null) {
             debugPrint(
               'Web upload: Failed to read image bytes for ${imageFile.name}. Skipping.',
             );
-            continue;
-          }
-          // Webでの画像サイズ制限チェック
-          if (bytes.length > _maxImageSizeBytes) {
-            debugPrint(
-              'Web upload: Image ${imageFile.name} is too large (${bytes.length} bytes). Skipping.',
-            );
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(localizations.imageTooLarge(imageFile.name)),
-              ), // ローカライズキーを使用
+              ),
             );
             continue; // この画像はスキップ
           }
-          imageBytesList.add(bytes);
+          fileSize = bytes.length;
+        } else {
+          fileSize = await File(imageFile.path).length();
         }
-        if (imageBytesList.isEmpty && images.isNotEmpty) {
-          // 少なくとも1枚は選択したが、全て読み込みに失敗した場合
-          throw Exception(
-            'Failed to read any valid image bytes for upload on web.',
-          );
-        }
-      }
 
-      // 選択された各画像をループでアップロード
-      // Webとモバイルでループ対象が変わる
-      for (int i = 0; i < images.length; i++) {
-        final XFile image = images[i];
-
-        // モバイルでの画像サイズ制限チェック
-        // kIsWebでなければFileのlengthを確認
-        if (!kIsWeb && await image.length() > _maxImageSizeBytes) {
+        // 画像サイズ制限のチェック
+        if (fileSize > _maxImageSizeBytes) {
           debugPrint(
-            'Mobile upload: Image ${image.name} is too large (${await image.length()} bytes). Skipping.',
+            'Image ${imageFile.name} is too large ($fileSize bytes). Skipping.',
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(localizations.imageTooLarge(image.name))),
-          ); // ローカライズキーを使用
+            SnackBar(
+              content: Text(localizations.imageTooLarge(imageFile.name)),
+            ),
+          );
           continue; // この画像はスキップ
         }
 
@@ -148,48 +139,43 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
 
         UploadTask uploadTask;
         if (kIsWeb) {
-          // imageBytesList[uploadedCount] は、アップロード済み枚数ではなく、
-          // 選択された images リストと imageBytesList のインデックスi を使うべき
-          // ただし、continue でスキップされた画像がある場合、imageBytesList のインデックスと images のインデックスがずれる
-          // そのため、uploadedCount を使って imageBytesList の正しい要素を参照するロジックに変更
-          uploadTask = ref.putData(
-            imageBytesList[uploadedCount],
-          ); // 事前に読み込んだバイトデータを使用
+          uploadTask = ref.putData(bytes!); // bytesはnullチェック済み
         } else {
-          uploadTask = ref.putFile(File(image.path));
+          uploadTask = ref.putFile(File(imageFile.path));
         }
 
         final TaskSnapshot snapshot = await uploadTask;
         final String downloadUrl = await snapshot.ref.getDownloadURL();
-
-        setState(() {
-          _uploadedImageUrls.add(downloadUrl); // アップロード成功したURLを追加
-        });
-        uploadedCount++; // 実際にアップロードできた枚数をカウント
+        successfullyUploadedUrls.add(downloadUrl); // アップロード成功したURLを追加
       }
 
       setState(() {
+        _uploadedImageUrls.addAll(
+          successfullyUploadedUrls,
+        ); // 既存リストに今回成功したURLを追加
         _isUploading = false;
       });
-      if (uploadedCount > 0) {
+
+      if (successfullyUploadedUrls.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(localizations.uploadSuccessWithCount(uploadedCount)),
+            content: Text(
+              localizations.uploadSuccessWithCount(
+                successfullyUploadedUrls.length,
+              ),
+            ),
           ),
-        ); // ローカライズキーを使用
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.noImagesUploaded),
-          ), // ローカライズキーを使用
         );
+      } else if (images.isNotEmpty) {
+        // ユーザーが画像を選択したが、全てバリデーションで弾かれた場合
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(localizations.noImagesUploaded)));
       }
     } catch (e) {
-      debugPrint('画像のアップロードに失敗しました: $e');
+      debugPrint('画像のアップロード中にエラーが発生しました: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localizations.uploadFailed(e.toString())),
-        ), // ローカライズキーを使用
+        SnackBar(content: Text(localizations.uploadFailed(e.toString()))),
       );
       setState(() {
         _isUploading = false;
@@ -209,9 +195,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     if (_uploadedImageUrls.isNotEmpty) {
       if (_uploadedImageUrls.length < 12) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.customImagesMin(12)),
-          ), // ローカライズキーを使用
+          SnackBar(content: Text(localizations.customImagesMin(12))),
         );
         return;
       }
@@ -221,33 +205,53 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     }
 
     try {
+      // 匿名認証でサインインを試みる
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        user = (await FirebaseAuth.instance.signInAnonymously()).user;
+        if (user == null) {
+          throw Exception('認証に失敗しました。'); // ローカライズが必要な場合は追加
+        }
+      }
+      final String myPlayerId = user.uid; // Firebase AuthenticationのUIDを使用
+
+      // ルームの初期状態をFirestoreに設定
       await _firestore.collection('rooms').doc(roomId).set({
         'createdAt': FieldValue.serverTimestamp(),
-        'status': 'waiting',
-        'players': [],
-        'imageUrls': finalImageUrls,
-        'deck': [],
-        'fieldCards': [],
-        'seenImages': [],
-        'scores': {},
-        'currentCard': null,
+        'status': 'waiting', // 初期状態は'waiting'
+        'players': [myPlayerId], // 作成者を最初のプレイヤーとして追加
+        'imageUrls': finalImageUrls, // 使用する画像URL/パスリスト
+        'deck': [], // ゲーム開始時にシャッフルされたデッキ
+        'fieldCards': [], // 場札
+        'seenImages': [], // 見たことのある画像
+        'scores': {myPlayerId: 0}, // 作成者の初期スコアを設定
+        'currentCard': null, // 現在表示中のカード
         'isFirstAppearance': true,
         'canSelectPlayer': false,
         'turnCount': 0,
-        'gameStarted': false,
-        'gameMode': _isVoiceMode ? 'voice' : 'text',
-        'characterNames': {},
-        'playerOrder': [],
-        'currentPlayerIndex': 0,
-        'readyPlayerIds': [],
+        'gameStarted': false, // ゲームが開始されたかどうかのフラグ
+        'gameMode': _isVoiceMode ? 'voice' : 'text', // ゲームモードを保存
+        'characterNames': {}, // キャラクター名を保存するマップ
+        'playerOrder': [], // ターン順序を保存するリスト
+        'currentPlayerIndex': 0, // 現在のターンプレイヤーのインデックス
+        'readyPlayerIds': [], // 準備完了プレイヤーのIDリスト
       });
-      _joinRoom(roomId);
+
+      // 作成後、自動的にゲーム画面へ遷移
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnlineGameScreen(
+            roomId: roomId,
+            myPlayerId: myPlayerId,
+            isVoiceMode: _isVoiceMode,
+          ), // ゲームモードを渡す
+        ),
+      );
     } catch (e) {
       debugPrint('ルームの作成に失敗しました: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localizations.errorCreatingRoom(e.toString())),
-        ), // ローカライズキーを使用
+        SnackBar(content: Text(localizations.errorCreatingRoom(e.toString()))),
       );
     }
   }
@@ -260,11 +264,21 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     DocumentReference roomRef = _firestore.collection('rooms').doc(roomId);
 
     try {
+      // 匿名認証でサインインを試みる
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        user = (await FirebaseAuth.instance.signInAnonymously()).user;
+        if (user == null) {
+          throw Exception('認証に失敗しました。'); // ローカライズが必要な場合は追加
+        }
+      }
+      final String myPlayerId = user.uid; // Firebase AuthenticationのUIDを使用
+
       await _firestore.runTransaction((transaction) async {
         DocumentSnapshot freshSnap = await transaction.get(roomRef);
 
         if (!freshSnap.exists) {
-          throw Exception(localizations.roomNotFoundForPasscode); // ローカライズキーを使用
+          throw Exception(localizations.roomNotFoundForPasscode);
         }
 
         Map<String, dynamic> roomData =
@@ -278,8 +292,7 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
           throw Exception(localizations.roomInGame);
         }
 
-        final String myPlayerId = 'player_${_uuid.v4().substring(0, 8)}';
-
+        // 既にこのIDが参加者リストにあるかチェック（同一デバイスからの再接続など）
         if (players.contains(myPlayerId)) {
           debugPrint('既にこのプレイヤーはルームに参加しています。');
         } else {
@@ -295,16 +308,14 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             builder: (context) => OnlineGameScreen(
               roomId: roomId,
               myPlayerId: myPlayerId,
-              isVoiceMode: roomData['gameMode'] == 'voice',
+              isVoiceMode: roomData['gameMode'] == 'voice', // ルームのゲームモードを渡す
             ),
           ),
         );
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localizations.errorJoiningRoom(e.toString())),
-        ), // ローカライズキーを使用
+        SnackBar(content: Text(localizations.errorJoiningRoom(e.toString()))),
       );
     }
   }
@@ -314,7 +325,20 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.roomLobby)),
+      appBar: AppBar(
+        title: Text(localizations.roomLobby),
+        leading: IconButton(
+          icon: const Icon(Icons.home), // ホームアイコン
+          onPressed: () {
+            // トップ画面に戻る (他の画面スタックを全てクリア)
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const TopScreen()),
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
