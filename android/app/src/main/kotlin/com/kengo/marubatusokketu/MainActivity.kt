@@ -1,4 +1,4 @@
-package com.kengo.marubatusokketu
+package com.nanimonjya
 
 import io.flutter.embedding.android.FlutterActivity
 
