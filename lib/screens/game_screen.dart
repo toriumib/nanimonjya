@@ -4,6 +4,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
 import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
+import '../services/player_profile.dart'; // 選択中BGMの参照
+import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
@@ -78,8 +80,8 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _startBGM() async {
     try {
       await _bgmPlayer.setAsset(
-        'assets/audio/op9-2-Nocturne.mp3',
-      ); // BGMファイルのパス
+        'assets/audio/${PlayerProfile.instance.selectedBgm}',
+      ); // 選択中のBGMを再生
       _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
       _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
       _bgmPlayer.play();
@@ -312,6 +314,9 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
+
+          // --- 応援わんちゃんズ（累計コインで仲間が増える） ---
+          const DogSquad(),
 
           // --- AdMob バナー広告 ---
           Container(

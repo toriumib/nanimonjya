@@ -7,6 +7,8 @@ import 'result_screen.dart'; // 結果表示画面
 // Google Cloud Functions と音声再生のためのインポートを追加
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:just_audio/just_audio.dart';
+import '../services/player_profile.dart'; // 選択中BGMの参照
+import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import 'dart:convert'; // Base64デコードのために必要
 
 // クリップボード機能のために追加
@@ -54,6 +56,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   Map<String, String> _characterNames = {}; // 画像URL -> 名前 のマップ
   List<String> _choiceNames = []; // 選択肢の名前リスト
   bool _isLoadingChoices = false; // AIの名前生成中か
+  String? _choicesForCard; // どのカード用の選択肢かを追跡（再生成ループ防止）
+  bool _advancing = false; // カード送りの二重実行防止
   List<String> _playerOrder = []; // プレイヤーが名前をつける順番
   int _currentPlayerIndex = 0; // 現在名前をつけるプレイヤーのインデックス
   Map<String, bool> _playersAttemptedCurrentCard = {}; // 現在のカードで回答済みのプレイヤーを記録
@@ -92,68 +96,40 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           // ゲーム状態をロード
           _loadGameState(roomData);
 
-          // ★表示遅延後のカード遷移を制御するロジックをより堅牢に★
-          if (_displayDelayCompleteTimestamp != null &&
-              _lastNamedCharacterData != null) {
+          // ★表示遅延（2秒の記憶タイム）後のカード遷移★
+          // どのプレイヤーが実行しても _advanceCardAfterDelay のトランザクションが
+          // 「1回だけ」を保証するので、全員が試行してよい。
+          // （以前は特定の「責任プレイヤー」だけが進める仕組みだったため、
+          //   その人が離脱/バックグラウンドになるとゲームが止まっていた）
+          if (_displayDelayCompleteTimestamp != null) {
             final now = DateTime.now().toUtc();
             final expectedCompletionTime = _displayDelayCompleteTimestamp!.add(
               const Duration(seconds: 2),
-            ); // 2秒の表示遅延
-
-            // カードを進める責任を持つプレイヤーかをチェック
-            final String? currentNamerId =
-                (_playerOrder.isNotEmpty &&
-                    _currentPlayerIndex >= 0 &&
-                    _currentPlayerIndex < _playerOrder.length)
-                ? _playerOrder[_currentPlayerIndex]
-                : null;
-            final bool isResponsiblePlayer =
-                (currentNamerId == widget.myPlayerId) || // 命名者
-                (_playersAttemptedCurrentCard.containsKey(widget.myPlayerId) &&
-                    _playersAttemptedCurrentCard[widget.myPlayerId] == true &&
-                    _playersAttemptedCurrentCard.length >=
-                        (roomData['players'] as List)
-                            .length); // または全員回答済み時の最終アクション担当者
+            ); // 2秒の記憶タイム
 
             if (now.isAfter(expectedCompletionTime)) {
-              // 遅延時間が既に経過している場合、責任を持つプレイヤーが次のカードへ進める
-              if (isResponsiblePlayer) {
-                debugPrint(
-                  'Delay already passed, advancing card directly by ${widget.myPlayerId}',
-                );
-                _advanceCardAfterDelay();
-              }
+              _advanceCardAfterDelay();
             } else {
-              // まだ遅延時間中の場合、残りの時間だけ待機
               final remainingDuration = expectedCompletionTime.difference(now);
-              if (remainingDuration.inMilliseconds > 0) {
-                Future.delayed(remainingDuration, () {
-                  if (mounted && _displayDelayCompleteTimestamp != null) {
-                    // 遅延中に状態が変わっていないか再確認
-                    if (isResponsiblePlayer) {
-                      debugPrint(
-                        'Delay finished, advancing card by ${widget.myPlayerId}',
-                      );
-                      _advanceCardAfterDelay();
-                    }
-                  }
-                });
-              }
+              Future.delayed(remainingDuration, () {
+                if (mounted && _displayDelayCompleteTimestamp != null) {
+                  _advanceCardAfterDelay();
+                }
+              });
             }
           }
 
-          // テキストモードで、カードが既出になったタイミングで選択肢を生成
-          // かつ、まだ選択肢が生成されておらず、AI生成中でない場合
-          // かつ、名前確認の遅延中ではない場合（重要：これがないと遅延中に選択肢が出てしまう）
+          // テキストモードで、カードが既出になったタイミングで選択肢を表示
+          // 命名時に事前生成した共有選択肢(characterChoices)があれば即表示（遅延ゼロ）
           if (!widget.isVoiceMode &&
               !_isFirstAppearance &&
               _canSelectPlayer &&
-              _choiceNames.isEmpty &&
+              _choicesForCard != _currentImagePath && // このカード用が未設定の時だけ
               !_isLoadingChoices &&
               _currentImagePath != null &&
               _characterNames.containsKey(_currentImagePath!) &&
               _displayDelayCompleteTimestamp == null) {
-            _generateAndShowChoices(_characterNames[_currentImagePath!]!);
+            _showChoicesForCurrentCard(roomData);
           }
         } else {
           debugPrint('Room document does not exist.');
@@ -175,25 +151,67 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   }
 
   // 遅延後に次のカードへ進めるメソッド
+  // ★タイムスタンプのリセットとカードめくりを同一トランザクションで行う。
+  //   以前は別々だったため、複数プレイヤーが同時に呼ぶとカードが二重にめくられ
+  //   カードが飛ぶバグがあった。トランザクション内のガードで「1回だけ」を保証★
   Future<void> _advanceCardAfterDelay() async {
+    if (_advancing) return; // 連続スナップショットからの多重起動を抑止
+    _advancing = true;
     final roomRef = _firestore.collection('rooms').doc(widget.roomId);
-    await _firestore.runTransaction((transaction) async {
-      final roomSnap = await transaction.get(roomRef);
-      final roomData = roomSnap.data() as Map<String, dynamic>;
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final roomSnap = await transaction.get(roomRef);
+        final data = roomSnap.data() as Map<String, dynamic>;
 
-      // すでに次のカードへ進んでいる場合は何もしない
-      if (roomData['displayDelayCompleteTimestamp'] == null) {
-        return;
-      }
+        // すでに他のプレイヤーが進めている場合は何もしない
+        if (data['displayDelayCompleteTimestamp'] == null) {
+          return;
+        }
 
-      transaction.update(roomRef, {
-        'displayDelayCompleteTimestamp': null, // タイムスタンプをリセット
-        'canSelectPlayer': false, // 次のカードへ進むので選択不可に
-        'lastNamedCharacterData': null, // 名前確認フェーズ終了でリセット
+        List<dynamic> deck = List<dynamic>.from(data['deck'] ?? []);
+        List<dynamic> fieldCards = List<dynamic>.from(data['fieldCards'] ?? []);
+        Set<String> seenImages = Set<String>.from(data['seenImages'] ?? []);
+        int turnCount = data['turnCount'] as int? ?? 0;
+        String? previousCard = data['currentCard'] as String?;
+
+        if (deck.isEmpty) {
+          transaction.update(roomRef, {
+            'status': 'finished',
+            'displayDelayCompleteTimestamp': null,
+            'lastNamedCharacterData': null,
+          });
+          return;
+        }
+
+        if (previousCard != null) {
+          fieldCards.add(previousCard);
+        }
+
+        String nextCard = deck.removeLast();
+        turnCount++;
+        bool isFirst = !seenImages.contains(nextCard);
+        if (isFirst) {
+          seenImages.add(nextCard);
+        }
+
+        transaction.update(roomRef, {
+          'deck': deck,
+          'fieldCards': fieldCards,
+          'seenImages': seenImages.toList(),
+          'currentCard': nextCard,
+          'isFirstAppearance': isFirst,
+          'canSelectPlayer': !isFirst,
+          'turnCount': turnCount,
+          'playersAttemptedCurrentCard': {},
+          'displayDelayCompleteTimestamp': null,
+          'lastNamedCharacterData': null,
+        });
       });
-    });
-    // トランザクション完了後に次のカードをめくる
-    _drawNextCardOnline(_firestore.collection('rooms').doc(widget.roomId));
+    } catch (e) {
+      debugPrint('カード送りトランザクション失敗: $e');
+    } finally {
+      _advancing = false;
+    }
   }
 
   /// ゲームの初期化とプレイヤーの参加処理
@@ -283,6 +301,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'playersAttemptedCurrentCard': {},
         'displayDelayCompleteTimestamp': null,
         'lastNamedCharacterData': null,
+        'characterChoices': {}, // 事前生成した選択肢もリセット
       });
     });
 
@@ -301,8 +320,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       _scores = Map<String, int>.from(data['scores'] ?? {});
 
       _characterNames = Map<String, String>.from(data['characterNames'] ?? {});
-      _choiceNames.clear();
-      _isLoadingChoices = false;
+      // ★カードが変わった時だけ選択肢をリセット（毎スナップショットで消すと
+      //   「空→再生成→また消える」の無限ループになり選択肢がバグる）★
+      final String? newCard = data['currentCard'] as String?;
+      if (newCard != _choicesForCard) {
+        _choiceNames.clear();
+        _choicesForCard = null;
+        _isLoadingChoices = false;
+      }
 
       _playerOrder = List<String>.from(data['playerOrder'] ?? []);
       _currentPlayerIndex = data['currentPlayerIndex'] as int? ?? 0;
@@ -333,7 +358,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // BGM再生用のメソッド
   Future<void> _startBGM() async {
     try {
-      await _bgmPlayer.setAsset('assets/audio/op.10-4.mp3');
+      await _bgmPlayer.setAsset('assets/audio/${PlayerProfile.instance.selectedBgm}');
       _bgmPlayer.setLoopMode(LoopMode.one);
       _bgmPlayer.setVolume(0.5);
       _bgmPlayer.play();
@@ -572,76 +597,120 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     });
 
     _nameInputController.clear(); // 入力フィールドをクリア
+
+    // ★命名した直後に選択肢をAIで事前生成しておく（awaitしない）。
+    //   2秒の記憶タイム中にバックグラウンドで完了するため、
+    //   後でこのカードが出た時に全員へ遅延ゼロで選択肢を表示できる★
+    final namedImagePath = _currentImagePath;
+    if (namedImagePath != null) {
+      _precomputeChoicesFor(namedImagePath, name);
+    }
     // _advanceCardAfterDelay によって次のカードへ進む
   }
 
-  // テキストモード専用: AIによる名前生成と選択肢表示
-  Future<void> _generateAndShowChoices(String correctName) async {
-    final localizations = AppLocalizations.of(context)!;
+  // 偽名のプール（AI生成が失敗/不足した時の補完用。
+  // 以前は「不明」「AIエラー」「再試行」等が選択肢に混ざるバグがあった）
+  static const List<String> _fakeNamePool = [
+    'モグモグ', 'ピカリン', 'フワッチ', 'ギザモン', 'ポンタ',
+    'クルリン', 'ニャッキ', 'ハムスケ', 'ペコリン', 'ザワワ',
+    'ビリビリ', 'ホゲータ', 'ムニムニ', 'パチコン', 'ドロロン',
+  ];
 
-    setState(() {
-      _isLoadingChoices = true;
-      _choiceNames.clear(); // 新しい生成前にクリア
+  // 正解＋偽名リストから7択を組み立てる
+  List<String> _buildChoiceList(String correctName, List<String> fakes) {
+    List<String> choices = {correctName, ...fakes}.toList();
+    final pool = List<String>.from(_fakeNamePool)..shuffle(_random);
+    for (final fake in pool) {
+      if (choices.length >= 7) break;
+      if (!choices.contains(fake)) choices.add(fake);
+    }
+    if (choices.length > 7) choices = choices.sublist(0, 7);
+    choices.shuffle(_random);
+    return choices;
+  }
+
+  // Cloud Functions でAIに似た名前を生成してもらう（共通ヘルパー）
+  Future<List<String>> _fetchSimilarNames(String correctName) async {
+    final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
+      'generateSimilarNames',
+    );
+    final HttpsCallableResult result = await callable.call({
+      'originalName': correctName,
+      'scriptType': _determineScriptType(correctName),
+      'numToGenerate': 6, // 6つの似た名前を生成 (合計7択にするため)
     });
+    return List<String>.from(result.data['similarNames'] ?? []);
+  }
 
+  // 命名直後に選択肢を事前生成してFirestoreに保存（2秒の記憶タイム中に完了する）。
+  // これにより既出カードが出た瞬間、全プレイヤーに遅延ゼロで同じ選択肢が出せる。
+  Future<void> _precomputeChoicesFor(String imagePath, String name) async {
     try {
-      String scriptType = _determineScriptType(correctName);
-
-      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
-        'generateSimilarNames',
-      );
-      final HttpsCallableResult result = await callable.call({
-        'originalName': correctName,
-        'scriptType': scriptType,
-        'numToGenerate': 6, // 6つの似た名前を生成 (合計7択にするため)
-      });
-
-      List<String> generatedNames = List<String>.from(
-        result.data['similarNames'] ?? [],
-      );
-
-      List<String> choices = [correctName, ...generatedNames];
-      choices = choices.toSet().toList();
-
-      final List<String> dummyNames = [
-        localizations.unknown,
-        localizations.aiError,
-        localizations.retry,
-      ];
-      int dummyIndex = 0;
-      while (choices.length < 7) {
-        final String currentDummy = dummyNames[dummyIndex % dummyNames.length];
-        if (!choices.contains(currentDummy)) {
-          choices.add(currentDummy);
-        }
-        dummyIndex++;
-        if (dummyIndex > dummyNames.length * 2) break; // 無限ループ防止
-      }
-
-      if (choices.length > 7) {
-        choices = choices.sublist(0, 7);
-      }
-      choices.shuffle();
-
-      setState(() {
-        _choiceNames = choices;
-        _isLoadingChoices = false;
+      final fakes = await _fetchSimilarNames(name);
+      if (fakes.isEmpty) return;
+      final roomRef = _firestore.collection('rooms').doc(widget.roomId);
+      await _firestore.runTransaction((transaction) async {
+        final snap = await transaction.get(roomRef);
+        final data = (snap.data() ?? {}) as Map<String, dynamic>;
+        final all = Map<String, dynamic>.from(data['characterChoices'] ?? {});
+        all[imagePath] = fakes;
+        transaction.update(roomRef, {'characterChoices': all});
       });
     } catch (e) {
-      debugPrint('AI名前生成エラー: $e');
-      setState(() {
-        _isLoadingChoices = false;
-        _choiceNames = [
-          correctName,
-          localizations.aiError,
-          localizations.retry,
-          localizations.skip,
-          localizations.unknown,
-          '?',
-          '??',
-        ].toList()..shuffle();
-      });
+      // 失敗しても致命的ではない（表示時に各クライアントが生成する）
+      debugPrint('選択肢の事前生成に失敗: $e');
     }
+  }
+
+  // 現在の既出カード用の選択肢を表示する。
+  // Firestoreに事前生成済みの選択肢があれば即時表示、なければその場でAI生成。
+  void _showChoicesForCurrentCard(Map<String, dynamic> roomData) {
+    final String? img = _currentImagePath;
+    if (img == null) return;
+    final String? correctName = _characterNames[img];
+    if (correctName == null) return;
+
+    final sharedChoices =
+        (roomData['characterChoices'] as Map<String, dynamic>?)?[img];
+    if (sharedChoices is List && sharedChoices.isNotEmpty) {
+      // 事前生成済み → 遅延ゼロで表示
+      setState(() {
+        _choiceNames = _buildChoiceList(
+          correctName,
+          List<String>.from(sharedChoices),
+        );
+        _choicesForCard = img;
+        _isLoadingChoices = false;
+      });
+    } else {
+      _generateAndShowChoices(img, correctName);
+    }
+  }
+
+  // テキストモード専用: AIによる名前生成と選択肢表示（フォールバック経路）
+  Future<void> _generateAndShowChoices(
+    String imagePath,
+    String correctName,
+  ) async {
+    setState(() {
+      _isLoadingChoices = true;
+      _choicesForCard = imagePath; // このカード用に生成中とマーク
+      _choiceNames.clear();
+    });
+
+    List<String> fakes = [];
+    try {
+      fakes = await _fetchSimilarNames(correctName);
+    } catch (e) {
+      debugPrint('AI名前生成エラー: $e');
+      // fakesが空でも _buildChoiceList が偽名プールから補完する
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _choiceNames = _buildChoiceList(correctName, fakes);
+      _isLoadingChoices = false;
+    });
   }
 
   // 文字種を推測する簡易ヘルパー関数 (必要に応じて精密化)
@@ -675,7 +744,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     } else {
       await _skipCardOnline(_firestore.collection('rooms').doc(widget.roomId));
     }
-    _choiceNames.clear();
+    // 選択肢はここでは消さない（他プレイヤーの回答待ちの間も表示を維持し、
+    // カードが変わったタイミングで _loadGameState が自動的にクリアする）
   }
 
   @override
@@ -1030,33 +1100,82 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         ),
                       const SizedBox(height: 20),
 
-                      // ★名前確認フェーズのUI (新しいブロック)★
-                      if (isInNameConfirmationPhase) // 名前確認フェーズの場合
-                        Column(
-                          children: [
-                            Text(
-                              localizations.namedCharacterConfirmation(
-                                namedCharName ?? localizations.unknown, // 名前
-                                namedCharId == widget.myPlayerId
-                                    ? localizations
-                                          .you // 名付けたのが自分なら「あなた」
-                                    : localizations.player(
-                                        _playerOrder.indexOf(namedCharId!) + 1,
-                                      ), // 名付けたプレイヤー
-                              ),
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
+                      // ★名前確認フェーズのUI: 2秒間の「記憶タイム」★
+                      // 名前をドーンと表示して覚えてもらう
+                      if (isInNameConfirmationPhase)
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.6, end: 1.0),
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.elasticOut,
+                          builder: (context, scale, child) =>
+                              Transform.scale(scale: scale, child: child),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 28,
+                              vertical: 18,
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              "wait",
-                              style: TextStyle(color: Colors.grey),
-                            ), // 次のターン準備中...
-                            const CircularProgressIndicator(), // ローディング表示
-                          ],
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFE45E), Color(0xFFFFB347)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  '✨ ${namedCharName ?? localizations.unknown} ✨',
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF7A3B00),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${namedCharId == widget.myPlayerId ? localizations.you : localizations.player(_playerOrder.indexOf(namedCharId!) + 1)} → おぼえて！',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF9C5700),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 10),
+                                // 2秒のカウントダウンバー
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 1.0, end: 0.0),
+                                  duration: const Duration(seconds: 2),
+                                  builder: (context, value, _) =>
+                                      ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: LinearProgressIndicator(
+                                      value: value,
+                                      minHeight: 8,
+                                      backgroundColor: Colors.white54,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                        Color(0xFFFF4FA3),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         )
                       else // 通常の操作ボタンエリア
                         _buildActionButtonsOnline(roomData),
@@ -1064,6 +1183,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                   ),
                 ),
               ),
+
+              // --- 応援わんちゃんズ（累計コインで仲間が増える） ---
+              const DogSquad(),
 
               // --- AdMob バナー広告 ---
               Container(

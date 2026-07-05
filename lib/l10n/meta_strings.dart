@@ -1,0 +1,107 @@
+import 'package:flutter/widgets.dart';
+
+/// 新規追加した「メタ層」機能（コイン/実績/デイリー等）専用の簡易多言語ヘルパー。
+/// 既存の AppLocalizations とは独立して自己完結させ、arb再生成の影響を受けないようにする。
+class MetaStrings {
+  final bool ja;
+  const MetaStrings(this.ja);
+
+  static MetaStrings of(BuildContext context) {
+    final code = Localizations.localeOf(context).languageCode;
+    return MetaStrings(code == 'ja');
+  }
+
+  String get coins => ja ? 'コイン' : 'Coins';
+  String get profileTitle => ja ? 'マイページ・戦績' : 'Profile & Records';
+  String get records => ja ? '戦績' : 'Records';
+  String get gamesPlayed => ja ? '総プレイ数' : 'Games played';
+  String get highScore => ja ? '最高得点' : 'Best score';
+  String get bestDaily => ja ? '最高連続ログイン' : 'Best daily streak';
+  String get bestSession => ja ? '最高連続プレイ' : 'Best play streak';
+  String get lifetimeCoins => ja ? '累計コイン' : 'Lifetime coins';
+  String get achievements => ja ? '実績' : 'Achievements';
+  String get bgm => ja ? 'BGM' : 'Music';
+  String get selectBgm => ja ? 'BGMを選ぶ' : 'Choose music';
+  String get selected => ja ? '選択中' : 'Selected';
+  String get unlock => ja ? 'アンロック' : 'Unlock';
+  String get select => ja ? '選択' : 'Select';
+  String get free => ja ? '無料' : 'Free';
+  String get notEnoughCoins => ja ? 'コインが足りません' : 'Not enough coins';
+  String get unlocked => ja ? 'アンロック！' : 'Unlocked!';
+  String get locked => ja ? 'ロック中' : 'Locked';
+
+  String get dailyBonus => ja ? 'デイリーボーナス' : 'Daily Bonus';
+  String get claim => ja ? '受け取る' : 'Claim';
+  String get claimed => ja ? '受け取り済み' : 'Claimed';
+  String get comeBackTomorrow =>
+      ja ? 'また明日も来てね！' : 'Come back tomorrow!';
+  String streakDays(int n) => ja ? '$n日連続ログイン中🔥' : '$n-day streak 🔥';
+  String get dayStreakLabel => ja ? '連続ログイン' : 'Login streak';
+
+  String earnedCoins(int n) => ja ? '+$n コイン獲得！' : '+$n coins!';
+  String get watchAdDouble =>
+      ja ? '📺 動画を見てコイン2倍' : '📺 Watch ad to double coins';
+  String get watchAdBonus =>
+      ja ? '📺 動画を見て+50コイン' : '📺 Watch ad for +50 coins';
+  String get doubledCoins => ja ? 'コイン2倍GET！🎉' : 'Coins doubled! 🎉';
+  String get adNotReady =>
+      ja ? '広告の準備中です。少し待ってね' : 'Ad not ready yet. Please wait.';
+  String get sessionBonus => ja ? '連続プレイボーナス' : 'Play streak bonus';
+  String sessionBonusN(int n) =>
+      ja ? '連続プレイボーナス +$n！' : 'Play streak bonus +$n!';
+  String get newRecord => ja ? '🏆 自己ベスト更新！' : '🏆 New personal best!';
+
+  String get supportDev => ja ? '開発者を応援する' : 'Support the developer';
+  String get supportBody => ja
+      ? 'このゲームを気に入ってくれたら、コーヒー1杯分の応援をいただけると嬉しいです☕'
+      : 'If you enjoy this game, a coffee-sized tip means the world ☕';
+  String get couldNotOpenLink =>
+      ja ? 'リンクを開けませんでした' : 'Could not open the link';
+
+  // 実績名・説明
+  String achTitle(String id) {
+    switch (id) {
+      case 'first_play':
+        return ja ? '初プレイ' : 'First Play';
+      case 'regular':
+        return ja ? '常連さん' : 'Regular';
+      case 'veteran':
+        return ja ? 'ヘビーユーザー' : 'Veteran';
+      case 'daily3':
+        return ja ? '3日坊主克服' : '3-Day Streak';
+      case 'daily7':
+        return ja ? '1週間皆勤' : 'Weekly Streak';
+      case 'binge5':
+        return ja ? '一気に5戦' : '5 in a Row';
+      case 'sharp20':
+        return ja ? 'キレッキレ' : 'Sharp Mind';
+      case 'rich1000':
+        return ja ? 'コイン長者' : 'Coin Millionaire';
+      default:
+        return id;
+    }
+  }
+
+  String achDesc(String id) {
+    switch (id) {
+      case 'first_play':
+        return ja ? '初めてゲームを遊んだ' : 'Played your first game';
+      case 'regular':
+        return ja ? '10回プレイした' : 'Played 10 games';
+      case 'veteran':
+        return ja ? '50回プレイした' : 'Played 50 games';
+      case 'daily3':
+        return ja ? '3日連続でログインした' : 'Logged in 3 days in a row';
+      case 'daily7':
+        return ja ? '7日連続でログインした' : 'Logged in 7 days in a row';
+      case 'binge5':
+        return ja ? '1回のプレイで5戦した' : 'Played 5 games in one session';
+      case 'sharp20':
+        return ja ? '1ゲームで20点以上取った' : 'Scored 20+ in a single game';
+      case 'rich1000':
+        return ja ? '累計1000コイン貯めた' : 'Earned 1000 coins in total';
+      default:
+        return '';
+    }
+  }
+}

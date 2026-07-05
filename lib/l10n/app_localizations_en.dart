@@ -271,4 +271,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String namedCharacterConfirmation(Object charName, Object playerName) {
     return '\'$charName\' named by $playerName!';
   }
+
+  @override
+  String get buyMeACoffee => 'Support the developer ☕';
+
+  @override
+  String get couldNotOpenLink => 'Could not open the link.';
 }
