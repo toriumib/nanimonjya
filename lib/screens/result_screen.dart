@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart'; // リザルトBGM用
 import 'package:untitled/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
+import '../models/cosmetics.dart'; // 称号のランクアップ判定
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
@@ -51,10 +52,12 @@ class _ResultScreenState extends State<ResultScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
   }
 
-  // リザルトBGM: 魔王魂「シャイニングスター」をループ再生
+  // リザルトBGM: 選択中の曲（デフォルトは魔王魂「シャイニングスター」）をループ再生
   Future<void> _startResultBgm() async {
     try {
-      await _resultBgm.setAsset('assets/audio/shining_star.mp3');
+      await _resultBgm.setAsset(
+        'assets/audio/${PlayerProfile.instance.selectedResultBgm}',
+      );
       _resultBgm.setLoopMode(LoopMode.one);
       _resultBgm.setVolume(0.6);
       _resultBgm.play();
@@ -64,19 +67,59 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _grantRewards() async {
+    final profile = PlayerProfile.instance;
     final maxScore = widget.scores.isEmpty
         ? 0
         : widget.scores.reduce((a, b) => a > b ? a : b);
-    final reward = await PlayerProfile.instance.recordGamePlayed(maxScore);
-    await PlayerProfile.instance.refreshAchievements();
+
+    final titleBefore = currentTitle(profile.lifetimeCoins);
+    final reward = await profile.recordGamePlayed(maxScore);
+    final newAchievements = await profile.refreshAchievements();
+    final titleAfter = currentTitle(profile.lifetimeCoins);
+
     if (!mounted) return;
     setState(() {
       _earnedThisGame = reward.total;
       _sessionStreak = reward.sessionStreak;
     });
-    // 勝者がいれば盛大に演出（BGMはシャイニングスターが流れているので紙吹雪のみ）
+    // 勝者がいれば盛大に演出（BGMが流れているので紙吹雪のみ）
     if (maxScore > 0) {
       _confetti.play();
+    }
+
+    // 実績解除・称号ランクアップを順番にトースト表示（喜びの積み重ね演出）
+    final m = MetaStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    int delayMs = 800;
+    for (final id in newAchievements) {
+      Future.delayed(Duration(milliseconds: delayMs), () {
+        if (!mounted) return;
+        Sfx.instance.coin();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(m.achievementUnlocked(m.achTitle(id))),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      });
+      delayMs += 2200;
+    }
+    if (titleAfter.requiredLifetimeCoins > titleBefore.requiredLifetimeCoins) {
+      Future.delayed(Duration(milliseconds: delayMs), () {
+        if (!mounted) return;
+        Sfx.instance.victory();
+        _confetti.play(); // 称号アップはもう一度紙吹雪！
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              m.titleRankUp(
+                m.ja ? titleAfter.nameJa : titleAfter.nameEn,
+              ),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      });
     }
   }
 
@@ -382,12 +425,21 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       child: Column(
         children: [
-          Text(
-            '🪙 ${m.earnedCoins(_doubled ? _earnedThisGame * 2 : _earnedThisGame)}',
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF8A6A1E)),
+          // コインがカラカラとカウントアップする演出
+          TweenAnimationBuilder<int>(
+            tween: IntTween(
+              begin: 0,
+              end: _doubled ? _earnedThisGame * 2 : _earnedThisGame,
+            ),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Text(
+              '🪙 ${m.earnedCoins(value)}',
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF8A6A1E)),
+            ),
           ),
           if (_sessionStreak >= 2) ...[
             const SizedBox(height: 4),

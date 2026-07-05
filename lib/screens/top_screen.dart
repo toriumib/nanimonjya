@@ -6,6 +6,7 @@ import 'online_game_lobby_screen.dart'; // オンラインモード
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
+import '../services/sfx.dart'; // タップ音
 
 // 多言語対応のために追加
 
@@ -228,6 +229,7 @@ class _TopScreenState extends State<TopScreen>
                 children: [
                   ElevatedButton(
                     onPressed: () {
+                      Sfx.instance.pop();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -258,6 +260,7 @@ class _TopScreenState extends State<TopScreen>
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {
+                      Sfx.instance.pop();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
