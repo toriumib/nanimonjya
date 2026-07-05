@@ -73,5 +73,7 @@
   "customImagesMin": "When using custom images, at least {count} images are required.",
   "errorCreatingRoom": "Failed to create room: {error}",
   "roomNotFoundForPasscode": "Room not found for the given passcode.",
-  "namedCharacterConfirmation": "'{charName}' named by {playerName}!"
+  "namedCharacterConfirmation": "'{charName}' named by {playerName}!",
+  "buyMeACoffee": "Support the developer ☕",
+  "couldNotOpenLink": "Could not open the link."
 }

@@ -45,7 +45,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.nanimonjya"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"  // 16KB ページサイズ対応に必須
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -63,7 +63,7 @@ android {
     defaultConfig {
         applicationId "com.nanimonjya"
         minSdkVersion 23
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 35  // Android 15 + 16KB ページサイズ対応
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true

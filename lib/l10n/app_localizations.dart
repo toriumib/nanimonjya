@@ -541,6 +541,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\'{charName}\' named by {playerName}!'**
   String namedCharacterConfirmation(Object charName, Object playerName);
+
+  /// No description provided for @buyMeACoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the developer ☕'**
+  String get buyMeACoffee;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link.'**
+  String get couldNotOpenLink;
 }
 
 class _AppLocalizationsDelegate

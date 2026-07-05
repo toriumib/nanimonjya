@@ -14,12 +14,13 @@ class AdMob {
               : 'ca-app-pub-3940256099942544/2934735716' // iOS Test ID
           )
       : (defaultTargetPlatform == TargetPlatform.android
-          ? 'YOUR_ANDROID_BANNER_AD_UNIT_ID' // Replace with your real Android ID
-          : 'YOUR_IOS_BANNER_AD_UNIT_ID' // Replace with your real iOS ID
+          ? 'ca-app-pub-6744940157577324/6610536260' // 本番 Android バナーID
+          : 'YOUR_IOS_BANNER_AD_UNIT_ID' // iOS未使用（Androidのみリリース）
       );
 
   // バナー広告を読み込むメソッド
   void loadBanner() {
+    if (kIsWeb) return; // google_mobile_ads は Web 非対応
     // 既に読み込み済み、または読み込み中の場合は処理しない
     if (_bannerAd != null && _isBannerLoaded) {
       debugPrint('BannerAd already loaded.');

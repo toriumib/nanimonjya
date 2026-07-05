@@ -270,4 +270,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String namedCharacterConfirmation(Object charName, Object playerName) {
     return '$charName (名付け親: $playerName)!';
   }
+
+  @override
+  String get buyMeACoffee => '開発者を応援する ☕';
+
+  @override
+  String get couldNotOpenLink => 'リンクを開けませんでした。';
 }

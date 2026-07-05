@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuthをインポート
 import 'package:flutter/foundation.dart'; // kIsWebのために追加
+import '../services/player_profile.dart'; // 選択中BGMの参照
 import 'package:just_audio/just_audio.dart'; // BGMのために追加
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
@@ -58,8 +59,8 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   Future<void> _startBGM() async {
     try {
       await _bgmPlayer.setAsset(
-        'assets/audio/op9-2-Nocturne.mp3',
-      ); // BGMファイルのパス
+        'assets/audio/${PlayerProfile.instance.selectedBgm}',
+      ); // 選択中のBGMを再生
       _bgmPlayer.setLoopMode(LoopMode.one); // ループ再生
       _bgmPlayer.setVolume(0.5); // 音量を調整 (0.0 から 1.0)
       _bgmPlayer.play();
