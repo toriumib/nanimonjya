@@ -52,6 +52,14 @@ class MetaStrings {
   String get newRecord => ja ? '🏆 自己ベスト更新！' : '🏆 New personal best!';
 
   String get dressup => ja ? 'きせかえ' : 'Themes';
+  String get resultMusic => ja ? 'リザルトの音楽' : 'Result music';
+  String get resultMusicDesc => ja
+      ? '勝利のあとに流れる曲。クラシック曲は🎵BGMショップでアンロック！'
+      : 'The song after victory. Unlock classics in the 🎵 music shop!';
+  String achievementUnlocked(String name) =>
+      ja ? '🏆 実績解除「$name」！' : '🏆 Achievement unlocked: $name!';
+  String titleRankUp(String name) =>
+      ja ? '👑 称号ランクアップ→「$name」！' : '👑 New title: $name!';
   String get titles => ja ? '称号' : 'Titles';
   String get currentTitleLabel => ja ? 'いまの称号' : 'Current title';
   String get dogSquad => ja ? '応援わんちゃんズ' : 'Cheer Dogs';

@@ -126,6 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _bgmCard(m, profile),
             const SizedBox(height: 16),
+            _resultMusicCard(m, profile),
+            const SizedBox(height: 16),
             _supportCard(m),
             const SizedBox(height: 24),
           ],
@@ -491,6 +493,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
             trailing: trailing,
           );
         }).toList(),
+      ),
+    );
+  }
+
+  // リザルト画面の曲を選ぶ（シャイニングスター＋アンロック済みクラシック曲）
+  Widget _resultMusicCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    // 選択肢: シャイニングスター（常時）＋BGMショップでアンロック済みの曲
+    final options = <MapEntry<String, String>>[
+      MapEntry('shining_star.mp3', ja ? 'シャイニングスター' : 'Shining Star'),
+      ...kBgmCatalog
+          .where((b) => p.unlockedBgm.contains(b.asset))
+          .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
+    ];
+    return _sectionCard(
+      title: '🎺 ${m.resultMusic}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.resultMusicDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 8),
+          ...options.map((o) {
+            final selected = p.selectedResultBgm == o.key;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                selected ? Icons.music_note : Icons.music_note_outlined,
+                color: selected ? const Color(0xFF4A7A2A) : Colors.grey,
+              ),
+              title: Text(o.value),
+              trailing: selected
+                  ? Chip(
+                      label: Text(m.selected),
+                      backgroundColor: const Color(0xFFD7F5D7),
+                    )
+                  : OutlinedButton(
+                      onPressed: () {
+                        p.selectResultBgm(o.key);
+                        Sfx.instance.pop();
+                      },
+                      child: Text(m.select),
+                    ),
+            );
+          }),
+        ],
       ),
     );
   }

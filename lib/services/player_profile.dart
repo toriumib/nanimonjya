@@ -25,6 +25,7 @@ class PlayerProfile extends ChangeNotifier {
   String selectedBgm = 'op9-2-Nocturne.mp3';
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
+  String selectedResultBgm = 'shining_star.mp3'; // リザルト画面の曲
 
   // セッション内（アプリ起動中のみ）の連続プレイ数。再起動でリセット。
   int sessionStreak = 0;
@@ -56,6 +57,12 @@ class PlayerProfile extends ChangeNotifier {
     selectedTheme = p.getString('selectedTheme') ?? 'sunny';
     if (!unlockedThemes.contains(selectedTheme)) {
       selectedTheme = 'sunny';
+    }
+    selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
+    // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
+    if (selectedResultBgm != 'shining_star.mp3' &&
+        !unlockedBgm.contains(selectedResultBgm)) {
+      selectedResultBgm = 'shining_star.mp3';
     }
     _loaded = true;
     _refreshDailyState();
@@ -170,6 +177,14 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// リザルト画面の曲を選択（シャイニングスター or アンロック済みクラシック曲）
+  Future<void> selectResultBgm(String asset) async {
+    if (asset != 'shining_star.mp3' && !unlockedBgm.contains(asset)) return;
+    selectedResultBgm = asset;
+    await _persist();
+    notifyListeners();
+  }
+
   /// 実績条件を満たしているものを解放し、報酬コインを付与。
   /// 新たに解放された実績IDのリストを返す。
   List<String> _checkAchievements() {
@@ -243,6 +258,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setString('selectedBgm', selectedBgm);
     await p.setStringList('unlockedThemes', unlockedThemes.toList());
     await p.setString('selectedTheme', selectedTheme);
+    await p.setString('selectedResultBgm', selectedResultBgm);
   }
 }
 
