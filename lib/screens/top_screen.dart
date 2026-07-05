@@ -152,27 +152,27 @@ class _TopScreenState extends State<TopScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // アプリタイトル（ポップにバウンド登場）
+            // アプリタイトル（ポップにバウンド登場・テーマ連動色）
             Padding(
-              padding: const EdgeInsets.only(bottom: 40.0),
+              padding: const EdgeInsets.only(bottom: 32.0),
               child: Column(
                 children: [
                   const Text('🎉', style: TextStyle(fontSize: 40)),
                   const SizedBox(height: 4),
                   Text(
                     localizations.appTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 46,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFFFF4FA3),
+                      color: homeTheme.titleColor,
                       letterSpacing: 2,
                       shadows: [
                         Shadow(
-                          offset: Offset(3.0, 3.0),
+                          offset: const Offset(3.0, 3.0),
                           blurRadius: 0,
-                          color: Color(0xFFFFD93D), // 黄色のズレ影でポップに
+                          color: homeTheme.titleShadow, // ズレ影でポップに
                         ),
-                        Shadow(
+                        const Shadow(
                           offset: Offset(5.0, 5.0),
                           blurRadius: 8,
                           color: Color(0x33000000),
@@ -180,6 +180,43 @@ class _TopScreenState extends State<TopScreen>
                       ],
                     ),
                     textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  // 現在の称号バッジ（累計コインでランクアップ）
+                  AnimatedBuilder(
+                    animation: PlayerProfile.instance,
+                    builder: (context, _) {
+                      final title = currentTitle(
+                        PlayerProfile.instance.lifetimeCoins,
+                      );
+                      final ja = Localizations.localeOf(context)
+                              .languageCode ==
+                          'ja';
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: homeTheme.titleColor,
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(
+                          '${title.emoji} ${ja ? title.nameJa : title.nameEn}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: homeTheme.darkBackground
+                                ? const Color(0xFF2B2D64)
+                                : homeTheme.titleColor,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

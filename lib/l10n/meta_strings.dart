@@ -51,6 +51,16 @@ class MetaStrings {
       ja ? '連続プレイボーナス +$n！' : 'Play streak bonus +$n!';
   String get newRecord => ja ? '🏆 自己ベスト更新！' : '🏆 New personal best!';
 
+  String get dressup => ja ? 'きせかえ' : 'Themes';
+  String get titles => ja ? '称号' : 'Titles';
+  String get currentTitleLabel => ja ? 'いまの称号' : 'Current title';
+  String get dogSquad => ja ? '応援わんちゃんズ' : 'Cheer Dogs';
+  String get dogSquadDesc => ja
+      ? 'コインをためると仲間がふえて、バトル画面で応援してくれる！'
+      : 'Earn coins to unlock more dogs cheering you on in battle!';
+  String coinsToUnlock(int n) =>
+      ja ? 'あと$nコインでアンロック' : '$n more coins to unlock';
+
   String get supportDev => ja ? '開発者を応援する' : 'Support the developer';
   String get supportBody => ja
       ? 'このゲームを気に入ってくれたら、コーヒー1杯分の応援をいただけると嬉しいです☕'

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
+import '../models/cosmetics.dart';
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
@@ -114,6 +115,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _dailyBonusCard(m, profile),
             const SizedBox(height: 16),
             _statsCard(m, profile),
+            const SizedBox(height: 16),
+            _titleCard(m, profile),
+            const SizedBox(height: 16),
+            _themeCard(m, profile),
+            const SizedBox(height: 16),
+            _dogCard(m, profile),
             const SizedBox(height: 16),
             _achievementsCard(m, profile),
             const SizedBox(height: 16),
@@ -251,6 +258,187 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  // 称号一覧（累計コインで自動ランクアップ）
+  Widget _titleCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    final current = currentTitle(p.lifetimeCoins);
+    return _sectionCard(
+      title: '👑 ${m.titles}',
+      child: Column(
+        children: kPlayerTitles.map((t) {
+          final unlocked = p.lifetimeCoins >= t.requiredLifetimeCoins;
+          final isCurrent = t.requiredLifetimeCoins ==
+              current.requiredLifetimeCoins;
+          return Opacity(
+            opacity: unlocked ? 1.0 : 0.4,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Text(
+                unlocked ? t.emoji : '🔒',
+                style: const TextStyle(fontSize: 26),
+              ),
+              title: Text(
+                ja ? t.nameJa : t.nameEn,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isCurrent ? const Color(0xFFB8860B) : null,
+                ),
+              ),
+              subtitle: Text(
+                unlocked
+                    ? (isCurrent ? m.currentTitleLabel : m.unlocked)
+                    : m.coinsToUnlock(
+                        t.requiredLifetimeCoins - p.lifetimeCoins,
+                      ),
+              ),
+              trailing: isCurrent
+                  ? const Icon(Icons.star, color: Color(0xFFFFB300))
+                  : Text(
+                      '🪙${t.requiredLifetimeCoins}',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ホーム画面のきせかえ（コインで解放）
+  Widget _themeCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    return _sectionCard(
+      title: '🎨 ${m.dressup}',
+      child: Column(
+        children: kHomeThemes.map((t) {
+          final owned = p.unlockedThemes.contains(t.id);
+          final selected = p.selectedTheme == t.id;
+          Widget trailing;
+          if (selected) {
+            trailing = Chip(
+              label: Text(m.selected),
+              backgroundColor: const Color(0xFFD7F5D7),
+            );
+          } else if (owned) {
+            trailing = OutlinedButton(
+              onPressed: () {
+                p.selectTheme(t.id);
+                Sfx.instance.pop();
+              },
+              child: Text(m.select),
+            );
+          } else {
+            trailing = ElevatedButton(
+              onPressed: () async {
+                final ok = await p.unlockTheme(t.id, t.cost);
+                if (!mounted) return;
+                if (ok) {
+                  Sfx.instance.coin();
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(m.unlocked)));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(m.notEnoughCoins)));
+                }
+              },
+              child: Text('${t.cost}🪙'),
+            );
+          }
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            // テーマのグラデーションをプレビュー表示
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: t.gradient,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected
+                      ? const Color(0xFF4A7A2A)
+                      : Colors.grey.shade300,
+                  width: 2,
+                ),
+              ),
+              child: Center(
+                child: Text(t.emoji, style: const TextStyle(fontSize: 20)),
+              ),
+            ),
+            title: Text(
+              ja ? t.nameJa : t.nameEn,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              t.cost == 0 ? m.free : (owned ? m.unlocked : '${t.cost} ${m.coins}'),
+            ),
+            trailing: trailing,
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // 応援わんちゃん図鑑（累計コインで自動解放）
+  Widget _dogCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    return _sectionCard(
+      title: '🐾 ${m.dogSquad}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.dogSquadDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: kDogCompanions.map((d) {
+              final unlocked =
+                  p.lifetimeCoins >= d.requiredLifetimeCoins;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: unlocked
+                          ? const Color(0xFFFFF3D6)
+                          : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: unlocked
+                            ? const Color(0xFFE6B54A)
+                            : Colors.grey.shade400,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        unlocked ? d.emoji : '🔒',
+                        style: const TextStyle(fontSize: 26),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    unlocked
+                        ? (ja ? d.nameJa : d.nameEn)
+                        : '🪙${d.requiredLifetimeCoins}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

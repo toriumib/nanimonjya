@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // title は MaterialApp のラベルであり、通常はAppLocalizationsを使わず固定値で良い場合が多いが、ここも対応可能
-      title: 'ナンジャモンジャ風ゲーム', // アプリタイトル (デフォルト値)
+      title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
       // ★ポップで元気なテーマ（小学生ウケ狙い）★
       theme: ThemeData(
         useMaterial3: true,
