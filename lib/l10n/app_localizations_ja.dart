@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'ナンジャモンジャ風ゲーム';
+  String get appTitle => 'ナニモンジャ';
 
   @override
   String get playOnline => 'オンラインで遊ぶ';
