@@ -19,6 +19,8 @@ class ResultScreen extends StatefulWidget {
   final bool isOnline; // オンラインゲームの結果かどうか
   final String? roomId; // オンラインゲームの場合のルームID
   final String? myPlayerId; // オンラインゲームの場合の自分のプレイヤーID
+  final int? myIndex; // scores の中で自分のスコアの位置（オンラインのみ）
+  final bool isRandomMatch; // ランダムマッチだったか
 
   const ResultScreen({
     Key? key,
@@ -27,6 +29,8 @@ class ResultScreen extends StatefulWidget {
     this.isOnline = false, // デフォルトはオフライン
     this.roomId,
     this.myPlayerId,
+    this.myIndex,
+    this.isRandomMatch = false,
   }) : super(key: key);
 
   @override
@@ -40,7 +44,17 @@ class _ResultScreenState extends State<ResultScreen> {
 
   int _earnedThisGame = 0; // 今回のゲームで獲得したコイン（2倍の対象）
   int _sessionStreak = 0;
+  int _onlineWinBonus = 0; // オンライン勝利ボーナス
   bool _doubled = false; // リワード広告で2倍済みか
+
+  // オンラインで自分が勝ったか（myIndex が渡されている時のみ判定可能）
+  bool get _wonOnline {
+    if (!widget.isOnline || widget.myIndex == null) return false;
+    final i = widget.myIndex!;
+    if (i < 0 || i >= widget.scores.length) return false;
+    final maxScore = widget.scores.reduce((a, b) => a > b ? a : b);
+    return maxScore > 0 && widget.scores[i] == maxScore;
+  }
 
   @override
   void initState() {
@@ -74,12 +88,22 @@ class _ResultScreenState extends State<ResultScreen> {
 
     final titleBefore = currentTitle(profile.lifetimeCoins);
     final reward = await profile.recordGamePlayed(maxScore);
+    // オンライン対戦の戦績記録（勝利ボーナス付き）。トロフィー判定は
+    // 直後の refreshAchievements がまとめて行う。
+    int onlineBonus = 0;
+    if (widget.isOnline) {
+      onlineBonus = await profile.recordOnlineGame(
+        won: _wonOnline,
+        isRandomMatch: widget.isRandomMatch,
+      );
+    }
     final newAchievements = await profile.refreshAchievements();
     final titleAfter = currentTitle(profile.lifetimeCoins);
 
     if (!mounted) return;
     setState(() {
-      _earnedThisGame = reward.total;
+      _earnedThisGame = reward.total + onlineBonus;
+      _onlineWinBonus = onlineBonus;
       _sessionStreak = reward.sessionStreak;
     });
     // 勝者がいれば盛大に演出（BGMが流れているので紙吹雪のみ）
@@ -160,6 +184,26 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
+  // 戦績をXでシェアする（Web Intentなのでアプリ未インストールでもブラウザで開く）
+  Future<void> _shareOnX() async {
+    final m = MetaStrings.of(context);
+    final maxScore = widget.scores.isEmpty
+        ? 0
+        : widget.scores.reduce((a, b) => a > b ? a : b);
+    final text = _wonOnline
+        ? m.shareWin(widget.playerCount, widget.scores[widget.myIndex!])
+        : m.sharePlayed(widget.playerCount, maxScore);
+    final uri = Uri.https('twitter.com', '/intent/tweet', {
+      'text': '$text ${m.shareHashtag}',
+      'url': 'https://nanimonjya.web.app',
+    });
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(m.couldNotOpenLink)));
+    }
+  }
+
   // オンラインゲームのリセット処理
   Future<void> _resetOnlineGame(BuildContext context) async {
     if (!widget.isOnline || widget.roomId == null || widget.myPlayerId == null) {
@@ -169,6 +213,9 @@ class _ResultScreenState extends State<ResultScreen> {
     final DocumentReference roomRef =
         FirebaseFirestore.instance.collection('rooms').doc(widget.roomId!);
 
+    // 部屋の実際のゲームモードを再戦後の画面に引き継ぐ
+    // （以前は常に通話モード扱いになり、テキストモード部屋の再戦が壊れていた）
+    bool isVoiceRoom = true;
     try {
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         DocumentSnapshot currentRoom = await transaction.get(roomRef);
@@ -180,6 +227,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
         List<dynamic> players = data['players'] ?? [];
         String gameMode = data['gameMode'] as String? ?? 'voice';
+        isVoiceRoom = gameMode == 'voice';
 
         Map<String, int> initialScores = {};
         for (String playerId in players.cast<String>()) {
@@ -216,7 +264,7 @@ class _ResultScreenState extends State<ResultScreen> {
           builder: (context) => OnlineGameScreen(
             roomId: widget.roomId!,
             myPlayerId: widget.myPlayerId!,
-            isVoiceMode: widget.isOnline ? true : false,
+            isVoiceMode: isVoiceRoom,
           ),
         ),
         (Route<dynamic> route) => false,
@@ -365,6 +413,24 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 12),
+                  // Xシェアボタン（戦績＋リンク付きで投稿画面を開く）
+                  ElevatedButton.icon(
+                    onPressed: _shareOnX,
+                    icon: const Text(
+                      '𝕏',
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    label: Text(m.shareOnX),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                    ),
+                  ),
+
                   const SizedBox(height: 16),
                   // 応援（BMC）
                   TextButton.icon(
@@ -445,6 +511,14 @@ class _ResultScreenState extends State<ResultScreen> {
             const SizedBox(height: 4),
             Text(
               '🔥 ${m.sessionBonusN((_sessionStreak - 1) * 5)}',
+              style: const TextStyle(
+                  fontSize: 14, color: Color(0xFFB35A1E)),
+            ),
+          ],
+          if (_onlineWinBonus > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              '🏆 ${m.onlineWinBonusN(_onlineWinBonus)}',
               style: const TextStyle(
                   fontSize: 14, color: Color(0xFFB35A1E)),
             ),
