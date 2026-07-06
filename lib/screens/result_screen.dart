@@ -12,6 +12,7 @@ import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
+import 'profile_screen.dart'; // マイページ・戦績（トロフィー）への導線
 
 class ResultScreen extends StatefulWidget {
   final List<int> scores;
@@ -46,6 +47,7 @@ class _ResultScreenState extends State<ResultScreen> {
   int _sessionStreak = 0;
   int _onlineWinBonus = 0; // オンライン勝利ボーナス
   bool _doubled = false; // リワード広告で2倍済みか
+  final int _tipSeed = Random().nextInt(100000); // 表示するTipsを固定するための種
 
   // オンラインで自分が勝ったか（myIndex が渡されている時のみ判定可能）
   bool get _wonOnline {
@@ -367,7 +369,39 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+
+                  // ★できることTips（ランダムに1つ表示）★
+                  _tipsCard(m),
+                  const SizedBox(height: 12),
+
+                  // ★マイページ・戦績（トロフィー）への大きな導線★
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.emoji_events),
+                      label: Text(m.openTrophy),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFB300),
+                        foregroundColor: const Color(0xFF5A3E00),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // リワード広告：コイン2倍
                   if (RewardAdHelper.available && !_doubled && _earnedThisGame > 0)
@@ -487,6 +521,39 @@ class _ResultScreenState extends State<ResultScreen> {
                 Colors.purpleAccent,
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // できることTips（コインの使い道・遊びの広がりを提示して継続を促す）
+  Widget _tipsCard(MetaStrings m) {
+    final tips = m.tips();
+    final tip = tips[_tipSeed % tips.length];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF7FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF7FD1F0), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            m.tipsTitle,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E7BA6),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            tip,
+            style: const TextStyle(fontSize: 15, height: 1.4),
           ),
         ],
       ),
