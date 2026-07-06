@@ -2,7 +2,7 @@ name: untitled
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 1.1.0+63
+version: 1.1.0+64
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -26,6 +26,7 @@ dependencies:
   url_launcher: ^6.3.0  # Buy Me a Coffee のリンクを開くために追加
   shared_preferences: ^2.3.2  # コイン/実績/デイリー等のローカル保存
   confetti: ^0.8.0  # 勝利演出の紙吹雪
+  flutter_svg: ^2.0.10  # 応援キャラのイラスト表示
 
 
 dev_dependencies:
@@ -40,6 +41,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/supporters/
     - assets/audio/
   # ... (他のflutter設定) ...
 

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 応援団・黄: 細目でニヒルな笑みの団員、丸サングラス（オリジナル） -->
+  <!-- 学ラン -->
+  <path d="M32 58 L68 58 L70 96 L30 96 Z" fill="#23283C" stroke="#11141F" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M50 58 L50 96" stroke="#11141F" stroke-width="2"/>
+  <circle cx="50" cy="68" r="1.8" fill="#E8C24A"/>
+  <circle cx="50" cy="78" r="1.8" fill="#E8C24A"/>
+  <circle cx="50" cy="88" r="1.8" fill="#E8C24A"/>
+  <path d="M42 58 L50 66 L58 58" fill="none" stroke="#11141F" stroke-width="2"/>
+  <!-- 片手メガホン -->
+  <path d="M66 70 L82 60 L84 74 L68 78 Z" fill="#FFD24A" stroke="#C9942C" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M32 68 Q42 74 50 72" fill="none" stroke="#11141F" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M50 72 L67 73" stroke="#EDC9A4" stroke-width="5" stroke-linecap="round"/>
+  <!-- 顔（ほっそり面長） -->
+  <ellipse cx="50" cy="36" rx="16" ry="20" fill="#E8C9A8" stroke="#AA8258" stroke-width="2"/>
+  <!-- 七三の髪 -->
+  <path d="M35 26 Q34 13 50 12 Q67 13 66 27 Q60 18 44 19 Q37 20 36 28 Z" fill="#3A2E24" stroke="#1E1712" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- 黄ハチマキ -->
+  <path d="M34 27 L66 27 L66 33 L34 33 Z" fill="#F2C93A" stroke="#C9942C" stroke-width="1.8"/>
+  <path d="M66 28 L75 25 L72 33 L66 32 Z" fill="#F2C93A" stroke="#C9942C" stroke-width="1.8"/>
+  <!-- 丸サングラス（うすい色） -->
+  <circle cx="43" cy="40" r="5" fill="#C9A94A" opacity="0.55" stroke="#6B5522" stroke-width="1.8"/>
+  <circle cx="57" cy="40" r="5" fill="#C9A94A" opacity="0.55" stroke="#6B5522" stroke-width="1.8"/>
+  <path d="M48 40 L52 40" stroke="#6B5522" stroke-width="1.8"/>
+  <!-- 奥の細目 -->
+  <path d="M40 40 L46 40 M54 40 L60 40" stroke="#26201C" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- 鼻・ニヤリ口 -->
+  <path d="M51 44 L50 48" stroke="#AA8258" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M43 52 Q52 56 58 50" fill="none" stroke="#7A5636" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

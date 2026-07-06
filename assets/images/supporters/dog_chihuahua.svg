@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- チワワ: 大きな耳とうるうるおめめ -->
+  <!-- 耳 -->
+  <path d="M18 38 L8 8 L38 24 Z" fill="#E8B87D" stroke="#8A5A2B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M82 38 L92 8 L62 24 Z" fill="#E8B87D" stroke="#8A5A2B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M20 34 L14 15 L32 26 Z" fill="#F7DCC0"/>
+  <path d="M80 34 L86 15 L68 26 Z" fill="#F7DCC0"/>
+  <!-- 体 -->
+  <ellipse cx="50" cy="83" rx="20" ry="14" fill="#F0C893" stroke="#8A5A2B" stroke-width="3"/>
+  <!-- 前足 -->
+  <ellipse cx="41" cy="93" rx="6" ry="4.5" fill="#F7DCC0" stroke="#8A5A2B" stroke-width="2.5"/>
+  <ellipse cx="59" cy="93" rx="6" ry="4.5" fill="#F7DCC0" stroke="#8A5A2B" stroke-width="2.5"/>
+  <!-- 顔 -->
+  <circle cx="50" cy="48" r="27" fill="#F0C893" stroke="#8A5A2B" stroke-width="3"/>
+  <!-- マズル -->
+  <ellipse cx="50" cy="58" rx="13" ry="10" fill="#FCEEDC"/>
+  <!-- 目（うるうる） -->
+  <circle cx="39" cy="45" r="6.5" fill="#3B2412"/>
+  <circle cx="61" cy="45" r="6.5" fill="#3B2412"/>
+  <circle cx="41" cy="43" r="2.4" fill="#FFFFFF"/>
+  <circle cx="63" cy="43" r="2.4" fill="#FFFFFF"/>
+  <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF"/>
+  <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF"/>
+  <!-- 鼻・口 -->
+  <ellipse cx="50" cy="54" rx="3.6" ry="2.8" fill="#3B2412"/>
+  <path d="M50 57 Q50 62 45 62 M50 57 Q50 62 55 62" fill="none" stroke="#3B2412" stroke-width="2" stroke-linecap="round"/>
+  <!-- ほっぺ -->
+  <circle cx="30" cy="55" r="4" fill="#F7A8A0" opacity="0.7"/>
+  <circle cx="70" cy="55" r="4" fill="#F7A8A0" opacity="0.7"/>
+  <!-- しっぽ -->
+  <path d="M69 80 Q82 74 80 64" fill="none" stroke="#8A5A2B" stroke-width="5" stroke-linecap="round"/>
+</svg>

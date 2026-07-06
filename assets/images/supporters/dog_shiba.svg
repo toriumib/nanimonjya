@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 柴犬: きりっと三角耳とくるんとしっぽ -->
+  <!-- 耳 -->
+  <path d="M22 34 L16 10 L40 22 Z" fill="#E8924A" stroke="#7A4A1E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M78 34 L84 10 L60 22 Z" fill="#E8924A" stroke="#7A4A1E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M25 30 L21 16 L35 24 Z" fill="#F7C89A"/>
+  <path d="M75 30 L79 16 L65 24 Z" fill="#F7C89A"/>
+  <!-- くるんとしっぽ -->
+  <circle cx="76" cy="72" r="9" fill="none" stroke="#7A4A1E" stroke-width="5.5"/>
+  <circle cx="76" cy="72" r="9" fill="none" stroke="#E8924A" stroke-width="3"/>
+  <!-- 体 -->
+  <ellipse cx="48" cy="84" rx="21" ry="13" fill="#E8924A" stroke="#7A4A1E" stroke-width="3"/>
+  <ellipse cx="48" cy="88" rx="13" ry="7" fill="#FCF3E3"/>
+  <!-- 前足 -->
+  <ellipse cx="39" cy="94" rx="6" ry="4" fill="#FCF3E3" stroke="#7A4A1E" stroke-width="2.5"/>
+  <ellipse cx="57" cy="94" rx="6" ry="4" fill="#FCF3E3" stroke="#7A4A1E" stroke-width="2.5"/>
+  <!-- 顔 -->
+  <circle cx="50" cy="46" r="26" fill="#E8924A" stroke="#7A4A1E" stroke-width="3"/>
+  <!-- 白マズル＆眉スポット -->
+  <ellipse cx="50" cy="57" rx="15" ry="11" fill="#FCF3E3"/>
+  <ellipse cx="39" cy="34" rx="4.5" ry="3" fill="#FCF3E3"/>
+  <ellipse cx="61" cy="34" rx="4.5" ry="3" fill="#FCF3E3"/>
+  <!-- 目（きりっと笑顔） -->
+  <path d="M34 44 Q39 40 44 44" fill="none" stroke="#3B2412" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M56 44 Q61 40 66 44" fill="none" stroke="#3B2412" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- 鼻・口 -->
+  <ellipse cx="50" cy="53" rx="3.8" ry="3" fill="#3B2412"/>
+  <path d="M50 56 Q50 61 44 61 M50 56 Q50 61 56 61" fill="none" stroke="#3B2412" stroke-width="2" stroke-linecap="round"/>
+  <path d="M43 63 Q50 68 57 63" fill="none" stroke="#3B2412" stroke-width="2" stroke-linecap="round"/>
+  <!-- ほっぺ -->
+  <circle cx="31" cy="53" r="4" fill="#F08A6A" opacity="0.6"/>
+  <circle cx="69" cy="53" r="4" fill="#F08A6A" opacity="0.6"/>
+</svg>

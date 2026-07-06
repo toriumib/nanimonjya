@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
@@ -415,8 +416,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 64,
+                    height: 64,
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: unlocked
                           ? const Color(0xFFFFF3D6)
@@ -430,10 +432,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     child: Center(
-                      child: Text(
-                        unlocked ? d.emoji : '🔒',
-                        style: const TextStyle(fontSize: 26),
-                      ),
+                      child: unlocked
+                          ? SvgPicture.asset(d.asset, width: 50, height: 50)
+                          : const Text('🔒',
+                              style: TextStyle(fontSize: 26)),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -464,7 +466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(m.cheerSquadDesc, style: const TextStyle(fontSize: 13)),
           const SizedBox(height: 10),
-          // 現在のメンバー表示
+          // 現在のメンバー表示（イラスト）
           Row(
             children: [
               Text(
@@ -472,12 +474,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 12),
-              Text(
-                p.cheerLevel > 0
-                    ? cheerMembers(p.cheerLevel).join(' ')
-                    : '—',
-                style: const TextStyle(fontSize: 24),
-              ),
+              if (p.cheerLevel > 0)
+                ...cheerMembers(p.cheerLevel).map(
+                  (a) => Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: SvgPicture.asset(a, width: 34, height: 34),
+                  ),
+                )
+              else
+                const Text('—', style: TextStyle(fontSize: 24)),
             ],
           ),
           const SizedBox(height: 10),
@@ -489,15 +494,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               opacity: owned || isNext ? 1.0 : 0.4,
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Text(
-                  owned ? s.members.last : '🔒',
-                  style: const TextStyle(fontSize: 26),
-                ),
+                leading: owned
+                    ? SvgPicture.asset(s.members.last,
+                        width: 40, height: 40)
+                    : const Text('🔒', style: TextStyle(fontSize: 26)),
                 title: Text(
                   'Lv.${s.level} ${ja ? s.nameJa : s.nameEn}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(s.members.join(' ')),
+                subtitle: Row(
+                  children: s.members
+                      .map((a) => Padding(
+                            padding: const EdgeInsets.only(
+                                right: 3, top: 3),
+                            child: SvgPicture.asset(a,
+                                width: 24, height: 24),
+                          ))
+                      .toList(),
+                ),
                 trailing: owned
                     ? const Icon(Icons.check_circle,
                         color: Color(0xFF4A7A2A))

@@ -73,26 +73,27 @@ HomeTheme homeThemeById(String id) =>
     kHomeThemes.firstWhere((t) => t.id == id, orElse: () => kHomeThemes.first);
 
 /// バトル画面に応援に来るわんちゃん。累計コインが増えるほど仲間が増える。
+/// asset は描き下ろしSVGイラストのパス。
 class DogCompanion {
-  final String emoji;
+  final String asset;
   final String nameJa;
   final String nameEn;
   final int requiredLifetimeCoins;
 
   const DogCompanion(
-    this.emoji,
+    this.asset,
     this.nameJa,
     this.nameEn,
     this.requiredLifetimeCoins,
   );
 }
 
+const String _sup = 'assets/images/supporters';
+
 const List<DogCompanion> kDogCompanions = [
-  DogCompanion('🐶', 'コロ', 'Koro', 0),
-  DogCompanion('🐕', 'ハチ', 'Hachi', 100),
-  DogCompanion('🐩', 'モコ', 'Moko', 300),
-  DogCompanion('🦮', 'レオ', 'Leo', 600),
-  DogCompanion('🐕‍🦺', 'タロウ', 'Taro', 1000),
+  DogCompanion('$_sup/dog_chihuahua.svg', 'チワワ', 'Chihuahua', 0),
+  DogCompanion('$_sup/dog_shiba.svg', 'しばいぬ', 'Shiba Inu', 200),
+  DogCompanion('$_sup/dog_corgi.svg', 'コーギー', 'Corgi', 600),
 ];
 
 /// 累計コインでアンロック済みのわんちゃん一覧
@@ -136,7 +137,7 @@ class CheerStage {
   final String nameJa;
   final String nameEn;
   final int upgradeCost; // このレベルに上げるためのコイン
-  final List<String> members; // 応援メンバーの絵文字
+  final List<String> members; // 応援メンバーのイラスト(SVG)パス
 
   const CheerStage({
     required this.level,
@@ -153,21 +154,26 @@ const List<CheerStage> kCheerStages = [
     nameJa: 'チアガール',
     nameEn: 'Cheer Girl',
     upgradeCost: 200,
-    members: ['🙋‍♀️'],
+    members: ['$_sup/cheer_girl.svg'],
   ),
   CheerStage(
     level: 2,
-    nameJa: 'チアペア',
-    nameEn: 'Cheer Pair',
+    nameJa: 'チア＆熱血団長',
+    nameEn: 'Cheer & Captain',
     upgradeCost: 500,
-    members: ['🙋‍♀️', '🙋‍♂️'],
+    members: ['$_sup/cheer_girl.svg', '$_sup/squad_red.svg'],
   ),
   CheerStage(
     level: 3,
     nameJa: '応援団フル編成',
     nameEn: 'Full Cheer Squad',
     upgradeCost: 1000,
-    members: ['🙋‍♀️', '🙋‍♂️', '📣', '🥁'],
+    members: [
+      '$_sup/cheer_girl.svg',
+      '$_sup/squad_blue.svg',
+      '$_sup/squad_yellow.svg',
+      '$_sup/squad_red.svg',
+    ],
   ),
 ];
 
