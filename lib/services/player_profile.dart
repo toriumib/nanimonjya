@@ -29,6 +29,7 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
   String selectedResultBgm = 'shining_star.mp3'; // リザルト画面の曲
+  int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
 
   // セッション内（アプリ起動中のみ）の連続プレイ数。再起動でリセット。
   int sessionStreak = 0;
@@ -64,6 +65,7 @@ class PlayerProfile extends ChangeNotifier {
     if (!unlockedThemes.contains(selectedTheme)) {
       selectedTheme = 'sunny';
     }
+    cheerLevel = p.getInt('cheerLevel') ?? 0;
     selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != 'shining_star.mp3' &&
@@ -204,6 +206,16 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// チア応援団を1レベルアップグレード。成功したら true。
+  Future<bool> upgradeCheer(int cost) async {
+    if (coins < cost) return false;
+    coins -= cost;
+    cheerLevel += 1;
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
   /// リザルト画面の曲を選択（シャイニングスター or アンロック済みクラシック曲）
   Future<void> selectResultBgm(String asset) async {
     if (asset != 'shining_star.mp3' && !unlockedBgm.contains(asset)) return;
@@ -299,6 +311,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('unlockedThemes', unlockedThemes.toList());
     await p.setString('selectedTheme', selectedTheme);
     await p.setString('selectedResultBgm', selectedResultBgm);
+    await p.setInt('cheerLevel', cheerLevel);
   }
 }
 

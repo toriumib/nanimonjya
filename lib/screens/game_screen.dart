@@ -93,6 +93,8 @@ class _GameScreenState extends State<GameScreen> {
 
   // カードをめくる（次の画像を表示する）処理
   void _drawNextCard() {
+    // ★800ms遅延中に「やめる」で画面を抜けた場合のクラッシュを防止★
+    if (!mounted) return;
     if (_deck.isEmpty) {
       _endGame(); // 山札がなくなったらゲーム終了
       return;
@@ -153,6 +155,7 @@ class _GameScreenState extends State<GameScreen> {
 
   // ゲーム終了処理
   void _endGame() {
+    if (!mounted) return; // 破棄済みcontextへのアクセスを防止
     // 最後の場札が残っている場合、ルールに応じて処理（例：誰も獲得しない）
     _fieldCards.clear();
 

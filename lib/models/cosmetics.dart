@@ -129,3 +129,54 @@ PlayerTitle currentTitle(int lifetimeCoins) => kPlayerTitles.lastWhere(
       (t) => lifetimeCoins >= t.requiredLifetimeCoins,
       orElse: () => kPlayerTitles.first,
     );
+
+/// バトル中に応援してくれるチア応援団。コインを消費してレベルアップする。
+class CheerStage {
+  final int level; // このステージのレベル（1〜）
+  final String nameJa;
+  final String nameEn;
+  final int upgradeCost; // このレベルに上げるためのコイン
+  final List<String> members; // 応援メンバーの絵文字
+
+  const CheerStage({
+    required this.level,
+    required this.nameJa,
+    required this.nameEn,
+    required this.upgradeCost,
+    required this.members,
+  });
+}
+
+const List<CheerStage> kCheerStages = [
+  CheerStage(
+    level: 1,
+    nameJa: 'チアガール',
+    nameEn: 'Cheer Girl',
+    upgradeCost: 200,
+    members: ['🙋‍♀️'],
+  ),
+  CheerStage(
+    level: 2,
+    nameJa: 'チアペア',
+    nameEn: 'Cheer Pair',
+    upgradeCost: 500,
+    members: ['🙋‍♀️', '🙋‍♂️'],
+  ),
+  CheerStage(
+    level: 3,
+    nameJa: '応援団フル編成',
+    nameEn: 'Full Cheer Squad',
+    upgradeCost: 1000,
+    members: ['🙋‍♀️', '🙋‍♂️', '📣', '🥁'],
+  ),
+];
+
+/// 現在のチアレベルで応援に来るメンバー（レベル0なら空）
+List<String> cheerMembers(int cheerLevel) {
+  if (cheerLevel <= 0) return const [];
+  final stage = kCheerStages.lastWhere(
+    (s) => s.level <= cheerLevel,
+    orElse: () => kCheerStages.first,
+  );
+  return stage.members;
+}
