@@ -20,8 +20,6 @@ dependencies:
   firebase_core: ^3.4.0
   cloud_firestore: ^5.0.0
   firebase_auth: ^5.1.1
-  firebase_storage: ^12.4.6
-  image_picker: ^1.1.0
   uuid: ^4.4.0
   cloud_functions: ^5.5.1
   just_audio: ^0.9.36

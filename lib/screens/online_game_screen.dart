@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart';
+import '../l10n/meta_strings.dart'; // ランダムマッチ用の文言
 
 class OnlineGameScreen extends StatefulWidget {
   final String roomId;
@@ -58,6 +59,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   bool _isLoadingChoices = false; // AIの名前生成中か
   String? _choicesForCard; // どのカード用の選択肢かを追跡（再生成ループ防止）
   bool _advancing = false; // カード送りの二重実行防止
+  bool _autoStartScheduled = false; // ランダムマッチの自動開始を1回だけ予約
   List<String> _playerOrder = []; // プレイヤーが名前をつける順番
   int _currentPlayerIndex = 0; // 現在名前をつけるプレイヤーのインデックス
   Map<String, bool> _playersAttemptedCurrentCard = {}; // 現在のカードで回答済みのプレイヤーを記録
@@ -214,6 +216,32 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     }
   }
 
+  /// ランダムマッチの待機中にキャンセルして部屋を抜ける。
+  /// 自分が最後の1人なら部屋ごと削除する（放置部屋がマッチング候補に残らないように）。
+  Future<void> _leaveRandomRoom() async {
+    final roomRef = _firestore.collection('rooms').doc(widget.roomId);
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snap = await transaction.get(roomRef);
+        if (!snap.exists) return;
+        final data = snap.data() as Map<String, dynamic>;
+        if (data['status'] != 'waiting') return; // 開始済みなら何もしない
+        final players = List<String>.from(data['players'] ?? []);
+        players.remove(widget.myPlayerId);
+        if (players.isEmpty) {
+          transaction.delete(roomRef);
+        } else {
+          final scores = Map<String, dynamic>.from(data['scores'] ?? {});
+          scores.remove(widget.myPlayerId);
+          transaction.update(roomRef, {'players': players, 'scores': scores});
+        }
+      });
+    } catch (e) {
+      debugPrint('ランダムマッチのキャンセルに失敗: $e');
+    }
+    if (mounted) Navigator.pop(context);
+  }
+
   /// ゲームの初期化とプレイヤーの参加処理
   Future<void> _initializeOnlineGame() async {
     DocumentReference roomRef = _firestore
@@ -258,11 +286,21 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   /// ゲーム開始処理
   /// プレイヤーが「ゲーム開始」ボタンを押した際に呼び出されます。
   Future<void> _startGameOnline(DocumentReference roomRef) async {
+    // ランダムマッチでは複数クライアントが同時に自動開始を試みるため、
+    // 実際に開始処理を行ったクライアントだけが最初のカードをめくる
+    bool startedByMe = false;
     await _firestore.runTransaction((transaction) async {
+      startedByMe = false;
       DocumentSnapshot currentRoom = await transaction.get(roomRef);
       Map<String, dynamic> data = currentRoom.data() as Map<String, dynamic>;
 
       if (data['status'] == 'playing') {
+        return;
+      }
+
+      // ランダムマッチの自動開始：待機中に相手が抜けて1人になっていたら開始しない
+      if (data['isRandomMatch'] == true &&
+          (data['players'] as List<dynamic>? ?? []).length < 2) {
         return;
       }
 
@@ -303,9 +341,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'lastNamedCharacterData': null,
         'characterChoices': {}, // 事前生成した選択肢もリセット
       });
+      startedByMe = true;
     });
 
-    _drawNextCardOnline(roomRef);
+    if (startedByMe) {
+      _drawNextCardOnline(roomRef);
+    }
   }
 
   /// Firestoreのデータからゲーム状態をロード
@@ -817,10 +858,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             ..sort((a, b) => a.key.compareTo(b.key));
 
           if (roomData['status'] == 'finished') {
+            final bool isRandomMatchRoom = roomData['isRandomMatch'] == true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               List<int> resultScores = sortedScores
                   .map((e) => e.value)
                   .toList();
+              // 自分のスコアが何番目か（勝敗判定・トロフィー用）
+              final int myIdx = sortedScores.indexWhere(
+                (e) => e.key == widget.myPlayerId,
+              );
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -830,6 +876,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     isOnline: true,
                     roomId: widget.roomId,
                     myPlayerId: widget.myPlayerId,
+                    myIndex: myIdx >= 0 ? myIdx : null,
+                    isRandomMatch: isRandomMatchRoom,
                   ),
                 ),
               );
@@ -841,6 +889,57 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
             int currentPlayersCount =
                 (roomData['players'] as List<dynamic>).length;
             bool canStartGame = currentPlayersCount >= 2;
+
+            // ★ランダムマッチの待機画面: 2人以上揃ったら自動でゲーム開始★
+            if (roomData['isRandomMatch'] == true) {
+              final m = MetaStrings.of(context);
+              if (!canStartGame) {
+                // 相手が抜けて1人に戻ったら、次のマッチングで再度自動開始できるように
+                _autoStartScheduled = false;
+              }
+              if (canStartGame && !_autoStartScheduled) {
+                _autoStartScheduled = true;
+                // 「見つかった！」を見せてから開始（複数クライアントが同時に
+                // 呼んでも _startGameOnline のトランザクションが1回だけ開始する）
+                Future.delayed(const Duration(seconds: 3), () {
+                  if (!mounted) return;
+                  _startGameOnline(
+                    _firestore.collection('rooms').doc(widget.roomId),
+                  );
+                });
+              }
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('🎲', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 16),
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 24),
+                    Text(
+                      canStartGame ? m.opponentFound : m.searchingOpponent,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      m.playersWaiting(currentPlayersCount),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 30),
+                    if (!canStartGame)
+                      OutlinedButton.icon(
+                        onPressed: _leaveRandomRoom,
+                        icon: const Icon(Icons.close),
+                        label: Text(m.cancel),
+                      ),
+                  ],
+                ),
+              );
+            }
 
             return Center(
               child: Column(

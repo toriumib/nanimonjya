@@ -16,4 +16,10 @@ const List<Achievement> kAchievements = [
   Achievement('binge5', '🚀', 150),
   Achievement('sharp20', '🧠', 120),
   Achievement('rich1000', '💰', 200),
+  // オンライン対戦トロフィー
+  Achievement('online_debut', '🌐', 50),
+  Achievement('online_win1', '🥇', 100),
+  Achievement('online_win5', '🏅', 200),
+  Achievement('online_win20', '🏆', 500),
+  Achievement('random_debut', '🎲', 80),
 ];
