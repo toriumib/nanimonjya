@@ -69,6 +69,40 @@ class MetaStrings {
   String coinsToUnlock(int n) =>
       ja ? 'あと$nコインでアンロック' : '$n more coins to unlock';
 
+  // ── Xシェア ──
+  String get shareOnX => ja ? 'Xでシェア' : 'Share on X';
+  String shareWin(int players, int score) => ja
+      ? 'ナニモンジャで$players人対戦に勝利！🏆 $score点獲得！'
+      : 'I won a $players-player match in Nanimonja! 🏆 Scored $score points!';
+  String sharePlayed(int players, int topScore) => ja
+      ? 'ナニモンジャで$players人対戦であそんだよ！トップは$topScore点！'
+      : 'Played a $players-player match in Nanimonja! Top score: $topScore!';
+  String get shareHashtag => ja ? '#ナニモンジャ' : '#Nanimonja';
+
+  // ── オンライン戦績・トロフィー ──
+  String get onlineGamesLabel => ja ? 'オンライン対戦数' : 'Online games';
+  String get onlineWinsLabel => ja ? 'オンライン勝利数' : 'Online wins';
+  String onlineWinBonusN(int n) =>
+      ja ? 'オンライン勝利ボーナス +$n！' : 'Online win bonus +$n!';
+
+  // ── ランダムマッチ ──
+  String get randomMatch => ja ? 'ランダムマッチ' : 'Random Match';
+  String get randomMatchDesc => ja
+      ? 'せかいのだれかとすぐに対戦！（テキストモード）'
+      : 'Instantly play with someone in the world! (text mode)';
+  String get searchingOpponent =>
+      ja ? '対戦相手を探しています…' : 'Searching for an opponent…';
+  String get opponentFound =>
+      ja ? '対戦相手が見つかった！まもなく開始！' : 'Opponent found! Starting soon!';
+  String get matchmakingFailed =>
+      ja ? 'マッチングに失敗しました' : 'Matchmaking failed';
+  String get matching => ja ? 'マッチング中…' : 'Matching…';
+  String playersWaiting(int n) =>
+      ja ? '現在 $n 人が待機中' : '$n player(s) waiting';
+  String get cancel => ja ? 'キャンセル' : 'Cancel';
+  String get orPlayWithFriends =>
+      ja ? 'または、合言葉で友達と対戦' : 'Or play with friends via passcode';
+
   String get supportDev => ja ? '開発者を応援する' : 'Support the developer';
   String get supportBody => ja
       ? 'このゲームを気に入ってくれたら、コーヒー1杯分の応援をいただけると嬉しいです☕'
@@ -95,6 +129,16 @@ class MetaStrings {
         return ja ? 'キレッキレ' : 'Sharp Mind';
       case 'rich1000':
         return ja ? 'コイン長者' : 'Coin Millionaire';
+      case 'online_debut':
+        return ja ? 'オンラインデビュー' : 'Online Debut';
+      case 'online_win1':
+        return ja ? 'オンライン初勝利' : 'First Online Win';
+      case 'online_win5':
+        return ja ? 'オンラインの強者' : 'Online Contender';
+      case 'online_win20':
+        return ja ? 'オンラインの覇者' : 'Online Champion';
+      case 'random_debut':
+        return ja ? '世界へ挑戦' : 'World Challenger';
       default:
         return id;
     }
@@ -118,6 +162,16 @@ class MetaStrings {
         return ja ? '1ゲームで20点以上取った' : 'Scored 20+ in a single game';
       case 'rich1000':
         return ja ? '累計1000コイン貯めた' : 'Earned 1000 coins in total';
+      case 'online_debut':
+        return ja ? '初めてオンライン対戦をした' : 'Played your first online match';
+      case 'online_win1':
+        return ja ? 'オンライン対戦で初めて勝った' : 'Won your first online match';
+      case 'online_win5':
+        return ja ? 'オンライン対戦で5勝した' : 'Won 5 online matches';
+      case 'online_win20':
+        return ja ? 'オンライン対戦で20勝した' : 'Won 20 online matches';
+      case 'random_debut':
+        return ja ? 'ランダムマッチに初参加した' : 'Joined your first random match';
       default:
         return '';
     }
