@@ -45,6 +45,8 @@ class MetaStrings {
           '🏆 実績を集めて、称号をランクアップさせよう！',
           '📅 毎日ログインするとデイリーボーナスがもらえるよ！',
           '🎺 リザルトの曲もマイページで変えられるよ！',
+          '📣 チア応援団をアップグレードしてにぎやかに応援してもらおう！',
+          '👧👦 あそびかたはホームのチュートリアルで確認できるよ！',
         ]
       : [
           '🎨 Collect coins to change your home theme!',
@@ -53,6 +55,8 @@ class MetaStrings {
           '🏆 Earn achievements to rank up your title!',
           '📅 Log in daily to grab your daily bonus!',
           '🎺 You can change the result music in your profile too!',
+          '📣 Upgrade your cheer squad for livelier battles!',
+          '👧👦 Check the tutorial on the home screen anytime!',
         ];
   String get quitGame => ja ? 'やめる' : 'Quit';
   String get quitTitle => ja ? 'ゲームをやめますか？' : 'Quit the game?';
@@ -84,6 +88,14 @@ class MetaStrings {
   String get newRecord => ja ? '🏆 自己ベスト更新！' : '🏆 New personal best!';
 
   String get dressup => ja ? 'きせかえ' : 'Themes';
+  String get howToPlay => ja ? 'あそびかた' : 'How to Play';
+  String get cheerSquad => ja ? 'チア応援団' : 'Cheer Squad';
+  String get cheerSquadDesc => ja
+      ? 'コインでアップグレードすると、バトル中に応援してくれる仲間がふえる！'
+      : 'Upgrade with coins to add more cheerleaders to your battles!';
+  String get upgrade => ja ? 'アップグレード' : 'Upgrade';
+  String get maxLevel => ja ? '最大レベル！' : 'Max level!';
+  String cheerLevelLabel(int lv) => ja ? '現在: レベル$lv' : 'Current: Lv.$lv';
   String get resultMusic => ja ? 'リザルトの音楽' : 'Result music';
   String get resultMusicDesc => ja
       ? '勝利のあとに流れる曲。クラシック曲は🎵BGMショップでアンロック！'

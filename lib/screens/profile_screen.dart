@@ -125,6 +125,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _dogCard(m, profile),
             const SizedBox(height: 16),
+            _cheerCard(m, profile),
+            const SizedBox(height: 16),
             _achievementsCard(m, profile),
             const SizedBox(height: 16),
             _bgmCard(m, profile),
@@ -445,6 +447,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }).toList(),
           ),
+        ],
+      ),
+    );
+  }
+
+  // チア応援団（コインでレベルアップ）
+  Widget _cheerCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    final isMax = p.cheerLevel >= kCheerStages.length;
+    final nextStage = isMax ? null : kCheerStages[p.cheerLevel];
+    return _sectionCard(
+      title: '📣 ${m.cheerSquad}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.cheerSquadDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 10),
+          // 現在のメンバー表示
+          Row(
+            children: [
+              Text(
+                m.cheerLevelLabel(p.cheerLevel),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                p.cheerLevel > 0
+                    ? cheerMembers(p.cheerLevel).join(' ')
+                    : '—',
+                style: const TextStyle(fontSize: 24),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // レベル一覧
+          ...kCheerStages.map((s) {
+            final owned = p.cheerLevel >= s.level;
+            final isNext = nextStage?.level == s.level;
+            return Opacity(
+              opacity: owned || isNext ? 1.0 : 0.4,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Text(
+                  owned ? s.members.last : '🔒',
+                  style: const TextStyle(fontSize: 26),
+                ),
+                title: Text(
+                  'Lv.${s.level} ${ja ? s.nameJa : s.nameEn}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(s.members.join(' ')),
+                trailing: owned
+                    ? const Icon(Icons.check_circle,
+                        color: Color(0xFF4A7A2A))
+                    : isNext
+                        ? ElevatedButton(
+                            onPressed: () async {
+                              final ok =
+                                  await p.upgradeCheer(s.upgradeCost);
+                              if (!mounted) return;
+                              if (ok) {
+                                Sfx.instance.coin();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(m.unlocked)));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(m.notEnoughCoins)));
+                              }
+                            },
+                            child: Text('${s.upgradeCost}🪙'),
+                          )
+                        : Text('${s.upgradeCost}🪙',
+                            style: const TextStyle(color: Colors.grey)),
+              ),
+            );
+          }),
         ],
       ),
     );

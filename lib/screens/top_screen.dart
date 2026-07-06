@@ -8,6 +8,7 @@ import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
+import 'tutorial_screen.dart'; // あそびかたチュートリアル
 
 // 多言語対応のために追加
 
@@ -329,7 +330,29 @@ class _TopScreenState extends State<TopScreen>
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  // あそびかた（チュートリアル）ボタン
+                  TextButton.icon(
+                    onPressed: () {
+                      Sfx.instance.pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TutorialScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Text('👧👦', style: TextStyle(fontSize: 18)),
+                    label: Text(MetaStrings.of(context).howToPlay),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF1E7BA6),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   // Buy Me a Coffee ボタン
                   TextButton.icon(
                     onPressed: _launchBuyMeACoffee,
