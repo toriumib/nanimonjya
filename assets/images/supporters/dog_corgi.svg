@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- コーギー: おっきな丸耳と短いあんよ、ぷりっとおしり -->
+  <!-- 耳（大きな丸三角） -->
+  <path d="M24 36 Q14 8 34 18 Q40 22 38 32 Z" fill="#EE9E52" stroke="#7A4A1E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M76 36 Q86 8 66 18 Q60 22 62 32 Z" fill="#EE9E52" stroke="#7A4A1E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M27 32 Q22 16 33 22 Q36 25 34 30 Z" fill="#FADEC2"/>
+  <path d="M73 32 Q78 16 67 22 Q64 25 66 30 Z" fill="#FADEC2"/>
+  <!-- 長めの体（コーギー体型） -->
+  <ellipse cx="50" cy="85" rx="26" ry="12" fill="#EE9E52" stroke="#7A4A1E" stroke-width="3"/>
+  <ellipse cx="50" cy="89" rx="17" ry="6.5" fill="#FFF7EA"/>
+  <!-- 短い足 -->
+  <ellipse cx="33" cy="95" rx="5.5" ry="3.5" fill="#FFF7EA" stroke="#7A4A1E" stroke-width="2.5"/>
+  <ellipse cx="50" cy="96" rx="5.5" ry="3.5" fill="#FFF7EA" stroke="#7A4A1E" stroke-width="2.5"/>
+  <ellipse cx="67" cy="95" rx="5.5" ry="3.5" fill="#FFF7EA" stroke="#7A4A1E" stroke-width="2.5"/>
+  <!-- 顔 -->
+  <circle cx="50" cy="46" r="26" fill="#EE9E52" stroke="#7A4A1E" stroke-width="3"/>
+  <!-- 白ブレーズ（額の白ライン）＆マズル -->
+  <path d="M45 22 Q50 20 55 22 L53 38 Q50 40 47 38 Z" fill="#FFF7EA"/>
+  <ellipse cx="50" cy="57" rx="14" ry="10.5" fill="#FFF7EA"/>
+  <!-- 目（にこにこ丸目） -->
+  <circle cx="38" cy="44" r="5.5" fill="#3B2412"/>
+  <circle cx="62" cy="44" r="5.5" fill="#3B2412"/>
+  <circle cx="40" cy="42" r="2" fill="#FFFFFF"/>
+  <circle cx="64" cy="42" r="2" fill="#FFFFFF"/>
+  <!-- 鼻・あけた口（べろ） -->
+  <ellipse cx="50" cy="53" rx="3.6" ry="2.8" fill="#3B2412"/>
+  <path d="M43 58 Q50 65 57 58" fill="none" stroke="#3B2412" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M46 61 Q50 68 54 61 Q52 60 50 61 Q48 60 46 61" fill="#F27D93" stroke="#C25A70" stroke-width="1.5"/>
+  <!-- ほっぺ -->
+  <circle cx="30" cy="52" r="4" fill="#F58A6E" opacity="0.6"/>
+  <circle cx="70" cy="52" r="4" fill="#F58A6E" opacity="0.6"/>
+</svg>

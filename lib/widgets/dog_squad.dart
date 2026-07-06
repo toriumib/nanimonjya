@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/cosmetics.dart';
 import '../services/player_profile.dart';
 
@@ -86,9 +87,9 @@ class _DogSquadState extends State<DogSquad>
         final profile = PlayerProfile.instance;
         final dogs = unlockedDogs(profile.lifetimeCoins);
         final cheers = cheerMembers(profile.cheerLevel);
-        // 表示メンバー: わんちゃん → チア の順に並べる
+        // 表示メンバー: わんちゃん → チア応援団 の順に並べる（全てSVGイラスト）
         final members = <String>[
-          ...dogs.map((d) => d.emoji),
+          ...dogs.map((d) => d.asset),
           ...cheers,
         ];
         if (members.isEmpty) return const SizedBox.shrink();
@@ -113,7 +114,7 @@ class _DogSquadState extends State<DogSquad>
             ],
           ),
           child: SizedBox(
-            height: 62,
+            height: 78,
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
@@ -136,11 +137,12 @@ class _DogSquadState extends State<DogSquad>
     );
   }
 
-  // 1メンバー分（跳ねる絵文字＋しゃべっていれば吹き出し）
-  Widget _member(String emoji, int index) {
+  // 1メンバー分（跳ねるイラスト＋しゃべっていれば吹き出し）
+  Widget _member(String asset, int index) {
     final double bounce =
         -7.0 * max(0.0, sin((_controller.value * 2 * pi) + index * 0.9));
     final speaking = index == _bubbleMemberIndex;
+    final double size = speaking ? 52.0 : 46.0; // しゃべる子は少し大きく
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -172,21 +174,28 @@ class _DogSquadState extends State<DogSquad>
           )
         else
           const SizedBox(height: 22),
-        Transform.translate(
-          offset: Offset(0, bounce),
-          child: Text(
-            emoji,
-            style: TextStyle(
-              fontSize: speaking ? 32.0 : 28.0, // しゃべる子は少し大きく
-              shadows: const [
-                Shadow(
-                  offset: Offset(1.5, 2.5),
-                  blurRadius: 3,
-                  color: Color(0x33000000),
-                ),
-              ],
+        // 足元の影（跳ねると小さくなる）
+        Stack(
+          alignment: Alignment.bottomCenter,
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: size * (0.55 + bounce / 40),
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-          ),
+            Transform.translate(
+              offset: Offset(0, bounce - 2),
+              child: SvgPicture.asset(
+                asset,
+                width: size,
+                height: size,
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 応援団・赤: いかつい眉の熱血団長、角刈り（オリジナル） -->
+  <!-- 学ラン -->
+  <path d="M31 58 L69 58 L72 96 L28 96 Z" fill="#23283C" stroke="#11141F" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M50 58 L50 96" stroke="#11141F" stroke-width="2"/>
+  <circle cx="50" cy="68" r="1.8" fill="#E8C24A"/>
+  <circle cx="50" cy="78" r="1.8" fill="#E8C24A"/>
+  <circle cx="50" cy="88" r="1.8" fill="#E8C24A"/>
+  <path d="M42 58 L50 66 L58 58" fill="none" stroke="#11141F" stroke-width="2"/>
+  <!-- 拳を突き上げ -->
+  <path d="M68 62 L80 40" stroke="#11141F" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="81" cy="37" r="6" fill="#E5B98E" stroke="#A87C50" stroke-width="2.2"/>
+  <path d="M32 66 Q40 72 48 70" fill="none" stroke="#11141F" stroke-width="6.5" stroke-linecap="round"/>
+  <!-- 顔（角ばったアゴ） -->
+  <path d="M34 26 Q34 16 50 16 Q66 16 66 26 L65 46 Q64 56 50 57 Q36 56 35 46 Z" fill="#E5B98E" stroke="#A87C50" stroke-width="2" stroke-linejoin="round"/>
+  <!-- 角刈り -->
+  <path d="M34 25 Q34 14 50 14 Q66 14 66 25 L66 27 L34 27 Z" fill="#1E1A16" stroke="#0D0B09" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- 赤ハチマキ -->
+  <path d="M34 27 L66 27 L66 33 L34 33 Z" fill="#D63A2E" stroke="#9E2620" stroke-width="1.8"/>
+  <path d="M34 28 L25 25 L28 33 L34 32 Z" fill="#D63A2E" stroke="#9E2620" stroke-width="1.8"/>
+  <!-- 極太まゆ＆鋭い目 -->
+  <path d="M38 38 L47 36" stroke="#1E1A16" stroke-width="4" stroke-linecap="round"/>
+  <path d="M62 38 L53 36" stroke="#1E1A16" stroke-width="4" stroke-linecap="round"/>
+  <path d="M40 42 L46 42 M54 42 L60 42" stroke="#26201C" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- 鼻・への字口（熱血） -->
+  <path d="M51 45 L50 49" stroke="#A87C50" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44 53 Q50 50.5 56 53" fill="none" stroke="#6B4226" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- ほお傷風ライン（歴戦の団長） -->
+  <path d="M60 46 L64 50" stroke="#C9906A" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
