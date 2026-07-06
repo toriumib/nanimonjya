@@ -103,6 +103,26 @@ class MetaStrings {
   String get orPlayWithFriends =>
       ja ? 'または、合言葉で友達と対戦' : 'Or play with friends via passcode';
 
+  // ── テキストモードの新ルール（全員回答制）──
+  String answerPot(int n) =>
+      ja ? '🎉 正解！いちばんのり +$n' : '🎉 Correct! First! +$n';
+  String get answerBonus => ja ? '✅ 正解！ +1' : '✅ Correct! +1';
+  String get answerWrong => ja ? '💦 おてつき −1' : '💦 Wrong… −1';
+  String get waitingOthers =>
+      ja ? '他のプレイヤーの回答待ち…' : 'Waiting for other players…';
+  String get revealAnswer =>
+      ja ? 'こたえ！おぼえなおそう' : 'The answer! Memorize it again';
+  String revealTakenBy(String who) =>
+      ja ? '$who がいちばんのり！' : '$who got it first!';
+  String get timeUpAiNamed =>
+      ja ? '⏰ じかんぎれ！AIが名づけたよ' : '⏰ Time up! AI named it';
+  String get memorizeIt => ja ? 'おぼえて！' : 'Memorize it!';
+
+  // ── 再戦の同期 ──
+  String get rematchWaitingBanner =>
+      ja ? '🔔 相手が再戦を待ってるよ！' : '🔔 Your opponent wants a rematch!';
+  String get joinRematch => ja ? '再戦に参加する' : 'Join the rematch';
+
   String get supportDev => ja ? '開発者を応援する' : 'Support the developer';
   String get supportBody => ja
       ? 'このゲームを気に入ってくれたら、コーヒー1杯分の応援をいただけると嬉しいです☕'
