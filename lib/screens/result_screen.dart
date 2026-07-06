@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreのために追加
@@ -47,6 +48,13 @@ class _ResultScreenState extends State<ResultScreen> {
   int _onlineWinBonus = 0; // オンライン勝利ボーナス
   bool _doubled = false; // リワード広告で2倍済みか
 
+  // ★再戦の同期★ 相手が先に「再戦」を押すと部屋が waiting に戻る。
+  // それを監視して「再戦に参加する」導線を出す（以前は相手の再戦に気づけず、
+  // 後から押すと進行中のゲームをリセットしてしまう同期バグがあった）。
+  StreamSubscription<DocumentSnapshot>? _roomSub;
+  bool _rematchWaiting = false;
+  bool _rematchIsVoice = false;
+
   // オンラインで自分が勝ったか（myIndex が渡されている時のみ判定可能）
   bool get _wonOnline {
     if (!widget.isOnline || widget.myIndex == null) return false;
@@ -64,6 +72,46 @@ class _ResultScreenState extends State<ResultScreen> {
     _startResultBgm(); // 🎵 シャイニングスター再生
     // フレーム描画後に報酬付与＆演出（context/localeが使える状態で行う）
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
+    _watchForRematch(); // 相手の再戦操作を監視
+  }
+
+  // オンライン戦後、相手が再戦を始めた（部屋がwaitingに戻った）ことを検知する
+  void _watchForRematch() {
+    if (!widget.isOnline || widget.roomId == null || widget.myPlayerId == null) {
+      return;
+    }
+    _roomSub = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomId!)
+        .snapshots()
+        .listen((snap) {
+      if (!mounted || !snap.exists) return;
+      final data = snap.data() as Map<String, dynamic>;
+      final players = List<String>.from(data['players'] ?? []);
+      final waiting = data['status'] == 'waiting' &&
+          players.contains(widget.myPlayerId);
+      if (waiting != _rematchWaiting) {
+        setState(() {
+          _rematchWaiting = waiting;
+          _rematchIsVoice = data['gameMode'] == 'voice';
+        });
+      }
+    }, onError: (e) => debugPrint('再戦監視エラー: $e'));
+  }
+
+  // 相手が用意した再戦部屋にそのまま合流する（部屋を二重リセットしない）
+  void _joinRematch() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OnlineGameScreen(
+          roomId: widget.roomId!,
+          myPlayerId: widget.myPlayerId!,
+          isVoiceMode: _rematchIsVoice,
+        ),
+      ),
+      (Route<dynamic> route) => false,
+    );
   }
 
   // リザルトBGM: 選択中の曲（デフォルトは魔王魂「シャイニングスター」）をループ再生
@@ -149,6 +197,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   void dispose() {
+    _roomSub?.cancel();
     _confetti.dispose();
     _rewardAd.dispose();
     _resultBgm.dispose();
@@ -255,6 +304,8 @@ class _ResultScreenState extends State<ResultScreen> {
           'characterChoices': {}, // 事前生成した選択肢もリセット
           'displayDelayCompleteTimestamp': null,
           'lastNamedCharacterData': null,
+          'potClaimed': false,
+          'potWinner': null,
         });
       });
 
@@ -386,11 +437,38 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                     ),
 
+                  // 相手が先に再戦を押した時のお知らせバナー
+                  if (widget.isOnline && _rematchWaiting)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F4FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF6FB6E8)),
+                      ),
+                      child: Text(
+                        m.rematchWaitingBanner,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D5E8A),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
                   // 再戦ボタン
                   ElevatedButton(
                     onPressed: () {
                       if (widget.isOnline) {
-                        _resetOnlineGame(context);
+                        // 相手が既に再戦部屋を用意していれば合流するだけにする。
+                        // （両者がリセットすると進行中のゲームを巻き戻す事故になる）
+                        if (_rematchWaiting) {
+                          _joinRematch();
+                        } else {
+                          _resetOnlineGame(context);
+                        }
                       } else {
                         Navigator.pushAndRemoveUntil(
                           context,
@@ -408,7 +486,9 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     child: Text(
                       widget.isOnline
-                          ? localizations.playAgainSameMembers
+                          ? (_rematchWaiting
+                              ? m.joinRematch
+                              : localizations.playAgainSameMembers)
                           : localizations.playAgain,
                     ),
                   ),
