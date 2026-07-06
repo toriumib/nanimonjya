@@ -18,8 +18,11 @@ class BgmItem {
 
 const List<BgmItem> kBgmCatalog = [
   BgmItem('op9-2-Nocturne.mp3', 'ノクターン Op.9-2', 'Nocturne Op.9-2', 0),
+  BgmItem('bgm_ode_to_joy.wav', '歓喜の歌', 'Ode to Joy', 150),
   BgmItem('for_siciliano.mp3', 'シチリアーノ', 'Siciliano', 300),
+  BgmItem('bgm_fur_elise.wav', 'エリーゼのために', 'Für Elise', 400),
   BgmItem('op.10-4.mp3', '練習曲 Op.10-4', 'Étude Op.10-4', 500),
+  BgmItem('bgm_eine_kleine.wav', 'アイネ・クライネ', 'Eine kleine Nachtmusik', 700),
   BgmItem('c00Chopin_Fantaisie-Impromptu.mp3', '幻想即興曲', 'Fantaisie-Impromptu', 800),
 ];
 

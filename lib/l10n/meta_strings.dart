@@ -32,6 +32,28 @@ class MetaStrings {
 
   // ナビゲーション
   String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
+  String get openTrophy =>
+      ja ? '🏆 マイページ・戦績を見る' : '🏆 View Profile & Trophies';
+  String get tipsTitle => ja ? '💡 できること' : '💡 Things to try';
+
+  // 結果画面などで出す遊び方Tips（ランダムに1つ表示）
+  List<String> tips() => ja
+      ? [
+          '🎨 コインをためて、ホーム画面のきせかえをしてみよう！',
+          '🐾 コインがたまると、応援わんちゃんが増えていくよ！',
+          '🎵 BGMショップでクラシックの名曲をアンロックできるよ！',
+          '🏆 実績を集めて、称号をランクアップさせよう！',
+          '📅 毎日ログインするとデイリーボーナスがもらえるよ！',
+          '🎺 リザルトの曲もマイページで変えられるよ！',
+        ]
+      : [
+          '🎨 Collect coins to change your home theme!',
+          '🐾 More coins unlock more cheer dogs in battle!',
+          '🎵 Unlock famous classical tracks in the music shop!',
+          '🏆 Earn achievements to rank up your title!',
+          '📅 Log in daily to grab your daily bonus!',
+          '🎺 You can change the result music in your profile too!',
+        ];
   String get quitGame => ja ? 'やめる' : 'Quit';
   String get quitTitle => ja ? 'ゲームをやめますか？' : 'Quit the game?';
   String get quitOnlineBody => ja

@@ -7,6 +7,7 @@ import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
+import '../l10n/meta_strings.dart'; // マイページ導線の文言
 
 // 多言語対応のために追加
 
@@ -288,7 +289,47 @@ class _TopScreenState extends State<TopScreen>
                     ),
                     child: Text('🎮 ${localizations.playOffline}'),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
+                  // ★マイページ・戦績（トロフィー）への大きな導線★
+                  AnimatedBuilder(
+                    animation: PlayerProfile.instance,
+                    builder: (context, _) {
+                      final canClaim =
+                          PlayerProfile.instance.canClaimDaily;
+                      return OutlinedButton.icon(
+                        onPressed: () {
+                          Sfx.instance.pop();
+                          _openProfile();
+                        },
+                        icon: const Icon(Icons.emoji_events, size: 22),
+                        label: Text(
+                          canClaim
+                              ? MetaStrings.of(context).dailyBonus
+                              : MetaStrings.of(context).profileTitle,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFB8860B),
+                          backgroundColor: Colors.white.withOpacity(0.8),
+                          side: const BorderSide(
+                            color: Color(0xFFFFB300),
+                            width: 2.5,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 14,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
                   // Buy Me a Coffee ボタン
                   TextButton.icon(
                     onPressed: _launchBuyMeACoffee,
