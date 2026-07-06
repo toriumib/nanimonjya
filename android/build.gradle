@@ -7,7 +7,7 @@ buildscript {
 
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.3.0' // ✅ 最新
+        classpath 'com.android.tools.build:gradle:8.6.0' // 16KBページサイズ対応のため8.5.1+
         classpath 'com.google.gms:google-services:4.3.15'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
