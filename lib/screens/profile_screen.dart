@@ -231,6 +231,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           row(m.gamesPlayed, '${p.totalGames}'),
           row(m.highScore, '${p.highScore}'),
+          row(m.onlineGamesLabel, '${p.onlineGames}'),
+          row(m.onlineWinsLabel, '${p.onlineWins}'),
           row(m.bestDaily, '${p.bestDailyStreak}'),
           row(m.bestSession, '${p.bestSessionStreak}'),
           row(m.lifetimeCoins, '${p.lifetimeCoins}'),

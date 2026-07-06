@@ -15,6 +15,9 @@ class PlayerProfile extends ChangeNotifier {
   int lifetimeCoins = 0;
   int totalGames = 0;
   int highScore = 0;
+  int onlineGames = 0; // オンライン対戦数
+  int onlineWins = 0; // オンライン勝利数
+  int randomMatches = 0; // ランダムマッチ参加数
   int dailyStreak = 0;
   int bestDailyStreak = 0;
   int bestSessionStreak = 0;
@@ -40,6 +43,9 @@ class PlayerProfile extends ChangeNotifier {
     lifetimeCoins = p.getInt('lifetimeCoins') ?? 0;
     totalGames = p.getInt('totalGames') ?? 0;
     highScore = p.getInt('highScore') ?? 0;
+    onlineGames = p.getInt('onlineGames') ?? 0;
+    onlineWins = p.getInt('onlineWins') ?? 0;
+    randomMatches = p.getInt('randomMatches') ?? 0;
     dailyStreak = p.getInt('dailyStreak') ?? 0;
     bestDailyStreak = p.getInt('bestDailyStreak') ?? 0;
     bestSessionStreak = p.getInt('bestSessionStreak') ?? 0;
@@ -122,10 +128,31 @@ class PlayerProfile extends ChangeNotifier {
     final streakBonus = sessionStreak >= 2 ? (sessionStreak - 1) * 5 : 0;
     final total = base + streakBonus;
     await _addCoins(total);
-    _checkAchievements();
+    // 実績の解放はここでは行わない。リザルト画面が直後に refreshAchievements() を
+    // 呼ぶので、そちらで解放してトースト表示の対象にする（ここで解放すると
+    // 「新規解放」として検出されず通知が出ない）。
     await _persist();
     notifyListeners();
     return GameReward(base: base, streakBonus: streakBonus, sessionStreak: sessionStreak);
+  }
+
+  /// オンライン対戦を1戦終えたときに recordGamePlayed に加えて呼ぶ。
+  /// 勝利時はボーナスコインを付与し、その額を返す（敗北時は 0）。
+  Future<int> recordOnlineGame({
+    required bool won,
+    required bool isRandomMatch,
+  }) async {
+    onlineGames += 1;
+    if (won) onlineWins += 1;
+    if (isRandomMatch) randomMatches += 1;
+    int bonus = 0;
+    if (won) {
+      bonus = 20; // オンライン勝利ボーナス
+      await _addCoins(bonus);
+    }
+    await _persist();
+    notifyListeners();
+    return bonus;
   }
 
   /// リワード広告視聴などで追加コインを付与。
@@ -229,6 +256,16 @@ class PlayerProfile extends ChangeNotifier {
         return highScore >= 20;
       case 'rich1000':
         return lifetimeCoins >= 1000;
+      case 'online_debut':
+        return onlineGames >= 1;
+      case 'online_win1':
+        return onlineWins >= 1;
+      case 'online_win5':
+        return onlineWins >= 5;
+      case 'online_win20':
+        return onlineWins >= 20;
+      case 'random_debut':
+        return randomMatches >= 1;
       default:
         return false;
     }
@@ -249,6 +286,9 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('lifetimeCoins', lifetimeCoins);
     await p.setInt('totalGames', totalGames);
     await p.setInt('highScore', highScore);
+    await p.setInt('onlineGames', onlineGames);
+    await p.setInt('onlineWins', onlineWins);
+    await p.setInt('randomMatches', randomMatches);
     await p.setInt('dailyStreak', dailyStreak);
     await p.setInt('bestDailyStreak', bestDailyStreak);
     await p.setInt('bestSessionStreak', bestSessionStreak);

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuthをインポート
-import 'package:flutter/foundation.dart'; // kIsWebのために追加
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import 'package:just_audio/just_audio.dart'; // BGMのために追加
+import '../l10n/meta_strings.dart'; // ランダムマッチ用の文言
 
 import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 import 'top_screen.dart'; // Top画面に戻るため追加
@@ -25,8 +22,6 @@ class OnlineGameLobbyScreen extends StatefulWidget {
 class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
   final TextEditingController _roomIdController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final ImagePicker _picker = ImagePicker();
   final Uuid _uuid = const Uuid();
   final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用のAudioPlayerを追加
 
@@ -35,12 +30,8 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     (index) => 'assets/images/char${index + 1}.jpg',
   );
 
-  List<String> _uploadedImageUrls = [];
-  bool _isUploading = false;
   bool _isVoiceMode = false; // デフォルトをテキストモード (false) に変更
-
-  // 画像の最大サイズ (5MB)
-  static const int _maxImageSizeBytes = 5 * 1024 * 1024;
+  bool _isMatching = false; // ランダムマッチの検索中か
 
   @override
   void initState() {
@@ -69,141 +60,138 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
     }
   }
 
-  /// 画像をFirebase Storageにアップロードする機能
-  /// ギャラリーから複数画像を選択し、Storageに保存し、そのURLを状態に保持します。
-  Future<void> _uploadImage() async {
-    final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
-
-    final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("noImagesSelected")));
-      return;
-    }
-
-    // 画像枚数制限のチェック (12枚まで)
-    if (images.length > 12) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(localizations.tooManyImages(12))));
-      return;
-    }
-
-    setState(() {
-      _isUploading = true;
-    });
-
-    List<String> successfullyUploadedUrls = []; // 今回のバッチでアップロードに成功したURLを追跡
-
+  /// ★ランダムマッチ★
+  /// 募集中のランダムマッチ部屋を探して参加する。見つからなければ
+  /// 自分で部屋を作って待機する（2人揃うとゲーム画面側が自動開始する）。
+  Future<void> _findRandomMatch() async {
+    final m = MetaStrings.of(context);
+    setState(() => _isMatching = true);
     try {
-      for (final XFile imageFile in images) {
-        Uint8List? bytes;
-        int fileSize = 0;
+      // 匿名認証でサインイン
+      User? user = FirebaseAuth.instance.currentUser;
+      user ??= (await FirebaseAuth.instance.signInAnonymously()).user;
+      if (user == null) {
+        throw Exception('認証に失敗しました。');
+      }
+      final String myPlayerId = user.uid;
 
-        if (kIsWeb) {
-          bytes = await imageFile.readAsBytes();
-          if (bytes == null) {
-            debugPrint(
-              'Web upload: Failed to read image bytes for ${imageFile.name}. Skipping.',
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(localizations.imageTooLarge(imageFile.name)),
-              ),
-            );
-            continue; // この画像はスキップ
-          }
-          fileSize = bytes.length;
-        } else {
-          fileSize = await File(imageFile.path).length();
+      // 募集中のランダムマッチ部屋を検索（等価条件のみなので複合インデックス不要）
+      final QuerySnapshot<Map<String, dynamic>> candidates = await _firestore
+          .collection('rooms')
+          .where('isRandomMatch', isEqualTo: true)
+          .where('status', isEqualTo: 'waiting')
+          .limit(10)
+          .get();
+
+      final now = DateTime.now();
+      String? joinedRoomId;
+      for (final doc in candidates.docs) {
+        final data = doc.data();
+        // 作成から30分以上経った放置部屋はスキップ
+        final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+        if (createdAt == null ||
+            now.difference(createdAt) > const Duration(minutes: 30)) {
+          continue;
         }
-
-        // 画像サイズ制限のチェック
-        if (fileSize > _maxImageSizeBytes) {
-          debugPrint(
-            'Image ${imageFile.name} is too large ($fileSize bytes). Skipping.',
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(localizations.imageTooLarge(imageFile.name)),
-            ),
-          );
-          continue; // この画像はスキップ
+        final players = List<String>.from(data['players'] ?? []);
+        if (players.contains(myPlayerId)) {
+          joinedRoomId = doc.id; // 自分が作った待機部屋に再入室
+          break;
         }
+        if (players.length >= 6) continue;
 
-        final String fileName = '${_uuid.v4()}.jpg';
-        final Reference ref = _storage
-            .ref()
-            .child('game_images')
-            .child(fileName);
-
-        UploadTask uploadTask;
-        if (kIsWeb) {
-          uploadTask = ref.putData(bytes!); // bytesはnullチェック済み
-        } else {
-          uploadTask = ref.putFile(File(imageFile.path));
+        // トランザクションで参加（同時参加の競合は再検証ではじく）
+        try {
+          await _firestore.runTransaction((transaction) async {
+            final fresh = await transaction.get(doc.reference);
+            if (!fresh.exists) throw Exception('room gone');
+            final freshData = fresh.data() as Map<String, dynamic>;
+            if (freshData['status'] != 'waiting') throw Exception('started');
+            final freshPlayers =
+                List<String>.from(freshData['players'] ?? []);
+            if (freshPlayers.length >= 6) throw Exception('full');
+            if (!freshPlayers.contains(myPlayerId)) {
+              freshPlayers.add(myPlayerId);
+              final scores = Map<String, dynamic>.from(
+                freshData['scores'] ?? {},
+              );
+              scores[myPlayerId] = 0;
+              transaction.update(doc.reference, {
+                'players': freshPlayers,
+                'scores': scores,
+              });
+            }
+          });
+          joinedRoomId = doc.id;
+          break;
+        } catch (_) {
+          continue; // この部屋はダメだった → 次の候補へ
         }
-
-        final TaskSnapshot snapshot = await uploadTask;
-        final String downloadUrl = await snapshot.ref.getDownloadURL();
-        successfullyUploadedUrls.add(downloadUrl); // アップロード成功したURLを追加
       }
 
-      setState(() {
-        _uploadedImageUrls.addAll(
-          successfullyUploadedUrls,
-        ); // 既存リストに今回成功したURLを追加
-        _isUploading = false;
-      });
+      // 空き部屋が無ければ自分で作って待つ
+      joinedRoomId ??= await _createRandomRoom(myPlayerId);
 
-      if (successfullyUploadedUrls.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              localizations.uploadSuccessWithCount(
-                successfullyUploadedUrls.length,
-              ),
-            ),
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnlineGameScreen(
+            roomId: joinedRoomId!,
+            myPlayerId: myPlayerId,
+            isVoiceMode: false, // ランダムマッチはテキストモード固定
           ),
-        );
-      } else if (images.isNotEmpty) {
-        // ユーザーが画像を選択したが、全てバリデーションで弾かれた場合
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(localizations.noImagesUploaded)));
-      }
-    } catch (e) {
-      debugPrint('画像のアップロード中にエラーが発生しました: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizations.uploadFailed(e.toString()))),
+        ),
       );
-      setState(() {
-        _isUploading = false;
-      });
+    } catch (e) {
+      debugPrint('ランダムマッチに失敗しました: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${m.matchmakingFailed}: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isMatching = false);
     }
   }
 
+  /// ランダムマッチ用の部屋を作成する。
+  /// 知らない人同士なのでテキストモード固定＆デフォルト画像を使用。
+  Future<String> _createRandomRoom(String myPlayerId) async {
+    final String roomId = _uuid.v4().substring(0, 6).toUpperCase();
+    await _firestore.collection('rooms').doc(roomId).set({
+      'createdAt': FieldValue.serverTimestamp(),
+      'status': 'waiting',
+      'players': [myPlayerId],
+      'imageUrls': _defaultCharacterImageFiles,
+      'deck': [],
+      'fieldCards': [],
+      'seenImages': [],
+      'scores': {myPlayerId: 0},
+      'currentCard': null,
+      'isFirstAppearance': true,
+      'canSelectPlayer': false,
+      'turnCount': 0,
+      'gameStarted': false,
+      'gameMode': 'text',
+      'characterNames': {},
+      'playerOrder': [],
+      'currentPlayerIndex': 0,
+      'readyPlayerIds': [],
+      'isRandomMatch': true, // マッチング検索の対象になるフラグ
+    });
+    return roomId;
+  }
+
   /// 新しいルームを作成し、そのルームに参加します。
-  /// 画像がアップロードされていない場合は、デフォルトの画像パスを使用します。
-  /// ユーザーがカスタム画像をアップロードした場合は、12枚以上の画像が必要となります。
+  /// カード画像はアプリ内蔵のデフォルト画像を使用します。
+  /// （カスタム画像アップロード機能はStorage課金対策のため廃止）
   Future<void> _createRoom() async {
     final localizations = AppLocalizations.of(context)!;
 
     final String roomId = _uuid.v4().substring(0, 6).toUpperCase();
 
-    List<String> finalImageUrls;
-    if (_uploadedImageUrls.isNotEmpty) {
-      if (_uploadedImageUrls.length < 12) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(localizations.customImagesMin(12))),
-        );
-        return;
-      }
-      finalImageUrls = _uploadedImageUrls;
-    } else {
-      finalImageUrls = _defaultCharacterImageFiles;
-    }
+    final List<String> finalImageUrls = _defaultCharacterImageFiles;
 
     try {
       // 匿名認証でサインインを試みる
@@ -345,6 +333,56 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            // ★ランダムマッチ（世界のだれかとすぐ対戦）★
+            ElevatedButton.icon(
+              onPressed: _isMatching ? null : _findRandomMatch,
+              icon: _isMatching
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('🎲', style: TextStyle(fontSize: 20)),
+              label: Text(
+                _isMatching
+                    ? MetaStrings.of(context).matching
+                    : MetaStrings.of(context).randomMatch,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              MetaStrings.of(context).randomMatchDesc,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    MetaStrings.of(context).orPlayWithFriends,
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 20),
+
             // ゲームモード選択トグル
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -362,61 +400,6 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
               ],
             ),
             const SizedBox(height: 20),
-
-            Text(
-              localizations.uploadImagesPrompt,
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: _isUploading ? null : _uploadImage,
-              icon: _isUploading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.upload_file),
-              label: Text(
-                _isUploading
-                    ? localizations.uploading
-                    : localizations.uploadImage,
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              localizations.uploadedImagesCount(_uploadedImageUrls.length),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            if (_uploadedImageUrls.isNotEmpty)
-              Container(
-                height: 100,
-                margin: const EdgeInsets.only(top: 10),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _uploadedImageUrls.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Image.network(
-                        _uploadedImageUrls[index],
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 40),
 
             ElevatedButton(
               onPressed: _createRoom,
