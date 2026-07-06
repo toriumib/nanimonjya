@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'dart:math';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
@@ -42,6 +43,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用のAudioPlayerを追加
 
   Stream<DocumentSnapshot>? _roomStream;
+  StreamSubscription<DocumentSnapshot>? _roomSubscription; // dispose時に解除する
 
   String? _currentImagePath;
   bool _isFirstAppearance = true;
@@ -69,6 +71,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // 最後に名前がつけられたキャラの情報 (Firestoreからロード)
   Map<String, dynamic>? _lastNamedCharacterData;
 
+  // ★記憶タイムを端末ローカルで計測するタイマー（時計ズレの影響を受けない）★
+  Timer? _memoryTimer;
+  bool _memoryAdvanceScheduled = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +85,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     _startBGM(); // BGM再生を開始
 
     // ルームデータの変更を監視し、スコアの更新があった場合に実況をトリガー
-    _roomStream!.listen(
+    _roomSubscription = _roomStream!.listen(
       (DocumentSnapshot snapshot) {
         if (snapshot.exists) {
           final Map<String, dynamic> roomData =
@@ -99,26 +105,22 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           _loadGameState(roomData);
 
           // ★表示遅延（2秒の記憶タイム）後のカード遷移★
-          // どのプレイヤーが実行しても _advanceCardAfterDelay のトランザクションが
-          // 「1回だけ」を保証するので、全員が試行してよい。
-          // （以前は特定の「責任プレイヤー」だけが進める仕組みだったため、
-          //   その人が離脱/バックグラウンドになるとゲームが止まっていた）
+          // 端末の時計とサーバー時刻を比較すると、時計が数分ズレた端末が1台いるだけで
+          // 記憶タイムが即スキップされたり永久に進まなくなる。
+          // そこで「記憶フェーズを最初に観測してから端末ローカルで2秒」を計測して進める。
+          // 全員が試行しても _advanceCardAfterDelay のトランザクションが「1回だけ」を保証する。
           if (_displayDelayCompleteTimestamp != null) {
-            final now = DateTime.now().toUtc();
-            final expectedCompletionTime = _displayDelayCompleteTimestamp!.add(
-              const Duration(seconds: 2),
-            ); // 2秒の記憶タイム
-
-            if (now.isAfter(expectedCompletionTime)) {
-              _advanceCardAfterDelay();
-            } else {
-              final remainingDuration = expectedCompletionTime.difference(now);
-              Future.delayed(remainingDuration, () {
-                if (mounted && _displayDelayCompleteTimestamp != null) {
-                  _advanceCardAfterDelay();
-                }
+            if (!_memoryAdvanceScheduled) {
+              _memoryAdvanceScheduled = true;
+              _memoryTimer?.cancel();
+              _memoryTimer = Timer(const Duration(seconds: 2), () {
+                if (mounted) _advanceCardAfterDelay();
               });
             }
+          } else {
+            // 記憶フェーズが終わった（次カードへ進んだ）ので次回に備えてリセット
+            _memoryAdvanceScheduled = false;
+            _memoryTimer?.cancel();
           }
 
           // テキストモードで、カードが既出になったタイミングで選択肢を表示
@@ -389,11 +391,38 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
   @override
   void dispose() {
+    _memoryTimer?.cancel();
+    _roomSubscription?.cancel(); // 画面破棄後もFirestoreリスナーやTTSが走るのを防ぐ
     _adMob.disposeBanner();
     _audioPlayer.dispose();
     _bgmPlayer.dispose();
     _nameInputController.dispose();
     super.dispose();
+  }
+
+  // 対戦から退出してホームに戻る（確認ダイアログ付き）
+  Future<void> _confirmQuitOnline(BuildContext context) async {
+    final m = MetaStrings.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(m.quitTitle),
+        content: Text(m.quitOnlineBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(m.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(m.quitGame),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   // BGM再生用のメソッド
@@ -649,18 +678,27 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     // _advanceCardAfterDelay によって次のカードへ進む
   }
 
-  // 偽名のプール（AI生成が失敗/不足した時の補完用。
-  // 以前は「不明」「AIエラー」「再試行」等が選択肢に混ざるバグがあった）
-  static const List<String> _fakeNamePool = [
+  // 偽名のプール（AI生成が失敗/不足した時の補完用）。
+  // ★正解の名前の文字種に合わせて日本語/英語を出し分ける★
+  static const List<String> _fakeNamePoolJa = [
     'モグモグ', 'ピカリン', 'フワッチ', 'ギザモン', 'ポンタ',
     'クルリン', 'ニャッキ', 'ハムスケ', 'ペコリン', 'ザワワ',
     'ビリビリ', 'ホゲータ', 'ムニムニ', 'パチコン', 'ドロロン',
   ];
+  static const List<String> _fakeNamePoolEn = [
+    'Mogu', 'Piko', 'Fluffy', 'Gizmo', 'Ponta',
+    'Kuru', 'Nyaki', 'Hammy', 'Peko', 'Zawa',
+    'Bibi', 'Hoge', 'Muni', 'Pachi', 'Doro',
+  ];
 
-  // 正解＋偽名リストから7択を組み立てる
+  // 正解＋偽名リストから7択を組み立てる。
+  // 補完に使う偽名は正解の文字種（英語/日本語）に合わせる。
   List<String> _buildChoiceList(String correctName, List<String> fakes) {
     List<String> choices = {correctName, ...fakes}.toList();
-    final pool = List<String>.from(_fakeNamePool)..shuffle(_random);
+    final isEnglish = _determineScriptType(correctName) == 'english';
+    final pool = List<String>.from(
+      isEnglish ? _fakeNamePoolEn : _fakeNamePoolJa,
+    )..shuffle(_random);
     for (final fake in pool) {
       if (choices.length >= 7) break;
       if (!choices.contains(fake)) choices.add(fake);
@@ -815,6 +853,12 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       appBar: AppBar(
         title: Text(localizations.gameStart),
         automaticallyImplyLeading: false,
+        // ★対戦から退出してホームに戻るボタン（確認ダイアログ付き）★
+        leading: IconButton(
+          icon: const Icon(Icons.home_rounded),
+          tooltip: MetaStrings.of(context).backToHome,
+          onPressed: () => _confirmQuitOnline(context),
+        ),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: _roomStream,

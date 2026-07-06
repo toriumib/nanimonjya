@@ -30,6 +30,16 @@ class MetaStrings {
   String get unlocked => ja ? 'アンロック！' : 'Unlocked!';
   String get locked => ja ? 'ロック中' : 'Locked';
 
+  // ナビゲーション
+  String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
+  String get quitGame => ja ? 'やめる' : 'Quit';
+  String get quitTitle => ja ? 'ゲームをやめますか？' : 'Quit the game?';
+  String get quitOnlineBody => ja
+      ? 'いま抜けると対戦から退出します。本当にやめますか？'
+      : 'Leaving now will exit the match. Are you sure?';
+  String get quitOfflineBody =>
+      ja ? 'ゲームをやめてホームにもどりますか？' : 'Quit and return to Home?';
+
   String get dailyBonus => ja ? 'デイリーボーナス' : 'Daily Bonus';
   String get claim => ja ? '受け取る' : 'Claim';
   String get claimed => ja ? '受け取り済み' : 'Claimed';

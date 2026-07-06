@@ -414,6 +414,21 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
 
                   const SizedBox(height: 12),
+                  // ★ホームにもどるボタン（オフライン・オンライン共通）★
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .popUntil((route) => route.isFirst);
+                    },
+                    icon: const Icon(Icons.home_rounded),
+                    label: Text(m.backToHome),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
                   // Xシェアボタン（戦績＋リンク付きで投稿画面を開く）
                   ElevatedButton.icon(
                     onPressed: _shareOnX,

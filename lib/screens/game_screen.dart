@@ -6,6 +6,7 @@ import 'result_screen.dart'; // 結果表示画面
 import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
+import '../l10n/meta_strings.dart'; // やめる等のナビ文言
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
@@ -165,6 +166,31 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  // ホームに戻る確認（オフラインはローカルなので確認後すぐ戻ってOK）
+  Future<void> _confirmQuitOffline(BuildContext context) async {
+    final m = MetaStrings.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(m.quitTitle),
+        content: Text(m.quitOfflineBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(m.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(m.quitGame),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!; // 多言語対応のインスタンス
@@ -172,7 +198,13 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.turn(_turnCount)), // ★修正★
-        automaticallyImplyLeading: false, // 戻るボタン非表示
+        automaticallyImplyLeading: false,
+        // ★やめてホームに戻るボタン（確認ダイアログ付き）★
+        leading: IconButton(
+          icon: const Icon(Icons.home_rounded),
+          tooltip: MetaStrings.of(context).backToHome,
+          onPressed: () => _confirmQuitOffline(context),
+        ),
       ),
       body: Column(
         // 本体と広告を縦に並べる

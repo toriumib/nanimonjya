@@ -383,11 +383,23 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ゲームモード選択トグル
+            // ゲームモード選択トグル（スマホでも文字が切れないよう折り返し対応）
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(localizations.textMode),
+                Expanded(
+                  child: Text(
+                    localizations.textMode,
+                    textAlign: TextAlign.end,
+                    softWrap: true,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                          _isVoiceMode ? FontWeight.normal : FontWeight.bold,
+                      color: _isVoiceMode ? Colors.grey : null,
+                    ),
+                  ),
+                ),
                 Switch(
                   value: _isVoiceMode,
                   onChanged: (bool newValue) {
@@ -396,7 +408,19 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
                     });
                   },
                 ),
-                Text(localizations.voiceMode),
+                Expanded(
+                  child: Text(
+                    localizations.voiceMode,
+                    textAlign: TextAlign.start,
+                    softWrap: true,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                          _isVoiceMode ? FontWeight.bold : FontWeight.normal,
+                      color: _isVoiceMode ? null : Colors.grey,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
