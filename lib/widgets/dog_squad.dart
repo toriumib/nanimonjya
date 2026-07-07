@@ -81,6 +81,10 @@ class _DogSquadState extends State<DogSquad>
 
   @override
   Widget build(BuildContext context) {
+    // ★キーボード表示中（名前入力など）は隠して操作ボタンのスペースを確保★
+    if (MediaQuery.of(context).viewInsets.bottom > 0) {
+      return const SizedBox.shrink();
+    }
     return AnimatedBuilder(
       animation: PlayerProfile.instance,
       builder: (context, _) {
@@ -95,8 +99,8 @@ class _DogSquadState extends State<DogSquad>
         if (members.isEmpty) return const SizedBox.shrink();
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFFFFF6D8), Color(0xFFFFE3F0), Color(0xFFD8F6F0)],
@@ -114,7 +118,7 @@ class _DogSquadState extends State<DogSquad>
             ],
           ),
           child: SizedBox(
-            height: 78,
+            height: 62, // ★スリム化: 操作ボタンの表示スペースを優先★
             // ★メンバーが増えても横にはみ出さないよう、収まらなければ自動縮小★
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -144,9 +148,9 @@ class _DogSquadState extends State<DogSquad>
   // 1メンバー分（跳ねるイラスト＋しゃべっていれば吹き出し）
   Widget _member(String asset, int index) {
     final double bounce =
-        -7.0 * max(0.0, sin((_controller.value * 2 * pi) + index * 0.9));
+        -5.0 * max(0.0, sin((_controller.value * 2 * pi) + index * 0.9));
     final speaking = index == _bubbleMemberIndex;
-    final double size = speaking ? 52.0 : 46.0; // しゃべる子は少し大きく
+    final double size = speaking ? 42.0 : 37.0; // しゃべる子は少し大きく
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -177,7 +181,7 @@ class _DogSquadState extends State<DogSquad>
             ),
           )
         else
-          const SizedBox(height: 22),
+          const SizedBox(height: 19),
         // 足元の影（跳ねると小さくなる）
         Stack(
           alignment: Alignment.bottomCenter,

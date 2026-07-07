@@ -18,8 +18,7 @@ class AdIds {
   // --- インタースティシャル（3プレイごとの全画面広告） ---
   static const String _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
   static const String _testInterstitialIOS = 'ca-app-pub-3940256099942544/4411468910';
-  // ★AdMobコンソールで「インタースティシャル」ユニットを作成したらここに貼る★
-  static const String _realInterstitialAndroid = '';
+  static const String _realInterstitialAndroid = 'ca-app-pub-6744940157577324/8670804845'; // AdMobで作成済み
 
   static bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
