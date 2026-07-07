@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// ★DDoS・不正アクセス・課金爆発への防御ルール★
+// 方針:
+//  - 認証済み（匿名認証でOK）ユーザーだけがアクセスできる
+//  - アクセスできるのは対戦ルーム(rooms)だけ。他のパスは全面禁止
+//  - ルームのサイズ（プレイヤー数・デッキ・場札）に上限を設けて肥大化を防ぐ
+//  - クライアントからの削除は禁止（サーバー/TTLで管理）
+// さらに Firebase コンソールで App Check を「強制」にすると、
+// 本物のアプリ以外からのアクセスをほぼ完全に遮断できる（SECURITY.md参照）。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // オンライン対戦ルーム
+    match /rooms/{roomId} {
+      // 妥当なサイズかを検証するヘルパ（肥大化・スパム書き込み対策）
+      function sane(data) {
+        return data.players is list
+          && data.players.size() <= 8            // 1部屋 最大8人
+          && (!('deck' in data) || data.deck.size() <= 80)        // 12種×5枚=60 + 余裕
+          && (!('fieldCards' in data) || data.fieldCards.size() <= 80)
+          && (!('seenImages' in data) || data.seenImages.size() <= 40)
+          && (!('imageUrls' in data) || data.imageUrls.size() <= 20);
+      }
+
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && sane(request.resource.data);
+      allow update: if request.auth != null && sane(request.resource.data);
+      allow delete: if false; // クライアントからの削除は不可
+    }
+
+    // 上記以外のあらゆるドキュメントへのアクセスを全面的に禁止
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

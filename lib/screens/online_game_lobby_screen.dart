@@ -383,46 +383,67 @@ class _OnlineGameLobbyScreenState extends State<OnlineGameLobbyScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ゲームモード選択トグル（スマホでも文字が切れないよう折り返し対応）
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    localizations.textMode,
-                    textAlign: TextAlign.end,
-                    softWrap: true,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight:
-                          _isVoiceMode ? FontWeight.normal : FontWeight.bold,
-                      color: _isVoiceMode ? Colors.grey : null,
+            // ★ゲームモード選択（セグメント式・絶対にはみ出さない）★
+            Builder(builder: (context) {
+              final m = MetaStrings.of(context);
+              Widget seg(String label, bool selected, VoidCallback onTap) {
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFFFF4FA3)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: selected ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                Switch(
-                  value: _isVoiceMode,
-                  onChanged: (bool newValue) {
-                    setState(() {
-                      _isVoiceMode = newValue;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    localizations.voiceMode,
-                    textAlign: TextAlign.start,
-                    softWrap: true,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight:
-                          _isVoiceMode ? FontWeight.bold : FontWeight.normal,
-                      color: _isVoiceMode ? null : Colors.grey,
+                );
+              }
+
+              return Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFFFC9E0)),
+                    ),
+                    child: Row(
+                      children: [
+                        seg(m.modeTextShort, !_isVoiceMode,
+                            () => setState(() => _isVoiceMode = false)),
+                        seg(m.modeVoiceShort, _isVoiceMode,
+                            () => setState(() => _isVoiceMode = true)),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 8),
+                  // 説明は横幅いっぱいで自由に折り返す（はみ出さない）
+                  Text(
+                    _isVoiceMode ? m.modeVoiceDesc : m.modeTextDesc,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              );
+            }),
             const SizedBox(height: 20),
 
             ElevatedButton(

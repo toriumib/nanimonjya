@@ -30,6 +30,14 @@ class MetaStrings {
   String get unlocked => ja ? 'アンロック！' : 'Unlocked!';
   String get locked => ja ? 'ロック中' : 'Locked';
 
+  // オンライン対戦モードのセグメント切替（スマホでも折り返さない短い表記）
+  String get modeTextShort => ja ? '📝 テキスト' : '📝 Text';
+  String get modeVoiceShort => ja ? '🎤 通話' : '🎤 Voice';
+  String get modeTextDesc =>
+      ja ? 'AIがにた名前で7択クイズを出題' : 'AI makes similar-name quizzes';
+  String get modeVoiceDesc =>
+      ja ? 'AIが試合を音声で実況するよ' : 'AI gives voice commentary';
+
   // ナビゲーション
   String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
   String get openTrophy =>
@@ -45,7 +53,7 @@ class MetaStrings {
           '🏆 実績を集めて、称号をランクアップさせよう！',
           '📅 毎日ログインするとデイリーボーナスがもらえるよ！',
           '🎺 リザルトの曲もマイページで変えられるよ！',
-          '📣 チア応援団をアップグレードしてにぎやかに応援してもらおう！',
+          '📣 バトル中はチアガールと応援団がにぎやかに応援してくれるよ！',
           '👧👦 あそびかたはホームのチュートリアルで確認できるよ！',
         ]
       : [
@@ -55,7 +63,7 @@ class MetaStrings {
           '🏆 Earn achievements to rank up your title!',
           '📅 Log in daily to grab your daily bonus!',
           '🎺 You can change the result music in your profile too!',
-          '📣 Upgrade your cheer squad for livelier battles!',
+          '📣 The cheer girl and squad hype up every battle!',
           '👧👦 Check the tutorial on the home screen anytime!',
         ];
   String get quitGame => ja ? 'やめる' : 'Quit';
@@ -91,8 +99,10 @@ class MetaStrings {
   String get howToPlay => ja ? 'あそびかた' : 'How to Play';
   String get cheerSquad => ja ? 'チア応援団' : 'Cheer Squad';
   String get cheerSquadDesc => ja
-      ? 'コインでアップグレードすると、バトル中に応援してくれる仲間がふえる！'
-      : 'Upgrade with coins to add more cheerleaders to your battles!';
+      ? 'チアガールと応援団が、バトル中みんなを応援してくれるよ！'
+      : 'The cheer girl and squad cheer you on during every battle!';
+  String get cheerAllJoined =>
+      ja ? '🎉 全員さいしょから参加中！' : '🎉 Everyone joins from the start!';
   String get upgrade => ja ? 'アップグレード' : 'Upgrade';
   String get maxLevel => ja ? '最大レベル！' : 'Max level!';
   String cheerLevelLabel(int lv) => ja ? '現在: レベル$lv' : 'Current: Lv.$lv';

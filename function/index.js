@@ -17,8 +17,14 @@ const generativeModel = vertex_ai.preview.getGenerativeModel({
 });
 
 
+// 全ての関数に共通の課金ガード設定（暴走時の請求上限）
+// maxInstances: 同時起動インスタンス数の上限。スパイクしても青天井にならない
+const SAFE_RUNTIME = { maxInstances: 10, timeoutSeconds: 30, memory: '256MB' };
+
 // ルームのプレイヤー数が揃い、全員が準備完了したらゲームを開始する
-exports.startGameOnPlayerCount = functions.firestore
+exports.startGameOnPlayerCount = functions
+    .runWith(SAFE_RUNTIME)
+    .firestore
     .document('rooms/{roomId}')
     .onUpdate(async (change, context) => {
         const newData = change.after.data();
@@ -118,10 +124,17 @@ exports.startGameOnPlayerCount = functions.firestore
     });
 
 // テキストを音声に変換して返す関数
-exports.synthesizeSpeech = functions.https.onCall(async (data, context) => {
+exports.synthesizeSpeech = functions
+    .runWith({ ...SAFE_RUNTIME, maxInstances: 5 })
+    .https.onCall(async (data, context) => {
+    // ★認証必須（匿名認証でOK）: 未ログインのbotによるTTSスパムを遮断★
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
     const text = data.text;
-    if (!text) {
-        throw new functions.https.HttpsError('invalid-argument', 'テキストが指定されていません。');
+    // ★入力サイズ制限: 長文を投げてTTS課金を膨らませる攻撃を防ぐ★
+    if (!text || typeof text !== 'string' || text.length > 120) {
+        throw new functions.https.HttpsError('invalid-argument', 'テキストが不正です（120文字以内）。');
     }
 
     const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
@@ -145,18 +158,26 @@ exports.synthesizeSpeech = functions.https.onCall(async (data, context) => {
 
 
 // テキストと文字種（英語、ひらがな、漢字など）に基づいて似た名前を生成する関数
-exports.generateSimilarNames = functions.https.onCall(async (data, context) => {
+exports.generateSimilarNames = functions
+    .runWith(SAFE_RUNTIME)
+    .https.onCall(async (data, context) => {
+    // ★認証必須: 未ログインbotによるGemini(Vertex AI)スパムを遮断★
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
     const originalName = data.originalName;
     const scriptType = data.scriptType;
-    const numToGenerate = data.numToGenerate || 4;
+    // ★生成数を1〜6にクランプ（大量生成でのAI課金増を防止）★
+    const numToGenerate = Math.min(Math.max(parseInt(data.numToGenerate, 10) || 4, 1), 6);
 
     console.log(`[generateSimilarNames] Function started. Original: ${originalName}, Script: ${scriptType}, Num: ${numToGenerate}`);
 
-    if (!originalName || typeof originalName !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'originalName (string) is required.');
+    // ★入力サイズ制限: 長い名前でプロンプトを膨らませる攻撃を防ぐ★
+    if (!originalName || typeof originalName !== 'string' || originalName.length > 20) {
+        throw new functions.https.HttpsError('invalid-argument', 'originalName が不正です（20文字以内）。');
     }
-    if (!scriptType || typeof scriptType !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'scriptType (string) is required.');
+    if (!scriptType || typeof scriptType !== 'string' || scriptType.length > 20) {
+        throw new functions.https.HttpsError('invalid-argument', 'scriptType が不正です。');
     }
 
     try {

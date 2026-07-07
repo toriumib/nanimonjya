@@ -455,89 +455,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // チア応援団（コインでレベルアップ）
+  // チア応援団（最初から全員参加・ショーケース表示）
   Widget _cheerCard(MetaStrings m, PlayerProfile p) {
-    final ja = m.ja;
-    final isMax = p.cheerLevel >= kCheerStages.length;
-    final nextStage = isMax ? null : kCheerStages[p.cheerLevel];
     return _sectionCard(
       title: '📣 ${m.cheerSquad}',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(m.cheerSquadDesc, style: const TextStyle(fontSize: 13)),
-          const SizedBox(height: 10),
-          // 現在のメンバー表示（イラスト）
-          Row(
-            children: [
-              Text(
-                m.cheerLevelLabel(p.cheerLevel),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 12),
-              if (p.cheerLevel > 0)
-                ...cheerMembers(p.cheerLevel).map(
-                  (a) => Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: SvgPicture.asset(a, width: 34, height: 34),
-                  ),
-                )
-              else
-                const Text('—', style: TextStyle(fontSize: 24)),
-            ],
+          const SizedBox(height: 12),
+          // 全メンバーを並べて紹介
+          Center(
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: kAllCheerMembers
+                  .map((a) => Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3F8),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: const Color(0xFFFFC9E0), width: 1.5),
+                        ),
+                        child:
+                            SvgPicture.asset(a, width: 48, height: 48),
+                      ))
+                  .toList(),
+            ),
           ),
-          const SizedBox(height: 10),
-          // レベル一覧
-          ...kCheerStages.map((s) {
-            final owned = p.cheerLevel >= s.level;
-            final isNext = nextStage?.level == s.level;
-            return Opacity(
-              opacity: owned || isNext ? 1.0 : 0.4,
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: owned
-                    ? SvgPicture.asset(s.members.last,
-                        width: 40, height: 40)
-                    : const Text('🔒', style: TextStyle(fontSize: 26)),
-                title: Text(
-                  'Lv.${s.level} ${ja ? s.nameJa : s.nameEn}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Row(
-                  children: s.members
-                      .map((a) => Padding(
-                            padding: const EdgeInsets.only(
-                                right: 3, top: 3),
-                            child: SvgPicture.asset(a,
-                                width: 24, height: 24),
-                          ))
-                      .toList(),
-                ),
-                trailing: owned
-                    ? const Icon(Icons.check_circle,
-                        color: Color(0xFF4A7A2A))
-                    : isNext
-                        ? ElevatedButton(
-                            onPressed: () async {
-                              final ok =
-                                  await p.upgradeCheer(s.upgradeCost);
-                              if (!mounted) return;
-                              if (ok) {
-                                Sfx.instance.coin();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(m.unlocked)));
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(m.notEnoughCoins)));
-                              }
-                            },
-                            child: Text('${s.upgradeCost}🪙'),
-                          )
-                        : Text('${s.upgradeCost}🪙',
-                            style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              m.cheerAllJoined,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFB4326E),
               ),
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );

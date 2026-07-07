@@ -115,21 +115,25 @@ class _DogSquadState extends State<DogSquad>
           ),
           child: SizedBox(
             height: 78,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    for (int i = 0; i < members.length; i++)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: _member(members[i], i),
-                      ),
-                  ],
-                );
-              },
+            // ★メンバーが増えても横にはみ出さないよう、収まらなければ自動縮小★
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (int i = 0; i < members.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: _member(members[i], i),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );

@@ -42,7 +42,13 @@
       "source": "function",
       "runtime": "nodejs20"
     },
-    "hosting": { 
+    "firestore": {
+      "rules": "firestore.rules"
+    },
+    "storage": {
+      "rules": "storage.rules"
+    },
+    "hosting": {
       "public": "build/web", 
       "ignore": [
         "firebase.json",
