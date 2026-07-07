@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// ★Storage課金対策★
+// カスタム画像アップロード機能は廃止済みのため、アプリからの書き込みは一切不要。
+// 書き込みを全面禁止し、アップロードによる容量・転送量の課金を根絶する。
+// 読み取りは過去にアップロードされた画像の表示用に許可（不要なら false に）。
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // 誰も1バイトもアップロードできない
+    }
+  }
+}

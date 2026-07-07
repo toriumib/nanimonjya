@@ -177,12 +177,20 @@ const List<CheerStage> kCheerStages = [
   ),
 ];
 
-/// 現在のチアレベルで応援に来るメンバー（レベル0なら空）
-List<String> cheerMembers(int cheerLevel) {
-  if (cheerLevel <= 0) return const [];
-  final stage = kCheerStages.lastWhere(
-    (s) => s.level <= cheerLevel,
-    orElse: () => kCheerStages.first,
-  );
-  return stage.members;
-}
+/// バトルに参加する応援メンバー。
+/// ★チアガール＆応援団は最初から全員参加（無料）★
+/// 引数 cheerLevel は後方互換のため残すが、常にフル編成を返す。
+List<String> cheerMembers([int cheerLevel = 0]) => const [
+      '$_sup/cheer_girl.svg',
+      '$_sup/squad_blue.svg',
+      '$_sup/squad_yellow.svg',
+      '$_sup/squad_red.svg',
+    ];
+
+/// 応援団の全メンバー（マイページのショーケース表示用）
+const List<String> kAllCheerMembers = [
+  '$_sup/cheer_girl.svg',
+  '$_sup/squad_blue.svg',
+  '$_sup/squad_yellow.svg',
+  '$_sup/squad_red.svg',
+];
