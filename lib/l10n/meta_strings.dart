@@ -38,6 +38,71 @@ class MetaStrings {
   String get modeVoiceDesc =>
       ja ? 'AIが試合を音声で実況するよ' : 'AI gives voice commentary';
 
+  // 🎲 おなまえガチャ（バズ機能: 押すたび爆笑ネームを提案）
+  static const List<String> _gachaPrefixJa = [
+    'モジャ', 'プリ', 'ドドド', 'キラ', 'ベロ', 'ガブ', 'ピカ', 'モチ',
+    'ズン', 'ニョロ', 'ボヨ', 'ペチ', 'ゴロ', 'フガ', 'チュル', 'バブ',
+    'デカ', 'チビ', 'ムキ', 'ホゲ',
+  ];
+  static const List<String> _gachaSuffixJa = [
+    'モン', 'ピー', 'タロウ', 'リン', 'ゴン', 'ニャン', 'ボー', 'スケ',
+    'ンゴ', 'チュウ', 'ペロ', 'ジロー', 'キング', 'サマ', 'ッチ', 'プリン',
+    'ザウルス', 'ポン', 'ミー', 'ベエ',
+  ];
+  static const List<String> _gachaPrefixEn = [
+    'Mog', 'Fluf', 'Zap', 'Bloo', 'Snug', 'Wig', 'Bop', 'Gro', 'Piko', 'Momo',
+    'Blip', 'Choo', 'Der', 'Squi', 'Wob', 'Nom', 'Zig', 'Pud', 'Fro', 'Gib',
+  ];
+  static const List<String> _gachaSuffixEn = [
+    'gy', 'zo', 'kins', 'bert', 'loo', 'pip', 'ster', 'nut', 'boo', 'zle',
+    'bug', 'doo', 'mun', 'pop', 'ron', 'wig', 'zap', 'bee', 'gus', 'moo',
+  ];
+
+  /// ランダムなおもしろ名前を返す（seedはRandomの整数を渡す）
+  String gachaName(int a, int b) {
+    final pre = ja ? _gachaPrefixJa : _gachaPrefixEn;
+    final suf = ja ? _gachaSuffixJa : _gachaSuffixEn;
+    return '${pre[a % pre.length]}${suf[b % suf.length]}';
+  }
+
+  String get gachaLabel => ja ? 'おなまえガチャ' : 'Name Gacha';
+
+  // 🎭 リザルトの一言コメント（成績に応じて）
+  String resultQuip(bool won, int seed) {
+    final quips = won
+        ? (ja
+            ? [
+                'なまえセンス宇宙一！🌌',
+                '記憶力バケモノ級！🧠✨',
+                '今日のMVPはきみだ！🏆',
+                'ネーミング王の風格…！👑',
+                'わんちゃんも大よろこび！🐶🎉',
+              ]
+            : [
+                'Naming sense: cosmic! 🌌',
+                'Monster memory! 🧠✨',
+                "Today's MVP! 🏆",
+                'True Naming Royalty! 👑',
+                'The dogs are so proud! 🐶🎉',
+              ])
+        : (ja
+            ? [
+                'つぎは総取りだ！🔥',
+                'おしい！なまえ、覚えた？👀',
+                'わんちゃんは見てるよ…🐶',
+                'リベンジのにおいがする！💪',
+                '練習あるのみ！ファイト！📣',
+              ]
+            : [
+                'Next time, take it all! 🔥',
+                'So close! Remember the names? 👀',
+                'The dogs are watching… 🐶',
+                'Smells like revenge! 💪',
+                'Practice makes perfect! 📣',
+              ]);
+    return quips[seed % quips.length];
+  }
+
   // ナビゲーション
   String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
   String get openTrophy =>
@@ -128,14 +193,18 @@ class MetaStrings {
       ja ? 'あと$nコインでアンロック' : '$n more coins to unlock';
 
   // ── Xシェア ──
-  String get shareOnX => ja ? 'Xでシェア' : 'Share on X';
+  String get shareOnX => ja ? 'Xで自慢する' : 'Brag on X';
+  // 称号入りでシェア（バズりやすい煽り文＋絵文字）
   String shareWin(int players, int score) => ja
-      ? 'ナニモンジャで$players人対戦に勝利！🏆 $score点獲得！'
-      : 'I won a $players-player match in Nanimonja! 🏆 Scored $score points!';
+      ? '【$titleForShare】ナニモンジャ$players人対戦で優勝！🏆 $score点で無双した😎\nキミはなまえ、覚えられる？👇'
+      : '[$titleForShare] Won a $players-player Nanimonja match! 🏆 Crushed it with $score pts 😎\nThink you can remember the names? 👇';
   String sharePlayed(int players, int topScore) => ja
-      ? 'ナニモンジャで$players人対戦であそんだよ！トップは$topScore点！'
-      : 'Played a $players-player match in Nanimonja! Top score: $topScore!';
-  String get shareHashtag => ja ? '#ナニモンジャ' : '#Nanimonja';
+      ? '【$titleForShare】ナニモンジャで白熱の$players人対戦！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🃏\nいっしょにあそぼ👇'
+      : "[$titleForShare] Intense $players-player Nanimonja match! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🃏 Come play 👇";
+  String get shareHashtag =>
+      ja ? '#ナニモンジャ #名付け神経衰弱' : '#Nanimonja #NameMemoryGame';
+  // シェア文に埋め込む現在の称号（シェア直前に設定）。constクラスなのでstatic。
+  static String titleForShare = '';
 
   // ── オンライン戦績・トロフィー ──
   String get onlineGamesLabel => ja ? 'オンライン対戦数' : 'Online games';
