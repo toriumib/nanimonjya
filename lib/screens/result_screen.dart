@@ -197,6 +197,10 @@ class _ResultScreenState extends State<ResultScreen> {
   // 戦績をXでシェアする（Web Intentなのでアプリ未インストールでもブラウザで開く）
   Future<void> _shareOnX() async {
     final m = MetaStrings.of(context);
+    // 現在の称号をシェア文に埋め込む
+    final title = currentTitle(PlayerProfile.instance.lifetimeCoins);
+    MetaStrings.titleForShare =
+        '${title.emoji}${m.ja ? title.nameJa : title.nameEn}';
     final maxScore = widget.scores.isEmpty
         ? 0
         : widget.scores.reduce((a, b) => a > b ? a : b);
@@ -341,7 +345,25 @@ class _ResultScreenState extends State<ResultScreen> {
                         ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
+                  // 🎭 成績に応じた一言コメント（ポンと拡大登場）
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.7, end: 1.0),
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.elasticOut,
+                    builder: (context, s, child) =>
+                        Transform.scale(scale: s, child: child),
+                    child: Text(
+                      m.resultQuip(maxScore > 0, _tipSeed),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFFF4FA3),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
                   // 獲得コイン演出
                   _rewardBanner(m),

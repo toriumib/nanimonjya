@@ -9,6 +9,7 @@ import 'result_screen.dart'; // 結果表示画面
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:just_audio/just_audio.dart';
 import '../services/player_profile.dart'; // 選択中BGMの参照
+import '../services/sfx.dart'; // 正解/不正解SE
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import 'dart:convert'; // Base64デコードのために必要
 
@@ -816,11 +817,13 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     final correctName = _characterNames[_currentImagePath!];
 
     if (selectedName == correctName) {
+      Sfx.instance.correct(); // 🔊 正解SE（即時フィードバック）
       await _awardPointsOnline(
         _firestore.collection('rooms').doc(widget.roomId),
         widget.myPlayerId,
       );
     } else {
+      Sfx.instance.wrong(); // 🔊 おてつきSE
       await _skipCardOnline(_firestore.collection('rooms').doc(widget.roomId));
     }
     // 選択肢はここでは消さない（他プレイヤーの回答待ちの間も表示を維持し、
@@ -1154,7 +1157,18 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                                   )
                                 : ClipRRect(
                                     borderRadius: BorderRadius.circular(10.0),
-                                    child:
+                                    // 🃏 カードが変わるたびポンッと登場（ValueKeyで再生）
+                                    child: TweenAnimationBuilder<double>(
+                                      key: ValueKey(
+                                          '$_currentImagePath-$_turnCount'),
+                                      tween: Tween(begin: 0.85, end: 1.0),
+                                      duration:
+                                          const Duration(milliseconds: 350),
+                                      curve: Curves.easeOutBack,
+                                      builder: (context, sc, child) =>
+                                          Transform.scale(
+                                              scale: sc, child: child),
+                                      child:
                                         _currentImagePath!.startsWith('assets/')
                                         ? Image.asset(
                                             _currentImagePath!,
@@ -1199,6 +1213,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                                                       ),
                                                     ),
                                           ),
+                                    ), // TweenAnimationBuilder を閉じる
                                   ),
                           ),
                         ),
@@ -1430,6 +1445,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         // 初登場カードの場合：名前入力フィールドを表示
         // 自分の命名ターンかどうかもチェック
         if (widget.myPlayerId == currentNamerId) {
+          final meta = MetaStrings.of(context);
           return Column(
             children: [
               TextField(
@@ -1441,7 +1457,26 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                 maxLength: 8, // 8文字制限
                 onSubmitted: _handleNameSubmission, // エンターキーで送信
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
+              // 🎲 おなまえガチャ: 押すたびランダム爆笑ネームを入力欄にセット
+              OutlinedButton.icon(
+                onPressed: () {
+                  Sfx.instance.pop();
+                  _nameInputController.text =
+                      meta.gachaName(_random.nextInt(9973), _random.nextInt(9941));
+                  setState(() {});
+                },
+                icon: const Text('🎲', style: TextStyle(fontSize: 18)),
+                label: Text(meta.gachaLabel),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFB4326E),
+                  side: const BorderSide(color: Color(0xFFFF9ECB), width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () =>
                     _handleNameSubmission(_nameInputController.text.trim()),

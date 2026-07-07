@@ -43,4 +43,16 @@ class Sfx {
     HapticFeedback.heavyImpact();
     await _play('fanfare.wav', volume: 0.9);
   }
+
+  /// 正解（キラキラ上昇音）
+  Future<void> correct() async {
+    HapticFeedback.mediumImpact();
+    await _play('correct.wav', volume: 0.9);
+  }
+
+  /// おてつき（ブッブー）
+  Future<void> wrong() async {
+    HapticFeedback.heavyImpact();
+    await _play('wrong.wav', volume: 0.8);
+  }
 }
