@@ -161,7 +161,7 @@ class _ResultScreenState extends State<ResultScreen> {
     final m = MetaStrings.of(context);
     final shown = await _rewardAd.show(onReward: () {
       PlayerProfile.instance.grantBonusCoins(_earnedThisGame);
-      Sfx.instance.coin();
+      Sfx.instance.fanfare(); // コイン2倍ゲットは盛大に
     });
     if (!mounted) return;
     if (shown) {
@@ -403,20 +403,65 @@ class _ResultScreenState extends State<ResultScreen> {
 
                   const SizedBox(height: 20),
 
-                  // リワード広告：コイン2倍
+                  // ★リワード広告：コイン2倍（大きくド派手に・状態表示付き）★
                   if (RewardAdHelper.available && !_doubled && _earnedThisGame > 0)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: ElevatedButton.icon(
-                        onPressed: _watchAdToDouble,
-                        icon: const Icon(Icons.play_circle_fill),
-                        label: Text(m.watchAdDouble),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 14),
-                        ),
+                      child: AnimatedBuilder(
+                        animation: _rewardAd,
+                        builder: (context, _) {
+                          final ready = _rewardAd.isReady;
+                          return SizedBox(
+                            width: double.infinity,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF43C46B),
+                                    Color(0xFF2E9E52),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF43C46B)
+                                        .withOpacity(ready ? 0.5 : 0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton.icon(
+                                onPressed: _watchAdToDouble,
+                                icon: ready
+                                    ? const Icon(Icons.play_circle_fill,
+                                        size: 30)
+                                    : const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                label: Text(
+                                  ready ? m.watchAdDouble : m.adPreparing,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 18),
+                                  textStyle: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
 
@@ -493,7 +538,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   const SizedBox(height: 8),
                   // 楽曲クレジット（魔王魂の利用規約によりクレジット表記）
                   const Text(
-                    'BGM: 魔王魂「シャイニングスター」',
+                    'BGM: 魔王魂（シャイニングスター ほか）',
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
