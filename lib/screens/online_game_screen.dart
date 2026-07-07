@@ -10,6 +10,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:just_audio/just_audio.dart';
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../services/sfx.dart'; // 正解/不正解SE
+import '../services/ranking_service.dart'; // ランダムマッチのレーティング
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import 'dart:convert'; // Base64デコードのために必要
 
@@ -75,6 +76,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // ★記憶タイムを端末ローカルで計測するタイマー（時計ズレの影響を受けない）★
   Timer? _memoryTimer;
   bool _memoryAdvanceScheduled = false;
+  bool _rankingRecorded = false; // ランキング反映の二重実行防止
 
   @override
   void initState() {
@@ -906,6 +908,19 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
           if (roomData['status'] == 'finished') {
             final bool isRandomMatchRoom = roomData['isRandomMatch'] == true;
+
+            // ★ランダムマッチのレーティング反映（1回だけ）★
+            // 自分が最高得点なら勝ち(+25)、そうでなければ負け(-15)。
+            if (isRandomMatchRoom && !_rankingRecorded) {
+              _rankingRecorded = true;
+              final myScore = _scores[widget.myPlayerId] ?? 0;
+              final maxScore = _scores.values.isEmpty
+                  ? 0
+                  : _scores.values.reduce((a, b) => a > b ? a : b);
+              final won = maxScore > 0 && myScore == maxScore;
+              RankingService.instance.recordResult(won: won);
+            }
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               List<int> resultScores = sortedScores
                   .map((e) => e.value)

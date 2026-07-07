@@ -103,6 +103,24 @@ class MetaStrings {
     return quips[seed % quips.length];
   }
 
+  // 🏅 ランキング
+  String get you => ja ? 'あなた' : 'You';
+  String get ranking => ja ? 'ランキング' : 'Ranking';
+  String get myRating => ja ? 'あなたのレート' : 'Your rating';
+  String get nicknameLabel => ja ? 'ランキング表示名' : 'Display name';
+  String get save => ja ? '保存' : 'Save';
+  String get nameSaved => ja ? '表示名を保存したよ！' : 'Name saved!';
+  String get rankingTop50 =>
+      ja ? '⭐レート上位50人（ランダムマッチ）' : '⭐ Top 50 by rating (Random Match)';
+  String get rankingEmpty =>
+      ja ? 'まだ誰もいないよ。1番のりでランクインしよう！' : 'No one yet. Be the first!';
+  String get rankingUnavailable => ja
+      ? 'ランキングを読み込めませんでした。時間をおいて試してね。'
+      : 'Could not load ranking. Please try again later.';
+  String ratingChange(bool won, int delta) => won
+      ? (ja ? 'レート +$delta ⬆️' : 'Rating +$delta ⬆️')
+      : (ja ? 'レート -$delta ⬇️' : 'Rating -$delta ⬇️');
+
   // ナビゲーション
   String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
   String get openTrophy =>

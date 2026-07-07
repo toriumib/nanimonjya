@@ -10,6 +10,7 @@ import '../models/cosmetics.dart'; // 称号のランクアップ判定
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
+import '../services/ranking_service.dart'; // レート変動の表示定数
 import '../services/sfx.dart';
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
@@ -367,6 +368,41 @@ class _ResultScreenState extends State<ResultScreen> {
 
                   // 獲得コイン演出
                   _rewardBanner(m),
+                  // 🏅 ランダムマッチのレート変動バナー
+                  if (widget.isRandomMatch) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _wonOnline
+                            ? const Color(0xFFE3F7E8)
+                            : const Color(0xFFFDE7E7),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _wonOnline
+                              ? const Color(0xFF6BbF7E)
+                              : const Color(0xFFE79A9A),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        m.ratingChange(
+                          _wonOnline,
+                          _wonOnline
+                              ? RankingService.winDelta
+                              : RankingService.loseDelta,
+                        ),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: _wonOnline
+                              ? const Color(0xFF2E8B4E)
+                              : const Color(0xFFC0392B),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   Text(

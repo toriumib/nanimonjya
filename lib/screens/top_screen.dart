@@ -9,6 +9,7 @@ import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
+import 'ranking_screen.dart'; // 全体ランキング
 
 // 多言語対応のために追加
 
@@ -329,6 +330,40 @@ class _TopScreenState extends State<TopScreen>
                         ),
                       );
                     },
+                  ),
+                  const SizedBox(height: 12),
+                  // 🏅 ランキングへの導線
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Sfx.instance.pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RankingScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.leaderboard, size: 22),
+                    label: Text('🏅 ${MetaStrings.of(context).ranking}'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF1E7BA6),
+                      backgroundColor: Colors.white.withOpacity(0.8),
+                      side: const BorderSide(
+                        color: Color(0xFF4FB0DB),
+                        width: 2.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 14,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   // あそびかた（チュートリアル）ボタン
