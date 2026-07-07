@@ -37,4 +37,10 @@ class Sfx {
   Future<void> pop() async {
     await _play('pop.wav', volume: 0.7);
   }
+
+  /// 盛り上がるファンファーレ（大事なボタン・アンロック成功・報酬ゲット用）
+  Future<void> fanfare() async {
+    HapticFeedback.heavyImpact();
+    await _play('fanfare.wav', volume: 0.9);
+  }
 }

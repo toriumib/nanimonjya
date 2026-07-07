@@ -231,7 +231,7 @@ class _TopScreenState extends State<TopScreen>
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Sfx.instance.pop();
+                      Sfx.instance.fanfare(); // 盛り上がるSE
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -262,7 +262,7 @@ class _TopScreenState extends State<TopScreen>
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {
-                      Sfx.instance.pop();
+                      Sfx.instance.fanfare(); // 盛り上がるSE
                       Navigator.push(
                         context,
                         MaterialPageRoute(

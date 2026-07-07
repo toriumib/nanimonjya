@@ -18,6 +18,7 @@ class BgmItem {
 }
 
 const List<BgmItem> kBgmCatalog = [
+  // --- クラシック ---
   BgmItem('op9-2-Nocturne.mp3', 'ノクターン Op.9-2', 'Nocturne Op.9-2', 0),
   BgmItem('bgm_ode_to_joy.wav', '歓喜の歌', 'Ode to Joy', 150),
   BgmItem('for_siciliano.mp3', 'シチリアーノ', 'Siciliano', 300),
@@ -25,6 +26,10 @@ const List<BgmItem> kBgmCatalog = [
   BgmItem('op.10-4.mp3', '練習曲 Op.10-4', 'Étude Op.10-4', 500),
   BgmItem('bgm_eine_kleine.wav', 'アイネ・クライネ', 'Eine kleine Nachtmusik', 700),
   BgmItem('c00Chopin_Fantaisie-Impromptu.mp3', '幻想即興曲', 'Fantaisie-Impromptu', 800),
+  // --- 魔王魂（著作権フリー・クレジット表記済み） ---
+  BgmItem('05_halzion.mp3', 'ハルジオン', 'Halzion', 250),
+  BgmItem('08_burning_heart.mp3', 'バーニングハート', 'Burning Heart', 350),
+  BgmItem('19_12345.mp3', '12345', '12345', 450),
 ];
 
 class ProfileScreen extends StatefulWidget {
@@ -81,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final m = MetaStrings.of(context);
     final shown = await _rewardAd.show(onReward: () {
       PlayerProfile.instance.grantBonusCoins(50);
-      Sfx.instance.coin();
+      Sfx.instance.fanfare(); // 報酬ゲットは盛大に
     });
     if (!mounted) return;
     if (!shown) {
@@ -206,11 +211,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           if (RewardAdHelper.available) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _watchAdForCoins,
-              icon: const Icon(Icons.play_circle_outline),
-              label: Text(m.watchAdBonus),
+            const SizedBox(height: 10),
+            // ★大きくド派手な「動画で+50コイン」ボタン（状態表示付き）★
+            AnimatedBuilder(
+              animation: _rewardAd,
+              builder: (context, _) {
+                final ready = _rewardAd.isReady;
+                return SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF43C46B), Color(0xFF2E9E52)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF43C46B)
+                              .withOpacity(ready ? 0.5 : 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _watchAdForCoins,
+                      icon: ready
+                          ? const Icon(Icons.play_circle_fill, size: 28)
+                          : const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            ),
+                      label: Text(ready ? m.watchAdBonus : m.adPreparing),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ],
@@ -347,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final ok = await p.unlockTheme(t.id, t.cost);
                 if (!mounted) return;
                 if (ok) {
-                  Sfx.instance.coin();
+                  Sfx.instance.fanfare(); // アンロック成功は盛大に
                   ScaffoldMessenger.of(context)
                       .showSnackBar(SnackBar(content: Text(m.unlocked)));
                 } else {
@@ -529,7 +579,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final ok = await p.unlockBgm(b.asset, b.cost);
                 if (!mounted) return;
                 if (ok) {
-                  Sfx.instance.coin();
+                  Sfx.instance.fanfare(); // アンロック成功は盛大に
                   ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(m.unlocked)));
                 } else {

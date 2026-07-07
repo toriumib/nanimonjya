@@ -90,6 +90,7 @@ class MetaStrings {
   String get doubledCoins => ja ? 'コイン2倍GET！🎉' : 'Coins doubled! 🎉';
   String get adNotReady =>
       ja ? '広告の準備中です。少し待ってね' : 'Ad not ready yet. Please wait.';
+  String get adPreparing => ja ? '広告じゅんび中…' : 'Preparing ad…';
   String get sessionBonus => ja ? '連続プレイボーナス' : 'Play streak bonus';
   String sessionBonusN(int n) =>
       ja ? '連続プレイボーナス +$n！' : 'Play streak bonus +$n!';
