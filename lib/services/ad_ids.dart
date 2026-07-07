@@ -15,6 +15,12 @@ class AdIds {
   static const String _testRewardedIOS = 'ca-app-pub-3940256099942544/1712485313';
   static const String _realRewardedAndroid = 'ca-app-pub-6744940157577324/9009716197'; // AdMobで作成
 
+  // --- インタースティシャル（3プレイごとの全画面広告） ---
+  static const String _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
+  static const String _testInterstitialIOS = 'ca-app-pub-3940256099942544/4411468910';
+  // ★AdMobコンソールで「インタースティシャル」ユニットを作成したらここに貼る★
+  static const String _realInterstitialAndroid = '';
+
   static bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
   static String get banner {
@@ -36,4 +42,16 @@ class AdIds {
   /// デバッグ中(モバイル)は常に true（テスト広告で動作確認できる）。
   static bool get rewardedAvailable =>
       !kIsWeb && (kDebugMode || _realRewardedAndroid.isNotEmpty);
+
+  static String get interstitial {
+    if (kDebugMode) {
+      return _isIOS ? _testInterstitialIOS : _testInterstitialAndroid;
+    }
+    return _realInterstitialAndroid;
+  }
+
+  /// インタースティシャル広告を出せる状態か。
+  /// 本番IDが未設定の間はリリースでは無効（テストIDを本番で使うのは規約違反のため）。
+  static bool get interstitialAvailable =>
+      !kIsWeb && (kDebugMode || _realInterstitialAndroid.isNotEmpty);
 }
