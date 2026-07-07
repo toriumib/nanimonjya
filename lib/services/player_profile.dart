@@ -30,6 +30,8 @@ class PlayerProfile extends ChangeNotifier {
   String selectedTheme = 'sunny';
   String selectedResultBgm = 'shining_star.mp3'; // リザルト画面の曲
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
+  String nickname = ''; // ランキング表示名
+  int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
 
   // セッション内（アプリ起動中のみ）の連続プレイ数。再起動でリセット。
   int sessionStreak = 0;
@@ -66,6 +68,8 @@ class PlayerProfile extends ChangeNotifier {
       selectedTheme = 'sunny';
     }
     cheerLevel = p.getInt('cheerLevel') ?? 0;
+    nickname = p.getString('nickname') ?? '';
+    rankRating = p.getInt('rankRating') ?? 1000;
     selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != 'shining_star.mp3' &&
@@ -155,6 +159,20 @@ class PlayerProfile extends ChangeNotifier {
     await _persist();
     notifyListeners();
     return bonus;
+  }
+
+  /// ランキング表示名を設定。
+  Future<void> setNickname(String name) async {
+    nickname = name.trim();
+    await _persist();
+    notifyListeners();
+  }
+
+  /// レーティングのローカルミラーを更新（Firestore側の確定値を渡す）。
+  Future<void> setRankRating(int rating) async {
+    rankRating = rating;
+    await _persist();
+    notifyListeners();
   }
 
   /// リワード広告視聴などで追加コインを付与。
@@ -312,6 +330,8 @@ class PlayerProfile extends ChangeNotifier {
     await p.setString('selectedTheme', selectedTheme);
     await p.setString('selectedResultBgm', selectedResultBgm);
     await p.setInt('cheerLevel', cheerLevel);
+    await p.setString('nickname', nickname);
+    await p.setInt('rankRating', rankRating);
   }
 }
 
