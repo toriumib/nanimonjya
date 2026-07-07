@@ -84,17 +84,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _watchAdForCoins() async {
     final m = MetaStrings.of(context);
-    final shown = await _rewardAd.show(onReward: () {
+    // ★未準備なら予約→読み込み完了と同時に自動再生★
+    final playedNow = await _rewardAd.showOrQueue(onReward: () {
       PlayerProfile.instance.grantBonusCoins(50);
       Sfx.instance.fanfare(); // 報酬ゲットは盛大に
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(m.earnedCoins(50))));
+      }
     });
     if (!mounted) return;
-    if (!shown) {
+    if (!playedNow) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.adNotReady)));
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.earnedCoins(50))));
+          .showSnackBar(SnackBar(content: Text(m.adQueued)));
     }
   }
 

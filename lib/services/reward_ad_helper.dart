@@ -12,8 +12,13 @@ class RewardAdHelper extends ChangeNotifier {
   int _retryCount = 0;
   bool _disposed = false;
 
+  // ★予約再生: 未準備のままタップされた場合、読み込み完了と同時に自動再生する★
+  VoidCallback? _queuedReward;
+  DateTime? _queuedAt;
+
   bool get isReady => _ad != null;
   bool get isLoading => _loading;
+  bool get hasQueuedShow => _queuedReward != null;
 
   /// リワード広告が利用可能な構成か（本番IDが未設定のリリースでは false）。
   static bool get available => AdIds.rewardedAvailable;
@@ -36,6 +41,16 @@ class RewardAdHelper extends ChangeNotifier {
           _retryCount = 0;
           debugPrint('RewardedAd loaded.');
           _safeNotify();
+          // ★予約があれば即再生（30秒以内のタップのみ有効。古い予約は破棄）★
+          final queued = _queuedReward;
+          final queuedAt = _queuedAt;
+          _queuedReward = null;
+          _queuedAt = null;
+          if (queued != null &&
+              queuedAt != null &&
+              DateTime.now().difference(queuedAt).inSeconds <= 30) {
+            show(onReward: queued);
+          }
         },
         onAdFailedToLoad: (err) {
           _ad = null;
@@ -86,6 +101,21 @@ class RewardAdHelper extends ChangeNotifier {
       },
     );
     return rewarded;
+  }
+
+  /// ★準備済みなら即再生、未準備なら「予約」して読み込み完了と同時に自動再生★
+  /// 戻り値: true=即再生できた（報酬有無はonRewardで反映）, false=予約した
+  Future<bool> showOrQueue({required VoidCallback onReward}) async {
+    if (_ad != null) {
+      await show(onReward: onReward);
+      return true;
+    }
+    _queuedReward = onReward;
+    _queuedAt = DateTime.now();
+    _retryCount = 0; // 手動タップなのでリトライ回数をリセット
+    load();
+    _safeNotify();
+    return false;
   }
 
   void _safeNotify() {

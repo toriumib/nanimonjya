@@ -9,6 +9,7 @@ import '../l10n/meta_strings.dart';
 import '../models/cosmetics.dart'; // 称号のランクアップ判定
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
+import '../services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 import '../services/sfx.dart';
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
@@ -66,6 +67,10 @@ class _ResultScreenState extends State<ResultScreen> {
     _startResultBgm(); // 🎵 シャイニングスター再生
     // フレーム描画後に報酬付与＆演出（context/localeが使える状態で行う）
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
+    // ★3プレイごとの全画面広告（結果を1秒見せてから表示）★
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) InterstitialAdHelper.instance.onGameFinished();
+    });
   }
 
   // リザルトBGM: 選択中の曲（デフォルトは魔王魂「シャイニングスター」）をループ再生
@@ -159,18 +164,21 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _watchAdToDouble() async {
     final m = MetaStrings.of(context);
-    final shown = await _rewardAd.show(onReward: () {
+    // ★未準備なら予約→読み込み完了と同時に自動再生（押したのに流れない問題の根絶）★
+    final playedNow = await _rewardAd.showOrQueue(onReward: () {
       PlayerProfile.instance.grantBonusCoins(_earnedThisGame);
       Sfx.instance.fanfare(); // コイン2倍ゲットは盛大に
+      if (mounted) {
+        setState(() => _doubled = true);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(m.doubledCoins)));
+      }
     });
     if (!mounted) return;
-    if (shown) {
-      setState(() => _doubled = true);
+    if (!playedNow) {
+      // 予約済み: 読み込みが終わり次第自動で再生される
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.doubledCoins)));
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.adNotReady)));
+          .showSnackBar(SnackBar(content: Text(m.adQueued)));
     }
   }
 
