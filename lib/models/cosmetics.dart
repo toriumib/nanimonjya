@@ -11,6 +11,7 @@ class HomeTheme {
   final Color titleColor;
   final Color titleShadow;
   final bool darkBackground; // 暗い背景か（文字色の調整用）
+  final Color accent; // アプリ全体のボタン・AppBarに使う主役色
 
   const HomeTheme({
     required this.id,
@@ -22,6 +23,7 @@ class HomeTheme {
     required this.titleColor,
     required this.titleShadow,
     this.darkBackground = false,
+    this.accent = const Color(0xFFFF4FA3),
   });
 }
 
@@ -35,6 +37,7 @@ const List<HomeTheme> kHomeThemes = [
     gradient: [Color(0xFFFFF3B0), Color(0xFFFFD6E8), Color(0xFFC9F2EF)],
     titleColor: Color(0xFFFF4FA3),
     titleShadow: Color(0xFFFFD93D),
+    accent: Color(0xFFFF4FA3),
   ),
   HomeTheme(
     id: 'soda',
@@ -45,6 +48,7 @@ const List<HomeTheme> kHomeThemes = [
     gradient: [Color(0xFFB8F0FF), Color(0xFFD6E8FF), Color(0xFFEAFFF7)],
     titleColor: Color(0xFF1E90D6),
     titleShadow: Color(0xFFB8F0FF),
+    accent: Color(0xFF1EA7E0),
   ),
   HomeTheme(
     id: 'sakura',
@@ -55,6 +59,7 @@ const List<HomeTheme> kHomeThemes = [
     gradient: [Color(0xFFFFE3EE), Color(0xFFFFC9DC), Color(0xFFFFF5F7)],
     titleColor: Color(0xFFE0447C),
     titleShadow: Color(0xFFFFFFFF),
+    accent: Color(0xFFE85D97),
   ),
   HomeTheme(
     id: 'space',
@@ -66,6 +71,7 @@ const List<HomeTheme> kHomeThemes = [
     titleColor: Color(0xFFFFE45E),
     titleShadow: Color(0xFF8C7BFF),
     darkBackground: true,
+    accent: Color(0xFF7B5CFF),
   ),
 ];
 

@@ -5,6 +5,7 @@ import 'screens/top_screen.dart'; // トップ画面をインポート
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
+import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 
 // 多言語対応のために追加
@@ -25,71 +26,80 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      // title は MaterialApp のラベルであり、通常はAppLocalizationsを使わず固定値で良い場合が多いが、ここも対応可能
-      title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
-      // ★ポップで元気なテーマ（小学生ウケ狙い）★
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF4FA3), // ビビッドピンク
-          primary: const Color(0xFFFF4FA3),
-          secondary: const Color(0xFF4ECDC4), // ポップシアン
-          tertiary: const Color(0xFFFFD93D), // サニーイエロー
-        ),
-        scaffoldBackgroundColor: const Color(0xFFFFF9EC), // クリーム色の背景
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFF4FA3),
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF4FA3),
-            foregroundColor: Colors.white,
-            elevation: 6,
-            shadowColor: const Color(0x66FF4FA3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            textStyle: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        cardTheme: CardThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 4,
-        ),
-        chipTheme: ChipThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: const Color(0xFF7A3B00),
-          contentTextStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          behavior: SnackBarBehavior.floating,
+  // 選択中のきせかえテーマの accent 色でアプリ全体のテーマを組み立てる
+  ThemeData _buildTheme(Color accent) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: accent,
+        primary: accent,
+        secondary: const Color(0xFF4ECDC4), // ポップシアン
+        tertiary: const Color(0xFFFFD93D), // サニーイエロー
+      ),
+      scaffoldBackgroundColor: const Color(0xFFFFF9EC), // クリーム色の背景
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      appBarTheme: AppBarTheme(
+        backgroundColor: accent,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
         ),
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
+          elevation: 6,
+          shadowColor: accent.withOpacity(0.4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 4,
+      ),
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF7A3B00),
+        contentTextStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ★きせかえテーマを選ぶとアプリ全体のボタン・AppBar色が変わる★
+    return AnimatedBuilder(
+      animation: PlayerProfile.instance,
+      builder: (context, _) {
+        final accent =
+            homeThemeById(PlayerProfile.instance.selectedTheme).accent;
+        return MaterialApp(
+      title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
+      theme: _buildTheme(accent),
       home: const TopScreen(),
       debugShowCheckedModeBanner: false,
 
@@ -105,6 +115,8 @@ class MyApp extends StatelessWidget {
         Locale('ja'), // 日本語
       ],
       // ★追加ここまで★
+        );
+      },
     );
   }
 }
