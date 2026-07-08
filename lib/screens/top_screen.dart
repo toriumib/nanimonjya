@@ -1,4 +1,6 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:untitled/l10n/app_localizations.dart';
 import 'player_selection_screen.dart'; // オフラインモード
@@ -7,6 +9,7 @@ import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
+import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'ranking_screen.dart'; // 全体ランキング
@@ -21,9 +24,12 @@ class TopScreen extends StatefulWidget {
 }
 
 class _TopScreenState extends State<TopScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  late AnimationController _bounceController; // マスコットのぴょこぴょこ
+  final RewardAdHelper _giftAd = RewardAdHelper(); // 無料コインチェスト用
+  final Random _random = Random();
 
   @override
   void initState() {
@@ -39,12 +45,46 @@ class _TopScreenState extends State<TopScreen>
       ),
     );
     _controller.forward(); // アニメーションを開始
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _giftAd.load();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _bounceController.dispose();
+    _giftAd.dispose();
     super.dispose();
+  }
+
+  // 🎁 無料コインチェスト: 動画を見てランダムなコイン(50〜200)をゲット
+  Future<void> _claimGift() async {
+    final m = MetaStrings.of(context);
+    final profile = PlayerProfile.instance;
+    if (!profile.canClaimGift) {
+      final mins = profile.giftCooldownRemaining.inMinutes + 1;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(m.giftWaitMin(mins))));
+      return;
+    }
+    // 50〜200コインのランダム報酬（10刻みでワクワク感）
+    final amount = 50 + _random.nextInt(16) * 10;
+    final played = await _giftAd.showOrQueue(onReward: () async {
+      await profile.claimGift(amount);
+      Sfx.instance.fanfare();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(m.giftGot(amount))));
+      }
+    });
+    if (!mounted) return;
+    if (!played) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(m.adQueued)));
+    }
   }
 
   // Buy Me a Coffee のページを外部ブラウザで開く
@@ -153,9 +193,59 @@ class _TopScreenState extends State<TopScreen>
           children: [
             Positioned(top: 8, right: 8, child: _topBar()),
             Center(
+        child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // 🐶 大きなマスコットがぴょこぴょこ＋キラキラ（赤ちゃんも喜ぶ主役）
+            AnimatedBuilder(
+              animation: _bounceController,
+              builder: (context, child) {
+                final t = _bounceController.value;
+                final dy = -14.0 * (t < 0.5 ? t * 2 : (1 - t) * 2);
+                return Transform.translate(
+                  offset: Offset(0, dy),
+                  child: child,
+                );
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 168,
+                    height: 168,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.55),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.6),
+                          blurRadius: 30,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SvgPicture.asset(
+                    'assets/images/supporters/dog_chihuahua.svg',
+                    width: 150,
+                    height: 150,
+                  ),
+                  const Positioned(
+                      top: -6, right: 8,
+                      child: Text('✨', style: TextStyle(fontSize: 30))),
+                  const Positioned(
+                      bottom: 4, left: -2,
+                      child: Text('⭐', style: TextStyle(fontSize: 22))),
+                  const Positioned(
+                      top: 10, left: 2,
+                      child: Text('💕', style: TextStyle(fontSize: 20))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
             // アプリタイトル（ポップにバウンド登場・テーマ連動色）
             Padding(
               padding: const EdgeInsets.only(bottom: 32.0),
@@ -225,6 +315,55 @@ class _TopScreenState extends State<TopScreen>
                 ],
               ),
             ),
+            // 🎁 無料コインチェスト（動画）— 揺れて目立つ・広告視聴を促す
+            if (RewardAdHelper.available)
+              AnimatedBuilder(
+                animation: PlayerProfile.instance,
+                builder: (context, _) {
+                  final ready = PlayerProfile.instance.canClaimGift;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 18),
+                    child: AnimatedBuilder(
+                      animation: _bounceController,
+                      builder: (context, child) {
+                        final wobble = ready
+                            ? (_bounceController.value - 0.5) * 0.08
+                            : 0.0;
+                        return Transform.rotate(angle: wobble, child: child);
+                      },
+                      child: ElevatedButton.icon(
+                        onPressed: _claimGift,
+                        icon: const Text('🎁', style: TextStyle(fontSize: 22)),
+                        label: Text(
+                          ready
+                              ? MetaStrings.of(context).freeGift
+                              : MetaStrings.of(context).giftWaitMin(
+                                  PlayerProfile.instance
+                                          .giftCooldownRemaining.inMinutes +
+                                      1),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ready
+                              ? const Color(0xFFFFC93C)
+                              : Colors.grey.shade400,
+                          foregroundColor: const Color(0xFF5A3E00),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 14),
+                          textStyle: const TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w900),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(26),
+                            side: const BorderSide(
+                                color: Colors.white, width: 3),
+                          ),
+                          elevation: 8,
+                          shadowColor: const Color(0xAAFFC93C),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             // フェードインアニメーション付きのボタン
             FadeTransition(
               opacity: _animation,
@@ -410,6 +549,7 @@ class _TopScreenState extends State<TopScreen>
             ),
           ],
         ),
+        ), // SingleChildScrollView を閉じる
             ),
           ],
         ),
