@@ -437,6 +437,65 @@ class _ResultScreenState extends State<ResultScreen> {
 
                   const SizedBox(height: 20),
 
+                  // ★再戦＋ホーム（スクロール不要で常に見える一等地に配置）★
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (widget.isOnline) {
+                              _resetOnlineGame(context);
+                            } else {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PlayerSelectionScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: Text(
+                            widget.isOnline
+                                ? localizations.playAgainSameMembers
+                                : localizations.playAgain,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4ECDC4),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Sfx.instance.pop();
+                            Navigator.of(context)
+                                .popUntil((route) => route.isFirst);
+                          },
+                          icon: const Icon(Icons.home_rounded),
+                          label: Text(m.backToHome,
+                              overflow: TextOverflow.ellipsis),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF9F45),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
                   // ★できることTips（ランダムに1つ表示）★
                   _tipsCard(m),
                   const SizedBox(height: 12),
@@ -530,48 +589,6 @@ class _ResultScreenState extends State<ResultScreen> {
                         },
                       ),
                     ),
-
-                  // 再戦ボタン
-                  ElevatedButton(
-                    onPressed: () {
-                      if (widget.isOnline) {
-                        _resetOnlineGame(context);
-                      } else {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PlayerSelectionScreen(),
-                          ),
-                          (Route<dynamic> route) => false,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 15),
-                      textStyle: const TextStyle(fontSize: 18),
-                    ),
-                    child: Text(
-                      widget.isOnline
-                          ? localizations.playAgainSameMembers
-                          : localizations.playAgain,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-                  // ★ホームにもどるボタン（オフライン・オンライン共通）★
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context)
-                          .popUntil((route) => route.isFirst);
-                    },
-                    icon: const Icon(Icons.home_rounded),
-                    label: Text(m.backToHome),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 12),
-                    ),
-                  ),
 
                   const SizedBox(height: 12),
                   // Xシェアボタン（戦績＋リンク付きで投稿画面を開く）

@@ -70,6 +70,7 @@ class PlayerProfile extends ChangeNotifier {
     cheerLevel = p.getInt('cheerLevel') ?? 0;
     nickname = p.getString('nickname') ?? '';
     rankRating = p.getInt('rankRating') ?? 1000;
+    _lastGiftMillis = p.getInt('lastGiftMillis') ?? 0;
     selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != 'shining_star.mp3' &&
@@ -181,6 +182,32 @@ class PlayerProfile extends ChangeNotifier {
     _checkAchievements();
     await _persist();
     notifyListeners();
+  }
+
+  // 🎁 動画で無料コインチェスト（クールダウン管理）
+  static const int giftCooldownMinutes = 30;
+  int _lastGiftMillis = 0;
+
+  bool get canClaimGift {
+    if (_lastGiftMillis == 0) return true;
+    final elapsed = DateTime.now().millisecondsSinceEpoch - _lastGiftMillis;
+    return elapsed >= giftCooldownMinutes * 60 * 1000;
+  }
+
+  Duration get giftCooldownRemaining {
+    final next = _lastGiftMillis + giftCooldownMinutes * 60 * 1000;
+    final ms = next - DateTime.now().millisecondsSinceEpoch;
+    return ms > 0 ? Duration(milliseconds: ms) : Duration.zero;
+  }
+
+  /// 無料コインチェストを受け取り（クールダウン開始）。付与額を返す。
+  Future<int> claimGift(int amount) async {
+    _lastGiftMillis = DateTime.now().millisecondsSinceEpoch;
+    await _addCoins(amount);
+    _checkAchievements();
+    await _persist();
+    notifyListeners();
+    return amount;
   }
 
   Future<void> _addCoins(int amount) async {
@@ -332,6 +359,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('cheerLevel', cheerLevel);
     await p.setString('nickname', nickname);
     await p.setInt('rankRating', rankRating);
+    await p.setInt('lastGiftMillis', _lastGiftMillis);
   }
 }
 

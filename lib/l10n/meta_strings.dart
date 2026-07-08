@@ -103,6 +103,12 @@ class MetaStrings {
     return quips[seed % quips.length];
   }
 
+  // 🎁 無料コインチェスト
+  String get freeGift => ja ? '動画で無料コイン🎁' : 'Free coins (video) 🎁';
+  String get giftReady => ja ? 'プレゼントがとどいたよ！' : 'A gift is ready!';
+  String giftGot(int n) => ja ? '🎉 $nコインもらったよ！' : '🎉 Got $n coins!';
+  String giftWaitMin(int m) => ja ? 'つぎは約$m分後' : 'Next in ~${m}min';
+
   // 🏅 ランキング
   String get you => ja ? 'あなた' : 'You';
   String get ranking => ja ? 'ランキング' : 'Ranking';
