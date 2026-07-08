@@ -188,7 +188,10 @@ class MetaStrings {
       ja ? '連続プレイボーナス +$n！' : 'Play streak bonus +$n!';
   String get newRecord => ja ? '🏆 自己ベスト更新！' : '🏆 New personal best!';
 
-  String get dressup => ja ? 'きせかえ' : 'Themes';
+  String get dressup => ja ? 'きせかえ（ホームの色）' : 'Themes (Home color)';
+  String get dressupDesc => ja
+      ? 'えらぶとホーム画面の背景とタイトルの色がガラッと変わるよ！'
+      : "Changes your Home screen's background & title color!";
   String get howToPlay => ja ? 'あそびかた' : 'How to Play';
   String get cheerSquad => ja ? 'チア応援団' : 'Cheer Squad';
   String get cheerSquadDesc => ja
@@ -196,6 +199,10 @@ class MetaStrings {
       : 'The cheer girl and squad cheer you on during every battle!';
   String get cheerAllJoined =>
       ja ? '🎉 全員さいしょから参加中！' : '🎉 Everyone joins from the start!';
+  String get cheerCostume => ja ? '応援団のいしょう' : 'Cheer Costumes';
+  String get cheerCostumeDesc => ja
+      ? 'コインで着せ替え！声援とゾーンの色もユーモアたっぷりに変わるよ🎽'
+      : 'Change outfits with coins! Cheers & colors change too 🎽';
   String get upgrade => ja ? 'アップグレード' : 'Upgrade';
   String get maxLevel => ja ? '最大レベル！' : 'Max level!';
   String cheerLevelLabel(int lv) => ja ? '現在: レベル$lv' : 'Current: Lv.$lv';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
+import 'top_screen.dart'; // ホームへ確実に戻るため
 import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
@@ -190,7 +191,10 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
     if (ok == true && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const TopScreen()),
+        (route) => false,
+      );
     }
   }
 

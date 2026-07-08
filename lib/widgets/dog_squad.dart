@@ -59,9 +59,11 @@ class _DogSquadState extends State<DogSquad>
       final ja = Localizations.localeOf(context).languageCode == 'ja';
       final idx = _random.nextInt(total);
       final isDog = idx < dogs.length;
+      // ★選択中の衣装に応じた声援を使う（ユーモア切替）★
+      final costume = cheerCostumeById(profile.selectedCostume);
       final pool = isDog
           ? (ja ? _dogCheersJa : _dogCheersEn)
-          : (ja ? _cheerCheersJa : _cheerCheersEn);
+          : (ja ? costume.cheersJa : costume.cheersEn);
       setState(() {
         _bubbleMemberIndex = idx;
         _bubbleText = pool[_random.nextInt(pool.length)];
@@ -98,12 +100,16 @@ class _DogSquadState extends State<DogSquad>
         ];
         if (members.isEmpty) return const SizedBox.shrink();
 
+        // 選択中の衣装（帯の色・頭上アクセサリ）
+        final costume = cheerCostumeById(profile.selectedCostume);
+        final dogCount = dogs.length;
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFF6D8), Color(0xFFFFE3F0), Color(0xFFD8F6F0)],
+            gradient: LinearGradient(
+              colors: costume.zoneGradient,
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
@@ -132,7 +138,13 @@ class _DogSquadState extends State<DogSquad>
                       for (int i = 0; i < members.length; i++)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: _member(members[i], i),
+                          // 応援団(=犬以外)にだけ衣装のアクセサリを付ける
+                          child: _member(
+                            members[i],
+                            i,
+                            accessory:
+                                i >= dogCount ? costume.accessory : '',
+                          ),
                         ),
                     ],
                   );
@@ -145,8 +157,8 @@ class _DogSquadState extends State<DogSquad>
     );
   }
 
-  // 1メンバー分（跳ねるイラスト＋しゃべっていれば吹き出し）
-  Widget _member(String asset, int index) {
+  // 1メンバー分（跳ねるイラスト＋しゃべっていれば吹き出し＋衣装アクセサリ）
+  Widget _member(String asset, int index, {String accessory = ''}) {
     final double bounce =
         -5.0 * max(0.0, sin((_controller.value * 2 * pi) + index * 0.9));
     final speaking = index == _bubbleMemberIndex;
@@ -203,6 +215,13 @@ class _DogSquadState extends State<DogSquad>
                 height: size,
               ),
             ),
+            // 衣装アクセサリ（頭上にちょこん）
+            if (accessory.isNotEmpty)
+              Positioned(
+                top: bounce - 2 - 2,
+                child: Text(accessory,
+                    style: TextStyle(fontSize: size * 0.42)),
+              ),
           ],
         ),
       ],

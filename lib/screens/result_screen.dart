@@ -12,6 +12,7 @@ import '../services/reward_ad_helper.dart';
 import '../services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 import '../services/ranking_service.dart'; // レート変動の表示定数
 import '../services/sfx.dart';
+import 'top_screen.dart'; // ホームへ確実に戻るため
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
 import 'profile_screen.dart'; // マイページ・戦績（トロフィー）への導線
@@ -477,8 +478,12 @@ class _ResultScreenState extends State<ResultScreen> {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             Sfx.instance.pop();
-                            Navigator.of(context)
-                                .popUntil((route) => route.isFirst);
+                            // ★確実にホームへ: スタックを全消しして新しいTopScreenへ★
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (_) => const TopScreen()),
+                              (route) => false,
+                            );
                           },
                           icon: const Icon(Icons.home_rounded),
                           label: Text(m.backToHome,
