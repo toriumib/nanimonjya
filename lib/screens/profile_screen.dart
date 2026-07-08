@@ -135,6 +135,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _cheerCard(m, profile),
             const SizedBox(height: 16),
+            _costumeCard(m, profile),
+            const SizedBox(height: 16),
             _achievementsCard(m, profile),
             const SizedBox(height: 16),
             _bgmCard(m, profile),
@@ -376,7 +378,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _sectionCard(
       title: '🎨 ${m.dressup}',
       child: Column(
-        children: kHomeThemes.map((t) {
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(m.dressupDesc,
+                  style: const TextStyle(fontSize: 13)),
+            ),
+          ),
+          ...kHomeThemes.map((t) {
           final owned = p.unlockedThemes.contains(t.id);
           final selected = p.selectedTheme == t.id;
           Widget trailing;
@@ -443,7 +454,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             trailing: trailing,
           );
-        }).toList(),
+          }),
+        ],
       ),
     );
   }
@@ -508,6 +520,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // チア応援団（コインでレベルアップ）
   // チア応援団（最初から全員参加・ショーケース表示）
+  // 🎽 応援団の衣装ショップ（コインで解放＆着せ替え）
+  Widget _costumeCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    return _sectionCard(
+      title: '🎽 ${m.cheerCostume}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.cheerCostumeDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 6),
+          ...kCheerCostumes.map((c) {
+            final owned = p.unlockedCostumes.contains(c.id);
+            final selected = p.selectedCostume == c.id;
+            Widget trailing;
+            if (selected) {
+              trailing = Chip(
+                label: Text(m.selected),
+                backgroundColor: const Color(0xFFD7F5D7),
+              );
+            } else if (owned) {
+              trailing = OutlinedButton(
+                onPressed: () {
+                  p.selectCostume(c.id);
+                  Sfx.instance.pop();
+                },
+                child: Text(m.select),
+              );
+            } else {
+              trailing = ElevatedButton(
+                onPressed: () async {
+                  final ok = await p.unlockCostume(c.id, c.cost);
+                  if (!mounted) return;
+                  if (ok) {
+                    Sfx.instance.fanfare();
+                    p.selectCostume(c.id); // 買ったら即着せ替え
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(m.unlocked)));
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(m.notEnoughCoins)));
+                  }
+                },
+                child: Text('${c.cost}🪙'),
+              );
+            }
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: c.zoneGradient),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected
+                        ? const Color(0xFF4A7A2A)
+                        : Colors.grey.shade300,
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(c.accessory.isEmpty ? '🎓' : c.accessory,
+                      style: const TextStyle(fontSize: 20)),
+                ),
+              ),
+              title: Text(ja ? c.nameJa : c.nameEn,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(
+                (ja ? c.cheersJa.first : c.cheersEn.first),
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+              trailing: trailing,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _cheerCard(MetaStrings m, PlayerProfile p) {
     return _sectionCard(
       title: '📣 ${m.cheerSquad}',

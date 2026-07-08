@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
+import 'top_screen.dart'; // ホームへ確実に戻るため
 
 // Google Cloud Functions と音声再生のためのインポートを追加
 import 'package:cloud_functions/cloud_functions.dart';
@@ -424,7 +425,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       ),
     );
     if (ok == true && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const TopScreen()),
+        (route) => false,
+      );
     }
   }
 

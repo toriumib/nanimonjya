@@ -32,6 +32,8 @@ class PlayerProfile extends ChangeNotifier {
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
   String nickname = ''; // ランキング表示名
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
+  Set<String> unlockedCostumes = {'normal'}; // 応援団の衣装（デフォルトは所持）
+  String selectedCostume = 'normal'; // 選択中の応援団衣装
 
   // セッション内（アプリ起動中のみ）の連続プレイ数。再起動でリセット。
   int sessionStreak = 0;
@@ -71,6 +73,10 @@ class PlayerProfile extends ChangeNotifier {
     nickname = p.getString('nickname') ?? '';
     rankRating = p.getInt('rankRating') ?? 1000;
     _lastGiftMillis = p.getInt('lastGiftMillis') ?? 0;
+    unlockedCostumes = (p.getStringList('unlockedCostumes') ?? ['normal']).toSet();
+    unlockedCostumes.add('normal');
+    selectedCostume = p.getString('selectedCostume') ?? 'normal';
+    if (!unlockedCostumes.contains(selectedCostume)) selectedCostume = 'normal';
     selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != 'shining_star.mp3' &&
@@ -165,6 +171,25 @@ class PlayerProfile extends ChangeNotifier {
   /// ランキング表示名を設定。
   Future<void> setNickname(String name) async {
     nickname = name.trim();
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 応援団の衣装をコインで解放。成功したら true。
+  Future<bool> unlockCostume(String id, int cost) async {
+    if (unlockedCostumes.contains(id)) return true;
+    if (coins < cost) return false;
+    coins -= cost;
+    unlockedCostumes.add(id);
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
+  /// 応援団の衣装を選択（所持済みのみ）。
+  Future<void> selectCostume(String id) async {
+    if (!unlockedCostumes.contains(id)) return;
+    selectedCostume = id;
     await _persist();
     notifyListeners();
   }
@@ -360,6 +385,8 @@ class PlayerProfile extends ChangeNotifier {
     await p.setString('nickname', nickname);
     await p.setInt('rankRating', rankRating);
     await p.setInt('lastGiftMillis', _lastGiftMillis);
+    await p.setStringList('unlockedCostumes', unlockedCostumes.toList());
+    await p.setString('selectedCostume', selectedCostume);
   }
 }
 

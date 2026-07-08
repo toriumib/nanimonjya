@@ -194,3 +194,134 @@ const List<String> kAllCheerMembers = [
   '$_sup/squad_yellow.svg',
   '$_sup/squad_red.svg',
 ];
+
+/// 🎽 応援団の衣装（コスチューム）。コインで解放して着せ替える。
+/// ユーモア重視（流星のロックマン的ノリ）で、頭上アクセサリの絵文字と
+/// 声援セリフ、応援ゾーンの色味が変わる。
+class CheerCostume {
+  final String id;
+  final String nameJa;
+  final String nameEn;
+  final int cost;
+  final String accessory; // 各メンバーの頭上に出る絵文字（''なら無し）
+  final List<Color> zoneGradient; // 応援ゾーンの帯グラデ
+  final List<String> cheersJa; // この衣装のときの声援（日本語）
+  final List<String> cheersEn; // 同（英語）
+
+  const CheerCostume({
+    required this.id,
+    required this.nameJa,
+    required this.nameEn,
+    required this.cost,
+    required this.accessory,
+    required this.zoneGradient,
+    required this.cheersJa,
+    required this.cheersEn,
+  });
+}
+
+const List<CheerCostume> kCheerCostumes = [
+  CheerCostume(
+    id: 'normal',
+    nameJa: 'がくラン隊',
+    nameEn: 'School Squad',
+    cost: 0,
+    accessory: '',
+    zoneGradient: [Color(0xFFFFF6D8), Color(0xFFFFE3F0), Color(0xFFD8F6F0)],
+    cheersJa: ['がんばれ〜！', 'ナイス！', 'その調子！', 'いけいけ〜！', 'フレー！フレー！'],
+    cheersEn: ['Go go!', 'Nice!', 'Keep it up!', 'You got this!', 'Hooray!'],
+  ),
+  CheerCostume(
+    id: 'wave_hero',
+    nameJa: 'でんぱヒーロー隊',
+    nameEn: 'Wave Hero Squad',
+    cost: 300,
+    accessory: '⚡',
+    zoneGradient: [Color(0xFFD6ECFF), Color(0xFFE0D6FF), Color(0xFFCFF7FF)],
+    cheersJa: [
+      'でんぱへんしーん！⚡',
+      'ビリビリ〜いくぞ！',
+      'エレキパワー全開！',
+      '流星のごとく！☄',
+      'キミの電波、うけとった！'
+    ],
+    cheersEn: [
+      'Wave change! ⚡',
+      'Zap zap, go!',
+      'Full electro power!',
+      'Like a meteor! ☄',
+      'I got your wave!'
+    ],
+  ),
+  CheerCostume(
+    id: 'space',
+    nameJa: 'うちゅう飛行隊',
+    nameEn: 'Space Crew',
+    cost: 500,
+    accessory: '🚀',
+    zoneGradient: [Color(0xFF2B2D64), Color(0xFF4B3B8F), Color(0xFF1B1B3A)],
+    cheersJa: [
+      '打ち上げ成功だ〜！🚀',
+      '無重力でも応援！',
+      '宇宙一のプレイ！🌌',
+      'カウントダウン3・2・1！',
+      'キミは銀河のスター！⭐'
+    ],
+    cheersEn: [
+      'Liftoff! 🚀',
+      'Cheering in zero-G!',
+      'Best in the galaxy! 🌌',
+      '3, 2, 1, go!',
+      'A galaxy star! ⭐'
+    ],
+  ),
+  CheerCostume(
+    id: 'ninja',
+    nameJa: 'にんぽう応援隊',
+    nameEn: 'Ninja Troupe',
+    cost: 700,
+    accessory: '🥷',
+    zoneGradient: [Color(0xFFE8E4DA), Color(0xFFD8E8E0), Color(0xFFEDE7D8)],
+    cheersJa: [
+      'ドロン！でござる！🥷',
+      '奥義・応援の術！',
+      'みごとでござる！',
+      '忍法・記憶がくれ！',
+      'いざ、まいる〜！'
+    ],
+    cheersEn: [
+      'Poof! Ninja here! 🥷',
+      'Secret cheer jutsu!',
+      'Splendid, ninja!',
+      'Memory ninjutsu!',
+      'Here we go!'
+    ],
+  ),
+  CheerCostume(
+    id: 'king',
+    nameJa: 'おうさま親衛隊',
+    nameEn: 'Royal Guard',
+    cost: 1000,
+    accessory: '👑',
+    zoneGradient: [Color(0xFFFFF0C8), Color(0xFFFFE7B0), Color(0xFFFFF6DC)],
+    cheersJa: [
+      'よきにはからえ！👑',
+      'でかしたぞ、そち！',
+      'あっぱれである！',
+      '天晴れなる一手！',
+      '王国の誇りじゃ！'
+    ],
+    cheersEn: [
+      'As you wish! 👑',
+      'Well done!',
+      'Magnificent!',
+      'A royal move!',
+      'Pride of the kingdom!'
+    ],
+  ),
+];
+
+CheerCostume cheerCostumeById(String id) => kCheerCostumes.firstWhere(
+      (c) => c.id == id,
+      orElse: () => kCheerCostumes.first,
+    );
