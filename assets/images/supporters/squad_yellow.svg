@@ -11,7 +11,11 @@
   <path d="M38 70 Q44 76 50 74" fill="none" stroke="#12141C" stroke-width="6" stroke-linecap="round"/>
   <!-- メガホン（右手で構える） -->
   <path d="M62 68 L78 61 L80 74 L64 78 Z" fill="#FFD24A" stroke="#C9942C" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M50 74 L64 73" stroke="#F3D2AC" stroke-width="5" stroke-linecap="round"/>
+  <path d="M50 74 L64 73" stroke="#EFCEA6" stroke-width="5" stroke-linecap="round"/>
+  <!-- 首（頭と体をつなぐ） -->
+  <path d="M45.5 55 L45.5 67 Q50 69.5 54.5 67 L54.5 55 Z" fill="#EFCEA6" stroke="#C49468" stroke-width="1.2"/>
+  <!-- 詰襟（学ランの白カラー） -->
+  <path d="M41 67 Q50 63 59 67 L58 71 Q50 67.5 42 71 Z" fill="#EEEEEE" stroke="#BFC3CC" stroke-width="0.9"/>
   <!-- 顔 -->
   <circle cx="50" cy="38" r="24" fill="#EFCEA6" stroke="#C49468" stroke-width="1.4"/>
   <!-- 七三の髪 -->
