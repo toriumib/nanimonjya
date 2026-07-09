@@ -12,6 +12,8 @@ import 'package:just_audio/just_audio.dart';
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../services/sfx.dart'; // 正解/不正解SE
 import '../services/ranking_service.dart'; // ランダムマッチのレーティング
+import '../services/deep_link_service.dart'; // 招待リンクの組み立て
+import 'package:share_plus/share_plus.dart'; // LINE/Discord等への共有
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import 'dart:convert'; // Base64デコードのために必要
 
@@ -343,6 +345,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         'playerOrder': shuffledPlayerOrder,
         'currentPlayerIndex': 0,
         'playersAttemptedCurrentCard': {},
+        'leftPlayers': [], // 離脱記録をリセット
+        'abandonedBy': null, // 離脱者をリセット
         'displayDelayCompleteTimestamp': null,
         'lastNamedCharacterData': null,
         'characterChoices': {}, // 事前生成した選択肢もリセット
@@ -404,6 +408,14 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     super.dispose();
   }
 
+  // 合言葉の招待リンクをLINE/Discord等に共有する
+  Future<void> _shareInviteLink() async {
+    final m = MetaStrings.of(context);
+    final link = buildRoomShareLink(widget.roomId);
+    final text = m.shareInviteText(widget.roomId, link);
+    await Share.share(text, subject: m.shareInvite);
+  }
+
   // 対戦から退出してホームに戻る（確認ダイアログ付き）
   Future<void> _confirmQuitOnline(BuildContext context) async {
     final m = MetaStrings.of(context);
@@ -425,10 +437,45 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       ),
     );
     if (ok == true && mounted) {
+      await _handleAbandonOnQuit(); // 対戦中なら離脱=負けを記録
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const TopScreen()),
         (route) => false,
       );
+    }
+  }
+
+  // 対戦中に退出した場合、ルームに離脱を記録して相手を勝ちにする。
+  // ランダムマッチなら自分のレートを下げる（負け扱い）。
+  Future<void> _handleAbandonOnQuit() async {
+    final roomRef = _firestore.collection('rooms').doc(widget.roomId);
+    bool wasPlaying = false;
+    bool isRandom = false;
+    try {
+      await _firestore.runTransaction((tx) async {
+        final snap = await tx.get(roomRef);
+        if (!snap.exists) return;
+        final data = snap.data() as Map<String, dynamic>;
+        isRandom = data['isRandomMatch'] == true;
+        if (data['status'] == 'playing') {
+          wasPlaying = true;
+          final left = List<String>.from(data['leftPlayers'] ?? []);
+          if (!left.contains(widget.myPlayerId)) left.add(widget.myPlayerId);
+          tx.update(roomRef, {
+            'leftPlayers': left,
+            'abandonedBy': widget.myPlayerId, // 最後に抜けた人＝残った相手が勝ち
+            'status': 'finished', // 対戦を即終了
+          });
+        }
+      });
+      // ランダムマッチで対戦中に抜けたら自分は負け（レート-15）
+      if (wasPlaying && isRandom && !_rankingRecorded) {
+        _rankingRecorded = true;
+        await RankingService.instance.recordResult(won: false);
+      }
+    } catch (e) {
+      debugPrint('離脱処理に失敗: $e');
     }
   }
 
@@ -912,16 +959,25 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
 
           if (roomData['status'] == 'finished') {
             final bool isRandomMatchRoom = roomData['isRandomMatch'] == true;
+            // 相手が離脱して終了した場合の判定
+            final String? abandonedBy = roomData['abandonedBy'] as String?;
+            final bool opponentLeft =
+                abandonedBy != null && abandonedBy != widget.myPlayerId;
 
             // ★ランダムマッチのレーティング反映（1回だけ）★
-            // 自分が最高得点なら勝ち(+25)、そうでなければ負け(-15)。
+            // 相手離脱なら勝ち、そうでなければ自分が最高得点なら勝ち。
             if (isRandomMatchRoom && !_rankingRecorded) {
               _rankingRecorded = true;
-              final myScore = _scores[widget.myPlayerId] ?? 0;
-              final maxScore = _scores.values.isEmpty
-                  ? 0
-                  : _scores.values.reduce((a, b) => a > b ? a : b);
-              final won = maxScore > 0 && myScore == maxScore;
+              bool won;
+              if (opponentLeft) {
+                won = true;
+              } else {
+                final myScore = _scores[widget.myPlayerId] ?? 0;
+                final maxScore = _scores.values.isEmpty
+                    ? 0
+                    : _scores.values.reduce((a, b) => a > b ? a : b);
+                won = maxScore > 0 && myScore == maxScore;
+              }
               RankingService.instance.recordResult(won: won);
             }
 
@@ -944,6 +1000,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                     myPlayerId: widget.myPlayerId,
                     myIndex: myIdx >= 0 ? myIdx : null,
                     isRandomMatch: isRandomMatchRoom,
+                    opponentLeft: opponentLeft,
                   ),
                 ),
               );
@@ -1040,12 +1097,27 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+                  // ★LINE/Discord等に招待リンクを送るボタン★
+                  ElevatedButton.icon(
+                    onPressed: () => _shareInviteLink(),
+                    icon: const Icon(Icons.share),
+                    label: Text(MetaStrings.of(context).shareInvite),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF06C755), // LINEグリーン系
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 14),
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     localizations.tellOthersRoomId,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: canStartGame
                         ? () => _startGameOnline(
