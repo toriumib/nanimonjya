@@ -25,6 +25,7 @@ class ResultScreen extends StatefulWidget {
   final String? myPlayerId; // オンラインゲームの場合の自分のプレイヤーID
   final int? myIndex; // scores の中で自分のスコアの位置（オンラインのみ）
   final bool isRandomMatch; // ランダムマッチだったか
+  final bool opponentLeft; // 相手が離脱してこちらの勝ちになったか
 
   const ResultScreen({
     Key? key,
@@ -35,6 +36,7 @@ class ResultScreen extends StatefulWidget {
     this.myPlayerId,
     this.myIndex,
     this.isRandomMatch = false,
+    this.opponentLeft = false,
   }) : super(key: key);
 
   @override
@@ -54,6 +56,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
   // オンラインで自分が勝ったか（myIndex が渡されている時のみ判定可能）
   bool get _wonOnline {
+    if (widget.opponentLeft) return true; // 相手が離脱＝こちらの勝ち
     if (!widget.isOnline || widget.myIndex == null) return false;
     final i = widget.myIndex!;
     if (i < 0 || i >= widget.scores.length) return false;
@@ -268,6 +271,8 @@ class _ResultScreenState extends State<ResultScreen> {
           'currentPlayerIndex': 0,
           'playersAttemptedCurrentCard': {},
           'gameMode': gameMode,
+          'leftPlayers': [], // 離脱記録をリセット
+          'abandonedBy': null, // 離脱者をリセット
           'characterChoices': {}, // 事前生成した選択肢もリセット
           'displayDelayCompleteTimestamp': null,
           'lastNamedCharacterData': null,
@@ -330,6 +335,21 @@ class _ResultScreenState extends State<ResultScreen> {
       appBar: AppBar(
         title: Text(localizations.gameResult),
         automaticallyImplyLeading: false,
+        // ★右上に必ず見えるホームボタン★
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home_rounded),
+            tooltip: m.backToHome,
+            onPressed: () {
+              Sfx.instance.pop();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const TopScreen()),
+                (route) => false,
+              );
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: Stack(
         children: [
@@ -339,6 +359,29 @@ class _ResultScreenState extends State<ResultScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // 相手が離脱して勝った場合のバナー
+                  if (widget.opponentLeft) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F7E8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: const Color(0xFF6BBF7E), width: 1.5),
+                      ),
+                      child: Text(
+                        m.opponentLeftWin,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF2E8B4E),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   Text(
                     winnerText,
                     style: Theme.of(context)

@@ -109,6 +109,20 @@ class MetaStrings {
   String giftGot(int n) => ja ? '🎉 $nコインもらったよ！' : '🎉 Got $n coins!';
   String giftWaitMin(int m) => ja ? 'つぎは約$m分後' : 'Next in ~${m}min';
 
+  // 招待リンク共有
+  String get shareInvite =>
+      ja ? '招待リンクを送る' : 'Send invite link';
+  String shareInviteText(String code, String link) => ja
+      ? 'ナニモンジャで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
+      : "Let's battle in Nanimonja! 🎮\nRoom code: $code\nTap to join 👇\n$link";
+
+  // 離脱
+  String get opponentLeftWin => ja
+      ? '🏃 相手が離脱しました。あなたの勝ち！'
+      : '🏃 Your opponent left. You win!';
+  String get youLeftMatch =>
+      ja ? '対戦から離脱しました（負け）' : 'You left the match (loss)';
+
   // 🏅 ランキング
   String get you => ja ? 'あなた' : 'You';
   String get ranking => ja ? 'ランキング' : 'Ranking';

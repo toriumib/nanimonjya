@@ -2,7 +2,7 @@ name: untitled
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 1.1.0+74
+version: 1.1.0+75
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -27,6 +27,8 @@ dependencies:
   shared_preferences: ^2.3.2  # コイン/実績/デイリー等のローカル保存
   confetti: ^0.8.0  # 勝利演出の紙吹雪
   flutter_svg: ^2.0.10  # 応援キャラのイラスト表示
+  share_plus: ^10.1.1  # 合言葉リンクをLINE/Discord等で共有
+  app_links: ^6.3.2  # ディープリンク（リンクからルーム入室）
 
 
 dev_dependencies:

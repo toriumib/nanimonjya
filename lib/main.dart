@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
+import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 
 // 多言語対応のために追加
@@ -20,6 +21,7 @@ Future<void> main() async {
     InterstitialAdHelper.instance.load(); // 全画面広告を先読み
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
+  DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
   runApp(const MyApp());
 }
 
@@ -98,6 +100,7 @@ class MyApp extends StatelessWidget {
         final accent =
             homeThemeById(PlayerProfile.instance.selectedTheme).accent;
         return MaterialApp(
+      navigatorKey: DeepLinkService.navigatorKey, // ディープリンク遷移用
       title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
       home: const TopScreen(),
