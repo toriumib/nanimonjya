@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.nanimonjya",
       "sha256_cert_fingerprints": [
-        "2A:0C:44:DC:A0:82:78:17:E9:96:1C:9D:3D:81:F8:CC:28:59:DF:D6:60:F4:8A:2B:09:B2:09:EB:95:C2:2B:7D"
+        "2A:0C:44:DC:A0:82:78:17:E9:96:1C:9D:3D:81:F8:CC:28:59:DF:D6:60:F4:8A:2B:09:B2:09:EB:95:C2:2B:7D",
+        "E9:60:BA:20:D5:77:94:47:B6:04:FC:5B:57:87:D7:97:0E:46:6A:45:7B:63:91:D4:F1:51:25:17:67:AA:E3:B6"
       ]
     }
   }
