@@ -1,53 +1,77 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- チアガール（錦木風の雰囲気オマージュ・完全オリジナル）: 金髪ボブ＋赤リボン -->
+  <!-- SDチアガール（オリジナル・金髪ボブ＋赤リボン） -->
   <defs>
-    <radialGradient id="cg_cheek" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#FF9DB0" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#FF9DB0" stop-opacity="0"/>
+    <radialGradient id="blush" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FF97AE" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FF97AE" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE38A"/>
+      <stop offset="1" stop-color="#F5C64E"/>
+    </linearGradient>
   </defs>
-  <!-- ポンポン（両手上げ・もこもこ） -->
-  <g fill="#E8483F" stroke="#B4322C" stroke-width="1">
-    <circle cx="12" cy="30" r="5.5"/><circle cx="19" cy="25" r="5.5"/><circle cx="16" cy="35" r="5.5"/><circle cx="22" cy="31" r="5"/><circle cx="9" cy="35" r="4.5"/>
+
+  <!-- ポンポン（頭の高さまで振り上げ） -->
+  <g stroke="#B4322C" stroke-width="0.8">
+    <g fill="#F2564D"><circle cx="20" cy="26" r="4.5"/><circle cx="26" cy="22" r="4.5"/><circle cx="24" cy="30" r="4.5"/><circle cx="29" cy="28" r="4"/><circle cx="17" cy="30" r="3.8"/></g>
   </g>
-  <g fill="#FFD24A" stroke="#D9A93F" stroke-width="1">
-    <circle cx="88" cy="30" r="5.5"/><circle cx="81" cy="25" r="5.5"/><circle cx="84" cy="35" r="5.5"/><circle cx="78" cy="31" r="5"/><circle cx="91" cy="35" r="4.5"/>
+  <g stroke="#D9A93F" stroke-width="0.8">
+    <g fill="#FFD24A"><circle cx="80" cy="26" r="4.5"/><circle cx="74" cy="22" r="4.5"/><circle cx="76" cy="30" r="4.5"/><circle cx="71" cy="28" r="4"/><circle cx="83" cy="30" r="3.8"/></g>
   </g>
-  <!-- 腕 -->
-  <path d="M31 54 L18 34" stroke="#F7C9A6" stroke-width="6" stroke-linecap="round"/>
-  <path d="M69 54 L82 34" stroke="#F7C9A6" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- 脚（短くちょこん） -->
+  <path d="M44 84 L43 92" stroke="#F6CBA6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M56 84 L57 92" stroke="#F6CBA6" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="42.5" cy="93.5" rx="4" ry="2.6" fill="#FFFFFF" stroke="#4A3A2E" stroke-width="1.4"/>
+  <ellipse cx="57.5" cy="93.5" rx="4" ry="2.6" fill="#FFFFFF" stroke="#4A3A2E" stroke-width="1.4"/>
+
+  <!-- 腕（振り上げ・肌） -->
+  <path d="M40 64 Q30 52 24 30" fill="none" stroke="#F6CBA6" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M60 64 Q70 52 76 30" fill="none" stroke="#F6CBA6" stroke-width="5.5" stroke-linecap="round"/>
+
   <!-- スカート（赤プリーツ） -->
-  <path d="M35 74 L65 74 L74 90 L26 90 Z" fill="#E8483F" stroke="#B4322C" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M42 75 L40 89 M50 75 L50 90 M58 75 L60 89" stroke="#B4322C" stroke-width="2"/>
-  <!-- 脚 -->
-  <path d="M43 90 L42 97 M57 90 L58 97" stroke="#F7C9A6" stroke-width="5" stroke-linecap="round"/>
-  <!-- 上着（白×赤ライン） -->
-  <path d="M34 52 L66 52 L64 76 L36 76 Z" fill="#FFFFFF" stroke="#B4322C" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M36 67 L64 67" stroke="#E8483F" stroke-width="5"/>
-  <path d="M50 52 L50 76" stroke="#F3D6DA" stroke-width="1.5"/>
-  <!-- 顔（丸くやわらか） -->
-  <circle cx="50" cy="33" r="20" fill="#FCE3C8" stroke="#D9A97E" stroke-width="1.5"/>
-  <!-- 金髪ボブ（内巻き・ツヤ） -->
-  <path d="M29 35 Q26 10 50 9 Q74 10 71 35 Q71 21 62 19 Q67 29 60 27 Q52 14 40 19 Q32 22 32 33 Q30 37 29 35 Z" fill="#F8DA78" stroke="#D9A93F" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M29 34 Q26 45 33 48 Q35 39 32 33 Z" fill="#F8DA78" stroke="#D9A93F" stroke-width="2"/>
-  <path d="M71 34 Q74 45 67 48 Q65 39 68 33 Z" fill="#F8DA78" stroke="#D9A93F" stroke-width="2"/>
-  <path d="M40 14 Q50 11 60 15" fill="none" stroke="#FFF0B8" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
-  <!-- 赤リボン（サイド・立体） -->
-  <path d="M66 17 L75 11 L74 21 Z" fill="#E8483F" stroke="#B4322C" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M66 17 L59 12 L61 22 Z" fill="#E8483F" stroke="#B4322C" stroke-width="1.8" stroke-linejoin="round"/>
-  <circle cx="65.5" cy="17" r="2.6" fill="#C0392B"/>
-  <!-- 目（大きくうるうる・ハイライト2つ） -->
-  <ellipse cx="42" cy="34" rx="4.4" ry="5.2" fill="#5A3A22"/>
-  <ellipse cx="58" cy="34" rx="4.4" ry="5.2" fill="#5A3A22"/>
-  <circle cx="43.6" cy="32" r="1.8" fill="#FFFFFF"/>
-  <circle cx="59.6" cy="32" r="1.8" fill="#FFFFFF"/>
-  <circle cx="40.6" cy="35.5" r="1" fill="#FFFFFF"/>
-  <circle cx="56.6" cy="35.5" r="1" fill="#FFFFFF"/>
-  <!-- まつ毛・眉 -->
-  <path d="M37.5 29.5 Q42 27.5 46.5 29.5 M53.5 29.5 Q58 27.5 62.5 29.5" fill="none" stroke="#D9A93F" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M37 74 L63 74 L69 87 L31 87 Z" fill="#EE4E48" stroke="#B4322C" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M43 75 L41 86 M50 75 L50 87 M57 75 L59 86" stroke="#C63A34" stroke-width="1.5"/>
+
+  <!-- 上着（白×赤ライン・小さめボディ） -->
+  <path d="M38 60 Q50 56 62 60 L60 76 L40 76 Z" fill="#FFFFFF" stroke="#B4322C" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M40 69 L60 69" stroke="#EE4E48" stroke-width="3"/>
+  <path d="M50 60 L50 76" stroke="#F0DADE" stroke-width="1"/>
+
+  <!-- 髪（後ろ・大きめ輪郭） -->
+  <path d="M22 40 Q18 8 50 6 Q82 8 78 40 Q74 30 68 30 L32 30 Q26 30 22 40 Z" fill="url(#hair)" stroke="#D9A93F" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- 顔（大きい・SD比率） -->
+  <circle cx="50" cy="38" r="25" fill="#FCE3C8" stroke="#E0B48A" stroke-width="1.4"/>
+
+  <!-- 前髪（ぱっつん＋サイド） -->
+  <path d="M25 40 Q24 12 50 10 Q76 12 75 40 Q72 25 62 24 Q66 34 58 32 Q52 20 42 25 Q34 28 33 39 Q30 42 25 40 Z" fill="url(#hair)" stroke="#D9A93F" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M25 39 Q22 52 29 56 Q31 46 28 39 Z" fill="url(#hair)" stroke="#D9A93F" stroke-width="1.8"/>
+  <path d="M75 39 Q78 52 71 56 Q69 46 72 39 Z" fill="url(#hair)" stroke="#D9A93F" stroke-width="1.8"/>
+  <path d="M40 16 Q50 12 60 16" fill="none" stroke="#FFF4C8" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- 赤リボン（サイド） -->
+  <path d="M70 22 L79 16 L78 27 Z" fill="#EE4E48" stroke="#B4322C" stroke-width="1.4" stroke-linejoin="round"/>
+  <path d="M70 22 L63 17 L65 28 Z" fill="#EE4E48" stroke="#B4322C" stroke-width="1.4" stroke-linejoin="round"/>
+  <circle cx="69.5" cy="22.5" r="2.6" fill="#C0392B"/>
+
+  <!-- 目（大きくうるうる） -->
+  <ellipse cx="40" cy="40" rx="5.2" ry="6.6" fill="#FFFFFF"/>
+  <ellipse cx="60" cy="40" rx="5.2" ry="6.6" fill="#FFFFFF"/>
+  <ellipse cx="40.5" cy="41" rx="4" ry="5.2" fill="#8A5A34"/>
+  <ellipse cx="60.5" cy="41" rx="4" ry="5.2" fill="#8A5A34"/>
+  <circle cx="40.5" cy="41.5" r="2.2" fill="#3A2618"/>
+  <circle cx="60.5" cy="41.5" r="2.2" fill="#3A2618"/>
+  <circle cx="42" cy="38.5" r="1.8" fill="#FFFFFF"/>
+  <circle cx="62" cy="38.5" r="1.8" fill="#FFFFFF"/>
+  <circle cx="38.5" cy="43" r="1" fill="#FFFFFF"/>
+  <circle cx="58.5" cy="43" r="1" fill="#FFFFFF"/>
+  <!-- まつげ -->
+  <path d="M34.5 34.5 Q40 32 46 35 M54 35 Q60 32 65.5 34.5" fill="none" stroke="#7A4A2A" stroke-width="1.6" stroke-linecap="round"/>
+
   <!-- ほっぺ -->
-  <circle cx="37" cy="40" r="5" fill="url(#cg_cheek)"/>
-  <circle cx="63" cy="40" r="5" fill="url(#cg_cheek)"/>
-  <!-- にっこり口 -->
-  <path d="M45 42 Q50 47 55 42" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="33" cy="46" r="4.5" fill="url(#blush)"/>
+  <circle cx="67" cy="46" r="4.5" fill="url(#blush)"/>
+  <!-- 口（にっこり） -->
+  <path d="M45 48 Q50 53 55 48" fill="none" stroke="#C0392B" stroke-width="1.8" stroke-linecap="round"/>
 </svg>
