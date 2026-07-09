@@ -12,6 +12,10 @@
   <!-- 右腕：拳を突き上げ -->
   <path d="M63 68 L74 44" fill="none" stroke="#12141C" stroke-width="6.5" stroke-linecap="round"/>
   <circle cx="75" cy="40" r="5.5" fill="#F0BE94" stroke="#B4835A" stroke-width="1.6"/>
+  <!-- 首（頭と体をつなぐ） -->
+  <path d="M45 54 L45 67 Q50 69.5 55 67 L55 54 Z" fill="#F0BE94" stroke="#B4835A" stroke-width="1.2"/>
+  <!-- 詰襟（学ランの白カラー） -->
+  <path d="M40 67 Q50 63 60 67 L59 71 Q50 67.5 41 71 Z" fill="#EEEEEE" stroke="#BFC3CC" stroke-width="0.9"/>
   <!-- 顔（角ばりぎみ） -->
   <path d="M28 30 Q28 16 50 15 Q72 16 72 30 L71 46 Q68 58 50 59 Q32 58 29 46 Z" fill="#F0BE94" stroke="#B4835A" stroke-width="1.4" stroke-linejoin="round"/>
   <!-- 角刈り -->
