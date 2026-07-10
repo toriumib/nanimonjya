@@ -73,8 +73,13 @@ class DeepLinkService {
       }
       final data = snap.data() as Map<String, dynamic>;
 
-      // 参加者として登録（未登録なら追加）
+      // ★対戦中/終了済みのルームには途中参加できない（スコア破壊防止）★
       final players = List<String>.from(data['players'] ?? []);
+      final alreadyIn = players.contains(myPlayerId);
+      if (data['status'] != 'waiting' && !alreadyIn) {
+        _showSnack('この部屋は対戦中のため入れませんでした');
+        return;
+      }
       if (!players.contains(myPlayerId)) {
         await FirebaseFirestore.instance.runTransaction((tx) async {
           final fresh = await tx.get(roomRef);
