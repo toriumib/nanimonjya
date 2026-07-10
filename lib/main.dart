@@ -7,7 +7,6 @@ import 'firebase_options.dart';
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
-import 'services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 
 // 多言語対応のために追加
 import 'package:flutter_localizations/flutter_localizations.dart'; // ★追加★
@@ -18,7 +17,8 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
-    InterstitialAdHelper.instance.load(); // 全画面広告を先読み
+    // ※インタースティシャル（全画面広告）は無効化中。
+    //   復活させる場合は InterstitialAdHelper.instance.load() をここで呼ぶ。
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視

@@ -9,7 +9,6 @@ import '../l10n/meta_strings.dart';
 import '../models/cosmetics.dart'; // 称号のランクアップ判定
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
-import '../services/interstitial_ad_helper.dart'; // 3プレイごとの全画面広告
 import '../services/ranking_service.dart'; // レート変動の表示定数
 import '../services/sfx.dart';
 import 'top_screen.dart'; // ホームへ確実に戻るため
@@ -72,10 +71,8 @@ class _ResultScreenState extends State<ResultScreen> {
     _startResultBgm(); // 🎵 シャイニングスター再生
     // フレーム描画後に報酬付与＆演出（context/localeが使える状態で行う）
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
-    // ★3プレイごとの全画面広告（結果を1秒見せてから表示）★
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) InterstitialAdHelper.instance.onGameFinished();
-    });
+    // ※インタースティシャル（全画面広告）は無効化中。復活させたい場合は
+    //   InterstitialAdHelper.instance.onGameFinished() をここで呼ぶ。
   }
 
   // リザルトBGM: 選択中の曲（デフォルトは魔王魂「シャイニングスター」）をループ再生
