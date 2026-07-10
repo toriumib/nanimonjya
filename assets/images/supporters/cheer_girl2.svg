@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- SDチアガール2（黒髪ロング・クール系・ネイビー衣装／完全オリジナル） -->
+  <defs>
+    <radialGradient id="blush2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F58AA6" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#F58AA6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hair2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#343A4C"/>
+      <stop offset="1" stop-color="#20242F"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ポンポン（青×白） -->
+  <g stroke="#2C5FA0" stroke-width="0.8">
+    <g fill="#4A8FE0"><circle cx="20" cy="26" r="4.5"/><circle cx="26" cy="22" r="4.5"/><circle cx="24" cy="30" r="4.5"/><circle cx="29" cy="28" r="4"/><circle cx="17" cy="30" r="3.8"/></g>
+  </g>
+  <g stroke="#B9C4D6" stroke-width="0.8">
+    <g fill="#FFFFFF"><circle cx="80" cy="26" r="4.5"/><circle cx="74" cy="22" r="4.5"/><circle cx="76" cy="30" r="4.5"/><circle cx="71" cy="28" r="4"/><circle cx="83" cy="30" r="3.8"/></g>
+  </g>
+
+  <!-- 黒髪ロング（後ろ・肩下まで） -->
+  <path d="M24 42 Q18 8 50 7 Q82 8 76 42 L74 84 Q70 87 66.5 83 L66 45 L34 45 L33.5 83 Q30 87 26 84 Z" fill="url(#hair2)" stroke="#161922" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <!-- 脚 -->
+  <path d="M44 84 L43 92" stroke="#F6CBA6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M56 84 L57 92" stroke="#F6CBA6" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="42.5" cy="93.5" rx="4" ry="2.6" fill="#FFFFFF" stroke="#3A3F4E" stroke-width="1.4"/>
+  <ellipse cx="57.5" cy="93.5" rx="4" ry="2.6" fill="#FFFFFF" stroke="#3A3F4E" stroke-width="1.4"/>
+
+  <!-- 腕（振り上げ） -->
+  <path d="M40 64 Q30 52 24 30" fill="none" stroke="#F6CBA6" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M60 64 Q70 52 76 30" fill="none" stroke="#F6CBA6" stroke-width="5.5" stroke-linecap="round"/>
+
+  <!-- スカート（ネイビープリーツ） -->
+  <path d="M37 74 L63 74 L69 87 L31 87 Z" fill="#34467A" stroke="#25335C" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M43 75 L41 86 M50 75 L50 87 M57 75 L59 86" stroke="#25335C" stroke-width="1.5"/>
+
+  <!-- 上着（白×ネイビーライン） -->
+  <path d="M38 60 Q50 56 62 60 L60 76 L40 76 Z" fill="#FFFFFF" stroke="#25335C" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M40 69 L60 69" stroke="#34467A" stroke-width="3"/>
+  <path d="M50 60 L50 76" stroke="#DEE3EC" stroke-width="1"/>
+
+  <!-- 顔 -->
+  <circle cx="50" cy="38" r="25" fill="#FCE3C8" stroke="#E0B48A" stroke-width="1.4"/>
+
+  <!-- 前髪（ぱっつん＋センター分け）＋サイドの長い毛束 -->
+  <path d="M25 42 Q24 12 50 10 Q76 12 75 42 Q73 28 64 27 Q62 37 57 33 Q54 26 50 32 Q46 26 43 33 Q38 37 36 27 Q27 28 25 42 Z" fill="url(#hair2)" stroke="#161922" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M25 40 Q22 60 27 72 Q31 58 28 40 Z" fill="url(#hair2)" stroke="#161922" stroke-width="1.6"/>
+  <path d="M75 40 Q78 60 73 72 Q69 58 72 40 Z" fill="url(#hair2)" stroke="#161922" stroke-width="1.6"/>
+  <path d="M42 16 Q50 13 58 16" fill="none" stroke="#5A6070" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- 青いヘアクリップ -->
+  <rect x="60" y="24" width="7" height="3" rx="1.2" fill="#4A8FE0" stroke="#2C5FA0" stroke-width="0.9" transform="rotate(-18 63 25)"/>
+
+  <!-- 目（クール系・切れ長で落ち着いた瞳） -->
+  <ellipse cx="40" cy="40" rx="5" ry="6" fill="#FFFFFF"/>
+  <ellipse cx="60" cy="40" rx="5" ry="6" fill="#FFFFFF"/>
+  <ellipse cx="40.3" cy="40.6" rx="3.8" ry="4.8" fill="#4C5B84"/>
+  <ellipse cx="60.3" cy="40.6" rx="3.8" ry="4.8" fill="#4C5B84"/>
+  <circle cx="40.3" cy="41.2" r="2" fill="#1E2436"/>
+  <circle cx="60.3" cy="41.2" r="2" fill="#1E2436"/>
+  <circle cx="41.6" cy="38.6" r="1.5" fill="#FFFFFF"/>
+  <circle cx="61.6" cy="38.6" r="1.5" fill="#FFFFFF"/>
+  <!-- 上まぶたを強めに描いてクールな印象 -->
+  <path d="M34.5 36 Q40 33.5 45.5 36" fill="none" stroke="#1E2436" stroke-width="2" stroke-linecap="round"/>
+  <path d="M54.5 36 Q60 33.5 65.5 36" fill="none" stroke="#1E2436" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- ほっぺ（うすめ）＋小さめの口 -->
+  <circle cx="33" cy="46" r="4" fill="url(#blush2)"/>
+  <circle cx="67" cy="46" r="4" fill="url(#blush2)"/>
+  <path d="M46.5 48.5 Q50 51 53.5 48.5" fill="none" stroke="#C0685E" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
