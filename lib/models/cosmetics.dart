@@ -102,6 +102,43 @@ const List<DogCompanion> kDogCompanions = [
   DogCompanion('$_sup/dog_corgi.svg', 'コーギー', 'Corgi', 600),
 ];
 
+/// 🐶 なつき度レベル（あそぶほど上がる。声援や表示が変化）
+class DogBond {
+  final int required; // 必要なつき度
+  final String nameJa;
+  final String nameEn;
+  final String emoji;
+  const DogBond(this.required, this.nameJa, this.nameEn, this.emoji);
+}
+
+const List<DogBond> kDogBondLevels = [
+  DogBond(0, 'しりあい', 'Acquaintance', '🤝'),
+  DogBond(50, 'ともだち', 'Friend', '😊'),
+  DogBond(150, 'なかよし', 'Buddy', '💕'),
+  DogBond(400, 'しんゆう', 'Best Friend', '🌟'),
+  DogBond(1000, 'かぞく', 'Family', '👑'),
+];
+
+/// 現在のなつき度レベル（0始まりのindex）
+int dogBondIndex(int affection) {
+  int idx = 0;
+  for (int i = 0; i < kDogBondLevels.length; i++) {
+    if (affection >= kDogBondLevels[i].required) idx = i;
+  }
+  return idx;
+}
+
+DogBond dogBond(int affection) => kDogBondLevels[dogBondIndex(affection)];
+
+/// 次のレベルまでの進捗（0.0〜1.0、最大レベルなら1.0）
+double dogBondProgress(int affection) {
+  final idx = dogBondIndex(affection);
+  if (idx >= kDogBondLevels.length - 1) return 1.0;
+  final cur = kDogBondLevels[idx].required;
+  final next = kDogBondLevels[idx + 1].required;
+  return ((affection - cur) / (next - cur)).clamp(0.0, 1.0);
+}
+
 /// 累計コインでアンロック済みのわんちゃん一覧
 List<DogCompanion> unlockedDogs(int lifetimeCoins) => kDogCompanions
     .where((d) => lifetimeCoins >= d.requiredLifetimeCoins)

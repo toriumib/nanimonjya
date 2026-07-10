@@ -60,9 +60,22 @@ class _DogSquadState extends State<DogSquad>
       final idx = _random.nextInt(total);
       final isDog = idx < dogs.length;
       // ★選択中の衣装に応じた声援を使う（ユーモア切替）★
+      // 🐶犬はなつき度が上がるほど愛情深いセリフに変化
       final costume = cheerCostumeById(profile.selectedCostume);
+      final bondIdx = dogBondIndex(profile.dogAffection);
+      final dogPool = ja
+          ? (bondIdx >= 3
+              ? ['だいすき！💕', 'きみとなら勝てる！', 'ずっといっしょ！', 'しっぽフリフリ♪']
+              : bondIdx >= 1
+                  ? ['ワン！', 'いいぞいいぞ〜！', 'クンクン…がんばれ！']
+                  : _dogCheersJa)
+          : (bondIdx >= 3
+              ? ['Love you! 💕', 'We got this!', 'Together forever!', 'Wag wag ♪']
+              : bondIdx >= 1
+                  ? ['Woof!', 'Go go!', 'Sniff… you can do it!']
+                  : _dogCheersEn);
       final pool = isDog
-          ? (ja ? _dogCheersJa : _dogCheersEn)
+          ? dogPool
           : (ja ? costume.cheersJa : costume.cheersEn);
       setState(() {
         _bubbleMemberIndex = idx;

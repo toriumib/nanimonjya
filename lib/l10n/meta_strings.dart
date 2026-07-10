@@ -123,6 +123,29 @@ class MetaStrings {
   String get youLeftMatch =>
       ja ? '対戦から離脱しました（負け）' : 'You left the match (loss)';
 
+  // 📖 珍名アルバム
+  String get nameAlbum => ja ? 'みんなの珍名アルバム' : 'Funny Name Album';
+  String get weeklyAward => ja ? '今週の爆笑ネーム大賞' : 'Weekly Funny Name Award';
+  String get nameAlbumDesc => ja
+      ? 'オンライン対戦でつけられた名前があつまるよ。おもしろかったら❤️で投票！（毎週リセット）'
+      : 'Names from online battles gather here. Vote with ❤️! (resets weekly)';
+  String get nameAlbumEmpty => ja
+      ? 'まだ名前がないよ。オンライン対戦で1番のりの命名をしよう！'
+      : 'No names yet. Be the first to name one in online battle!';
+
+  // 📋 デイリーミッション
+  String get dailyMissions => ja ? 'デイリーミッション' : 'Daily Missions';
+  String get missionPlay3 => ja ? '3回あそぶ' : 'Play 3 games';
+  String get missionCoin60 => ja ? 'コインを60かせぐ' : 'Earn 60 coins';
+  String get missionOnline1 => ja ? 'オンラインで1回あそぶ' : 'Play 1 online match';
+  String get claimReward => ja ? '受け取る' : 'Claim';
+  String get done => ja ? '達成！' : 'Done!';
+  String missionClaimedMsg(int n) =>
+      ja ? '🎉 ミッション達成！+$nコイン' : '🎉 Mission complete! +$n coins';
+
+  // 🐶 なつき度
+  String get bondLabel => ja ? 'なつき度' : 'Bond';
+
   // 🏅 ランキング
   String get you => ja ? 'あなた' : 'You';
   String get ranking => ja ? 'ランキング' : 'Ranking';
