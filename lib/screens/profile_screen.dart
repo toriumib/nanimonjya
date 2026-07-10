@@ -125,6 +125,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             _dailyBonusCard(m, profile),
             const SizedBox(height: 16),
+            _missionsCard(m, profile),
+            const SizedBox(height: 16),
             _statsCard(m, profile),
             const SizedBox(height: 16),
             _titleCard(m, profile),
@@ -470,6 +472,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(m.dogSquadDesc, style: const TextStyle(fontSize: 13)),
           const SizedBox(height: 10),
+          // 🐶 なつき度（あそぶほど上がって声援が変化）
+          Row(
+            children: [
+              Text(
+                '${dogBond(p.dogAffection).emoji} ${m.bondLabel}: '
+                '${ja ? dogBond(p.dogAffection).nameJa : dogBond(p.dogAffection).nameEn}',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: dogBondProgress(p.dogAffection),
+                    minHeight: 8,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFFFF8FB4)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -520,6 +547,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // チア応援団（コインでレベルアップ）
   // チア応援団（最初から全員参加・ショーケース表示）
+  // 📋 デイリーミッション（毎日リセット・達成でコイン）
+  Widget _missionsCard(MetaStrings m, PlayerProfile p) {
+    Widget mission({
+      required String id,
+      required String title,
+      required int progress,
+      required int goal,
+      required int reward,
+    }) {
+      final done = progress >= goal;
+      final claimed = p.missionClaimed.contains(id);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: (progress / goal).clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        done
+                            ? const Color(0xFF43C46B)
+                            : const Color(0xFFFF4FA3),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${progress.clamp(0, goal)} / $goal',
+                    style: const TextStyle(
+                        fontSize: 11, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            claimed
+                ? const Icon(Icons.check_circle, color: Color(0xFF4A7A2A))
+                : ElevatedButton(
+                    onPressed: done
+                        ? () async {
+                            final ok = await p.claimMission(id, reward);
+                            if (!mounted) return;
+                            if (ok) {
+                              Sfx.instance.fanfare();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text(m.missionClaimedMsg(reward))),
+                              );
+                            }
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      textStyle: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w900),
+                    ),
+                    child: Text(done ? '$reward🪙' : '$reward🪙'),
+                  ),
+          ],
+        ),
+      );
+    }
+
+    return _sectionCard(
+      title: '📋 ${m.dailyMissions}',
+      child: Column(
+        children: [
+          mission(
+            id: 'play3',
+            title: '🎮 ${m.missionPlay3}',
+            progress: p.missionPlays,
+            goal: 3,
+            reward: 30,
+          ),
+          mission(
+            id: 'coin60',
+            title: '🪙 ${m.missionCoin60}',
+            progress: p.missionCoinsEarned,
+            goal: 60,
+            reward: 40,
+          ),
+          mission(
+            id: 'online1',
+            title: '🌐 ${m.missionOnline1}',
+            progress: p.missionOnline,
+            goal: 1,
+            reward: 50,
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🎽 応援団の衣装ショップ（コインで解放＆着せ替え）
   Widget _costumeCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;

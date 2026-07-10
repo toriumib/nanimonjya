@@ -34,6 +34,14 @@ class PlayerProfile extends ChangeNotifier {
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
   Set<String> unlockedCostumes = {'normal'}; // 応援団の衣装（デフォルトは所持）
   String selectedCostume = 'normal'; // 選択中の応援団衣装
+  int dogAffection = 0; // 🐶なつき度（あそぶほど上がる）
+
+  // 📋 デイリーミッション（日付が変わるとリセット）
+  String missionDate = '';
+  int missionPlays = 0; // 今日あそんだ回数
+  int missionCoinsEarned = 0; // 今日かせいだコイン
+  int missionOnline = 0; // 今日オンラインであそんだ回数
+  Set<String> missionClaimed = {}; // 受け取り済みミッションID
 
   // セッション内（アプリ起動中のみ）の連続プレイ数。再起動でリセット。
   int sessionStreak = 0;
@@ -77,6 +85,13 @@ class PlayerProfile extends ChangeNotifier {
     unlockedCostumes.add('normal');
     selectedCostume = p.getString('selectedCostume') ?? 'normal';
     if (!unlockedCostumes.contains(selectedCostume)) selectedCostume = 'normal';
+    dogAffection = p.getInt('dogAffection') ?? 0;
+    missionDate = p.getString('missionDate') ?? '';
+    missionPlays = p.getInt('missionPlays') ?? 0;
+    missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
+    missionOnline = p.getInt('missionOnline') ?? 0;
+    missionClaimed = (p.getStringList('missionClaimed') ?? []).toSet();
+    _refreshMissions();
     selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != 'shining_star.mp3' &&
@@ -136,6 +151,9 @@ class PlayerProfile extends ChangeNotifier {
     sessionStreak += 1;
     if (sessionStreak > bestSessionStreak) bestSessionStreak = sessionStreak;
     if (myScore > highScore) highScore = myScore;
+    dogAffection += 10; // 🐶あそぶほどなつく
+    _refreshMissions();
+    missionPlays += 1;
 
     const base = 10;
     final streakBonus = sessionStreak >= 2 ? (sessionStreak - 1) * 5 : 0;
@@ -158,6 +176,8 @@ class PlayerProfile extends ChangeNotifier {
     onlineGames += 1;
     if (won) onlineWins += 1;
     if (isRandomMatch) randomMatches += 1;
+    _refreshMissions();
+    missionOnline += 1;
     int bonus = 0;
     if (won) {
       bonus = 20; // オンライン勝利ボーナス
@@ -235,9 +255,35 @@ class PlayerProfile extends ChangeNotifier {
     return amount;
   }
 
+  // 日付が変わっていたらミッション進捗をリセット
+  void _refreshMissions() {
+    final today = _dateString(DateTime.now());
+    if (missionDate != today) {
+      missionDate = today;
+      missionPlays = 0;
+      missionCoinsEarned = 0;
+      missionOnline = 0;
+      missionClaimed = {};
+    }
+  }
+
+  /// ミッション報酬を受け取る。成功したら true。
+  Future<bool> claimMission(String id, int reward) async {
+    _refreshMissions();
+    if (missionClaimed.contains(id)) return false;
+    missionClaimed.add(id);
+    coins += reward;
+    lifetimeCoins += reward;
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
   Future<void> _addCoins(int amount) async {
     coins += amount;
     lifetimeCoins += amount;
+    _refreshMissions();
+    missionCoinsEarned += amount; // 今日かせいだコイン（ミッション用）
   }
 
   /// BGMをコインで解放。成功したら true。
@@ -387,6 +433,12 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('lastGiftMillis', _lastGiftMillis);
     await p.setStringList('unlockedCostumes', unlockedCostumes.toList());
     await p.setString('selectedCostume', selectedCostume);
+    await p.setInt('dogAffection', dogAffection);
+    await p.setString('missionDate', missionDate);
+    await p.setInt('missionPlays', missionPlays);
+    await p.setInt('missionCoinsEarned', missionCoinsEarned);
+    await p.setInt('missionOnline', missionOnline);
+    await p.setStringList('missionClaimed', missionClaimed.toList());
   }
 }
 

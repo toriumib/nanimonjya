@@ -14,6 +14,7 @@ import '../services/reward_ad_helper.dart'; // 無料コインチェストの広
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'ranking_screen.dart'; // 全体ランキング
+import 'name_album_screen.dart'; // 珍名アルバム
 
 // 多言語対応のために追加
 
@@ -512,6 +513,27 @@ class _TopScreenState extends State<TopScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // 📖 みんなの珍名アルバム
+                  TextButton.icon(
+                    onPressed: () {
+                      Sfx.instance.pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NameAlbumScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Text('📖', style: TextStyle(fontSize: 18)),
+                    label: Text(MetaStrings.of(context).nameAlbum),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFB4326E),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                   // あそびかた（チュートリアル）ボタン
                   TextButton.icon(
                     onPressed: () {

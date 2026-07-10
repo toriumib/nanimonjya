@@ -62,6 +62,24 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // みんなの珍名アルバム（匿名の名前投稿＋❤️投票）
+    match /funnyNames/{id} {
+      allow read: if request.auth != null;
+      // 投稿: 認証必須・名前8文字以内・likesは0はじまり
+      allow create: if request.auth != null
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 8
+        && request.resource.data.week is string
+        && request.resource.data.week.size() <= 12
+        && request.resource.data.likes == 0;
+      // 更新: likesを+1する以外は何も変更できない（改ざん防止）
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes == resource.data.likes + 1;
+      allow delete: if false;
+    }
+
     // 上記以外のあらゆるドキュメントへのアクセスを全面的に禁止
     match /{document=**} {
       allow read, write: if false;

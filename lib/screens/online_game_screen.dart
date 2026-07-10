@@ -13,6 +13,7 @@ import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../services/sfx.dart'; // 正解/不正解SE
 import '../services/ranking_service.dart'; // ランダムマッチのレーティング
 import '../services/deep_link_service.dart'; // 招待リンクの組み立て
+import '../services/name_album_service.dart'; // 珍名アルバムへの投稿
 import 'package:share_plus/share_plus.dart'; // LINE/Discord等への共有
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import 'dart:convert'; // Base64デコードのために必要
@@ -728,6 +729,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     final namedImagePath = _currentImagePath;
     if (namedImagePath != null) {
       _precomputeChoicesFor(namedImagePath, name);
+      NameAlbumService.instance.submit(name); // 📖 珍名アルバムに匿名投稿
     }
     // _advanceCardAfterDelay によって次のカードへ進む
   }
