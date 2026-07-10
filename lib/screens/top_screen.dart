@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
@@ -30,6 +31,7 @@ class _TopScreenState extends State<TopScreen>
   late AnimationController _bounceController; // マスコットのぴょこぴょこ
   final RewardAdHelper _giftAd = RewardAdHelper(); // 無料コインチェスト用
   final Random _random = Random();
+  Timer? _giftTicker; // 🎁残り時間表示の更新用
 
   @override
   void initState() {
@@ -50,6 +52,10 @@ class _TopScreenState extends State<TopScreen>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
     _giftAd.load();
+    // 🎁の残り時間表示を1分ごとに更新（止まったままにならないように）
+    _giftTicker = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -57,6 +63,7 @@ class _TopScreenState extends State<TopScreen>
     _controller.dispose();
     _bounceController.dispose();
     _giftAd.dispose();
+    _giftTicker?.cancel();
     super.dispose();
   }
 

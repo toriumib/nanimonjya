@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
 import 'top_screen.dart'; // ホームへ確実に戻るため
