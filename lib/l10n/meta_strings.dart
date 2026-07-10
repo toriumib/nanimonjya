@@ -103,6 +103,10 @@ class MetaStrings {
     return quips[seed % quips.length];
   }
 
+  String get tagline => ja
+      ? 'なまえで覚える♪ 神経衰弱バトル'
+      : 'Name & Remember! Memory Battle';
+
   // 🎁 無料コインチェスト
   String get freeGift => ja ? '動画で無料コイン🎁' : 'Free coins (video) 🎁';
   String get giftReady => ja ? 'プレゼントがとどいたよ！' : 'A gift is ready!';
