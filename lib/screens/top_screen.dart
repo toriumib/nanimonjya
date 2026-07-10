@@ -206,65 +206,77 @@ class _TopScreenState extends State<TopScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // 🐶 大きなマスコットがぴょこぴょこ＋キラキラ（赤ちゃんも喜ぶ主役）
+            // ★ブランドの顔：2人のチアガールが出迎えるヒーロー（ふわり浮遊）★
             AnimatedBuilder(
               animation: _bounceController,
-              builder: (context, child) {
+              builder: (context, _) {
                 final t = _bounceController.value;
-                final dy = -14.0 * (t < 0.5 ? t * 2 : (1 - t) * 2);
-                return Transform.translate(
-                  offset: Offset(0, dy),
-                  child: child,
-                );
-              },
-              child: Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 168,
-                    height: 168,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.55),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.6),
-                          blurRadius: 30,
-                          spreadRadius: 4,
+                final wave = t < 0.5 ? t * 2 : (1 - t) * 2; // 0→1→0
+                final dyL = -9.0 * wave;
+                final dyR = -9.0 * (1 - wave);
+                return Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // やわらかな後光
+                    Container(
+                      width: 230,
+                      height: 130,
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.7),
+                            Colors.white.withOpacity(0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Transform.translate(
+                          offset: Offset(0, dyL),
+                          child: SvgPicture.asset(
+                            'assets/images/supporters/cheer_girl2.svg',
+                            width: 92,
+                            height: 92,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Transform.translate(
+                          offset: Offset(0, dyR),
+                          child: SvgPicture.asset(
+                            'assets/images/supporters/cheer_girl.svg',
+                            width: 92,
+                            height: 92,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  SvgPicture.asset(
-                    'assets/images/supporters/dog_chihuahua.svg',
-                    width: 150,
-                    height: 150,
-                  ),
-                  const Positioned(
-                      top: -6, right: 8,
-                      child: Text('✨', style: TextStyle(fontSize: 30))),
-                  const Positioned(
-                      bottom: 4, left: -2,
-                      child: Text('⭐', style: TextStyle(fontSize: 22))),
-                  const Positioned(
-                      top: 10, left: 2,
-                      child: Text('💕', style: TextStyle(fontSize: 20))),
-                ],
-              ),
+                    const Positioned(
+                        top: -8,
+                        child: Text('✨', style: TextStyle(fontSize: 26))),
+                    const Positioned(
+                        top: 6, left: 30,
+                        child: Text('⭐', style: TextStyle(fontSize: 18))),
+                    const Positioned(
+                        top: 6, right: 30,
+                        child: Text('💖', style: TextStyle(fontSize: 18))),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 8),
-            // アプリタイトル（ポップにバウンド登場・テーマ連動色）
+            const SizedBox(height: 6),
+            // アプリタイトル（テーマ連動色・立体ロゴ風）＋キャッチコピー
             Padding(
-              padding: const EdgeInsets.only(bottom: 32.0),
+              padding: const EdgeInsets.only(bottom: 26.0),
               child: Column(
                 children: [
-                  const Text('🎉', style: TextStyle(fontSize: 40)),
-                  const SizedBox(height: 4),
                   Text(
                     localizations.appTitle,
                     style: TextStyle(
-                      fontSize: 46,
+                      fontSize: 48,
                       fontWeight: FontWeight.w900,
                       color: homeTheme.titleColor,
                       letterSpacing: 2,
@@ -283,7 +295,30 @@ class _TopScreenState extends State<TopScreen>
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
+                  // キャッチコピー（何のゲームか一目でわかる＝売れる）
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: homeTheme.darkBackground
+                          ? Colors.white.withOpacity(0.9)
+                          : homeTheme.titleColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      MetaStrings.of(context).tagline,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: homeTheme.darkBackground
+                            ? const Color(0xFF2B2D64)
+                            : Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   // 現在の称号バッジ（累計コインでランクアップ）
                   AnimatedBuilder(
                     animation: PlayerProfile.instance,
