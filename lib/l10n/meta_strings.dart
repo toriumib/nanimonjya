@@ -177,9 +177,18 @@ class MetaStrings {
   String get cpuEasy => ja ? '🐣 よわい' : '🐣 Easy';
   String get cpuNormal => ja ? '🤖 ふつう' : '🤖 Normal';
   String get cpuHard => ja ? '👿 つよい' : '👿 Hard';
-  String get iRemember => ja ? '⚡ おぼえてる！' : '⚡ I remember!';
-  String cpuTook(int n) =>
-      ja ? '🤖 CPUが思い出した！ $n枚総取り！' : '🤖 CPU remembered! Took $n cards!';
+  String get nameThisChar =>
+      ja ? '✏️ このコに名前をつけよう！' : '✏️ Give this one a name!';
+  String get nameHint => ja ? 'へんな名前ほど覚えやすい！' : 'The weirder, the better!';
+  String get decideName => ja ? 'なづける！' : 'Name it!';
+  String get whatWasTheName =>
+      ja ? '⚡ このコの名前は…！？（CPUより先に！）' : '⚡ What was the name?! (Beat the CPU!)';
+  String cpuTook(String name, int n) => ja
+      ? '🤖 CPU「$name！」 $n枚総取りされた！'
+      : '🤖 CPU: "$name!" — took $n cards!';
+  String wrongAnswerCpuTook(String correct, int n) => ja
+      ? '❌ お手つき！正解は「$correct」。CPUが$n枚総取り！'
+      : '❌ Wrong! It was "$correct". CPU took $n cards!';
   String get cpuLabel => ja ? '🤖 CPU' : '🤖 CPU';
 
   // ナビゲーション

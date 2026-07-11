@@ -9,6 +9,7 @@ import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../services/app_analytics.dart'; // プレイ行動の分析ログ
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import '../l10n/meta_strings.dart'; // やめる等のナビ文言
+import '../services/sfx.dart'; // 正解/不正解SE（CPU対戦クイズ用）
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
@@ -49,9 +50,29 @@ class _GameScreenState extends State<GameScreen> {
   int _turnCount = 0; // 総ターン数 (デバッグや終了判定用)
 
   // ── 🤖 CPU対戦（cpuLevel != null のとき、プレイヤー1=あなた, 2=CPU）──
+  // 本家ルール準拠: 初登場カードに名前をつけ、再登場時は「名前当てクイズ」。
+  // 正解の名前をCPUより先にタップできたら総取り。間違えるとCPUに総取りされる。
   bool get _vsCpu => widget.cpuLevel != null;
   final Map<String, int> _exposures = {}; // 画像ごとの登場回数（CPUの記憶に使用）
+  final Map<String, String> _characterNames = {}; // 画像→あなたがつけた名前
+  final Map<String, List<String>> _decoyCache = {}; // 画像→偽名（命名時に生成して固定）
+  final TextEditingController _nameController = TextEditingController();
+  List<String> _quizChoices = []; // 表示中カードの選択肢（正解＋偽名）
+  bool _answerLocked = false; // 誤答後はこのカードでは答えられない
+  bool _advancing = false; // 命名直後の二重タップ防止
   Timer? _cpuTimer; // CPUの「思い出すまでの時間」タイマー
+
+  // 偽名プール（おなまえガチャと組み合わせて選択肢を作る）
+  static const List<String> _fakeNamePoolJa = [
+    'モグモグ', 'ピカリン', 'フワッチ', 'ギザモン', 'ポンタ',
+    'クルリン', 'ニャッキ', 'ハムスケ', 'ペコリン', 'ザワワ',
+    'ビリビリ', 'ホゲータ', 'ムニムニ', 'パチコン', 'ドロロン',
+  ];
+  static const List<String> _fakeNamePoolEn = [
+    'Mogu', 'Piko', 'Fluffy', 'Gizmo', 'Ponta',
+    'Kuru', 'Nyaki', 'Hammy', 'Peko', 'Zawa',
+    'Bibi', 'Hoge', 'Muni', 'Pachi', 'Doro',
+  ];
   // TODO: ゲーム終了条件を決める（例：山札がなくなるまで）
   // final int _maxTurns = 20; // 例：最大ターン数
 
@@ -89,9 +110,85 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     _cpuTimer?.cancel();
+    _nameController.dispose();
     _adMob.disposeBanner(); // 画面破棄時に広告も破棄
     _bgmPlayer.dispose(); // BGM用プレイヤーを解放
     super.dispose();
+  }
+
+  // ── 🤖 CPU対戦: 命名と選択肢 ──
+
+  /// 初登場カードに名前をつけて次へ進む。偽名もこの時点で生成して固定する
+  /// （表示のたびに変わると総当たりで当てられてしまうため）。
+  void _submitName() {
+    final img = _currentImagePath;
+    if (img == null) return;
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    _characterNames[img] = name;
+    _decoyCache[img] = _buildDecoys(name);
+    _nameController.clear();
+    Sfx.instance.pop();
+    setState(() => _advancing = true);
+    Future.delayed(const Duration(milliseconds: 400), _drawNextCard);
+  }
+
+  /// おなまえガチャで入力欄に候補を入れる
+  void _rollGachaName() {
+    final m = MetaStrings.of(context);
+    _nameController.text =
+        m.gachaName(_random.nextInt(9973), _random.nextInt(9941));
+    setState(() {});
+  }
+
+  /// 正解に似せた偽名を4つ作る（ガチャ生成＋固定プールのミックス）
+  List<String> _buildDecoys(String correctName) {
+    final m = MetaStrings.of(context);
+    final decoys = <String>{};
+    while (decoys.length < 3) {
+      final fake = m.gachaName(_random.nextInt(9973), _random.nextInt(9941));
+      if (fake != correctName) decoys.add(fake);
+    }
+    final pool = List<String>.from(m.ja ? _fakeNamePoolJa : _fakeNamePoolEn)
+      ..shuffle(_random);
+    for (final fake in pool) {
+      if (decoys.length >= 4) break;
+      if (fake != correctName) decoys.add(fake);
+    }
+    return decoys.toList();
+  }
+
+  /// 再登場カード用の5択（正解＋偽名4）を組み立てる
+  void _prepareQuiz(String imagePath) {
+    final correct = _characterNames[imagePath] ?? '';
+    final decoys = _decoyCache[imagePath] ?? _buildDecoys(correct);
+    _quizChoices = [correct, ...decoys.take(4)]..shuffle(_random);
+    _answerLocked = false;
+  }
+
+  /// 選択肢がタップされた時。正解ならあなたが総取り、間違いならCPUが総取り。
+  void _answerQuiz(String selected) {
+    final img = _currentImagePath;
+    if (img == null || !_canSelectPlayer || _answerLocked) return;
+    if (selected == _characterNames[img]) {
+      Sfx.instance.correct();
+      _awardPoints(0);
+    } else {
+      Sfx.instance.wrong();
+      setState(() => _answerLocked = true);
+      final correct = _characterNames[img] ?? '';
+      final taken = _fieldCards.length;
+      _cpuTimer?.cancel();
+      // お手つき: CPUに総取りされる（正解を見せて記憶を助ける）
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(MetaStrings.of(context).wrongAnswerCpuTook(correct, taken)),
+          duration: const Duration(milliseconds: 2000),
+        ),
+      );
+      _awardPoints(1);
+    }
   }
 
   // ── 🤖 CPUの頭脳 ──
@@ -125,11 +222,13 @@ class _GameScreenState extends State<GameScreen> {
     _cpuTimer = Timer(_cpuReactionDelay(), () {
       if (!mounted || !_canSelectPlayer) return;
       final taken = _fieldCards.length;
+      final name = _characterNames[imagePath] ?? '';
+      Sfx.instance.wrong(); // あなた視点では取られた音
       _awardPoints(1); // CPUはプレイヤー2
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(MetaStrings.of(context).cpuTook(taken)),
-          duration: const Duration(milliseconds: 1500),
+          content: Text(MetaStrings.of(context).cpuTook(name, taken)),
+          duration: const Duration(milliseconds: 2000),
         ),
       );
     });
@@ -167,13 +266,17 @@ class _GameScreenState extends State<GameScreen> {
       // 山札から1枚引く
       _currentImagePath = _deck.removeLast();
       _turnCount++;
+      _advancing = false;
       _exposures[_currentImagePath!] = (_exposures[_currentImagePath!] ?? 0) + 1;
 
       // この画像が初めて出たかチェック
       if (_seenImages.contains(_currentImagePath)) {
         _isFirstAppearance = false;
         _canSelectPlayer = true; // 見たことあるカードならプレイヤー選択可能
-        if (_vsCpu) _startCpuRace(_currentImagePath!); // 🤖 CPUも思い出しに挑戦
+        if (_vsCpu) {
+          _prepareQuiz(_currentImagePath!); // 名前当ての5択を組み立てる
+          _startCpuRace(_currentImagePath!); // 🤖 CPUも思い出しに挑戦
+        }
       } else {
         _isFirstAppearance = true;
         _seenImages.add(_currentImagePath!); // 初めてなら記録
@@ -448,32 +551,107 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildActionButtons() {
     final localizations = AppLocalizations.of(context)!;
 
+    final m = MetaStrings.of(context);
+
+    // 🤖 CPU対戦・初登場カード: 名前をつける（本家ルールの核心！）
+    if (_vsCpu &&
+        _isFirstAppearance &&
+        _currentImagePath != null &&
+        !_advancing &&
+        !_characterNames.containsKey(_currentImagePath)) {
+      return Column(
+        children: [
+          Text(
+            m.nameThisChar,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  maxLength: 12,
+                  decoration: InputDecoration(
+                    hintText: m.nameHint,
+                    counterText: '',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                  ),
+                  onSubmitted: (_) => _submitName(),
+                  onChanged: (_) => setState(() {}), // 決定ボタンの活性化
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 🎲 おなまえガチャ
+              ElevatedButton(
+                onPressed: _rollGachaName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 14),
+                ),
+                child: const Text('🎲'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed:
+                _nameController.text.trim().isEmpty ? null : _submitName,
+            icon: const Icon(Icons.check),
+            label: Text(m.decideName),
+            style: ElevatedButton.styleFrom(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              textStyle:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      );
+    }
+
     // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (_canSelectPlayer) {
-      // 🤖 CPU対戦: あなたの「おぼえてる！」ボタンだけ（CPUは自動で挑戦してくる）
+      // 🤖 CPU対戦・再登場カード: 名前当て5択クイズ（CPUとの早押し勝負）
       if (_vsCpu) {
         return Column(
           children: [
-            ElevatedButton(
-              onPressed: () => _awardPoints(0),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                textStyle: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w900),
+            Text(
+              m.whatWasTheName,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
               ),
-              child: Text(MetaStrings.of(context).iRemember,
-                  style: const TextStyle(color: Colors.white)),
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              alignment: WrapAlignment.center,
+              children: _quizChoices.map((choice) {
+                return ElevatedButton(
+                  onPressed: _answerLocked ? null : () => _answerQuiz(choice),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 12),
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  child:
+                      Text(choice, style: const TextStyle(color: Colors.white)),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
               onPressed: _skipCard,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
               child: Text(localizations.skip),
             ),
           ],

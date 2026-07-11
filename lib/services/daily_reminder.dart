@@ -53,8 +53,8 @@ class DailyReminder {
 
       await _plugin.zonedSchedule(
         _notificationId,
-        '🎁 デイリーボーナスが待ってるよ！',
-        '今日のログインボーナスまだ受け取ってないよ。連続ログインが途切れちゃう前に遊びに来てね🐶',
+        '🪙 今日のコインまだ受け取ってないよ！',
+        'ログインするだけで無料コインGET！連続ログインでもらえるコインがどんどん増えるよ（最大100🪙）🐶',
         next,
         const NotificationDetails(
           android: AndroidNotificationDetails(
