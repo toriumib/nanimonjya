@@ -6,6 +6,10 @@
             <data android:scheme="https" />
         </intent>
     </queries>
+    <!-- 🎁 デイリーボーナスのリマインド通知（Android 13+ はランタイム許可も必要） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 再起動後もスケジュール済み通知を復元する -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="ナニモンジャ"
         android:name="${applicationName}"
@@ -62,6 +66,18 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-6744940157577324~1059924160"/>
+        <!-- flutter_local_notifications: スケジュール通知＆再起動後の復元用レシーバー -->
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
             </application>
         </manifest>
 <!--    3940256099942544~3347511713-->

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
+import 'app_analytics.dart';
+import 'daily_reminder.dart';
 
 /// 端末ローカルに保存する戦績・コイン・実績などの「メタ層」状態。
 /// 対戦ロジックとは独立。ChangeNotifier で UI に変化を通知する。
@@ -138,6 +140,8 @@ class PlayerProfile extends ChangeNotifier {
     _checkAchievements();
     await _persist();
     notifyListeners();
+    AppAnalytics.dailyBonusClaimed(dailyStreak);
+    DailyReminder.instance.onBonusClaimed(); // 今日のリマインド通知をスキップ
     return reward;
   }
 

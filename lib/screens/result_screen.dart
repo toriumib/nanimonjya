@@ -25,6 +25,7 @@ class ResultScreen extends StatefulWidget {
   final int? myIndex; // scores の中で自分のスコアの位置（オンラインのみ）
   final bool isRandomMatch; // ランダムマッチだったか
   final bool opponentLeft; // 相手が離脱してこちらの勝ちになったか
+  final bool vsCpu; // 🤖 CPU対戦（プレイヤー1=あなた, 2=CPU）
 
   const ResultScreen({
     Key? key,
@@ -36,6 +37,7 @@ class ResultScreen extends StatefulWidget {
     this.myIndex,
     this.isRandomMatch = false,
     this.opponentLeft = false,
+    this.vsCpu = false,
   }) : super(key: key);
 
   @override
@@ -313,18 +315,21 @@ class _ResultScreenState extends State<ResultScreen> {
       }
     }
 
+    // 🤖 CPU対戦時はプレイヤー2を「CPU」、プレイヤー1を「あなた」と表示
+    String playerLabel(int index) {
+      if (!widget.vsCpu) return localizations.player(index + 1);
+      return index == 1 ? m.cpuLabel : m.you;
+    }
+
     String winnerText;
     if (winners.isEmpty || maxScore == 0) {
       winnerText = localizations.noWinner;
     } else if (winners.length == 1) {
       // ★修正: 以前は playerScore（"プレイヤーN: X点"の形式）に空文字を渡していたため
       //   「プレイヤー1: 点 の勝利！」と表示されるバグがあった。player を使う★
-      winnerText = localizations.winner(
-        localizations.player(winners[0] + 1),
-      );
+      winnerText = localizations.winner(playerLabel(winners[0]));
     } else {
-      final winnerNumbers =
-          winners.map((index) => localizations.player(index + 1)).toList();
+      final winnerNumbers = winners.map(playerLabel).toList();
       winnerText = localizations.tie(winnerNumbers.join('と'));
     }
 
@@ -463,7 +468,9 @@ class _ResultScreenState extends State<ResultScreen> {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 5.0),
                             child: Text(
-                              '${isWinner ? '👑 ' : ''}${localizations.playerScore(index + 1, scores[index])}',
+                              widget.vsCpu
+                                  ? '${isWinner ? '👑 ' : ''}${playerLabel(index)}: ${scores[index]}'
+                                  : '${isWinner ? '👑 ' : ''}${localizations.playerScore(index + 1, scores[index])}',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight:

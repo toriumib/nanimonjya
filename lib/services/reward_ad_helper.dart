@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_ids.dart';
+import 'app_analytics.dart';
 
 /// リワード広告のロード＆表示ヘルパー。
 /// ★ChangeNotifier化: 読み込み状態の変化をUIに通知し、
@@ -80,6 +81,7 @@ class RewardAdHelper extends ChangeNotifier {
       return false;
     }
     bool rewarded = false;
+    AppAnalytics.adRewardPrompt('rewarded'); // 表示成功数（視聴率の分母）
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
@@ -97,6 +99,7 @@ class RewardAdHelper extends ChangeNotifier {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         rewarded = true;
+        AppAnalytics.adRewardEarned('rewarded'); // 最後まで視聴した数（分子）
         onReward();
       },
     );

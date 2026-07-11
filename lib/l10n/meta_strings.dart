@@ -168,6 +168,20 @@ class MetaStrings {
       ? (ja ? 'レート +$delta ⬆️' : 'Rating +$delta ⬆️')
       : (ja ? 'レート -$delta ⬇️' : 'Rating -$delta ⬇️');
 
+  // 🤖 CPU対戦
+  String get cpuSectionTitle =>
+      ja ? '🤖 ひとりであそぶ（CPU対戦）' : '🤖 Play Solo (vs CPU)';
+  String get cpuSectionDesc => ja
+      ? 'CPUより先に名前を思い出してタップ！'
+      : 'Remember the name and tap before the CPU!';
+  String get cpuEasy => ja ? '🐣 よわい' : '🐣 Easy';
+  String get cpuNormal => ja ? '🤖 ふつう' : '🤖 Normal';
+  String get cpuHard => ja ? '👿 つよい' : '👿 Hard';
+  String get iRemember => ja ? '⚡ おぼえてる！' : '⚡ I remember!';
+  String cpuTook(int n) =>
+      ja ? '🤖 CPUが思い出した！ $n枚総取り！' : '🤖 CPU remembered! Took $n cards!';
+  String get cpuLabel => ja ? '🤖 CPU' : '🤖 CPU';
+
   // ナビゲーション
   String get backToHome => ja ? 'ホームにもどる' : 'Back to Home';
   String get openTrophy =>
