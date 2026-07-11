@@ -3,7 +3,7 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
     id "com.google.gms.google-services"
-    // id "com.google.firebase.crashlytics"
+    id "com.google.firebase.crashlytics"
 }
 
 // Load local.properties
@@ -50,6 +50,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+        coreLibraryDesugaringEnabled true // flutter_local_notifications に必須
     }
 
     kotlinOptions {
@@ -99,4 +100,5 @@ flutter {
 def kotlin_version = "1.9.10"
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4' // 通知プラグイン用
 }

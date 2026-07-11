@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
@@ -5,16 +6,22 @@ import 'result_screen.dart'; // 結果表示画面
 import 'top_screen.dart'; // ホームへ確実に戻るため
 import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
 import '../services/player_profile.dart'; // 選択中BGMの参照
+import '../services/app_analytics.dart'; // プレイ行動の分析ログ
 import '../widgets/dog_squad.dart'; // 応援わんちゃんズ
 import '../l10n/meta_strings.dart'; // やめる等のナビ文言
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
 
+/// CPU対戦の強さ。かんたん/ふつう/つよいで記憶力と反応速度が変わる。
+enum CpuLevel { easy, normal, hard }
+
 class GameScreen extends StatefulWidget {
   final int playerCount; // プレイヤー人数を受け取る
+  final CpuLevel? cpuLevel; // nullでなければ「あなた vs CPU」の一人プレイ
 
-  const GameScreen({Key? key, required this.playerCount}) : super(key: key);
+  const GameScreen({Key? key, required this.playerCount, this.cpuLevel})
+      : super(key: key);
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -40,6 +47,11 @@ class _GameScreenState extends State<GameScreen> {
   bool _isFirstAppearance = true; // 現在の画像が初登場か
   bool _canSelectPlayer = false; // プレイヤー選択ボタンを押せる状態か
   int _turnCount = 0; // 総ターン数 (デバッグや終了判定用)
+
+  // ── 🤖 CPU対戦（cpuLevel != null のとき、プレイヤー1=あなた, 2=CPU）──
+  bool get _vsCpu => widget.cpuLevel != null;
+  final Map<String, int> _exposures = {}; // 画像ごとの登場回数（CPUの記憶に使用）
+  Timer? _cpuTimer; // CPUの「思い出すまでの時間」タイマー
   // TODO: ゲーム終了条件を決める（例：山札がなくなるまで）
   // final int _maxTurns = 20; // 例：最大ターン数
 
@@ -49,6 +61,10 @@ class _GameScreenState extends State<GameScreen> {
     _adMob.loadBanner(); // バナー広告の読み込み開始
     _initializeGame();
     _startBGM(); // BGM再生を開始
+    AppAnalytics.gameStart(
+      mode: _vsCpu ? 'cpu' : 'offline',
+      players: widget.playerCount,
+    );
   }
 
   void _initializeGame() {
@@ -72,9 +88,51 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _cpuTimer?.cancel();
     _adMob.disposeBanner(); // 画面破棄時に広告も破棄
     _bgmPlayer.dispose(); // BGM用プレイヤーを解放
     super.dispose();
+  }
+
+  // ── 🤖 CPUの頭脳 ──
+  // 見た回数が多いカードほど思い出しやすい。強さで基礎記憶力と反応速度が変わる。
+  double _cpuRecallChance(String imagePath) {
+    final seen = _exposures[imagePath] ?? 1;
+    final (base, perExposure, cap) = switch (widget.cpuLevel!) {
+      CpuLevel.easy => (0.30, 0.05, 0.55),
+      CpuLevel.normal => (0.50, 0.08, 0.80),
+      CpuLevel.hard => (0.65, 0.10, 0.95),
+    };
+    return (base + perExposure * (seen - 1)).clamp(0.0, cap);
+  }
+
+  Duration _cpuReactionDelay() {
+    final (minMs, maxMs) = switch (widget.cpuLevel!) {
+      CpuLevel.easy => (2600, 4200),
+      CpuLevel.normal => (1900, 3200),
+      CpuLevel.hard => (1300, 2400),
+    };
+    return Duration(milliseconds: minMs + _random.nextInt(maxMs - minMs));
+  }
+
+  /// 見たことあるカードが出たらCPUが「思い出しレース」に参加する。
+  /// 思い出せたら反応時間の後にポイントを総取り。あなたが先にタップすれば勝ち。
+  void _startCpuRace(String imagePath) {
+    _cpuTimer?.cancel();
+    if (_random.nextDouble() >= _cpuRecallChance(imagePath)) {
+      return; // 今回は思い出せなかった（あなたのチャンス！）
+    }
+    _cpuTimer = Timer(_cpuReactionDelay(), () {
+      if (!mounted || !_canSelectPlayer) return;
+      final taken = _fieldCards.length;
+      _awardPoints(1); // CPUはプレイヤー2
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(MetaStrings.of(context).cpuTook(taken)),
+          duration: const Duration(milliseconds: 1500),
+        ),
+      );
+    });
   }
 
   // BGM再生用のメソッド
@@ -109,11 +167,13 @@ class _GameScreenState extends State<GameScreen> {
       // 山札から1枚引く
       _currentImagePath = _deck.removeLast();
       _turnCount++;
+      _exposures[_currentImagePath!] = (_exposures[_currentImagePath!] ?? 0) + 1;
 
       // この画像が初めて出たかチェック
       if (_seenImages.contains(_currentImagePath)) {
         _isFirstAppearance = false;
         _canSelectPlayer = true; // 見たことあるカードならプレイヤー選択可能
+        if (_vsCpu) _startCpuRace(_currentImagePath!); // 🤖 CPUも思い出しに挑戦
       } else {
         _isFirstAppearance = true;
         _seenImages.add(_currentImagePath!); // 初めてなら記録
@@ -131,6 +191,7 @@ class _GameScreenState extends State<GameScreen> {
   // プレイヤーがポイントを獲得する処理
   void _awardPoints(int playerIndex) {
     if (!_canSelectPlayer) return; // 選択不可なら何もしない
+    _cpuTimer?.cancel(); // 先取りされたらCPUの挑戦は打ち切り
 
     setState(() {
       // 場札の枚数をポイントとして加算
@@ -146,6 +207,7 @@ class _GameScreenState extends State<GameScreen> {
 
   // 「わからない」が選択された時の処理
   void _skipCard() {
+    _cpuTimer?.cancel();
     setState(() {
       // 現在のカードは場札に追加されるため、_drawNextCard内で処理される
       _canSelectPlayer = false; // 選択不可に
@@ -156,15 +218,23 @@ class _GameScreenState extends State<GameScreen> {
   // ゲーム終了処理
   void _endGame() {
     if (!mounted) return; // 破棄済みcontextへのアクセスを防止
+    _cpuTimer?.cancel();
     // 最後の場札が残っている場合、ルールに応じて処理（例：誰も獲得しない）
     _fieldCards.clear();
+    AppAnalytics.gameEnd(
+      mode: _vsCpu ? 'cpu' : 'offline',
+      topScore: _scores.reduce(max),
+    );
 
     // 結果画面へ遷移
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ResultScreen(scores: _scores, playerCount: widget.playerCount),
+        builder: (context) => ResultScreen(
+          scores: _scores,
+          playerCount: widget.playerCount,
+          vsCpu: _vsCpu,
+        ),
       ),
     );
   }
@@ -230,19 +300,24 @@ class _GameScreenState extends State<GameScreen> {
                     runSpacing: 4.0, // 縦の間隔
                     alignment: WrapAlignment.center,
                     children: List.generate(widget.playerCount, (index) {
+                      final isCpu = _vsCpu && index == 1;
                       return Chip(
                         avatar: CircleAvatar(
-                          backgroundColor: Colors.blue.shade800,
+                          backgroundColor: isCpu
+                              ? Colors.deepPurple.shade400
+                              : Colors.blue.shade800,
                           child: Text(
-                            '${index + 1}',
+                            isCpu ? '🤖' : '${index + 1}',
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
                         label: Text(
-                          localizations.playerScore(
-                            index + 1,
-                            _scores[index],
-                          ), // ★修正★
+                          isCpu
+                              ? 'CPU: ${_scores[index]}'
+                              : localizations.playerScore(
+                                  index + 1,
+                                  _scores[index],
+                                ),
                           style: const TextStyle(fontSize: 16),
                         ),
                         elevation: 2,
@@ -375,6 +450,35 @@ class _GameScreenState extends State<GameScreen> {
 
     // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (_canSelectPlayer) {
+      // 🤖 CPU対戦: あなたの「おぼえてる！」ボタンだけ（CPUは自動で挑戦してくる）
+      if (_vsCpu) {
+        return Column(
+          children: [
+            ElevatedButton(
+              onPressed: () => _awardPoints(0),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                textStyle: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w900),
+              ),
+              child: Text(MetaStrings.of(context).iRemember,
+                  style: const TextStyle(color: Colors.white)),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _skipCard,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: Text(localizations.skip),
+            ),
+          ],
+        );
+      }
       return Column(
         children: [
           Wrap(

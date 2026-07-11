@@ -1,12 +1,16 @@
+import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/top_screen.dart'; // トップ画面をインポート
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
+import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 
 // 多言語対応のために追加
 import 'package:flutter_localizations/flutter_localizations.dart'; // ★追加★
@@ -16,12 +20,19 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
+    // Crashlytics: 未捕捉のFlutterエラー/非同期エラーを自動送信（Web非対応）
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
     // ※インタースティシャル（全画面広告）は無効化中。
     //   復活させる場合は InterstitialAdHelper.instance.load() をここで呼ぶ。
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
+  DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
   runApp(const MyApp());
 }
 
@@ -101,6 +112,9 @@ class MyApp extends StatelessWidget {
             homeThemeById(PlayerProfile.instance.selectedTheme).accent;
         return MaterialApp(
       navigatorKey: DeepLinkService.navigatorKey, // ディープリンク遷移用
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      ],
       title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
       home: const TopScreen(),

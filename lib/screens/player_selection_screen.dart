@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // 数字入力制限のため
 import 'game_screen.dart'; // 次の画面
+import '../l10n/meta_strings.dart'; // CPU対戦の文言
 
 // 多言語対応のために追加
 import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
@@ -24,6 +25,16 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => GameScreen(playerCount: _playerCount),
+      ),
+    );
+  }
+
+  // 🤖 CPU対戦（ひとりプレイ）開始
+  void _startCpuGame(CpuLevel level) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameScreen(playerCount: 2, cpuLevel: level),
       ),
     );
   }
@@ -87,6 +98,51 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                   textStyle: const TextStyle(fontSize: 20),
                 ),
                 child: Text(localizations.gameStart), // ★修正★
+              ),
+              const SizedBox(height: 36),
+              // ── 🤖 ひとりでCPU対戦 ──
+              const Divider(),
+              const SizedBox(height: 12),
+              Text(
+                MetaStrings.of(context).cpuSectionTitle,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                MetaStrings.of(context).cpuSectionDesc,
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10.0,
+                runSpacing: 10.0,
+                alignment: WrapAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _startCpuGame(CpuLevel.easy),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    child: Text(MetaStrings.of(context).cpuEasy),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _startCpuGame(CpuLevel.normal),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                    ),
+                    child: Text(MetaStrings.of(context).cpuNormal),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _startCpuGame(CpuLevel.hard),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                    ),
+                    child: Text(MetaStrings.of(context).cpuHard),
+                  ),
+                ],
               ),
             ],
           ),
