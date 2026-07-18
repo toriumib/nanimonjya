@@ -1,6 +1,7 @@
 import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // アプリ全体のフォント刷新
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/top_screen.dart'; // トップ画面をインポート
 import 'package:firebase_core/firebase_core.dart';
@@ -41,8 +42,11 @@ class MyApp extends StatelessWidget {
 
   // 選択中のきせかえテーマの accent 色でアプリ全体のテーマを組み立てる
   ThemeData _buildTheme(Color accent) {
+    // 丸みのあるポップな書体をアプリ全体のデフォルトに（fontFamily未指定のTextへ自動継承される）
+    final baseTextTheme = ThemeData(useMaterial3: true).textTheme;
     return ThemeData(
       useMaterial3: true,
+      textTheme: GoogleFonts.zenMaruGothicTextTheme(baseTextTheme),
       colorScheme: ColorScheme.fromSeed(
         seedColor: accent,
         primary: accent,

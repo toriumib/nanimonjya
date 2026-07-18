@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // ロゴ・演出アニメーション
 import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
+import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
-import 'package:untitled/l10n/app_localizations.dart';
+import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'player_selection_screen.dart'; // オフラインモード
 import 'online_game_lobby_screen.dart'; // オンラインモード
 import 'profile_screen.dart'; // マイページ・戦績
@@ -275,9 +277,8 @@ class _TopScreenState extends State<TopScreen>
                 children: [
                   Text(
                     localizations.appTitle,
-                    style: TextStyle(
+                    style: GoogleFonts.mochiyPopOne(
                       fontSize: 48,
-                      fontWeight: FontWeight.w900,
                       color: homeTheme.titleColor,
                       letterSpacing: 2,
                       shadows: [
@@ -294,7 +295,15 @@ class _TopScreenState extends State<TopScreen>
                       ],
                     ),
                     textAlign: TextAlign.center,
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                      .scale(
+                        begin: const Offset(0.7, 0.7),
+                        end: const Offset(1.0, 1.0),
+                        duration: 500.ms,
+                        curve: Curves.elasticOut,
+                      ),
                   const SizedBox(height: 6),
                   // キャッチコピー（何のゲームか一目でわかる＝売れる）
                   Container(
