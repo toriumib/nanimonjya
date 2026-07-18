@@ -22,7 +22,7 @@ import 'dart:convert'; // Base64デコードのために必要
 import 'package:flutter/services.dart';
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart';
+import 'package:nanimonjya/l10n/app_localizations.dart';
 import '../l10n/meta_strings.dart'; // ランダムマッチ用の文言
 
 class OnlineGameScreen extends StatefulWidget {

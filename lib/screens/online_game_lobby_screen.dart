@@ -10,7 +10,7 @@ import 'online_game_screen.dart'; // オンラインゲーム本体の画面
 import 'top_screen.dart'; // Top画面に戻るため追加
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart'; // プロジェクトの実際のパスに合わせてください
+import 'package:nanimonjya/l10n/app_localizations.dart';
 
 class OnlineGameLobbyScreen extends StatefulWidget {
   const OnlineGameLobbyScreen({super.key});
