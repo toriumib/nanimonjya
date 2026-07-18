@@ -9,7 +9,7 @@ import '../models/cpu_rank.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import 'match_game_screen.dart';
-import 'top_screen.dart';
+import 'home_shell.dart';
 
 /// CPU対戦（神経衰弱）の結果画面。
 /// 獲得ペア数の勝敗、段位レーティングの増減、コイン・実績を表示する。
@@ -173,7 +173,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                   TextButton.icon(
                     onPressed: () {
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const TopScreen()),
+                        MaterialPageRoute(builder: (_) => const HomeShell()),
                         (route) => false,
                       );
                     },

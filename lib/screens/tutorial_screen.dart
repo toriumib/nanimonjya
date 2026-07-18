@@ -45,30 +45,30 @@ class _TutorialScreenState extends State<TutorialScreen> {
         _TutorialPage(
           guideEmoji: '👦',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? 'まずは「おぼえタイム」！' : 'First: Memorize time!',
+          title: ja ? '📣 なまえコール①：名づけ' : '📣 Name Call ①: Naming',
           body: ja
-              ? 'ゲームがはじまると、みんなの\n顔と名前がしばらく表示されるよ。\n「まゆげが太い→高橋さん」みたいに\n特徴をタグにして覚えるのがコツ🏷️'
-              : "Each game starts by showing\neveryone's face and name.\nTag each face with a feature —\n“thick brows → Takahashi” 🏷️",
-          illustration: '👀📇',
+              ? 'メインモード「なまえコール」は\nはじめに全員の顔に順番に名前をつけるよ。\nつけた名前は「名簿」にひみつで記録📖🔒\nゲームがおわるまで見られない！'
+              : 'In Name Call, you start by naming\nevery face one by one.\nYour names go into a secret roster 📖🔒\nsealed until the game ends!',
+          illustration: '✏️😀',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFE8FFF7)],
         ),
         _TutorialPage(
           guideEmoji: '👧',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? 'カードをめくってペア当て！' : 'Flip cards & match pairs!',
+          title: ja ? '📣 なまえコール②：りょうどり！' : '📣 Name Call ②: Double take!',
           body: ja
-              ? 'カードが裏返ってシャッフル！\n顔カードと名前カードをめくって、\n正しい組み合わせならペアGET🎉\n少ない手数でそろえるほどハイスコア！'
-              : 'The cards flip over — now match\na face card to its name card.\nCorrect pair = yours! 🎉\nFewer moves = higher score!',
-          illustration: '🧠⚡',
+              ? '本編ではランダムに2枚ずつ登場！\n2枚とも名前を思い出せたら\n「りょうどり」で2枚ゲット🎉\n片方だけなら1枚、両方外すと没収💦\nいちばん多くあつめた人の勝ち！'
+              : 'Two random cards appear each round!\nRecall both names = double take,\nboth cards are yours 🎉\nOne name = one card. Miss both? Gone!\nMost cards wins!',
+          illustration: '🃏🃏',
           gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
         ),
         _TutorialPage(
           guideEmoji: '👦',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? 'CPU対戦と記憶術トレーニング' : 'CPU battles & mnemonics',
+          title: ja ? '🃏 ペアさがし＆とっくん' : '🃏 Pair Hunt & Training',
           body: ja
-              ? '🤖 CPUと交代でめくってペア数勝負！\n勝つと段位レーティングがUP📈\n📚「記憶術トレーニング」なら\nタグ付けのコツをガイド付きで練習できるよ'
-              : '🤖 Take turns vs the CPU —\nmost pairs wins & your rating grows 📈\n📚 Mnemonic Training guides you\nthrough real memory techniques!',
+              ? '「ペアさがし」タブは顔と名前の神経衰弱。\nCPU対戦で段位レーティングを上げよう📈\n「とっくん」タブでは記憶術ガイド付きの\n一人特訓で記憶力をきたえられるよ📚'
+              : 'The Pair Hunt tab is face-name\nconcentration — beat the CPU to\nraise your rating 📈 The Training tab\nteaches real mnemonics as you play 📚',
           illustration: '🤖📚',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
         ),

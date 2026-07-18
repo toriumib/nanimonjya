@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart'; // アプリ全体のフォント刷新
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'screens/top_screen.dart'; // トップ画面をインポート
+import 'screens/home_shell.dart'; // タブシェル（ホーム）
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
       ],
       title: 'ペタネーム', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
-      home: const TopScreen(),
+      home: const HomeShell(),
       debugShowCheckedModeBanner: false,
 
       // ★ここから追加: 多言語対応の設定★

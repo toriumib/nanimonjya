@@ -7,6 +7,7 @@ import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
+import 'online_lobby_screen.dart';
 
 /// あそぶモードの選択画面。
 /// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
@@ -19,16 +20,19 @@ class PlayerSelectionScreen extends StatefulWidget {
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
   int _level = 1; // 1..3 → 4/6/8ペア
+  int _localPlayers = 2; // みんなで対戦の人数（2〜4）
 
-  void _start({CpuLevel? cpu, bool mnemonic = false}) {
+  void _start({CpuLevel? cpu, bool mnemonic = false, int humans = 1}) {
     Sfx.instance.pop();
-    Navigator.pushReplacement(
+    // タブシェルの中から呼ばれるので push（シェルを残す）
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => MatchGameScreen(
           cpuLevel: cpu,
           level: _level,
           mnemonicGuide: mnemonic,
+          humanPlayers: humans,
         ),
       ),
     );
@@ -39,7 +43,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     final m = MetaStrings.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(m.modeSelectTitle)),
+      appBar: AppBar(title: Text('🃏 ${m.tabPairs}')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -58,9 +62,11 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                 const SizedBox(height: 16),
                 _levelCard(m),
                 const SizedBox(height: 16),
-                _trainingCard(m),
-                const SizedBox(height: 16),
                 _cpuCard(m),
+                const SizedBox(height: 16),
+                _localMultiCard(m),
+                const SizedBox(height: 16),
+                _onlineCard(m),
                 const SizedBox(height: 14),
                 TextButton.icon(
                   onPressed: () {
@@ -162,43 +168,92 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     );
   }
 
-  Widget _trainingCard(MetaStrings m) {
+  // 🎉 1台のスマホをまわして遊ぶローカル対戦（2〜4人）
+  Widget _localMultiCard(MetaStrings m) {
+    Widget countChip(int n) {
+      final selected = _localPlayers == n;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _localPlayers = n),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFFE8663C) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE8663C), width: 2),
+            ),
+            child: Text(
+              '$n人',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 15,
+                color: selected ? Colors.white : const Color(0xFFE8663C),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            m.soloTrainingTitle,
+            m.localMatchTitle,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Text(
-            m.soloTrainingDesc,
+            m.localMatchDesc,
             style: const TextStyle(fontSize: 12.5, color: Colors.black54),
           ),
+          const SizedBox(height: 10),
+          Row(children: [countChip(2), countChip(3), countChip(4)]),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () => _start(),
+            onPressed: () => _start(humans: _localPlayers),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4ECDC4),
+              backgroundColor: const Color(0xFFE8663C),
               minimumSize: const Size.fromHeight(46),
             ),
-            child: Text(m.soloTrainingStart),
+            child: Text(m.gameStartLabel),
           ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () => _start(mnemonic: true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE8A400),
-              minimumSize: const Size.fromHeight(46),
-            ),
-            child: Text(m.mnemonicTrainingButton),
-          ),
+        ],
+      ),
+    );
+  }
+
+  // 🌐 ペアさがしのオンライン対戦（同時レース）
+  Widget _onlineCard(MetaStrings m) {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.onlineMatchTitle,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
           const SizedBox(height: 4),
-          Text(
-            m.mnemonicTrainingDesc,
-            style: const TextStyle(fontSize: 11.5, color: Colors.black45),
-            textAlign: TextAlign.center,
+          Text(m.onlineRaceDesc,
+              style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Sfx.instance.fanfare();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const OnlineLobbyScreen(game: 'pairs')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF9F45),
+              minimumSize: const Size.fromHeight(46),
+            ),
+            child: Text(m.onlineMatchTitle),
           ),
         ],
       ),
