@@ -2,7 +2,7 @@ name: nanimonjya
 description: ナニモンジャ - 名付け神経衰弱カードゲーム
 publish_to: 'none'
 
-version: 1.2.0+84
+version: 1.3.0+85
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
