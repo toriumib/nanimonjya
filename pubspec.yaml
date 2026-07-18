@@ -1,5 +1,5 @@
 name: nanimonjya
-description: ナニモンジャ - 名付け神経衰弱カードゲーム
+description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
 version: 1.3.0+85
@@ -51,6 +51,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/supporters/
+    - assets/images/faces/
     - assets/audio/
   # ... (他のflutter設定) ...
 

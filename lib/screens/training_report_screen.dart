@@ -3,17 +3,21 @@ import '../l10n/meta_strings.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import 'cognitive_info_screen.dart';
-import 'game_screen.dart';
+import 'match_game_screen.dart';
+import 'memory_tips_screen.dart';
 import 'top_screen.dart';
 
-/// 一人特訓モードの終了後に表示するトレーニングレポート。
-/// 対戦の勝敗ではなく、正答率・反応時間などの自己記録をフィードバックする。
+/// 一人特訓モード（顔と名前の神経衰弱）終了後のトレーニングレポート。
+/// 勝敗ではなく、一致成功率・手数効率・判断時間などの自己記録をフィードバックする。
 class TrainingReportScreen extends StatefulWidget {
-  final int cardsNamed;
-  final int correctQuizzes;
-  final int totalQuizzes;
-  final int avgReactionMs;
-  final int bestStreak;
+  final int cardsNamed; // おぼえた人数（ペア数）
+  final int correctQuizzes; // ペア成立＋ボーナスクイズ正解
+  final int totalQuizzes; // めくり試行＋ボーナスクイズ出題
+  final int avgReactionMs; // 平均判断時間（1枚目→2枚目）
+  final int bestStreak; // 最大連続ペア成立
+  final int level;
+  final bool mnemonicGuide;
+  final int score;
 
   const TrainingReportScreen({
     super.key,
@@ -22,6 +26,9 @@ class TrainingReportScreen extends StatefulWidget {
     required this.totalQuizzes,
     required this.avgReactionMs,
     required this.bestStreak,
+    this.level = 1,
+    this.mnemonicGuide = false,
+    this.score = 0,
   });
 
   @override
@@ -100,9 +107,9 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const GameScreen(
-                        playerCount: 1,
-                        soloTraining: true,
+                      builder: (_) => MatchGameScreen(
+                        level: widget.level,
+                        mnemonicGuide: widget.mnemonicGuide,
                       ),
                     ),
                   );
@@ -117,6 +124,17 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MemoryTipsScreen()),
+                  );
+                },
+                icon: const Icon(Icons.menu_book_rounded),
+                label: Text(m.memoryTipsButton),
+              ),
+              const SizedBox(height: 6),
               OutlinedButton.icon(
                 onPressed: () {
                   Navigator.push(
@@ -153,6 +171,28 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         child: Column(
           children: [
+            if (widget.mnemonicGuide) ...[
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7E0),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  m.mnemonicTrainingButton,
+                  style: const TextStyle(
+                      fontSize: 12.5, fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (widget.score > 0) ...[
+              _statRow('🏅', m.levelLabel, 'Lv.${widget.level}'),
+              const Divider(height: 22),
+              _statRow('✨', 'SCORE', '${widget.score}'),
+              const Divider(height: 22),
+            ],
             _statRow('📇', m.cardsNamedLabel, '${widget.cardsNamed}'),
             const Divider(height: 22),
             _statRow('🎯', m.quizAccuracyLabel, '$_accuracyPct%'),

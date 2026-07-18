@@ -6,8 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
 import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
-import 'player_selection_screen.dart'; // オフラインモード
-import 'online_game_lobby_screen.dart'; // オンラインモード
+import 'player_selection_screen.dart'; // モード選択（特訓・CPU対戦）
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
@@ -15,8 +14,7 @@ import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
-import 'ranking_screen.dart'; // 全体ランキング
-import 'name_album_screen.dart'; // 珍名アルバム
+import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
 
 // 多言語対応のために追加
 
@@ -427,7 +425,7 @@ class _TopScreenState extends State<TopScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const OnlineGameLobbyScreen(),
+                          builder: (context) => const PlayerSelectionScreen(),
                         ),
                       );
                     },
@@ -449,38 +447,7 @@ class _TopScreenState extends State<TopScreen>
                       elevation: 8,
                       shadowColor: const Color(0xAA4ECDC4),
                     ),
-                    child: Text('🌐 ${localizations.playOnline}'),
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: () {
-                      Sfx.instance.fanfare(); // 盛り上がるSE
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PlayerSelectionScreen(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF9F45), // ポップオレンジ
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 20,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        side: const BorderSide(color: Colors.white, width: 3),
-                      ),
-                      elevation: 8,
-                      shadowColor: const Color(0xAAFF9F45),
-                    ),
-                    child: Text('🎮 ${localizations.playOffline}'),
+                    child: Text('🧠 ${MetaStrings.of(context).playButton}'),
                   ),
                   const SizedBox(height: 24),
                   // ★マイページ・戦績（トロフィー）への大きな導線★
@@ -523,53 +490,21 @@ class _TopScreenState extends State<TopScreen>
                     },
                   ),
                   const SizedBox(height: 12),
-                  // 🏅 ランキングへの導線
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Sfx.instance.pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RankingScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.leaderboard, size: 22),
-                    label: Text('🏅 ${MetaStrings.of(context).ranking}'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1E7BA6),
-                      backgroundColor: Colors.white.withOpacity(0.8),
-                      side: const BorderSide(
-                        color: Color(0xFF4FB0DB),
-                        width: 2.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 14,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // 📖 みんなの珍名アルバム
+                  // ※ランキング導線は旧オンラインレーティング前提のためv2.0.0で撤去
+                  //   （新ルールのランキングを実装したら復活させる）
+                  // 📚 名前の覚え方（記憶術の読み物）
                   TextButton.icon(
                     onPressed: () {
                       Sfx.instance.pop();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const NameAlbumScreen(),
+                          builder: (context) => const MemoryTipsScreen(),
                         ),
                       );
                     },
-                    icon: const Text('📖', style: TextStyle(fontSize: 18)),
-                    label: Text(MetaStrings.of(context).nameAlbum),
+                    icon: const Text('📚', style: TextStyle(fontSize: 18)),
+                    label: Text(MetaStrings.of(context).memoryTipsTitle),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFFB4326E),
                       textStyle: const TextStyle(

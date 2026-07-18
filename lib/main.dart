@@ -119,7 +119,7 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
       ],
-      title: 'ナニモンジャ', // アプリタイトル (デフォルト値)
+      title: 'ペタネーム', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
       home: const TopScreen(),
       debugShowCheckedModeBanner: false,

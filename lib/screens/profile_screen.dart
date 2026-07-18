@@ -293,8 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           row(m.gamesPlayed, '${p.totalGames}'),
           row(m.highScore, '${p.highScore}'),
-          row(m.onlineGamesLabel, '${p.onlineGames}'),
-          row(m.onlineWinsLabel, '${p.onlineWins}'),
+          row(m.cpuRatingLabel, '${p.cpuRating}'),
           row(m.bestDaily, '${p.bestDailyStreak}'),
           row(m.bestSession, '${p.bestSessionStreak}'),
           row(m.lifetimeCoins, '${p.lifetimeCoins}'),
@@ -641,13 +640,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             goal: 60,
             reward: 40,
           ),
-          mission(
-            id: 'online1',
-            title: '🌐 ${m.missionOnline1}',
-            progress: p.missionOnline,
-            goal: 1,
-            reward: 50,
-          ),
+          // ※オンライン対戦ミッションはv2.0.0のルール刷新で撤去
         ],
       ),
     );

@@ -104,8 +104,8 @@ class MetaStrings {
   }
 
   String get tagline => ja
-      ? 'なまえで覚える♪ 神経衰弱バトル'
-      : 'Name & Remember! Memory Battle';
+      ? '顔と名前の記憶トレーニング'
+      : 'Face & Name Memory Training';
 
   // 🎁 無料コインチェスト
   String get freeGift => ja ? '動画で無料コイン🎁' : 'Free coins (video) 🎁';
@@ -117,8 +117,8 @@ class MetaStrings {
   String get shareInvite =>
       ja ? '招待リンクを送る' : 'Send invite link';
   String shareInviteText(String code, String link) => ja
-      ? 'ナニモンジャで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
-      : "Let's battle in Nanimonja! 🎮\nRoom code: $code\nTap to join 👇\n$link";
+      ? 'ペタネームで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
+      : "Let's battle in PetaName! 🎮\nRoom code: $code\nTap to join 👇\n$link";
 
   // 離脱
   String get opponentLeftWin => ja
@@ -295,13 +295,13 @@ class MetaStrings {
   String get shareOnX => ja ? 'Xで自慢する' : 'Brag on X';
   // 称号入りでシェア（バズりやすい煽り文＋絵文字）
   String shareWin(int players, int score) => ja
-      ? '【$titleForShare】ナニモンジャ$players人対戦で優勝！🏆 $score点で無双した😎\nキミはなまえ、覚えられる？👇'
-      : '[$titleForShare] Won a $players-player Nanimonja match! 🏆 Crushed it with $score pts 😎\nThink you can remember the names? 👇';
+      ? '【$titleForShare】ペタネームのCPU対戦で勝利！🏆 $score点で無双した😎\nキミは顔と名前、覚えられる？👇'
+      : '[$titleForShare] Beat the CPU in PetaName! 🏆 Crushed it with $score pts 😎\nCan you match the faces to the names? 👇';
   String sharePlayed(int players, int topScore) => ja
-      ? '【$titleForShare】ナニモンジャで白熱の$players人対戦！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🃏\nいっしょにあそぼ👇'
-      : "[$titleForShare] Intense $players-player Nanimonja match! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🃏 Come play 👇";
+      ? '【$titleForShare】ペタネームで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
+      : "[$titleForShare] Training my name-memory in PetaName! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
   String get shareHashtag =>
-      ja ? '#ナニモンジャ #名付け神経衰弱' : '#Nanimonja #NameMemoryGame';
+      ja ? '#ペタネーム #顔と名前の記憶トレ' : '#PetaName #NameMemoryTraining';
   // シェア文に埋め込む現在の称号（シェア直前に設定）。constクラスなのでstatic。
   static String titleForShare = '';
 
@@ -443,8 +443,8 @@ class MetaStrings {
 
   String get soloTrainingTitle => ja ? '🧠 一人特訓モード' : '🧠 Solo Training';
   String get soloTrainingDesc => ja
-      ? '対戦相手なし。自分のペースで記憶力・反応速度をきたえよう！'
-      : 'No opponent — train your memory and reaction speed at your own pace!';
+      ? '対戦相手なし。顔と名前のペア当てで、自分のペースで記憶力をきたえよう！'
+      : 'No opponent — match faces to names and train your memory at your own pace!';
   String get soloTrainingStart => ja ? '特訓スタート！' : 'Start Training!';
   String get cognitiveInfoButton => ja ? '？ 認知トレーニングについて' : '？ About Cognitive Training';
 
@@ -453,10 +453,10 @@ class MetaStrings {
   String get trainingReportIntro => ja
       ? 'おつかれさま！今回の記録はこちら👇'
       : "Nice work! Here's how you did 👇";
-  String get cardsNamedLabel => ja ? 'なまえをつけたカード' : 'Cards named';
-  String get quizAccuracyLabel => ja ? 'クイズ正答率' : 'Quiz accuracy';
-  String get avgReactionLabel => ja ? '平均反応時間' : 'Avg. reaction time';
-  String get bestStreakLabel => ja ? '最大連続正解' : 'Best correct streak';
+  String get cardsNamedLabel => ja ? 'おぼえた人数' : 'People memorized';
+  String get quizAccuracyLabel => ja ? '一致成功率' : 'Match accuracy';
+  String get avgReactionLabel => ja ? '平均判断時間' : 'Avg. decision time';
+  String get bestStreakLabel => ja ? '最大連続ペア' : 'Best pair streak';
   String get playAgainTraining => ja ? 'もう一度特訓する' : 'Train Again';
 
   // 認知傾向コメント（診断ではなく、あくまで励ましのフィードバック）
@@ -477,21 +477,68 @@ class MetaStrings {
       : 'Solo Training and CPU battles are designed to give you a fun way to exercise memory, attention, and reaction speed. Below is a general overview of the cognitive areas these game mechanics relate to.';
   String get cognitiveMemoryTitle => ja ? '作業記憶（ワーキングメモリ）' : 'Working Memory';
   String get cognitiveMemoryBody => ja
-      ? 'カードの絵と自分でつけた名前を一時的に覚え、再登場したときに思い出す課題は、ワーキングメモリを使う課題の一種と考えられています。n-back課題を用いたトレーニング研究（Jaeggiら, 2008年など）では、くり返しの記憶課題によって短期的な課題成績が向上したことが報告されています。'
-      : 'Remembering the picture-name pairing you create, then recalling it when the card reappears, resembles a working-memory task. Training studies using n-back tasks (e.g. Jaeggi et al., 2008) have reported short-term improvements in related memory task performance.';
+      ? 'おぼえタイムで顔と名前の組み合わせを一時的に覚え、カードが裏返ったあとに思い出して一致させる課題は、ワーキングメモリを使う課題の一種と考えられています。n-back課題を用いたトレーニング研究（Jaeggiら, 2008年など）では、くり返しの記憶課題によって短期的な課題成績が向上したことが報告されています。'
+      : 'Holding face-name pairings in mind during the memorize phase, then recalling them once the cards flip over, resembles a working-memory task. Training studies using n-back tasks (e.g. Jaeggi et al., 2008) have reported short-term improvements in related memory task performance.';
   String get cognitiveAttentionTitle => ja ? '選択的注意' : 'Selective Attention';
   String get cognitiveAttentionBody => ja
-      ? '5択クイズでは、似たような名前（おとり）の中から正しい名前を選び出す必要があります。これは、まぎらわしい情報の中から必要な情報を選び取る「選択的注意」に関わる要素を含むとされています。'
-      : 'The 5-choice quiz asks you to pick the correct name from similar-sounding decoys — an element associated with selective attention, or filtering relevant information from distractors.';
+      ? '似た名前カードが並ぶ盤面から正しいペアの位置を選び出す作業は、まぎらわしい情報の中から必要な情報を選び取る「選択的注意」に関わる要素を含むとされています。'
+      : 'Picking the right pair out of a board full of similar name cards involves selective attention — filtering the relevant information from distractors.';
   String get cognitiveSpeedTitle => ja ? '処理速度' : 'Processing Speed';
   String get cognitiveSpeedBody => ja
-      ? 'CPUとの早押しや、時間を意識した回答は、すばやく判断し反応する「処理速度」を使う場面です。処理速度は加齢とともに変化しやすいとされ、日常的に使う機会を持つことの意義が一般的に指摘されています。'
-      : "Racing the CPU or answering with time pressure calls on processing speed — the ability to perceive and react quickly. Processing speed is known to change with age, and staying practiced is commonly cited as worthwhile.";
+      ? '少ない手数・短い時間でのクリアを目指してすばやく判断する場面は、「処理速度」を使う場面です。処理速度は加齢とともに変化しやすいとされ、日常的に使う機会を持つことの意義が一般的に指摘されています。'
+      : 'Aiming to clear the board in fewer moves and less time calls on processing speed — the ability to perceive and decide quickly. Processing speed is known to change with age, and staying practiced is commonly cited as worthwhile.';
   String get cognitiveExecutiveTitle => ja ? '実行機能' : 'Executive Function';
   String get cognitiveExecutiveBody => ja
-      ? '名前を考える（創造）→覚える→思い出す→選ぶ、という一連の切り替えは、複数の認知プロセスを制御する「実行機能」に関連するとされています。'
-      : 'Switching between naming (creativity), memorizing, recalling, and choosing draws on executive function — the set of processes that coordinate other cognitive tasks.';
+      ? '覚える→カードの位置を追う→思い出して選ぶ、という一連の切り替えは、複数の認知プロセスを制御する「実行機能」に関連するとされています。'
+      : 'Switching between memorizing, tracking card positions, and recalling to choose draws on executive function — the set of processes that coordinate other cognitive tasks.';
   String get cognitiveDisclaimer => ja
       ? '※本アプリは医療機器・治療プログラムではなく、認知症等の予防・治療効果を保証するものではありません。効果の感じ方には個人差があります。健康に関するご不安がある場合は医療専門家にご相談ください。'
       : '※ This app is not a medical device or treatment program and does not guarantee any preventive or therapeutic effect for dementia or other conditions. Individual results vary. Please consult a healthcare professional with any health concerns.';
+
+  // 🏷️ ペタネーム: 顔と名前の神経衰弱
+  String get cpuMatchTitle => ja ? '🤖 CPUと神経衰弱' : '🤖 Match vs CPU';
+  String get memorizePrompt =>
+      ja ? 'おぼえタイム！顔と名前をおぼえよう' : 'Memorize the faces & names!';
+  String get memorizeDone => ja ? 'おぼえた！スタート →' : "Got it! Start →";
+  String get attemptsLabel => ja ? '手数' : 'Moves';
+  String get hobbyQuizPrompt =>
+      ja ? '🎨 ボーナス！プロフィールクイズ' : '🎨 Bonus! Profile quiz';
+  String hobbyQuizQuestion(String name) =>
+      ja ? '$nameの趣味は？' : "What is $name's hobby?";
+  String get matchWin => ja ? '🏆 あなたの勝ち！' : '🏆 You win!';
+  String get matchLose => ja ? '🤖 CPUの勝ち…' : '🤖 CPU wins…';
+  String get matchDraw => ja ? '🤝 ひきわけ！' : '🤝 Draw!';
+  String get pairsUnit => ja ? 'ペア' : 'pairs';
+  String get resultTitle => ja ? 'けっか' : 'Result';
+  String get playAgain => ja ? 'もう一回あそぶ' : 'Play Again';
+  String get levelLabel => ja ? 'レベル' : 'Level';
+  String levelDesc(int pairs) =>
+      ja ? '$pairsペア（${pairs * 2}枚）' : '$pairs pairs (${pairs * 2} cards)';
+
+  // 📚 記憶術（名前の覚え方）
+  String get memoryTipsTitle => ja ? '📚 名前の覚え方' : '📚 How to Remember Names';
+  String get memoryTipsDone => ja ? 'とじる' : 'Close';
+  String get memoryTipsButton =>
+      ja ? '📚 名前の覚え方を読む' : '📚 Read: How to Remember Names';
+  String get memoryTipsHeader => ja ? '💡 名前おぼえのコツ' : '💡 Name-memory tip';
+  String get memoryTipsMore => ja ? 'タップで全文を読む' : 'Tap to read more';
+  String get mnemonicTrainingButton =>
+      ja ? '📚 記憶術トレーニング' : '📚 Mnemonic Training';
+  String get mnemonicTrainingDesc => ja
+      ? 'タグ付け法をガイド付きで練習しながら神経衰弱！'
+      : 'Guided tagging practice built into the matching game!';
+  String get mnemonicGuideStep1 => ja
+      ? '💡 ① 顔の特徴を一言タグに（例：まゆげが太い）'
+      : '💡 ① Tag each face with one feature (e.g. "thick brows")';
+  String get mnemonicGuideStep2 => ja
+      ? '💡 ② タグと名前を連想でつなごう（太まゆ→強そう→高橋さん）'
+      : '💡 ② Link tag → name with a mini story';
+  String get modeSelectTitle => ja ? 'あそぶモードをえらぶ' : 'Choose a Mode';
+  String get playButton => ja ? 'トレーニングする' : 'Start Training';
+  String get levelHint => ja
+      ? 'おぼえる人数がふえるほどハイスコアのチャンス！'
+      : 'More people to memorize = bigger score potential!';
+  String get cpuMatchDesc => ja
+      ? '交代でカードをめくって、とったペアの数で勝負！勝つと段位レーティングが上がるよ。'
+      : 'Take turns flipping cards — most pairs wins! Victories raise your rating.';
 }

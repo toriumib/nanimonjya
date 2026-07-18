@@ -165,7 +165,7 @@ const List<PlayerTitle> kPlayerTitles = [
   PlayerTitle('✨', 'なまえの達人', 'Name Master', 300),
   PlayerTitle('🐾', 'わんちゃんトレーナー', 'Dog Trainer', 600),
   PlayerTitle('👑', 'コインマスター', 'Coin Master', 1000),
-  PlayerTitle('🏆', 'ナニモンジャ王', 'Nanimonjya King', 2000),
+  PlayerTitle('🏆', 'ペタネーム王', 'PetaName King', 2000),
 ];
 
 /// 現在の称号（累計コインで決まる）

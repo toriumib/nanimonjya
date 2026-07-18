@@ -35,50 +35,50 @@ class _TutorialScreenState extends State<TutorialScreen> {
         _TutorialPage(
           guideEmoji: '👧',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? 'ナニモンジャへようこそ！' : 'Welcome to Nanimonja!',
+          title: ja ? 'ペタネームへようこそ！' : 'Welcome to PetaName!',
           body: ja
-              ? 'ナニモンジャは「名づけ神経衰弱」！\nはじめて出てきたキャラには、\nすきな名前をつけてあげてね💕'
-              : 'Nanimonja is a name-memory game!\nWhen a new character appears,\ngive it any name you like 💕',
-          illustration: '🃏✨',
+              ? 'ペタネームは「顔と名前の記憶トレーニング」！\n人の名前を覚えるのが苦手…\nそんなあなたのための覚えゲームだよ💕'
+              : 'PetaName is face & name memory training!\nBad with names? This game is\nmade exactly for you 💕',
+          illustration: '🏷️✨',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFFFF6D8)],
         ),
         _TutorialPage(
           guideEmoji: '👦',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? '見たことあるキャラが出たら…' : 'Seen this one before?',
+          title: ja ? 'まずは「おぼえタイム」！' : 'First: Memorize time!',
           body: ja
-              ? 'まえに名前をつけたキャラが出たら、\n名前を思い出していちばんに答えよう！\n正解すると場札をぜんぶゲット🎉'
-              : 'When a named character returns,\nremember its name and answer first!\nCorrect answers win the field cards 🎉',
-          illustration: '🧠⚡',
+              ? 'ゲームがはじまると、みんなの\n顔と名前がしばらく表示されるよ。\n「まゆげが太い→高橋さん」みたいに\n特徴をタグにして覚えるのがコツ🏷️'
+              : "Each game starts by showing\neveryone's face and name.\nTag each face with a feature —\n“thick brows → Takahashi” 🏷️",
+          illustration: '👀📇',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFE8FFF7)],
         ),
         _TutorialPage(
           guideEmoji: '👧',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? 'オンライン対戦のルール' : 'Online battle rules',
+          title: ja ? 'カードをめくってペア当て！' : 'Flip cards & match pairs!',
           body: ja
-              ? '🥇 いちばんのり正解 → 場札を総取り！\n✅ あとから正解でも +1点\n💦 おてつきは −1点だから慎重に！\n⏰ 時間切れに気をつけてね'
-              : '🥇 First correct → take all cards!\n✅ Later correct → +1 point\n💦 Wrong answer → −1, be careful!\n⏰ Watch the timer!',
-          illustration: '⚔️🌐',
+              ? 'カードが裏返ってシャッフル！\n顔カードと名前カードをめくって、\n正しい組み合わせならペアGET🎉\n少ない手数でそろえるほどハイスコア！'
+              : 'The cards flip over — now match\na face card to its name card.\nCorrect pair = yours! 🎉\nFewer moves = higher score!',
+          illustration: '🧠⚡',
           gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
         ),
         _TutorialPage(
           guideEmoji: '👦',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? 'コインをあつめよう！' : 'Collect coins!',
+          title: ja ? 'CPU対戦と記憶術トレーニング' : 'CPU battles & mnemonics',
           body: ja
-              ? 'あそぶとコインがもらえるよ🪙\n🎨 ホームのきせかえ\n🎵 クラシックBGM\n🐶 応援わんちゃん\n📣 チア応援団 がふえていく！'
-              : 'Earn coins by playing 🪙\n🎨 Home themes\n🎵 Classical music\n🐶 Cheer dogs\n📣 Cheer squad — unlock them all!',
-          illustration: '🪙🎁',
+              ? '🤖 CPUと交代でめくってペア数勝負！\n勝つと段位レーティングがUP📈\n📚「記憶術トレーニング」なら\nタグ付けのコツをガイド付きで練習できるよ'
+              : '🤖 Take turns vs the CPU —\nmost pairs wins & your rating grows 📈\n📚 Mnemonic Training guides you\nthrough real memory techniques!',
+          illustration: '🤖📚',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
         ),
         _TutorialPage(
           guideEmoji: '👧👦',
           guideName: ja ? 'ふたりから' : 'From us both',
-          title: ja ? 'さあ、あそぼう！' : "Let's play!",
+          title: ja ? 'さあ、きたえよう！' : "Let's train!",
           body: ja
-              ? '実績をあつめて称号をランクアップ！\nめざせ「ナニモンジャ王」👑\nいっしょにたのしもうね！'
-              : 'Collect achievements, rank up titles,\nand become the Nanimonja King 👑\nHave fun!',
+              ? 'コインできせかえ、実績で称号UP👑\nゲームで身につけたコツは\n明日出会う「あの人」の名前にも\nきっと役立つはず…！'
+              : 'Earn coins, unlock titles 👑\nThe tricks you learn here may help\nwith real names tomorrow!',
           illustration: '🎉🏆',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
         ),

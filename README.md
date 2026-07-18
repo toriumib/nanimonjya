@@ -1,16 +1,26 @@
-# untitled
+# ペタネーム (PetaName)
 
-A new Flutter project.
+顔と名前の記憶トレーニングゲーム。「顔はわかるのに名前が出てこない」を、
+顔カード×名前カードの神経衰弱（ペアマッチング）で楽しくトレーニングするFlutterアプリ。
 
-## Getting Started
+- 🧠 一人特訓（レベル1〜3、手数・タイムでスコア化）
+- 📚 記憶術トレーニング（タグ付け法をガイド付きで実践）
+- 🤖 CPU対戦（交互めくりのペア数勝負、段位レーティング）
+- 📇 「名前の覚え方」記憶術の読み物（タグ付け・映像化・場所法）
 
-This project is a starting point for a Flutter application.
+## 配信
 
-A few resources to get you started if this is your first Flutter project:
+- Android: Google Play `com.nanimonjya`（内部ID。表示名は「ペタネーム」）
+- Web: Vercel / Firebase Hosting
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 開発
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+flutter pub get
+flutter run
+
+# リリースAAB（versionCode自動bump＋署名）
+.\scripts\bump_and_build.ps1
+```
+
+詳細な開発メモは `CLAUDE.md` を参照。

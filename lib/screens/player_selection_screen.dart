@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/cosmetics.dart'; // ホーム着せ替えテーマ（背景グラデーション）
-import '../models/cpu_rank.dart'; // CPU段位
+
+import '../l10n/meta_strings.dart';
+import '../models/cpu_rank.dart';
 import '../services/player_profile.dart';
-import 'cognitive_info_screen.dart'; // 認知トレーニングについて
-import 'game_screen.dart'; // 次の画面
-import '../l10n/meta_strings.dart'; // CPU対戦の文言
+import '../services/sfx.dart';
+import '../widgets/memory_tip_ticker.dart';
+import 'cognitive_info_screen.dart';
+import 'match_game_screen.dart';
 
-// 多言語対応のために追加
-import 'package:nanimonjya/l10n/app_localizations.dart';
-
+/// あそぶモードの選択画面。
+/// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
 class PlayerSelectionScreen extends StatefulWidget {
   const PlayerSelectionScreen({super.key});
 
@@ -17,39 +18,17 @@ class PlayerSelectionScreen extends StatefulWidget {
 }
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
-  // プレイヤー人数を保持する変数。初期値は2人
-  int _playerCount = 2;
+  int _level = 1; // 1..3 → 4/6/8ペア
 
-  // ゲーム開始処理
-  void _startGame() {
-    // GameScreen にプレイヤー人数を渡して遷移
-    Navigator.pushReplacement(
-      // この画面に戻れないように置き換え
-      context,
-      MaterialPageRoute(
-        builder: (context) => GameScreen(playerCount: _playerCount),
-      ),
-    );
-  }
-
-  // 🤖 CPU対戦（ひとりプレイ）開始
-  void _startCpuGame(CpuLevel level) {
+  void _start({CpuLevel? cpu, bool mnemonic = false}) {
+    Sfx.instance.pop();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => GameScreen(playerCount: 2, cpuLevel: level),
-      ),
-    );
-  }
-
-  // 🧠 一人特訓モード開始（対戦相手なし）
-  void _startSoloTraining() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const GameScreen(
-          playerCount: 1,
-          soloTraining: true,
+        builder: (_) => MatchGameScreen(
+          cpuLevel: cpu,
+          level: _level,
+          mnemonicGuide: mnemonic,
         ),
       ),
     );
@@ -57,231 +36,44 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 多言語対応の文字列にアクセスするためのインスタンス
-    final localizations = AppLocalizations.of(context)!;
     final m = MetaStrings.of(context);
-    final homeTheme = homeThemeById(PlayerProfile.instance.selectedTheme);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(localizations.playerCountSelection),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: m.cognitiveInfoButton,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CognitiveInfoScreen()),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(m.modeSelectTitle)),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: homeTheme.gradient,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                // ── 👥 ローカル対戦（同じ端末でみんなで） ──
-                _sectionCard(
-                  color: Colors.white,
-                  child: Column(
-                    children: [
-                      Text(
-                        localizations.selectPlayerCountPrompt,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 10.0,
-                        runSpacing: 10.0,
-                        alignment: WrapAlignment.center,
-                        children: List.generate(5, (index) {
-                          int count = index + 2;
-                          final selected = _playerCount == count;
-                          return ElevatedButton(
-                            onPressed: () => setState(() => _playerCount = count),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  selected ? const Color(0xFF4ECDC4) : Colors.grey.shade300,
-                              foregroundColor: selected ? Colors.white : Colors.black87,
-                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                            ),
-                            child: Text(localizations.players(count)),
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 18),
-                      ElevatedButton(
-                        onPressed: _startGame,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF9F45),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24)),
-                          textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
-                        ),
-                        child: Text(localizations.gameStart),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // ── 🤖 CPU対戦 ──
-                _sectionCard(
-                  color: Colors.white,
-                  child: AnimatedBuilder(
-                    animation: PlayerProfile.instance,
-                    builder: (context, _) {
-                      final profile = PlayerProfile.instance;
-                      final rank = cpuRankForRating(profile.cpuRating);
-                      final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
-                      return Column(
-                        children: [
-                          Text(
-                            m.cpuSectionTitle,
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            m.cpuSectionDesc,
-                            style: const TextStyle(fontSize: 13, color: Colors.black54),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 10),
-                          // 現在のCPU段位バッジ
-                          Container(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3D6),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFE6B54A)),
-                            ),
-                            child: Text(
-                              '${rank.emoji} ${m.ja ? rank.nameJa : rank.nameEn}  '
-                              '${m.cpuRatingLabel} ${profile.cpuRating}',
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF8A6A1E)),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Wrap(
-                            spacing: 10.0,
-                            runSpacing: 10.0,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () => _startCpuGame(CpuLevel.easy),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20)),
-                                ),
-                                child: Text(m.cpuEasy),
-                              ),
-                              ElevatedButton(
-                                onPressed: () => _startCpuGame(CpuLevel.normal),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blueAccent,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20)),
-                                ),
-                                child: Text(m.cpuNormal),
-                              ),
-                              ElevatedButton(
-                                onPressed: () => _startCpuGame(CpuLevel.hard),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20)),
-                                ),
-                                child: Text(m.cpuHard),
-                              ),
-                              oniUnlocked
-                                  ? ElevatedButton(
-                                      onPressed: () => _startCpuGame(CpuLevel.oni),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF8B0000),
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(20)),
-                                      ),
-                                      child: Text(m.cpuOni),
-                                    )
-                                  : Tooltip(
-                                      message: m.oniLockedHint(kOniUnlockRating),
-                                      child: Chip(
-                                        avatar: const Icon(Icons.lock, size: 16),
-                                        label: Text(m.cpuOni),
-                                        backgroundColor: Colors.grey.shade300,
-                                      ),
-                                    ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // ── 🧠 一人特訓モード ──
-                _sectionCard(
-                  color: const Color(0xFFEAF3FF),
-                  borderColor: const Color(0xFF3A7BD5),
-                  child: Column(
-                    children: [
-                      Text(
-                        m.soloTrainingTitle,
-                        style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF3A7BD5)),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        m.soloTrainingDesc,
-                        style: const TextStyle(fontSize: 13, color: Colors.black54),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 14),
-                      ElevatedButton.icon(
-                        onPressed: _startSoloTraining,
-                        icon: const Icon(Icons.self_improvement),
-                        label: Text(m.soloTrainingStart),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3A7BD5),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24)),
-                          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ],
+              children: [
+                const MemoryTipTicker(),
+                const SizedBox(height: 16),
+                _levelCard(m),
+                const SizedBox(height: 16),
+                _trainingCard(m),
+                const SizedBox(height: 16),
+                _cpuCard(m),
+                const SizedBox(height: 14),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CognitiveInfoScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.info_outline, size: 18),
+                  label: Text(m.cognitiveInfoButton),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF1E7BA6),
                   ),
                 ),
               ],
@@ -292,27 +84,196 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     );
   }
 
-  Widget _sectionCard({
-    required Widget child,
-    Color color = Colors.white,
-    Color? borderColor,
-  }) {
+  Widget _card({required Widget child}) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: borderColor != null ? Border.all(color: borderColor, width: 1.5) : null,
+        border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: child,
+    );
+  }
+
+  Widget _levelCard(MetaStrings m) {
+    Widget chip(int level, int pairs) {
+      final selected = _level == level;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _level = level),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFF3A7BD5) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF3A7BD5), width: 2),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Lv.$level',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: selected ? Colors.white : const Color(0xFF3A7BD5),
+                  ),
+                ),
+                Text(
+                  m.levelDesc(pairs),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: selected ? Colors.white : const Color(0xFF3A7BD5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '🎚️ ${m.levelLabel}',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            m.levelHint,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+          const SizedBox(height: 10),
+          Row(children: [chip(1, 4), chip(2, 6), chip(3, 8)]),
+        ],
+      ),
+    );
+  }
+
+  Widget _trainingCard(MetaStrings m) {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            m.soloTrainingTitle,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            m.soloTrainingDesc,
+            style: const TextStyle(fontSize: 12.5, color: Colors.black54),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () => _start(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4ECDC4),
+              minimumSize: const Size.fromHeight(46),
+            ),
+            child: Text(m.soloTrainingStart),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () => _start(mnemonic: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE8A400),
+              minimumSize: const Size.fromHeight(46),
+            ),
+            child: Text(m.mnemonicTrainingButton),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            m.mnemonicTrainingDesc,
+            style: const TextStyle(fontSize: 11.5, color: Colors.black45),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cpuCard(MetaStrings m) {
+    return AnimatedBuilder(
+      animation: PlayerProfile.instance,
+      builder: (context, _) {
+        final profile = PlayerProfile.instance;
+        final rank = cpuRankForRating(profile.cpuRating);
+        final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
+
+        Widget cpuButton(String label, CpuLevel level, Color color,
+            {bool locked = false}) {
+          return ElevatedButton(
+            onPressed: locked ? null : () => _start(cpu: level),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              minimumSize: const Size.fromHeight(44),
+            ),
+            child: Text(locked
+                ? '$label 🔒 ${m.oniLockedHint(kOniUnlockRating)}'
+                : label),
+          );
+        }
+
+        return _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      m.cpuMatchTitle,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3EDFF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF8A5AC2)),
+                    ),
+                    child: Text(
+                      '${rank.emoji} ${m.ja ? rank.nameJa : rank.nameEn} ${profile.cpuRating}',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                m.cpuMatchDesc,
+                style: const TextStyle(fontSize: 12.5, color: Colors.black54),
+              ),
+              const SizedBox(height: 12),
+              cpuButton(m.cpuEasy, CpuLevel.easy, Colors.green),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuNormal, CpuLevel.normal, Colors.blueAccent),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuHard, CpuLevel.hard, Colors.deepPurple),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuOni, CpuLevel.oni, const Color(0xFFC62828),
+                  locked: !oniUnlocked),
+            ],
+          ),
+        );
+      },
     );
   }
 }
