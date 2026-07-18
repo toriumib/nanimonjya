@@ -189,6 +189,10 @@ class MetaStrings {
   String wrongAnswerCpuTook(String correct, int n) => ja
       ? '❌ お手つき！正解は「$correct」。CPUが$n枚総取り！'
       : '❌ Wrong! It was "$correct". CPU took $n cards!';
+  String wrongAnswerReveal(String correct) =>
+      ja ? '❌ おしい！正解は「$correct」でした。' : '❌ So close! It was "$correct".';
+  String get soloQuizPrompt =>
+      ja ? '⚡ このコの名前は…！？' : '⚡ What was the name?!';
   String get cpuLabel => ja ? '🤖 CPU' : '🤖 CPU';
 
   // ナビゲーション
@@ -361,6 +365,20 @@ class MetaStrings {
         return ja ? 'オンラインの覇者' : 'Online Champion';
       case 'random_debut':
         return ja ? '世界へ挑戦' : 'World Challenger';
+      case 'cpu_win_easy':
+        return ja ? 'CPU初勝利' : 'First CPU Win';
+      case 'cpu_win_normal':
+        return ja ? 'ふつうを撃破' : 'Normal Beaten';
+      case 'cpu_win_hard':
+        return ja ? 'つよいを撃破' : 'Hard Beaten';
+      case 'cpu_win_oni':
+        return ja ? '鬼段位撃破' : 'Oni Slayer';
+      case 'quiz_perfect':
+        return ja ? 'パーフェクト記憶' : 'Perfect Recall';
+      case 'fast_reflex':
+        return ja ? '反射神経王' : 'Lightning Reflexes';
+      case 'training_10':
+        return ja ? '特訓の鬼' : 'Training Junkie';
       default:
         return id;
     }
@@ -394,8 +412,86 @@ class MetaStrings {
         return ja ? 'オンライン対戦で20勝した' : 'Won 20 online matches';
       case 'random_debut':
         return ja ? 'ランダムマッチに初参加した' : 'Joined your first random match';
+      case 'cpu_win_easy':
+        return ja ? 'CPU（よわい）に勝った' : 'Beat Easy CPU';
+      case 'cpu_win_normal':
+        return ja ? 'CPU（ふつう）に勝った' : 'Beat Normal CPU';
+      case 'cpu_win_hard':
+        return ja ? 'CPU（つよい）に勝った' : 'Beat Hard CPU';
+      case 'cpu_win_oni':
+        return ja ? 'CPU（おに）に勝った' : 'Beat Oni CPU';
+      case 'quiz_perfect':
+        return ja ? '5問以上のクイズで全問正解した' : 'Answered 5+ quizzes with 100% accuracy';
+      case 'fast_reflex':
+        return ja ? '5問以上で平均1.5秒未満の反応速度だった' : 'Averaged under 1.5s reaction on 5+ quizzes';
+      case 'training_10':
+        return ja ? '一人特訓モードを10回完了した' : 'Completed solo training 10 times';
       default:
         return '';
     }
   }
+
+  // 🧠 CPU段位・一人特訓モード（認知トレーニング）
+  String get cpuOni => ja ? '👹 おに' : '👹 Oni';
+  String get cpuRankLabel => ja ? 'CPU段位' : 'CPU Rank';
+  String get cpuRatingLabel => ja ? 'レーティング' : 'Rating';
+  String oniLockedHint(int rating) => ja
+      ? 'レーティング$rating以上で解禁'
+      : 'Unlocks at rating $rating+';
+  String cpuRatingDelta(int delta) =>
+      delta >= 0 ? '+$delta' : '$delta';
+
+  String get soloTrainingTitle => ja ? '🧠 一人特訓モード' : '🧠 Solo Training';
+  String get soloTrainingDesc => ja
+      ? '対戦相手なし。自分のペースで記憶力・反応速度をきたえよう！'
+      : 'No opponent — train your memory and reaction speed at your own pace!';
+  String get soloTrainingStart => ja ? '特訓スタート！' : 'Start Training!';
+  String get cognitiveInfoButton => ja ? '？ 認知トレーニングについて' : '？ About Cognitive Training';
+
+  // 📊 トレーニングレポート画面
+  String get trainingReportTitle => ja ? '📊 トレーニングレポート' : '📊 Training Report';
+  String get trainingReportIntro => ja
+      ? 'おつかれさま！今回の記録はこちら👇'
+      : "Nice work! Here's how you did 👇";
+  String get cardsNamedLabel => ja ? 'なまえをつけたカード' : 'Cards named';
+  String get quizAccuracyLabel => ja ? 'クイズ正答率' : 'Quiz accuracy';
+  String get avgReactionLabel => ja ? '平均反応時間' : 'Avg. reaction time';
+  String get bestStreakLabel => ja ? '最大連続正解' : 'Best correct streak';
+  String get playAgainTraining => ja ? 'もう一度特訓する' : 'Train Again';
+
+  // 認知傾向コメント（診断ではなく、あくまで励ましのフィードバック）
+  String get skillWorkingMemory => ja ? '🧠 作業記憶' : '🧠 Working Memory';
+  String get skillAttention => ja ? '👀 選択的注意' : '👀 Selective Attention';
+  String get skillSpeed => ja ? '⚡ 処理速度' : '⚡ Processing Speed';
+  String skillCommentGood(String skill) => ja
+      ? '$skillはとても好調でした！このまま続けてみよう。'
+      : '$skill was on fire today! Keep it up.';
+  String skillCommentOk(String skill) => ja
+      ? '$skillは伸びしろあり。くり返し遊ぶとコツがつかめてくるよ。'
+      : "$skill has room to grow — practice tends to help.";
+
+  // 🧠 認知トレーニングについて（説明画面）
+  String get cognitiveInfoTitle => ja ? '🧠 認知トレーニングについて' : '🧠 About Cognitive Training';
+  String get cognitiveInfoIntro => ja
+      ? '一人特訓モードやCPU対戦は、記憶・注意・反応速度を使うゲーム要素を通じて、楽しみながら頭を使う時間を提供することを目指しています。以下はゲームに含まれる要素と、関連するとされる一般的な研究分野の紹介です。'
+      : 'Solo Training and CPU battles are designed to give you a fun way to exercise memory, attention, and reaction speed. Below is a general overview of the cognitive areas these game mechanics relate to.';
+  String get cognitiveMemoryTitle => ja ? '作業記憶（ワーキングメモリ）' : 'Working Memory';
+  String get cognitiveMemoryBody => ja
+      ? 'カードの絵と自分でつけた名前を一時的に覚え、再登場したときに思い出す課題は、ワーキングメモリを使う課題の一種と考えられています。n-back課題を用いたトレーニング研究（Jaeggiら, 2008年など）では、くり返しの記憶課題によって短期的な課題成績が向上したことが報告されています。'
+      : 'Remembering the picture-name pairing you create, then recalling it when the card reappears, resembles a working-memory task. Training studies using n-back tasks (e.g. Jaeggi et al., 2008) have reported short-term improvements in related memory task performance.';
+  String get cognitiveAttentionTitle => ja ? '選択的注意' : 'Selective Attention';
+  String get cognitiveAttentionBody => ja
+      ? '5択クイズでは、似たような名前（おとり）の中から正しい名前を選び出す必要があります。これは、まぎらわしい情報の中から必要な情報を選び取る「選択的注意」に関わる要素を含むとされています。'
+      : 'The 5-choice quiz asks you to pick the correct name from similar-sounding decoys — an element associated with selective attention, or filtering relevant information from distractors.';
+  String get cognitiveSpeedTitle => ja ? '処理速度' : 'Processing Speed';
+  String get cognitiveSpeedBody => ja
+      ? 'CPUとの早押しや、時間を意識した回答は、すばやく判断し反応する「処理速度」を使う場面です。処理速度は加齢とともに変化しやすいとされ、日常的に使う機会を持つことの意義が一般的に指摘されています。'
+      : "Racing the CPU or answering with time pressure calls on processing speed — the ability to perceive and react quickly. Processing speed is known to change with age, and staying practiced is commonly cited as worthwhile.";
+  String get cognitiveExecutiveTitle => ja ? '実行機能' : 'Executive Function';
+  String get cognitiveExecutiveBody => ja
+      ? '名前を考える（創造）→覚える→思い出す→選ぶ、という一連の切り替えは、複数の認知プロセスを制御する「実行機能」に関連するとされています。'
+      : 'Switching between naming (creativity), memorizing, recalling, and choosing draws on executive function — the set of processes that coordinate other cognitive tasks.';
+  String get cognitiveDisclaimer => ja
+      ? '※本アプリは医療機器・治療プログラムではなく、認知症等の予防・治療効果を保証するものではありません。効果の感じ方には個人差があります。健康に関するご不安がある場合は医療専門家にご相談ください。'
+      : '※ This app is not a medical device or treatment program and does not guarantee any preventive or therapeutic effect for dementia or other conditions. Individual results vary. Please consult a healthcare professional with any health concerns.';
 }

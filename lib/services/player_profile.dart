@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
+import '../models/cpu_rank.dart';
 import 'app_analytics.dart';
 import 'daily_reminder.dart';
 
@@ -37,6 +38,21 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedCostumes = {'normal'}; // 応援団の衣装（デフォルトは所持）
   String selectedCostume = 'normal'; // 選択中の応援団衣装
   int dogAffection = 0; // 🐶なつき度（あそぶほど上がる）
+
+  // 🧠 CPU対戦の段位・認知トレーニング統計
+  int cpuRating = 1000; // CPU対戦の段位レーティング
+  int cpuWins = 0;
+  int cpuLosses = 0;
+  int cpuEasyWins = 0;
+  int cpuNormalWins = 0;
+  int cpuHardWins = 0;
+  int cpuOniWins = 0;
+  int bestQuizAccuracyPct = 0; // 1ゲーム内のベスト正答率(0-100)
+  int bestAvgReactionMs = 0; // ベスト平均反応時間(ms)。0は未計測
+  int soloTrainingSessions = 0; // 一人特訓モードの完了回数
+  bool hadPerfectQuiz = false; // 5問以上のクイズで全問正解したことがあるか
+  bool hadFastReflex = false; // 5問以上のクイズで平均反応1.5秒未満だったことがあるか
+  bool reviewPrompted = false; // ストアレビュー依頼を出したか（1回きり）
 
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
@@ -88,6 +104,19 @@ class PlayerProfile extends ChangeNotifier {
     selectedCostume = p.getString('selectedCostume') ?? 'normal';
     if (!unlockedCostumes.contains(selectedCostume)) selectedCostume = 'normal';
     dogAffection = p.getInt('dogAffection') ?? 0;
+    cpuRating = p.getInt('cpuRating') ?? 1000;
+    cpuWins = p.getInt('cpuWins') ?? 0;
+    cpuLosses = p.getInt('cpuLosses') ?? 0;
+    cpuEasyWins = p.getInt('cpuEasyWins') ?? 0;
+    cpuNormalWins = p.getInt('cpuNormalWins') ?? 0;
+    cpuHardWins = p.getInt('cpuHardWins') ?? 0;
+    cpuOniWins = p.getInt('cpuOniWins') ?? 0;
+    bestQuizAccuracyPct = p.getInt('bestQuizAccuracyPct') ?? 0;
+    bestAvgReactionMs = p.getInt('bestAvgReactionMs') ?? 0;
+    soloTrainingSessions = p.getInt('soloTrainingSessions') ?? 0;
+    hadPerfectQuiz = p.getBool('hadPerfectQuiz') ?? false;
+    hadFastReflex = p.getBool('hadFastReflex') ?? false;
+    reviewPrompted = p.getBool('reviewPrompted') ?? false;
     missionDate = p.getString('missionDate') ?? '';
     missionPlays = p.getInt('missionPlays') ?? 0;
     missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
@@ -190,6 +219,94 @@ class PlayerProfile extends ChangeNotifier {
     await _persist();
     notifyListeners();
     return bonus;
+  }
+
+  /// CPU対戦を1戦終えたときに recordGamePlayed に加えて呼ぶ。
+  /// 段位レーティングを増減させ、クイズ正答率・平均反応時間のベストを更新し、
+  /// 新たに解放された実績IDのリストを含めて結果を返す。
+  Future<CpuMatchResult> recordCpuGame({
+    required String level, // 'easy' | 'normal' | 'hard' | 'oni'
+    required bool won,
+    required int correctQuizzes,
+    required int totalQuizzes,
+    required int avgReactionMs,
+  }) async {
+    final before = cpuRating;
+    if (won) {
+      cpuWins += 1;
+      switch (level) {
+        case 'easy':
+          cpuEasyWins += 1;
+          break;
+        case 'normal':
+          cpuNormalWins += 1;
+          break;
+        case 'hard':
+          cpuHardWins += 1;
+          break;
+        case 'oni':
+          cpuOniWins += 1;
+          break;
+      }
+      cpuRating += kCpuWinRatingGain[level] ?? 10;
+    } else {
+      cpuLosses += 1;
+      cpuRating = (cpuRating - kCpuLossRatingLoss).clamp(kCpuRatingFloor, 9999);
+    }
+    _updateQuizStats(correctQuizzes, totalQuizzes, avgReactionMs);
+    final newly = _checkAchievements();
+    await _persist();
+    notifyListeners();
+    AppAnalytics.cpuMatchEnd(
+      level: level,
+      won: won,
+      accuracyPct: totalQuizzes > 0 ? (correctQuizzes * 100 ~/ totalQuizzes) : 0,
+      avgReactionMs: avgReactionMs,
+    );
+    return CpuMatchResult(
+      ratingDelta: cpuRating - before,
+      ratingAfter: cpuRating,
+      newlyUnlockedAchievements: newly,
+    );
+  }
+
+  /// 一人特訓モードを1セッション終えたときに呼ぶ。新規解放実績IDを返す。
+  Future<List<String>> recordSoloTraining({
+    required int correctQuizzes,
+    required int totalQuizzes,
+    required int avgReactionMs,
+  }) async {
+    soloTrainingSessions += 1;
+    _updateQuizStats(correctQuizzes, totalQuizzes, avgReactionMs);
+    final newly = _checkAchievements();
+    await _persist();
+    notifyListeners();
+    AppAnalytics.soloTrainingEnd(
+      accuracyPct: totalQuizzes > 0 ? (correctQuizzes * 100 ~/ totalQuizzes) : 0,
+      avgReactionMs: avgReactionMs,
+    );
+    return newly;
+  }
+
+  void _updateQuizStats(int correctQuizzes, int totalQuizzes, int avgReactionMs) {
+    if (totalQuizzes > 0) {
+      final accuracyPct = (correctQuizzes * 100 ~/ totalQuizzes);
+      if (accuracyPct > bestQuizAccuracyPct) bestQuizAccuracyPct = accuracyPct;
+    }
+    if (avgReactionMs > 0 && (bestAvgReactionMs == 0 || avgReactionMs < bestAvgReactionMs)) {
+      bestAvgReactionMs = avgReactionMs;
+    }
+    // 実績の「最低5問」条件はここでゲートする（1問だけの100%を誤検知させないため）
+    if (totalQuizzes >= 5) {
+      if (correctQuizzes == totalQuizzes) hadPerfectQuiz = true;
+      if (avgReactionMs > 0 && avgReactionMs < 1500) hadFastReflex = true;
+    }
+  }
+
+  /// ストアレビュー依頼を出したことを記録（1回きり）。
+  Future<void> markReviewPrompted() async {
+    reviewPrompted = true;
+    await _persist();
   }
 
   /// ランキング表示名を設定。
@@ -398,6 +515,20 @@ class PlayerProfile extends ChangeNotifier {
         return onlineWins >= 20;
       case 'random_debut':
         return randomMatches >= 1;
+      case 'cpu_win_easy':
+        return cpuEasyWins >= 1;
+      case 'cpu_win_normal':
+        return cpuNormalWins >= 1;
+      case 'cpu_win_hard':
+        return cpuHardWins >= 1;
+      case 'cpu_win_oni':
+        return cpuOniWins >= 1;
+      case 'quiz_perfect':
+        return hadPerfectQuiz;
+      case 'fast_reflex':
+        return hadFastReflex;
+      case 'training_10':
+        return soloTrainingSessions >= 10;
       default:
         return false;
     }
@@ -438,6 +569,19 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('unlockedCostumes', unlockedCostumes.toList());
     await p.setString('selectedCostume', selectedCostume);
     await p.setInt('dogAffection', dogAffection);
+    await p.setInt('cpuRating', cpuRating);
+    await p.setInt('cpuWins', cpuWins);
+    await p.setInt('cpuLosses', cpuLosses);
+    await p.setInt('cpuEasyWins', cpuEasyWins);
+    await p.setInt('cpuNormalWins', cpuNormalWins);
+    await p.setInt('cpuHardWins', cpuHardWins);
+    await p.setInt('cpuOniWins', cpuOniWins);
+    await p.setInt('bestQuizAccuracyPct', bestQuizAccuracyPct);
+    await p.setInt('bestAvgReactionMs', bestAvgReactionMs);
+    await p.setInt('soloTrainingSessions', soloTrainingSessions);
+    await p.setBool('hadPerfectQuiz', hadPerfectQuiz);
+    await p.setBool('hadFastReflex', hadFastReflex);
+    await p.setBool('reviewPrompted', reviewPrompted);
     await p.setString('missionDate', missionDate);
     await p.setInt('missionPlays', missionPlays);
     await p.setInt('missionCoinsEarned', missionCoinsEarned);
@@ -456,4 +600,15 @@ class GameReward {
     required this.sessionStreak,
   });
   int get total => base + streakBonus;
+}
+
+class CpuMatchResult {
+  final int ratingDelta;
+  final int ratingAfter;
+  final List<String> newlyUnlockedAchievements;
+  const CpuMatchResult({
+    required this.ratingDelta,
+    required this.ratingAfter,
+    required this.newlyUnlockedAchievements,
+  });
 }
