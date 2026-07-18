@@ -11,11 +11,14 @@ import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/ad_ids.dart';
 import '../services/app_analytics.dart';
+import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/dog_squad.dart';
+import 'local_result_screen.dart';
 import 'match_result_screen.dart';
-import 'top_screen.dart';
+import 'online_result_screen.dart';
+import 'home_shell.dart';
 import 'training_report_screen.dart';
 
 /// CPU対戦の強さ。CPUの「カード記憶力」と「思考時間」を決める。
@@ -25,18 +28,24 @@ enum CpuLevel { easy, normal, hard, oni }
 ///
 /// - おぼえタイム（記銘）: 人物プロフィールを一定時間表示
 /// - マッチング（想起）: 裏向きカードから顔と名前の正しいペアを探す
-/// - cpuLevel != null なら交互にめくって獲得ペア数を競うCPU対戦
-/// - cpuLevel == null なら一人特訓（手数・タイムを計測しレポートへ）
+/// - cpuLevel != null → 交互にめくって獲得ペア数を競うCPU対戦
+/// - humanPlayers >= 2 → 1台のスマホを回して遊ぶローカル対戦（交互手番）
+/// - online != null → 同じ盤面を同時に解く「オンライン同時レース」
+/// - いずれでもなければ一人特訓（手数・タイムを計測しレポートへ）
 class MatchGameScreen extends StatefulWidget {
   final CpuLevel? cpuLevel;
   final int level; // 1..3 → ペア数 4/6/8
   final bool mnemonicGuide; // 記憶術ガイド（タグ付け誘導）を表示するか
+  final int humanPlayers; // ローカル対戦の人数（1なら一人モード）
+  final OnlineMatchSession? online; // オンライン同時レースのセッション
 
   const MatchGameScreen({
     super.key,
     this.cpuLevel,
     this.level = 1,
     this.mnemonicGuide = false,
+    this.humanPlayers = 1,
+    this.online,
   });
 
   @override
@@ -54,7 +63,9 @@ class _CardData {
 }
 
 class _MatchGameScreenState extends State<MatchGameScreen> {
-  final Random _rng = Random();
+  // オンライン時は共有seedで両端末に同一の盤面を作る
+  late final Random _rng =
+      widget.online != null ? Random(widget.online!.seed) : Random();
   late final List<Person> _people;
   late final List<_CardData> _cards;
 
@@ -66,9 +77,10 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   int? _firstIndex;
   bool _resolving = false; // ミスマッチ戻し中の連打ガード
 
-  // 手番（CPU対戦時のみ意味を持つ。0=あなた, 1=CPU）
+  // 手番（CPU対戦: 0=あなた,1=CPU / ローカル対戦: 0..N-1）
   int _turn = 0;
-  final List<int> _pairsWon = [0, 0];
+  late final List<int> _pairsWon =
+      List.filled(max(2, widget.humanPlayers), 0);
 
   // CPUの記憶: カードindex → 覚えているか
   final Set<int> _cpuMemory = {};
@@ -93,7 +105,20 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   final AudioPlayer _bgmPlayer = AudioPlayer();
 
   bool get _vsCpu => widget.cpuLevel != null;
-  int get _pairCount => switch (widget.level) { 1 => 4, 2 => 6, _ => 8 };
+  bool get _isOnline => widget.online != null;
+  bool get _isLocalMulti => !_vsCpu && !_isOnline && widget.humanPlayers >= 2;
+  bool get _isSolo => !_vsCpu && !_isOnline && !_isLocalMulti;
+  int get _pairCount => _isOnline
+      ? OnlineMatchService.levelPairs
+      : switch (widget.level) { 1 => 4, 2 => 6, _ => 8 };
+
+  String get _modeName => _vsCpu
+      ? 'cpu_match'
+      : _isOnline
+          ? 'online_race'
+          : _isLocalMulti
+              ? 'local_match'
+              : 'solo_match';
 
   @override
   void initState() {
@@ -104,19 +129,34 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     _cards = [
       for (final p in _people) ...[_CardData(p, true), _CardData(p, false)],
     ]..shuffle(_rng);
-    // おぼえタイム: 1ペアあたり3秒 + ガイド時は読み時間を足す
-    _memorizeLeft = _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
-    _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
-      setState(() => _memorizeLeft -= 1);
-      if (_memorizeLeft <= 0) _startPlaying();
-    });
+    if (_isOnline) {
+      // 両端末で共通の締切（サーバー時刻基準）からおぼえタイムを計算
+      _tickOnlineMemorize();
+      _memorizeTimer = Timer.periodic(
+          const Duration(milliseconds: 500), (_) => _tickOnlineMemorize());
+    } else {
+      // おぼえタイム: 1ペアあたり3秒 + ガイド時は読み時間を足す
+      _memorizeLeft = _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
+      _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) return;
+        setState(() => _memorizeLeft -= 1);
+        if (_memorizeLeft <= 0) _startPlaying();
+      });
+    }
     AppAnalytics.gameStart(
-      mode: _vsCpu ? 'cpu_match' : 'solo_match',
-      players: _vsCpu ? 2 : 1,
+      mode: _modeName,
+      players: _vsCpu || _isOnline ? 2 : widget.humanPlayers,
     );
     _loadBanner();
     _startBgm();
+  }
+
+  void _tickOnlineMemorize() {
+    if (!mounted) return;
+    final left =
+        widget.online!.playStartAt.difference(DateTime.now()).inSeconds;
+    setState(() => _memorizeLeft = left.clamp(0, 9999));
+    if (left <= 0) _startPlaying();
   }
 
   Future<void> _startBgm() async {
@@ -164,8 +204,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   }
 
   void _finishBoard() {
-    // 盤面クリア。特訓レベル3+は趣味クイズへ、それ以外は結果へ。
-    if (!_vsCpu && widget.level >= 3) {
+    // 盤面クリア。一人特訓のレベル3+は趣味クイズへ、それ以外は結果へ。
+    if (_isSolo && widget.level >= 3) {
       _quizTargets
         ..clear()
         ..addAll(([..._people]..shuffle(_rng)).take(3));
@@ -211,10 +251,31 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
         ? 0
         : _decisionTimes.reduce((a, b) => a + b) ~/ _decisionTimes.length;
     AppAnalytics.gameEnd(
-      mode: _vsCpu ? 'cpu_match' : 'solo_match',
-      topScore: _vsCpu ? _pairsWon[0] : _soloScore(avgMs),
+      mode: _modeName,
+      topScore: _vsCpu || _isLocalMulti
+          ? _pairsWon.reduce(max)
+          : _soloScore(avgMs),
     );
-    if (_vsCpu) {
+    if (_isOnline) {
+      final session = widget.online!;
+      final elapsedMs = DateTime.now()
+          .difference(session.playStartAt)
+          .inMilliseconds
+          .clamp(0, 1 << 30);
+      session.reportDone(
+          attempts: _attempts, ms: elapsedMs, pairs: _matches);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OnlineResultScreen(
+            session: session,
+            myAttempts: _attempts,
+            myMs: elapsedMs,
+            myPairs: _matches,
+          ),
+        ),
+      );
+    } else if (_vsCpu) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -226,6 +287,16 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
             attempts: _attempts,
             matches: _matches,
             avgDecisionMs: avgMs,
+          ),
+        ),
+      );
+    } else if (_isLocalMulti) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LocalResultScreen(
+            pairsWon: List<int>.from(_pairsWon.take(widget.humanPlayers)),
+            level: widget.level,
           ),
         ),
       );
@@ -296,13 +367,18 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           a.matched = true;
           b.matched = true;
           _resolving = false;
-          if (_vsCpu) _pairsWon[byCpu ? 1 : 0] += 1;
+          if (_vsCpu) {
+            _pairsWon[byCpu ? 1 : 0] += 1;
+          } else if (_isLocalMulti) {
+            _pairsWon[_turn] += 1;
+          }
         });
         if (!byCpu) {
           _matches += 1;
           _streak += 1;
           _bestStreak = max(_bestStreak, _streak);
           Sfx.instance.correct();
+          if (_isOnline) widget.online!.reportProgress(_matches);
         } else {
           Sfx.instance.wrong(); // 相手に取られた合図
         }
@@ -324,7 +400,11 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           a.revealed = false;
           b.revealed = false;
           _resolving = false;
-          if (_vsCpu) _turn = byCpu ? 0 : 1;
+          if (_vsCpu) {
+            _turn = byCpu ? 0 : 1;
+          } else if (_isLocalMulti) {
+            _turn = (_turn + 1) % widget.humanPlayers; // 次の人へ交代
+          }
         });
         if (_vsCpu && !byCpu) _scheduleCpuMove();
       });
@@ -435,9 +515,13 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
         title: Text(
           _vsCpu
               ? m.cpuMatchTitle
-              : (widget.mnemonicGuide
-                  ? m.mnemonicTrainingButton
-                  : m.soloTrainingTitle),
+              : _isOnline
+                  ? m.onlineMatchTitle
+                  : _isLocalMulti
+                      ? m.localMatchTitle
+                      : (widget.mnemonicGuide
+                          ? m.mnemonicTrainingButton
+                          : m.soloTrainingTitle),
         ),
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -567,13 +651,14 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
               },
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _startPlaying,
-              child: Text(m.memorizeDone),
+          if (!_isOnline) // オンラインは共通締切で同時スタート（早抜け不可）
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _startPlaying,
+                child: Text(m.memorizeDone),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -585,7 +670,14 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
-          if (_vsCpu) _scoreBar(m) else _soloBar(m),
+          if (_vsCpu)
+            _scoreBar(m)
+          else if (_isLocalMulti)
+            _localBar(m)
+          else if (_isOnline)
+            _onlineBar(m)
+          else
+            _soloBar(m),
           const SizedBox(height: 10),
           Expanded(
             child: GridView.builder(
@@ -639,6 +731,114 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
         const SizedBox(width: 10),
         chip('🤖 ${m.cpuLabel}', _pairsWon[1], _turn == 1,
             const Color(0xFF8A5AC2)),
+      ],
+    );
+  }
+
+  // ローカル対戦: P1〜P4のスコアチップ（手番の人がハイライト）
+  Widget _localBar(MetaStrings m) {
+    const colors = [
+      Color(0xFF3A7BD5),
+      Color(0xFFE8663C),
+      Color(0xFF2E9E5B),
+      Color(0xFF8A5AC2),
+    ];
+    return Row(
+      children: [
+        for (var i = 0; i < widget.humanPlayers; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: _turn == i ? colors[i] : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: colors[i], width: 2),
+              ),
+              child: Column(
+                children: [
+                  Text('P${i + 1}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: _turn == i ? Colors.white : colors[i])),
+                  Text('${_pairsWon[i]}',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: _turn == i ? Colors.white : colors[i])),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // オンライン同時レース: 自分の進捗 vs 相手の進捗（リアルタイム購読）
+  Widget _onlineBar(MetaStrings m) {
+    Widget chip(String label, int score, Color color) {
+      return Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color, width: 2),
+          ),
+          child: Column(
+            children: [
+              Text(label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: color)),
+              Text('$score/$_pairCount',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: color)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        chip('😀 ${m.you}', _matches, const Color(0xFF3A7BD5)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ValueListenableBuilder<int>(
+            valueListenable: widget.online!.opponentProgress,
+            builder: (context, value, _) => Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF8A5AC2), width: 2),
+              ),
+              child: Column(
+                children: [
+                  Text('🌐 ${widget.online!.opponentName}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF8A5AC2))),
+                  Text('$value/$_pairCount',
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF8A5AC2))),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -779,8 +979,13 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           ),
           TextButton(
             onPressed: () {
+              if (_isOnline) {
+                // 途中離脱は相手の勝ち扱いにしてから抜ける
+                widget.online!.forfeit();
+                widget.online!.dispose();
+              }
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const TopScreen()),
+                MaterialPageRoute(builder: (_) => const HomeShell()),
                 (route) => false,
               );
             },

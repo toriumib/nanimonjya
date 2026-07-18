@@ -6,7 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
 import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
-import 'player_selection_screen.dart'; // モード選択（特訓・CPU対戦）
+import 'name_call_screen.dart'; // メインモード「なまえコール」
+import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
@@ -27,6 +28,47 @@ class TopScreen extends StatefulWidget {
 
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
+  /// みんなで対戦（なまえコール）の人数を選んでスタート
+  void _pickLocalPlayers(BuildContext context) {
+    Sfx.instance.pop();
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              for (final n in [2, 3, 4]) ...[
+                if (n > 2) const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NameCallScreen(humanPlayers: n),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8663C),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text('$n人'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   late AnimationController _controller;
   late Animation<double> _animation;
   late AnimationController _bounceController; // マスコットのぴょこぴょこ
@@ -419,36 +461,108 @@ class _TopScreenState extends State<TopScreen>
               opacity: _animation,
               child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Sfx.instance.fanfare(); // 盛り上がるSE
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PlayerSelectionScreen(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4ECDC4), // ポップシアン
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 20,
+                  // ★メインモード「なまえコール」カード★
+                  Builder(builder: (context) {
+                    final m = MetaStrings.of(context);
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                            color: const Color(0xFF4ECDC4), width: 3),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x334ECDC4),
+                            blurRadius: 12,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
-                      textStyle: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
+                      child: Column(
+                        children: [
+                          Text(
+                            m.nameCallTitle,
+                            style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1E8A82)),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            m.nameCallCatch,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 12.5,
+                                height: 1.5,
+                                color: Colors.black54),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              Sfx.instance.fanfare();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const NameCallScreen()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4ECDC4),
+                              minimumSize: const Size.fromHeight(48),
+                              textStyle: const TextStyle(
+                                  fontSize: 17, fontWeight: FontWeight.w900),
+                            ),
+                            child: Text(m.nameCallSoloButton),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () =>
+                                      _pickLocalPlayers(context),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color(0xFFE8663C),
+                                    minimumSize: const Size.fromHeight(44),
+                                  ),
+                                  child: Text(m.nameCallLocalButton,
+                                      style:
+                                          const TextStyle(fontSize: 13.5)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Sfx.instance.fanfare();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const OnlineLobbyScreen(
+                                                game: 'namecall'),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color(0xFFFF9F45),
+                                    minimumSize: const Size.fromHeight(44),
+                                  ),
+                                  child: Text(m.nameCallOnlineButton,
+                                      style:
+                                          const TextStyle(fontSize: 13.5)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        side: const BorderSide(color: Colors.white, width: 3),
-                      ),
-                      elevation: 8,
-                      shadowColor: const Color(0xAA4ECDC4),
-                    ),
-                    child: Text('🧠 ${MetaStrings.of(context).playButton}'),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 24),
                   // ★マイページ・戦績（トロフィー）への大きな導線★
                   AnimatedBuilder(

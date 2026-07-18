@@ -221,6 +221,36 @@ class PlayerProfile extends ChangeNotifier {
     return bonus;
   }
 
+  /// 新ルールのオンライン対戦（同時レース）を1戦終えたときに
+  /// recordGamePlayed に加えて呼ぶ。勝敗カウント・コイン・段位レーティングを
+  /// 更新し、新規解放実績を含めて結果を返す（引き分け時は呼ばない）。
+  Future<CpuMatchResult> recordOnlineMatch({
+    required bool won,
+    required bool isRandomMatch,
+  }) async {
+    final before = cpuRating;
+    onlineGames += 1;
+    if (won) onlineWins += 1;
+    if (isRandomMatch) randomMatches += 1;
+    _refreshMissions();
+    missionOnline += 1;
+    if (won) {
+      await _addCoins(30); // オンライン勝利ボーナス
+      cpuRating += 25;
+    } else {
+      cpuRating = (cpuRating - 15).clamp(kCpuRatingFloor, 9999);
+    }
+    final newly = _checkAchievements();
+    await _persist();
+    notifyListeners();
+    AppAnalytics.onlineMatchEnd(won: won, isRandomMatch: isRandomMatch);
+    return CpuMatchResult(
+      ratingDelta: cpuRating - before,
+      ratingAfter: cpuRating,
+      newlyUnlockedAchievements: newly,
+    );
+  }
+
   /// CPU対戦を1戦終えたときに recordGamePlayed に加えて呼ぶ。
   /// 段位レーティングを増減させ、クイズ正答率・平均反応時間のベストを更新し、
   /// 新たに解放された実績IDのリストを含めて結果を返す。

@@ -12,12 +12,22 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - `lib/l10n/` — arb + 自動生成。メタ機能の文言は `meta_strings.dart`、記憶術コンテンツは `memory_tips.dart`
 - `assets/images/faces/` — 自前生成のオリジナル顔SVG12種（外部イラストは使用禁止）
 
-## ゲームルール（v2.0.0）
+## ゲームルール（v2.1.0）
+
+### メインモード「なまえコール」（name_call_screen.dart / models/name_call.dart）
+- 完全独自ルール: ①全員の顔に順番に命名 → ②名簿はひみつ（終了まで非公開）→ ③ランダムに2枚ずつ出現 → ④両方言えたら「りょうどり」2枚・片方なら1枚・両方外すと没収 → ⑤獲得枚数勝負
+- 回答は自分がつけた名前群からの4択＋10秒制限。終了時に名簿公開
+- ひとり／1台で2〜4人（命名も交代）／オンライン同時レース対応
+- UIは下部タブ（home_shell.dart）: なまえコール／ペアさがし／とっくん／マイページ
+
+### サブモード「ペアさがし」（match_game_screen.dart）
 - おぼえタイム（人物プロフィール表示・記銘）→ カード裏返し → 顔と名前のペア当て（想起）
 - 一人特訓: レベル1/2/3 = 4/6/8ペア。Lv3は趣味ボーナスクイズ付き。手数・タイムでスコア化
 - 記憶術トレーニング: おぼえタイムにタグ付けガイドを表示する特訓モード
 - CPU対戦: 交互めくり・ペア成立で連続手番・獲得ペア数勝負。難易度4段階（easy/normal/hard/oni、oniはレート1500で解禁）
-- オンライン対戦・ランキング・珍名アルバムは撤去済み（旧コードは削除）。再実装時は新ルールで
+- みんなで対戦（ローカル）: 1台を回して2〜4人の交互手番（`MatchGameScreen(humanPlayers: N)`）
+- オンライン対戦（v2.1.0で復活）: **同時レース方式**。同じseedを配布して両者が同一盤面を同時に解き、手数（同数ならタイム）で勝敗。Firestore `rooms` を再利用し、書き込みは進捗と最終結果のみ（ターン同期なし）。旧Functionsトリガーは `readyPlayerIds`/`imageUrls` が無いので発火しない。ロビーはランダムマッチ＋合言葉6文字
+- 珍名アルバム・旧ランキング画面は撤去のまま
 
 ## ビルド・リリース
 - **Android**: `scripts/bump_and_build.ps1`（versionCode自動+1してAABビルド）。出力: `build/app/outputs/bundle/release/app-release.aab`
@@ -37,5 +47,6 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - フォント: ロゴ=Mochiy Pop One、本文=Zen Maru Gothic（google_fonts経由）
 
 ## 残タスク（要ユーザー対応）
-- ランチャーアイコン・ストアのフィーチャーグラフィック（`store_assets/*.png`）が旧ブランドのまま → 新デザインへの差し替えが必要
-- Firestoreの旧 `rooms`/`rankings` コレクションとCloud Functions（Gemini名前生成/TTS）は新ルールでは未使用 → 課金抑止のため無効化を検討
+- デプロイ済みの旧Cloud Functions（generateSimilarNames/synthesizeSpeech/startGameOnPlayerCount）の削除: `firebase login` 後に `firebase deploy --only functions --force`（ローカルの `function/index.js` は空にしてある）
+- App Check強制化はFirebaseコンソール作業（v2.1.0が行き渡ってから）
+- `firestore.rules` はデプロイ済みのまま変更していない（新オンラインは既存ルールの範囲内で動作する設計）。`funnyNames`/`rankings` のルールは残っているが実害なし

@@ -154,7 +154,7 @@ class MetaStrings {
   String get you => ja ? 'あなた' : 'You';
   String get ranking => ja ? 'ランキング' : 'Ranking';
   String get myRating => ja ? 'あなたのレート' : 'Your rating';
-  String get nicknameLabel => ja ? 'ランキング表示名' : 'Display name';
+  String get nicknameLabel => ja ? 'ニックネーム' : 'Nickname';
   String get save => ja ? '保存' : 'Save';
   String get nameSaved => ja ? '表示名を保存したよ！' : 'Name saved!';
   String get rankingTop50 =>
@@ -541,4 +541,85 @@ class MetaStrings {
   String get cpuMatchDesc => ja
       ? '交代でカードをめくって、とったペアの数で勝負！勝つと段位レーティングが上がるよ。'
       : 'Take turns flipping cards — most pairs wins! Victories raise your rating.';
+
+  // 🎉 ローカル対戦（1台でみんなで）
+  String get localMatchTitle => ja ? '🎉 みんなで対戦' : '🎉 Party Match';
+  String get localMatchDesc => ja
+      ? '1台のスマホをまわして2〜4人で神経衰弱バトル！ペアをとったらもう1回めくれるよ。'
+      : 'Pass one phone around — 2-4 players take turns! Match a pair to go again.';
+  String localWinner(String name) =>
+      ja ? '🏆 $name の勝ち！' : '🏆 $name wins!';
+
+  // 🌐 オンライン同時レース
+  String get onlineMatchTitle => ja ? '🌐 オンライン対戦' : '🌐 Online Match';
+  String get onlineRaceDesc => ja
+      ? '世界のだれかと同じ盤面を同時にプレイ！少ない手数（同じならタイム）でクリアした方の勝ち。'
+      : 'Race someone on the identical board! Fewer moves wins (time breaks ties).';
+  String get friendMatchTitle => ja ? '友だちと対戦' : 'Play with a friend';
+  String get createRoomButton =>
+      ja ? '合言葉をつくって招待する' : 'Create a room code';
+  String get enterCodeLabel => ja ? '合言葉（6文字）' : 'Room code (6 chars)';
+  String get joinButton => ja ? '入室' : 'Join';
+  String get shareCodePrompt => ja
+      ? 'この合言葉を友だちに送ってね（入力してもらうと対戦開始）'
+      : 'Send this code to your friend to start the match';
+  String shareCodeText(String code) => ja
+      ? 'ペタネームで対戦しよう！🏷️\nアプリのオンライン対戦で合言葉「$code」を入力してね！'
+      : 'Race me in PetaName! 🏷️\nEnter room code "$code" in Online Match!';
+  String get roomNotFound => ja
+      ? 'その合言葉のへやが見つかりませんでした'
+      : 'No room found with that code';
+  String waitingOpponentFinish(String name) => ja
+      ? '$name がプレイ中…\nおわるまでちょっと待ってね'
+      : '$name is still playing…\nHang tight!';
+  String get opponentForfeited => ja ? 'とちゅう離脱' : 'Forfeited';
+  String get gameStartLabel => ja ? 'ゲームスタート！' : 'Start Game!';
+
+  // 📣 メインモード「なまえコール」
+  String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
+  String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
+  String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
+  String get tabTraining => ja ? 'とっくん' : 'Training';
+  String get tabMyPage => ja ? 'マイページ' : 'My Page';
+  String get nameCallCatch => ja
+      ? 'ぜんいんに名前をつけて名簿はひみつ。2枚同時に出てきたら…両方言えたら「りょうどり」！'
+      : 'Name everyone, seal the roster. Two cards appear — recall both to sweep them!';
+  String get nameCallRule => ja
+      ? '① はじめに全員の顔を見て、順番にすきな名前をつける\n'
+          '② つけた名前は「名簿」にひみつで記録（終了までみられない）\n'
+          '③ 本編ではランダムに2枚ずつカードが登場\n'
+          '④ 2枚とも名前を思い出せたら「りょうどり」で2枚ゲット！片方だけなら1枚\n'
+          '⑤ どちらも外すと没収…。獲得枚数がいちばん多い人の勝ち！'
+      : '① Look at every face and give each one a name\n'
+          '② Names are sealed in a hidden roster until the end\n'
+          '③ Two random cards appear each round\n'
+          '④ Recall both names = sweep both cards! One name = one card\n'
+          '⑤ Miss both and they are discarded. Most cards wins!';
+  String namingProgress(int n, int total) =>
+      ja ? '$n人目 / $total人：この子に名前をつけよう！' : 'Person $n of $total: give them a name!';
+  String namingTurnPlayer(String p) =>
+      ja ? '$p が名づけ中' : "$p's turn to name";
+  String get nameFieldLabel => ja ? 'なまえ（8文字まで）' : 'Name (max 8 chars)';
+  String get namingNext => ja ? 'つけた！' : 'Done!';
+  String get namingHint => ja
+      ? '💡 つけた名前は名簿にひみつで記録されるよ。あとで2枚ずつ出てくるから、顔と名前をむすびつけて覚えてね！'
+      : '💡 Names are sealed in a secret roster. Cards come back two at a time — link each face to its name!';
+  String get rosterSealed => ja
+      ? '名簿を封印！\nここからは記憶だけがたより…'
+      : 'Roster sealed!\nFrom here on, memory is all you have…';
+  String get whoIsThis => ja ? 'この子のなまえは？' : 'What did you name them?';
+  String get ryoudori => ja ? '🎉 りょうどり！2枚ゲット！' : '🎉 Double take! Both cards!';
+  String get katadori => ja ? '✨ 1枚ゲット！' : '✨ Got one card!';
+  String get missAll => ja ? '💦 おてつき…2枚とも没収' : '💦 Missed… cards discarded';
+  String get rosterReveal => ja ? '📖 名簿公開！' : '📖 Roster revealed!';
+  String get rosterRevealDesc => ja
+      ? 'きみがつけた名前はこちら。おぼえてた？'
+      : 'Here are the names you gave. How did you do?';
+  String get ryoudoriLabel => ja ? 'りょうどり' : 'Double takes';
+  String get cardsWonLabel => ja ? 'かくとく' : 'Cards';
+  String get cardsUnit => ja ? '枚' : 'cards';
+  String get toResultButton => ja ? 'けっかを見る →' : 'See results →';
+  String get nameCallSoloButton => ja ? '🧠 ひとりで' : '🧠 Solo';
+  String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
+  String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
 }

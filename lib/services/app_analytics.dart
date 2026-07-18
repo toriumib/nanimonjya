@@ -68,5 +68,14 @@ class AppAnalytics {
         'avg_reaction_ms': avgReactionMs,
       });
 
+  static void onlineMatchEnd({
+    required bool won,
+    required bool isRandomMatch,
+  }) =>
+      _log('online_match_end', {
+        'won': won,
+        'random': isRandomMatch,
+      });
+
   static void reviewPromptShown() => _log('review_prompt_shown');
 }
