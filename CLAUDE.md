@@ -19,7 +19,7 @@
 
 ## 重要な決まりごと
 - versionCode はPlay Consoleで既に~57まで使用済み。必ずbumpスクリプトを使う
-- AdMob本番ID: App `ca-app-pub-6744940157577324~9444754212`, Banner `/4880687935`, Rewarded `/9009716197`（`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）
+- AdMob本番ID: App `ca-app-pub-6744940157577324~1059924160`, Banner `/4880687935`, Rewarded `/9009716197`（`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）。App IDは`AndroidManifest.xml`が正
 - `dart:io` の `Platform` は使用禁止（Webでクラッシュ）。`kIsWeb`/`defaultTargetPlatform` を使う
 - 広告関連は全て `kIsWeb` ガード必須（google_mobile_adsはWeb非対応）
 - アプリ内表記は「ナニモンジャ」で統一（「ナンジャモンジャ」は商標配慮で使わない）
