@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../components/ad_mob.dart'; // AdMobクラスを別ファイルに
 import 'result_screen.dart'; // 結果表示画面
 import 'top_screen.dart'; // ホームへ確実に戻るため
+import 'training_report_screen.dart'; // 一人特訓モードのレポート画面
 import 'package:just_audio/just_audio.dart'; // BGM用にjust_audioを追加
 import '../services/player_profile.dart'; // 選択中BGMの参照
 import '../services/app_analytics.dart'; // プレイ行動の分析ログ
@@ -12,17 +13,23 @@ import '../l10n/meta_strings.dart'; // やめる等のナビ文言
 import '../services/sfx.dart'; // 正解/不正解SE（CPU対戦クイズ用）
 
 // 多言語対応のために追加
-import 'package:untitled/l10n/app_localizations.dart'; // ★パス修正済み★
+import 'package:nanimonjya/l10n/app_localizations.dart';
 
-/// CPU対戦の強さ。かんたん/ふつう/つよいで記憶力と反応速度が変わる。
-enum CpuLevel { easy, normal, hard }
+/// CPU対戦の強さ。かんたん/ふつう/つよい/おにで記憶力と反応速度が変わる。
+/// oniは段位レーティングが一定以上でのみ選択可能（player_selection_screen側で判定）。
+enum CpuLevel { easy, normal, hard, oni }
 
 class GameScreen extends StatefulWidget {
   final int playerCount; // プレイヤー人数を受け取る
   final CpuLevel? cpuLevel; // nullでなければ「あなた vs CPU」の一人プレイ
+  final bool soloTraining; // trueなら対戦相手なしの一人特訓モード（cpuLevelとは排他）
 
-  const GameScreen({Key? key, required this.playerCount, this.cpuLevel})
-      : super(key: key);
+  const GameScreen({
+    Key? key,
+    required this.playerCount,
+    this.cpuLevel,
+    this.soloTraining = false,
+  }) : super(key: key);
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -62,6 +69,19 @@ class _GameScreenState extends State<GameScreen> {
   bool _advancing = false; // 命名直後の二重タップ防止
   Timer? _cpuTimer; // CPUの「思い出すまでの時間」タイマー
 
+  // 🧠 命名→5択クイズの流れはCPU対戦・一人特訓モードの両方で使う
+  bool get _hasNamingQuiz => _vsCpu || widget.soloTraining;
+  // 反応時間・正答率の計測（CPUの段位計算・トレーニングレポートに使用）
+  DateTime? _quizShownAt;
+  int _correctQuizzes = 0;
+  int _totalQuizzes = 0;
+  int _currentCorrectStreak = 0;
+  int _bestCorrectStreak = 0;
+  final List<int> _reactionTimesMs = [];
+  int get _avgReactionMs => _reactionTimesMs.isEmpty
+      ? 0
+      : _reactionTimesMs.reduce((a, b) => a + b) ~/ _reactionTimesMs.length;
+
   // 偽名プール（おなまえガチャと組み合わせて選択肢を作る）
   static const List<String> _fakeNamePoolJa = [
     'モグモグ', 'ピカリン', 'フワッチ', 'ギザモン', 'ポンタ',
@@ -83,7 +103,7 @@ class _GameScreenState extends State<GameScreen> {
     _initializeGame();
     _startBGM(); // BGM再生を開始
     AppAnalytics.gameStart(
-      mode: _vsCpu ? 'cpu' : 'offline',
+      mode: widget.soloTraining ? 'solo_training' : (_vsCpu ? 'cpu' : 'offline'),
       players: widget.playerCount,
     );
   }
@@ -164,30 +184,55 @@ class _GameScreenState extends State<GameScreen> {
     final decoys = _decoyCache[imagePath] ?? _buildDecoys(correct);
     _quizChoices = [correct, ...decoys.take(4)]..shuffle(_random);
     _answerLocked = false;
+    _quizShownAt = DateTime.now(); // 反応時間の計測開始
   }
 
-  /// 選択肢がタップされた時。正解ならあなたが総取り、間違いならCPUが総取り。
+  /// 選択肢がタップされた時。正解ならあなたが総取り、間違いなら
+  /// （CPU対戦なら）CPUが総取り／（一人特訓なら）誰も取らず次のカードへ。
   void _answerQuiz(String selected) {
     final img = _currentImagePath;
     if (img == null || !_canSelectPlayer || _answerLocked) return;
+    final reactionMs = _quizShownAt != null
+        ? DateTime.now().difference(_quizShownAt!).inMilliseconds
+        : 0;
+    _totalQuizzes += 1;
     if (selected == _characterNames[img]) {
+      _correctQuizzes += 1;
+      _currentCorrectStreak += 1;
+      if (_currentCorrectStreak > _bestCorrectStreak) {
+        _bestCorrectStreak = _currentCorrectStreak;
+      }
+      _reactionTimesMs.add(reactionMs);
       Sfx.instance.correct();
       _awardPoints(0);
     } else {
+      _currentCorrectStreak = 0;
+      _reactionTimesMs.add(reactionMs);
       Sfx.instance.wrong();
       setState(() => _answerLocked = true);
       final correct = _characterNames[img] ?? '';
       final taken = _fieldCards.length;
       _cpuTimer?.cancel();
-      // お手つき: CPUに総取りされる（正解を見せて記憶を助ける）
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(MetaStrings.of(context).wrongAnswerCpuTook(correct, taken)),
-          duration: const Duration(milliseconds: 2000),
-        ),
-      );
-      _awardPoints(1);
+      if (widget.soloTraining) {
+        // 一人特訓モードにCPUはいないので、正解を見せて次のカードへ進むだけ
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(MetaStrings.of(context).wrongAnswerReveal(correct)),
+            duration: const Duration(milliseconds: 2000),
+          ),
+        );
+        _skipCard();
+      } else {
+        // お手つき: CPUに総取りされる（正解を見せて記憶を助ける）
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                MetaStrings.of(context).wrongAnswerCpuTook(correct, taken)),
+            duration: const Duration(milliseconds: 2000),
+          ),
+        );
+        _awardPoints(1);
+      }
     }
   }
 
@@ -199,6 +244,7 @@ class _GameScreenState extends State<GameScreen> {
       CpuLevel.easy => (0.30, 0.05, 0.55),
       CpuLevel.normal => (0.50, 0.08, 0.80),
       CpuLevel.hard => (0.65, 0.10, 0.95),
+      CpuLevel.oni => (0.75, 0.12, 0.97),
     };
     return (base + perExposure * (seen - 1)).clamp(0.0, cap);
   }
@@ -208,6 +254,7 @@ class _GameScreenState extends State<GameScreen> {
       CpuLevel.easy => (2600, 4200),
       CpuLevel.normal => (1900, 3200),
       CpuLevel.hard => (1300, 2400),
+      CpuLevel.oni => (900, 1800),
     };
     return Duration(milliseconds: minMs + _random.nextInt(maxMs - minMs));
   }
@@ -273,8 +320,10 @@ class _GameScreenState extends State<GameScreen> {
       if (_seenImages.contains(_currentImagePath)) {
         _isFirstAppearance = false;
         _canSelectPlayer = true; // 見たことあるカードならプレイヤー選択可能
-        if (_vsCpu) {
+        if (_hasNamingQuiz) {
           _prepareQuiz(_currentImagePath!); // 名前当ての5択を組み立てる
+        }
+        if (_vsCpu) {
           _startCpuRace(_currentImagePath!); // 🤖 CPUも思い出しに挑戦
         }
       } else {
@@ -324,6 +373,26 @@ class _GameScreenState extends State<GameScreen> {
     _cpuTimer?.cancel();
     // 最後の場札が残っている場合、ルールに応じて処理（例：誰も獲得しない）
     _fieldCards.clear();
+    final avgReaction = _avgReactionMs;
+
+    // 🧠 一人特訓モード: 対戦結果ではなくトレーニングレポートへ
+    if (widget.soloTraining) {
+      AppAnalytics.gameEnd(mode: 'solo_training', topScore: _scores.reduce(max));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TrainingReportScreen(
+            cardsNamed: _characterNames.length,
+            correctQuizzes: _correctQuizzes,
+            totalQuizzes: _totalQuizzes,
+            avgReactionMs: avgReaction,
+            bestStreak: _bestCorrectStreak,
+          ),
+        ),
+      );
+      return;
+    }
+
     AppAnalytics.gameEnd(
       mode: _vsCpu ? 'cpu' : 'offline',
       topScore: _scores.reduce(max),
@@ -337,6 +406,10 @@ class _GameScreenState extends State<GameScreen> {
           scores: _scores,
           playerCount: widget.playerCount,
           vsCpu: _vsCpu,
+          cpuLevel: widget.cpuLevel,
+          correctQuizzes: _correctQuizzes,
+          totalQuizzes: _totalQuizzes,
+          avgReactionMs: avgReaction,
         ),
       ),
     );
@@ -553,8 +626,8 @@ class _GameScreenState extends State<GameScreen> {
 
     final m = MetaStrings.of(context);
 
-    // 🤖 CPU対戦・初登場カード: 名前をつける（本家ルールの核心！）
-    if (_vsCpu &&
+    // 🤖 CPU対戦・一人特訓モード・初登場カード: 名前をつける（本家ルールの核心！）
+    if (_hasNamingQuiz &&
         _isFirstAppearance &&
         _currentImagePath != null &&
         !_advancing &&
@@ -617,12 +690,12 @@ class _GameScreenState extends State<GameScreen> {
 
     // プレイヤー選択が可能な状態の場合 (見たことあるカードが出た場合)
     if (_canSelectPlayer) {
-      // 🤖 CPU対戦・再登場カード: 名前当て5択クイズ（CPUとの早押し勝負）
-      if (_vsCpu) {
+      // 🤖 CPU対戦・再登場カード: 名前当て5択クイズ（CPUとの早押し勝負／一人特訓は自己ベスト勝負）
+      if (_hasNamingQuiz) {
         return Column(
           children: [
             Text(
-              m.whatWasTheName,
+              widget.soloTraining ? m.soloQuizPrompt : m.whatWasTheName,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

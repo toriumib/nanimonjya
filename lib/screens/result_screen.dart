@@ -2,15 +2,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreのために追加
 import 'package:confetti/confetti.dart';
+import 'package:in_app_review/in_app_review.dart'; // ストアレビュー依頼
 import 'package:just_audio/just_audio.dart'; // リザルトBGM用
-import 'package:untitled/l10n/app_localizations.dart';
+import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/cosmetics.dart'; // 称号のランクアップ判定
+import '../models/cpu_rank.dart'; // CPU段位の表示
+import '../services/app_analytics.dart';
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/ranking_service.dart'; // レート変動の表示定数
 import '../services/sfx.dart';
+import 'game_screen.dart'; // CpuLevel
 import 'top_screen.dart'; // ホームへ確実に戻るため
 import 'player_selection_screen.dart'; // オフラインの最初の画面に戻るため
 import 'online_game_screen.dart'; // オンラインの再戦に戻るため
@@ -26,6 +30,10 @@ class ResultScreen extends StatefulWidget {
   final bool isRandomMatch; // ランダムマッチだったか
   final bool opponentLeft; // 相手が離脱してこちらの勝ちになったか
   final bool vsCpu; // 🤖 CPU対戦（プレイヤー1=あなた, 2=CPU）
+  final CpuLevel? cpuLevel; // CPU対戦時の難易度（段位レーティング計算に使用）
+  final int correctQuizzes; // CPU対戦中のクイズ正解数
+  final int totalQuizzes; // CPU対戦中のクイズ出題数
+  final int avgReactionMs; // CPU対戦中の平均反応時間(ms)
 
   const ResultScreen({
     Key? key,
@@ -38,6 +46,10 @@ class ResultScreen extends StatefulWidget {
     this.isRandomMatch = false,
     this.opponentLeft = false,
     this.vsCpu = false,
+    this.cpuLevel,
+    this.correctQuizzes = 0,
+    this.totalQuizzes = 0,
+    this.avgReactionMs = 0,
   }) : super(key: key);
 
   @override
@@ -54,6 +66,8 @@ class _ResultScreenState extends State<ResultScreen> {
   int _onlineWinBonus = 0; // オンライン勝利ボーナス
   bool _doubled = false; // リワード広告で2倍済みか
   final int _tipSeed = Random().nextInt(100000); // 表示するTipsを固定するための種
+  int? _cpuRatingDelta; // CPU対戦時の段位レーティング増減（nullなら非対象）
+  int _cpuRatingAfter = 0;
 
   // オンラインで自分が勝ったか（myIndex が渡されている時のみ判定可能）
   bool get _wonOnline {
@@ -96,11 +110,13 @@ class _ResultScreenState extends State<ResultScreen> {
     final maxScore = widget.scores.isEmpty
         ? 0
         : widget.scores.reduce((a, b) => a > b ? a : b);
+    final cpuWon = widget.vsCpu &&
+        widget.scores.length >= 2 &&
+        widget.scores[0] > widget.scores[1];
 
     final titleBefore = currentTitle(profile.lifetimeCoins);
     final reward = await profile.recordGamePlayed(maxScore);
-    // オンライン対戦の戦績記録（勝利ボーナス付き）。トロフィー判定は
-    // 直後の refreshAchievements がまとめて行う。
+    // オンライン対戦の戦績記録（勝利ボーナス付き）。
     int onlineBonus = 0;
     if (widget.isOnline) {
       onlineBonus = await profile.recordOnlineGame(
@@ -108,7 +124,24 @@ class _ResultScreenState extends State<ResultScreen> {
         isRandomMatch: widget.isRandomMatch,
       );
     }
-    final newAchievements = await profile.refreshAchievements();
+
+    // 実績判定: CPU対戦なら recordCpuGame が段位レーティングとあわせて判定、
+    // それ以外は refreshAchievements() が判定する（二重判定は避ける）。
+    List<String> newAchievements;
+    if (widget.vsCpu && widget.cpuLevel != null) {
+      final cpuResult = await profile.recordCpuGame(
+        level: widget.cpuLevel!.name,
+        won: cpuWon,
+        correctQuizzes: widget.correctQuizzes,
+        totalQuizzes: widget.totalQuizzes,
+        avgReactionMs: widget.avgReactionMs,
+      );
+      newAchievements = cpuResult.newlyUnlockedAchievements;
+      _cpuRatingDelta = cpuResult.ratingDelta;
+      _cpuRatingAfter = cpuResult.ratingAfter;
+    } else {
+      newAchievements = await profile.refreshAchievements();
+    }
     final titleAfter = currentTitle(profile.lifetimeCoins);
 
     if (!mounted) return;
@@ -154,6 +187,20 @@ class _ResultScreenState extends State<ResultScreen> {
             duration: const Duration(seconds: 3),
           ),
         );
+      });
+      delayMs += 2200;
+    }
+
+    // 📝 CPU勝利かつ一定プレイ数を超えたら、1回だけストアレビューを依頼
+    if (cpuWon && !profile.reviewPrompted && profile.totalGames >= 5) {
+      Future.delayed(Duration(milliseconds: delayMs), () async {
+        if (!mounted) return;
+        final inAppReview = InAppReview.instance;
+        if (await inAppReview.isAvailable()) {
+          await profile.markReviewPrompted();
+          AppAnalytics.reviewPromptShown();
+          inAppReview.requestReview();
+        }
       });
     }
   }
@@ -449,6 +496,11 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                     ),
                   ],
+                  // 🧠 CPU対戦の段位レート変動バナー
+                  if (_cpuRatingDelta != null) ...[
+                    const SizedBox(height: 12),
+                    _cpuRankBanner(m),
+                  ],
                   const SizedBox(height: 24),
 
                   Text(
@@ -736,6 +788,32 @@ class _ResultScreenState extends State<ResultScreen> {
             style: const TextStyle(fontSize: 15, height: 1.4),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _cpuRankBanner(MetaStrings m) {
+    final delta = _cpuRatingDelta ?? 0;
+    final rank = cpuRankForRating(_cpuRatingAfter);
+    final positive = delta >= 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: positive ? const Color(0xFFE3F7E8) : const Color(0xFFFDE7E7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: positive ? const Color(0xFF6BBF7E) : const Color(0xFFE79A9A),
+          width: 1.5,
+        ),
+      ),
+      child: Text(
+        '${rank.emoji} ${m.ja ? rank.nameJa : rank.nameEn}  ${m.cpuRatingLabel} ${m.cpuRatingDelta(delta)}',
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w900,
+          color: positive ? const Color(0xFF2E8B4E) : const Color(0xFFC0392B),
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

@@ -22,4 +22,12 @@ const List<Achievement> kAchievements = [
   Achievement('online_win5', '🏅', 200),
   Achievement('online_win20', '🏆', 500),
   Achievement('random_debut', '🎲', 80),
+  // 🧠 CPU対戦・認知トレーニング
+  Achievement('cpu_win_easy', '🎮', 30),
+  Achievement('cpu_win_normal', '🥋', 60),
+  Achievement('cpu_win_hard', '🔥', 120),
+  Achievement('cpu_win_oni', '👹', 250),
+  Achievement('quiz_perfect', '💯', 100),
+  Achievement('fast_reflex', '⚡', 80),
+  Achievement('training_10', '🏋️', 150),
 ];

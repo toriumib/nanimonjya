@@ -44,4 +44,29 @@ class AppAnalytics {
       _log('daily_bonus_claimed', {'streak': streak});
 
   static void notificationTapped() => _log('daily_reminder_open');
+
+  // ── CPU対戦・認知トレーニング ──
+  static void cpuMatchEnd({
+    required String level,
+    required bool won,
+    required int accuracyPct,
+    required int avgReactionMs,
+  }) =>
+      _log('cpu_match_end', {
+        'level': level,
+        'won': won,
+        'accuracy_pct': accuracyPct,
+        'avg_reaction_ms': avgReactionMs,
+      });
+
+  static void soloTrainingEnd({
+    required int accuracyPct,
+    required int avgReactionMs,
+  }) =>
+      _log('solo_training_end', {
+        'accuracy_pct': accuracyPct,
+        'avg_reaction_ms': avgReactionMs,
+      });
+
+  static void reviewPromptShown() => _log('review_prompt_shown');
 }
