@@ -1,11 +1,11 @@
 {
-    "name": "ナニモンジャ〜なまえで覚える神経衰弱バトル〜",
-    "short_name": "ナニモンジャ",
+    "name": "ペタネーム〜顔と名前の記憶トレーニング〜",
+    "short_name": "ペタネーム",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF9EC",
-    "theme_color": "#FF4FA3",
-    "description": "なまえで覚える神経衰弱バトル！名づけ×記憶の新感覚パーティゲーム",
+    "theme_color": "#3A7BD5",
+    "description": "顔と名前の記憶トレーニング！人の名前を覚えるのが苦手な人のための神経衰弱ゲーム",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

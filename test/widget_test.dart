@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:nanimonjya/main.dart';
+import 'package:nanimonjya/models/person.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('generatePeople', () {
+    test('指定人数ぶん、顔と名前が重複なく生成される', () {
+      final people = generatePeople(8, ja: true, random: Random(42));
+      expect(people, hasLength(8));
+      expect(people.map((p) => p.faceAsset).toSet(), hasLength(8));
+      expect(people.map((p) => p.name).toSet(), hasLength(8));
+      for (final p in people) {
+        expect(p.name, endsWith('さん'));
+        expect(p.faceAsset, startsWith('assets/images/faces/'));
+      }
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('組み合わせはシードによって変わる（固定ペアの丸暗記防止）', () {
+      final a = generatePeople(6, ja: true, random: Random(1));
+      final b = generatePeople(6, ja: true, random: Random(2));
+      final pairsA = a.map((p) => '${p.faceAsset}:${p.name}').toSet();
+      final pairsB = b.map((p) => '${p.faceAsset}:${p.name}').toSet();
+      expect(pairsA, isNot(equals(pairsB)));
+    });
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('hobbyChoices', () {
+    test('正解を含む3択で、選択肢に重複がない', () {
+      final person = generatePeople(1, ja: true, random: Random(7)).first;
+      final choices = hobbyChoices(person, ja: true, random: Random(7));
+      expect(choices, hasLength(3));
+      expect(choices.toSet(), hasLength(3));
+      expect(choices, contains(person.hobby));
+    });
   });
 }
