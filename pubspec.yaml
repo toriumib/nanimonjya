@@ -36,6 +36,8 @@ dependencies:
   google_fonts: ^6.2.1  # ロゴ・本文フォントの刷新
   flutter_animate: ^4.5.0  # ポップな演出アニメーション
   in_app_review: ^2.0.9  # ストアレビュー依頼
+  image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
+  path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
 
 
 dev_dependencies:

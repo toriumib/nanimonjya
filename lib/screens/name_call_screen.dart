@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -16,6 +15,7 @@ import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/face_view.dart';
 import 'home_shell.dart';
 import 'local_result_screen.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
@@ -24,17 +24,23 @@ import 'online_result_screen.dart';
 /// メインモード「なまえコール」。
 ///
 /// 1. 命名フェーズ: 全員の顔に順番に名前をつける（名簿はひみつ）
-/// 2. 本編: ランダムに2枚ずつ出現。2枚とも名前を思い出せたら「りょうどり」、
-///    片方だけなら1枚獲得、どちらも外すと没収
+///    ※カスタム名簿（自分の写真）で遊ぶ場合は名前つき済みなのでスキップ
+/// 2. 本編: カードが出てくる（基本は1枚ずつ／[doubleCard]で2枚同時）
+///    - ひとり/オンライン: 4択クイズで回答
+///    - みんなで(オフライン): 顔を見て一斉に名前を呼び、早かった人のボタンをタップ（審判方式）
 /// 3. 終了時に名簿を公開して答え合わせ。獲得枚数で勝敗
 class NameCallScreen extends StatefulWidget {
   final int humanPlayers; // 1=ひとりで, 2..4=1台でみんなで
   final OnlineMatchSession? online;
+  final bool doubleCard; // true=2枚同時出現オプション
+  final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
 
   const NameCallScreen({
     super.key,
     this.humanPlayers = 1,
     this.online,
+    this.doubleCard = false,
+    this.customPeople,
   });
 
   @override
@@ -56,13 +62,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   // ラウンド
   List<Person> _round = [];
-  int _answering = 0; // 0=左のカード, 1=右のカード
-  final List<bool> _roundHits = [];
+  int _answering = 0; // 何枚目のカードを処理中か
+  final List<bool> _roundHits = []; // クイズ用: そのカードを正解したか
+  final List<int> _roundClaimer = []; // 審判用: そのカードを取ったプレイヤー(-1=パス)
   List<String> _choices = [];
-  int _turn = 0;
-  late final List<int> _cardsWon = List.filled(widget.humanPlayers, 0);
+  late final List<int> _cardsWon = List.filled(max(1, widget.humanPlayers), 0);
 
-  // 回答タイマー
+  // 回答タイマー（クイズモードのみ）
   Timer? _quizTimer;
   int _timeLeft = NameCallGame.answerSeconds;
 
@@ -82,6 +88,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
   bool get _isOnline => widget.online != null;
   bool get _isLocalMulti => !_isOnline && widget.humanPlayers >= 2;
   bool get _isSolo => !_isOnline && !_isLocalMulti;
+  bool get _isCustom => widget.customPeople != null;
+
+  /// オフライン対戦は「審判方式」（一斉に呼んで早い人がタップで獲得）。
+  bool get _isReferee => _isLocalMulti;
 
   String get _modeName => _isOnline
       ? 'namecall_race'
@@ -93,12 +103,28 @@ class _NameCallScreenState extends State<NameCallScreen> {
   void initState() {
     super.initState();
     final ja = PlatformDispatcherLocale.isJa;
+    final people = _isCustom
+        ? ([...widget.customPeople!]..shuffle(_rng))
+        : generateImagePeople(NameCallGame.peopleCount, ja: ja, random: _rng);
     _game = NameCallGame(
-      people: generatePeople(NameCallGame.peopleCount, ja: ja, random: _rng),
+      people: people,
       rng: _rng,
+      cardsPerRound: widget.doubleCard ? 2 : 1,
     );
+    if (_isCustom) {
+      // カスタム名簿は名前つき済み → 命名フェーズをスキップして本編へ
+      for (final p in people) {
+        _game.roster[p] = p.name;
+      }
+      _phase = _Phase.sealed;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) _nextRound();
+        });
+      });
+    }
     AppAnalytics.gameStart(
-      mode: _modeName,
+      mode: _isCustom ? '${_modeName}_custom' : _modeName,
       players: _isOnline ? 2 : widget.humanPlayers,
     );
     _loadBanner();
@@ -179,10 +205,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _round = _game.drawRound();
       _answering = 0;
       _roundHits.clear();
-      _choices = _game.choicesFor(_round[0]);
+      _roundClaimer.clear();
+      if (!_isReferee) _choices = _game.choicesFor(_round[0]);
       _phase = _Phase.round;
     });
-    _startQuizTimer();
+    if (!_isReferee) _startQuizTimer();
   }
 
   void _startQuizTimer() {
@@ -195,6 +222,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     });
   }
 
+  // ── クイズ回答（ひとり／オンライン） ──
   void _answer(String? choice) {
     if (_phase != _Phase.round) return;
     _quizTimer?.cancel();
@@ -218,20 +246,41 @@ class _NameCallScreenState extends State<NameCallScreen> {
       return;
     }
 
-    // ラウンド確定
     final gained = _roundHits.where((h) => h).length;
-    _cardsWon[_turn] += gained;
+    _cardsWon[0] += gained;
     if (gained == _round.length && _round.length == 2) _ryoudoriCount += 1;
-    if (_isOnline) {
-      widget.online!.reportProgress(_cardsWon[0]);
+    if (_isOnline) widget.online!.reportProgress(_cardsWon[0]);
+    _endRound();
+  }
+
+  // ── 審判方式の獲得（オフライン対戦）: 早かったプレイヤーをタップ、-1=パス ──
+  void _claim(int player) {
+    if (_phase != _Phase.round) return;
+    if (player >= 0) {
+      _cardsWon[player] += 1;
+      Sfx.instance.correct();
+    } else {
+      Sfx.instance.wrong();
     }
+    _roundClaimer.add(player);
+
+    if (_answering + 1 < _round.length) {
+      setState(() => _answering += 1);
+      return;
+    }
+    // りょうどり: 2枚とも同じプレイヤーが取ったら演出カウント
+    if (_round.length == 2 &&
+        _roundClaimer[0] >= 0 &&
+        _roundClaimer[0] == _roundClaimer[1]) {
+      _ryoudoriCount += 1;
+    }
+    _endRound();
+  }
+
+  void _endRound() {
     setState(() => _phase = _Phase.roundResult);
-    Future.delayed(const Duration(milliseconds: 1700), () {
-      if (!mounted) return;
-      if (_isLocalMulti) {
-        _turn = (_turn + 1) % widget.humanPlayers; // 次の人へ
-      }
-      _nextRound();
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) _nextRound();
     });
   }
 
@@ -361,8 +410,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: const Color(0xFFD8E4F0), width: 2),
             ),
-            child: SvgPicture.asset(_namingPerson.faceAsset,
-                width: 140, height: 140),
+            child: FaceView(person: _namingPerson, size: 140, radius: 18),
           ),
           const SizedBox(height: 14),
           TextField(
@@ -437,14 +485,12 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   Widget _buildRound(MetaStrings m) {
     final resultPhase = _phase == _Phase.roundResult;
-    final gained = _roundHits.where((h) => h).length;
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
           _scoreHeader(m),
           const SizedBox(height: 10),
-          // 出現した2枚
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -455,85 +501,176 @@ class _NameCallScreenState extends State<NameCallScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          if (!resultPhase) ...[
-            // タイマーバー
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _timeLeft / NameCallGame.answerSeconds,
-                minHeight: 8,
-                backgroundColor: Colors.grey.shade300,
-                color: _timeLeft <= 3
-                    ? const Color(0xFFC62828)
-                    : const Color(0xFF3A7BD5),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              m.whoIsThis,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    for (final c in _choices)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => _answer(c),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF2B5CA5),
-                              side: const BorderSide(
-                                  color: Color(0xFF3A7BD5), width: 2),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(c,
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900)),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ] else ...[
-            const Spacer(),
-            Text(
-              _round.length == 2 && gained == 2
-                  ? m.ryoudori
-                  : gained >= 1
-                      ? m.katadori
-                      : m.missAll,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: gained == 2
-                    ? const Color(0xFFE8A400)
-                    : gained == 1
-                        ? const Color(0xFF2E9E5B)
-                        : const Color(0xFF8A9AA8),
-              ),
-            ),
-            const Spacer(),
-          ],
+          if (resultPhase)
+            _roundResultBanner(m)
+          else if (_isReferee)
+            Expanded(child: _refereePanel(m))
+          else
+            Expanded(child: _quizPanel(m)),
         ],
       ),
     );
   }
 
+  // クイズパネル（ひとり／オンライン）
+  Widget _quizPanel(MetaStrings m) {
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: _timeLeft / NameCallGame.answerSeconds,
+            minHeight: 8,
+            backgroundColor: Colors.grey.shade300,
+            color: _timeLeft <= 3
+                ? const Color(0xFFC62828)
+                : const Color(0xFF3A7BD5),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(m.whoIsThis,
+            style:
+                const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                for (final c in _choices)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _answer(c),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF2B5CA5),
+                          side: const BorderSide(
+                              color: Color(0xFF3A7BD5), width: 2),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(c,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900)),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 審判パネル（オフライン対戦）: 一斉に名前を呼び、早かった人のボタンを押す
+  Widget _refereePanel(MetaStrings m) {
+    const colors = [
+      Color(0xFF3A7BD5),
+      Color(0xFFE8663C),
+      Color(0xFF2E9E5B),
+      Color(0xFF8A5AC2),
+    ];
+    return Column(
+      children: [
+        Text(
+          _round.length == 2
+              ? m.refereePromptCard(_answering + 1)
+              : m.refereePrompt,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 4),
+        Text(m.refereeHint,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        const SizedBox(height: 10),
+        Expanded(
+          child: GridView.count(
+            crossAxisCount: 2,
+            childAspectRatio: 2.6,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            children: [
+              for (var i = 0; i < widget.humanPlayers; i++)
+                ElevatedButton(
+                  onPressed: () => _claim(i),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors[i],
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                  child: Text(m.playerGot('P${i + 1}')),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _claim(-1),
+            child: Text(m.nobodyKnew),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _roundResultBanner(MetaStrings m) {
+    final String text;
+    final Color color;
+    if (_isReferee) {
+      final ryoudori = _round.length == 2 &&
+          _roundClaimer.length == 2 &&
+          _roundClaimer[0] >= 0 &&
+          _roundClaimer[0] == _roundClaimer[1];
+      final anyGot = _roundClaimer.any((c) => c >= 0);
+      text = ryoudori
+          ? m.ryoudori
+          : anyGot
+              ? m.katadori
+              : m.missAll;
+      color = ryoudori
+          ? const Color(0xFFE8A400)
+          : anyGot
+              ? const Color(0xFF2E9E5B)
+              : const Color(0xFF8A9AA8);
+    } else {
+      final gained = _roundHits.where((h) => h).length;
+      text = _round.length == 2 && gained == 2
+          ? m.ryoudori
+          : gained >= 1
+              ? m.katadori
+              : m.missAll;
+      color = gained == 2
+          ? const Color(0xFFE8A400)
+          : gained == 1
+              ? const Color(0xFF2E9E5B)
+              : const Color(0xFF8A9AA8);
+    }
+    return Expanded(
+      child: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 24, fontWeight: FontWeight.w900, color: color),
+        ),
+      ),
+    );
+  }
+
   Widget _roundCard(int i, bool resultPhase) {
-    final active = !resultPhase && i == _answering;
     final person = _round[i];
+    final claimed = i < _roundClaimer.length;
     final answered = i < _roundHits.length;
+    // 現在処理中のカードをハイライト
+    final active = !resultPhase && i == _answering;
+    final ok = _isReferee ? (claimed && _roundClaimer[i] >= 0) : (answered && _roundHits[i]);
+    final done = _isReferee ? claimed : answered;
     return Container(
       width: 120,
       padding: const EdgeInsets.all(10),
@@ -543,22 +680,26 @@ class _NameCallScreenState extends State<NameCallScreen> {
         border: Border.all(
           color: active
               ? const Color(0xFFE8A400)
-              : answered
-                  ? (_roundHits[i]
-                      ? const Color(0xFF2E9E5B)
-                      : const Color(0xFFC62828))
+              : done
+                  ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
                   : const Color(0xFFD8E4F0),
           width: active ? 3 : 2,
         ),
       ),
       child: Column(
         children: [
-          SvgPicture.asset(person.faceAsset, width: 84, height: 84),
+          FaceView(person: person, size: 84, radius: 12),
           const SizedBox(height: 6),
           Text(
             resultPhase
                 ? _game.roster[person]!
-                : (answered ? (_roundHits[i] ? '⭕' : '❌') : '？'),
+                : (done
+                    ? (_isReferee
+                        ? (_roundClaimer[i] >= 0
+                            ? 'P${_roundClaimer[i] + 1}'
+                            : '—')
+                        : (_roundHits[i] ? '⭕' : '❌'))
+                    : '？'),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
             overflow: TextOverflow.ellipsis,
           ),
@@ -601,7 +742,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
-                  color: _turn == i ? colors[i] : Colors.white,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: colors[i], width: 2),
                 ),
@@ -611,12 +752,12 @@ class _NameCallScreenState extends State<NameCallScreen> {
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
-                            color: _turn == i ? Colors.white : colors[i])),
+                            color: colors[i])),
                     Text('${_cardsWon[i]}',
                         style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w900,
-                            color: _turn == i ? Colors.white : colors[i])),
+                            color: colors[i])),
                   ],
                 ),
               ),
@@ -698,7 +839,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                     width: 76,
                     child: Column(
                       children: [
-                        SvgPicture.asset(p.faceAsset, width: 56, height: 56),
+                        FaceView(person: p, size: 56, radius: 10),
                         const SizedBox(height: 3),
                         Text(
                           _game.roster[p] ?? '',
@@ -774,7 +915,12 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 Sfx.instance.pop();
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const NameCallScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => NameCallScreen(
+                      doubleCard: widget.doubleCard,
+                      customPeople: widget.customPeople,
+                    ),
+                  ),
                 );
               },
               icon: const Icon(Icons.refresh),
