@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'name_call_screen.dart'; // メインモード「なまえコール」
+import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
@@ -28,6 +29,8 @@ class TopScreen extends StatefulWidget {
 
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
+  bool _doubleCard = false; // なまえコールの「2枚同時」オプション
+
   /// みんなで対戦（なまえコール）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
     Sfx.instance.pop();
@@ -50,7 +53,10 @@ class _TopScreenState extends State<TopScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => NameCallScreen(humanPlayers: n),
+                          builder: (_) => NameCallScreen(
+                            humanPlayers: n,
+                            doubleCard: _doubleCard,
+                          ),
                         ),
                       );
                     },
@@ -498,14 +504,41 @@ class _TopScreenState extends State<TopScreen>
                                 height: 1.5,
                                 color: Colors.black54),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
+                          // 2枚同時（りょうどり）オプション
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF7E0),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text('🎴', style: TextStyle(fontSize: 16)),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(m.doubleCardLabel,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900)),
+                                ),
+                                Switch(
+                                  value: _doubleCard,
+                                  onChanged: (v) =>
+                                      setState(() => _doubleCard = v),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           ElevatedButton(
                             onPressed: () {
                               Sfx.instance.fanfare();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const NameCallScreen()),
+                                    builder: (_) => NameCallScreen(
+                                        doubleCard: _doubleCard)),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -558,6 +591,27 @@ class _TopScreenState extends State<TopScreen>
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 8),
+                          // 📸 自分の写真で覚える・対戦
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Sfx.instance.pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const CustomRosterScreen()),
+                              );
+                            },
+                            icon: const Text('📸',
+                                style: TextStyle(fontSize: 16)),
+                            label: Text(m.customTitle),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF1E8A82),
+                              side: const BorderSide(
+                                  color: Color(0xFF4ECDC4), width: 2),
+                              minimumSize: const Size.fromHeight(44),
+                            ),
                           ),
                         ],
                       ),

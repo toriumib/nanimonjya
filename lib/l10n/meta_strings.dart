@@ -622,4 +622,56 @@ class MetaStrings {
   String get nameCallSoloButton => ja ? '🧠 ひとりで' : '🧠 Solo';
   String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
   String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
+
+  // 審判方式（オフライン対戦）
+  String get refereePrompt =>
+      ja ? 'この子の名前を一斉にコール！' : 'Call out this name together!';
+  String refereePromptCard(int n) =>
+      ja ? '$n枚目：一斉にコール！' : 'Card $n: call it out!';
+  String get refereeHint => ja
+      ? '早く正しく呼べた人のボタンを押そう'
+      : 'Tap the button of whoever called it first & correctly';
+  String playerGot(String p) => ja ? '$p が正解！' : '$p got it!';
+  String get nobodyKnew => ja ? 'だれもわからなかった…' : 'Nobody knew…';
+
+  // 2枚同時オプション
+  String get doubleCardLabel => ja ? '2枚同時（りょうどり）' : 'Two at once (double take)';
+  String get doubleCardHint => ja
+      ? 'ONにすると2枚同時に出現。両方言えたら「りょうどり」！'
+      : 'Two cards appear at once. Recall both for a double take!';
+
+  // 📸 おぼえるモード（自分の写真）
+  String get tabMemorize => ja ? 'おぼえる' : 'Memorize';
+  String get customTitle => ja ? '📸 自分の名簿' : '📸 My Roster';
+  String get customDesc => ja
+      ? '職場や学校の人の写真と名前を登録して、覚える練習や対戦ができるよ。'
+      : 'Add photos & names of people you meet, then study or play with them.';
+  String get customMobileOnly => ja
+      ? '写真のアップロードはスマホアプリ版でご利用いただけます。'
+      : 'Photo upload is available on the mobile app.';
+  String get customAddButton => ja ? '＋ 写真と名前を追加' : '+ Add photo & name';
+  String get customEmpty => ja
+      ? 'まだ登録がありません。「＋」から追加してみよう！'
+      : 'No people yet. Tap "+" to add one!';
+  String get customPickPhoto => ja ? '写真をえらぶ' : 'Choose photo';
+  String get customTakePhoto => ja ? 'カメラでとる' : 'Take photo';
+  String get customNameField => ja ? 'なまえ' : 'Name';
+  String get customSave => ja ? '登録する' : 'Save';
+  String get customDelete => ja ? '削除' : 'Delete';
+  String customDeleteConfirm(String name) =>
+      ja ? '「$name」を削除しますか？' : 'Delete "$name"?';
+  String get memorizeStudyButton => ja ? '📖 おぼえる（学習）' : '📖 Study';
+  String get memorizeQuizButton => ja ? '✏️ かくにんテスト' : '✏️ Quiz';
+  String get customBattleButton => ja ? '📣 この名簿で対戦' : '📣 Play with this roster';
+  String get needAtLeast => ja
+      ? '2人以上登録すると遊べるよ'
+      : 'Add at least 2 people to play';
+  String get studyTitle => ja ? '📖 おぼえる' : '📖 Study';
+  String get studyHint => ja
+      ? 'カードをタップすると名前が出るよ。顔と名前をむすびつけて覚えよう！'
+      : 'Tap a card to reveal the name. Link each face to its name!';
+  String get studyDone => ja ? 'おぼえた！テストへ →' : "Got it! To the quiz →";
+  String get quizTitle => ja ? '✏️ かくにんテスト' : '✏️ Quiz';
+  String quizScore(int correct, int total) =>
+      ja ? '$total問中 $correct問正解！' : '$correct / $total correct!';
 }

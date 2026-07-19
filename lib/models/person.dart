@@ -1,21 +1,31 @@
 import 'dart:math';
 
-/// ペタネームの「人物」1人分。
-/// 顔（オリジナルSVG）・名前・趣味の組み合わせはゲームごとにランダムに変わる。
-/// 固定ペアの丸暗記ができないので、毎回「記銘→想起」のトレーニングになる。
+/// 顔画像の種類。描画方法を切り替えるために使う。
+/// - svg   : バンドルされたオリジナルSVG（assets/images/faces/*.svg）
+/// - asset : バンドルされたフリー素材の写真風イラスト（assets/images/char*.jpg）
+/// - file  : ユーザーがアップロードした写真（端末のファイルパス、モバイル限定）
+enum FaceKind { svg, asset, file }
+
+/// 「人物」1人分。顔（画像）・名前・趣味を持つ。
+/// なまえコールでは名前はプレイヤーがつけるので [name] は使わない場合もある。
 class Person {
-  final String faceAsset; // assets/images/faces/faceN.svg
+  final String face; // 画像パス（svg/画像アセット/ファイル）
+  final FaceKind kind;
   final String name; // 表示名（例: 佐藤さん / Sato）
   final String hobby; // 趣味（上級レベルの属性クイズで使用）
 
   const Person({
-    required this.faceAsset,
+    required this.face,
+    this.kind = FaceKind.svg,
     required this.name,
     required this.hobby,
   });
+
+  /// 旧コード互換: SVG顔のパスを取り出す（match_game系がまだ使用）。
+  String get faceAsset => face;
 }
 
-/// 顔アセット一覧（12種のオリジナルフラットデザイン顔）。
+/// オリジナルSVG顔アセット一覧（12種のフラットデザイン顔）。ペアさがし用。
 const List<String> kFaceAssets = [
   'assets/images/faces/face1.svg',
   'assets/images/faces/face2.svg',
@@ -29,6 +39,22 @@ const List<String> kFaceAssets = [
   'assets/images/faces/face10.svg',
   'assets/images/faces/face11.svg',
   'assets/images/faces/face12.svg',
+];
+
+/// フリー素材のキャラ画像一覧（12種）。なまえコール用。
+const List<String> kCharImageAssets = [
+  'assets/images/char1.jpg',
+  'assets/images/char2.jpg',
+  'assets/images/char3.jpg',
+  'assets/images/char4.jpg',
+  'assets/images/char5.jpg',
+  'assets/images/char6.jpg',
+  'assets/images/char7.jpg',
+  'assets/images/char8.jpg',
+  'assets/images/char9.jpg',
+  'assets/images/char10.jpg',
+  'assets/images/char11.jpg',
+  'assets/images/char12.jpg',
 ];
 
 /// 名前プール（日本でよくある姓。記憶術の読み物の例とも対応）。
@@ -55,7 +81,7 @@ const List<String> _hobbyPoolEn = [
   'Photography', 'Hiking', 'Gaming', 'Movies', 'Gardening', 'Running',
 ];
 
-/// ゲーム1回分の人物リストを生成する。
+/// ゲーム1回分の人物リストを生成する（SVG顔。ペアさがし用）。
 /// 顔・名前・趣味それぞれをシャッフルして組み合わせるので、毎回別人になる。
 List<Person> generatePeople(int count, {required bool ja, Random? random}) {
   final rng = random ?? Random();
@@ -67,9 +93,26 @@ List<Person> generatePeople(int count, {required bool ja, Random? random}) {
   final hobbies = [...hobbyPool]..shuffle(rng);
   return List.generate(count, (i) {
     return Person(
-      faceAsset: faces[i],
+      face: faces[i],
+      kind: FaceKind.svg,
       name: ja ? '${names[i]}さん' : names[i],
       hobby: hobbies[i % hobbies.length],
+    );
+  });
+}
+
+/// なまえコール用: フリー素材のキャラ画像で人物を生成する。
+/// なまえコールは名前をプレイヤーがつけるので name はプレースホルダ。
+List<Person> generateImagePeople(int count, {required bool ja, Random? random}) {
+  final rng = random ?? Random();
+  assert(count <= kCharImageAssets.length);
+  final faces = [...kCharImageAssets]..shuffle(rng);
+  return List.generate(count, (i) {
+    return Person(
+      face: faces[i],
+      kind: FaceKind.asset,
+      name: '',
+      hobby: '',
     );
   });
 }
