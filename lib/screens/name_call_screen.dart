@@ -34,6 +34,7 @@ class NameCallScreen extends StatefulWidget {
   final OnlineMatchSession? online;
   final bool doubleCard; // true=2枚同時出現オプション
   final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
+  final int peopleCount; // 登場人数（6〜12）。カスタム/オンライン時は無視
 
   const NameCallScreen({
     super.key,
@@ -41,7 +42,11 @@ class NameCallScreen extends StatefulWidget {
     this.online,
     this.doubleCard = false,
     this.customPeople,
+    this.peopleCount = NameCallGame.peopleCount,
   });
+
+  /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
+  static const int onlinePeopleCount = 9;
 
   @override
   State<NameCallScreen> createState() => _NameCallScreenState();
@@ -103,9 +108,12 @@ class _NameCallScreenState extends State<NameCallScreen> {
   void initState() {
     super.initState();
     final ja = PlatformDispatcherLocale.isJa;
+    final count = _isOnline
+        ? NameCallScreen.onlinePeopleCount
+        : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
     final people = _isCustom
         ? ([...widget.customPeople!]..shuffle(_rng))
-        : generateImagePeople(NameCallGame.peopleCount, ja: ja, random: _rng);
+        : generateImagePeople(count, ja: ja, random: _rng);
     _game = NameCallGame(
       people: people,
       rng: _rng,
@@ -919,6 +927,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                     builder: (_) => NameCallScreen(
                       doubleCard: widget.doubleCard,
                       customPeople: widget.customPeople,
+                      peopleCount: widget.peopleCount,
                     ),
                   ),
                 );
