@@ -12,7 +12,7 @@ import 'person.dart';
 /// 5. 思い出せなかったカードは没収（こぼれ札）。獲得枚数で勝敗
 class NameCallGame {
   /// 登場人数のデフォルト（画面側でサイズ選択可能）。
-  static const int peopleCount = 9;
+  static const int peopleCount = 12;
 
   /// 使える顔の最大数（フリー素材キャラ画像の枚数）。
   static const int maxPeople = 12;

@@ -30,7 +30,35 @@ class TopScreen extends StatefulWidget {
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
   bool _doubleCard = false; // なまえコールの「2枚同時」オプション
-  int _peopleCount = 9; // なまえコールの登場人数（6/9/12）
+  int _peopleCount = 12; // なまえコールの登場人数（6/9/12）
+  bool _nameAsYouGo = false; // true=出たとき命名（ナンジャモンジャ式）
+
+  /// 命名ルールの選択チップ
+  Widget _ruleChip(String label, bool selected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF3A7BD5) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF3A7BD5), width: 2),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: selected ? Colors.white : const Color(0xFF2B5CA5),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   /// みんなで対戦（なまえコール）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
@@ -58,6 +86,7 @@ class _TopScreenState extends State<TopScreen>
                             humanPlayers: n,
                             doubleCard: _doubleCard,
                             peopleCount: _peopleCount,
+                            nameAsYouGo: _nameAsYouGo,
                           ),
                         ),
                       );
@@ -556,31 +585,45 @@ class _TopScreenState extends State<TopScreen>
                             ],
                           ),
                           const SizedBox(height: 8),
-                          // 2枚同時（りょうどり）オプション
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF7E0),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text('🎴', style: TextStyle(fontSize: 16)),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(m.doubleCardLabel,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w900)),
-                                ),
-                                Switch(
-                                  value: _doubleCard,
-                                  onChanged: (v) =>
-                                      setState(() => _doubleCard = v),
-                                ),
-                              ],
-                            ),
+                          // 命名ルール（まとめて命名／出たとき命名）
+                          Row(
+                            children: [
+                              _ruleChip(m.rulePreName, !_nameAsYouGo,
+                                  () => setState(() => _nameAsYouGo = false)),
+                              const SizedBox(width: 6),
+                              _ruleChip(m.ruleAsYouGo, _nameAsYouGo,
+                                  () => setState(() => _nameAsYouGo = true)),
+                            ],
                           ),
+                          const SizedBox(height: 8),
+                          // 2枚同時（りょうどり）: まとめて命名のときだけ有効
+                          if (!_nameAsYouGo)
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF7E0),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text('🎴',
+                                      style: TextStyle(fontSize: 16)),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(m.doubleCardLabel,
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w900)),
+                                  ),
+                                  Switch(
+                                    value: _doubleCard,
+                                    onChanged: (v) =>
+                                        setState(() => _doubleCard = v),
+                                  ),
+                                ],
+                              ),
+                            ),
                           const SizedBox(height: 8),
                           ElevatedButton(
                             onPressed: () {
@@ -590,7 +633,8 @@ class _TopScreenState extends State<TopScreen>
                                 MaterialPageRoute(
                                     builder: (_) => NameCallScreen(
                                         doubleCard: _doubleCard,
-                                        peopleCount: _peopleCount)),
+                                        peopleCount: _peopleCount,
+                                        nameAsYouGo: _nameAsYouGo)),
                               );
                             },
                             style: ElevatedButton.styleFrom(

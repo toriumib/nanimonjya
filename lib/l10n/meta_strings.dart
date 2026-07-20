@@ -577,6 +577,18 @@ class MetaStrings {
 
   // 📣 メインモード「なまえコール」
   String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
+  String get nameCallAsYouGoTitle => ja ? '📣 なづけコール' : '📣 Name-as-you-go';
+
+  // 出たとき命名（ナンジャモンジャ式）
+  String get newComer => ja ? '✨ はじめまして！名前をつけてね' : '✨ New face! Give a name';
+  String get namedSoFar => ja ? 'なづけ済み' : 'Named';
+  String get namingDecide => ja ? 'これにする！' : 'Name it!';
+  String get asYouGoHint => ja
+      ? '💡 はじめて出た子には名前をつけ、もう一度出てきたら思い出して答えよう！'
+      : '💡 Name each new face — when it appears again, recall the name!';
+  String get rulePreName => ja ? 'まとめて命名' : 'Name first';
+  String get ruleAsYouGo => ja ? '出たとき命名' : 'Name as you go';
+  String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
   String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
   String get tabTraining => ja ? 'とっくん' : 'Training';
@@ -619,7 +631,7 @@ class MetaStrings {
   String get cardsWonLabel => ja ? 'かくとく' : 'Cards';
   String get cardsUnit => ja ? '枚' : 'cards';
   String get toResultButton => ja ? 'けっかを見る →' : 'See results →';
-  String get nameCallSoloButton => ja ? '🧠 ひとりで' : '🧠 Solo';
+  String get nameCallSoloButton => ja ? '👤 ひとりで' : '👤 Solo';
   String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
   String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
 
