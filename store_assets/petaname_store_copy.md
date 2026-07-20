@@ -92,6 +92,12 @@ MODES
 Note: This app is not a medical device or treatment program. It does not
 guarantee improvement of memory or cognitive function; results vary.
 
+## リリースノート（v2.2.0 追補）
+
+・なまえコールに「出たとき命名」ルールを追加（1枚ずつ登場し、初対面の人にその場で名前をつけ、再登場で思い出す遊び方）。従来の「まとめて命名」と切り替え可能
+・登場人数のデフォルトを12人に（カードが増えてやりごたえUP）
+・ゲーム画面の見やすさ・タップのしやすさを改善
+
 ## リリースノート（v2.2.0）
 
 ・アプリ名を「名前を覚えよう」に変更

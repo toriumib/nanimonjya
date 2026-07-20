@@ -32,9 +32,10 @@ import 'online_result_screen.dart';
 class NameCallScreen extends StatefulWidget {
   final int humanPlayers; // 1=ひとりで, 2..4=1台でみんなで
   final OnlineMatchSession? online;
-  final bool doubleCard; // true=2枚同時出現オプション
+  final bool doubleCard; // true=2枚同時出現オプション（まとめて命名のみ）
   final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
   final int peopleCount; // 登場人数（6〜12）。カスタム/オンライン時は無視
+  final bool nameAsYouGo; // true=出たとき命名（1枚ずつ・初登場でその場命名）
 
   const NameCallScreen({
     super.key,
@@ -43,6 +44,7 @@ class NameCallScreen extends StatefulWidget {
     this.doubleCard = false,
     this.customPeople,
     this.peopleCount = NameCallGame.peopleCount,
+    this.nameAsYouGo = false,
   });
 
   /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
@@ -52,7 +54,7 @@ class NameCallScreen extends StatefulWidget {
   State<NameCallScreen> createState() => _NameCallScreenState();
 }
 
-enum _Phase { naming, sealed, round, roundResult, reveal }
+enum _Phase { naming, inlineNaming, sealed, round, roundResult, reveal }
 
 class _NameCallScreenState extends State<NameCallScreen> {
   late final Random _rng =
@@ -64,6 +66,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
   // 命名フェーズ
   int _namingIndex = 0;
   final TextEditingController _nameController = TextEditingController();
+
+  // 出たとき命名（ナンジャモンジャ式）: いま命名しようとしているカード
+  Person? _inlinePerson;
 
   // ラウンド
   List<Person> _round = [];
@@ -117,7 +122,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _game = NameCallGame(
       people: people,
       rng: _rng,
-      cardsPerRound: widget.doubleCard ? 2 : 1,
+      // 出たとき命名は必ず1枚ずつ（初登場で命名→再登場で想起の流れのため）
+      cardsPerRound: (widget.doubleCard && !widget.nameAsYouGo) ? 2 : 1,
     );
     if (_isCustom) {
       // カスタム名簿は名前つき済み → 命名フェーズをスキップして本編へ
@@ -130,9 +136,18 @@ class _NameCallScreenState extends State<NameCallScreen> {
           if (mounted) _nextRound();
         });
       });
+    } else if (widget.nameAsYouGo) {
+      // 出たとき命名: 事前命名フェーズなし。最初のカードからスタート
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _nextRound();
+      });
     }
     AppAnalytics.gameStart(
-      mode: _isCustom ? '${_modeName}_custom' : _modeName,
+      mode: _isCustom
+          ? '${_modeName}_custom'
+          : widget.nameAsYouGo
+              ? '${_modeName}_asyougo'
+              : _modeName,
       players: _isOnline ? 2 : widget.humanPlayers,
     );
     _loadBanner();
@@ -209,6 +224,31 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _finishGame();
       return;
     }
+
+    // 出たとき命名モード: 1枚引いて、初登場なら命名・再登場なら想起
+    if (widget.nameAsYouGo) {
+      final card = _game.drawRound().first; // cardsPerRound=1固定
+      if (!_game.roster.containsKey(card)) {
+        // 初登場 → その場で名前をつける（無得点）
+        setState(() {
+          _inlinePerson = card;
+          _phase = _Phase.inlineNaming;
+        });
+        return;
+      }
+      // 再登場 → 想起（1枚ラウンド）
+      setState(() {
+        _round = [card];
+        _answering = 0;
+        _roundHits.clear();
+        _roundClaimer.clear();
+        if (!_isReferee) _choices = _game.choicesFor(card);
+        _phase = _Phase.round;
+      });
+      if (!_isReferee) _startQuizTimer();
+      return;
+    }
+
     setState(() {
       _round = _game.drawRound();
       _answering = 0;
@@ -218,6 +258,17 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _phase = _Phase.round;
     });
     if (!_isReferee) _startQuizTimer();
+  }
+
+  // 出たとき命名: 初登場カードに名前をつけて次へ
+  void _submitInlineName() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty || _inlinePerson == null) return;
+    Sfx.instance.pop();
+    _game.roster[_inlinePerson!] = name;
+    _nameController.clear();
+    _inlinePerson = null;
+    _nextRound();
   }
 
   void _startQuizTimer() {
@@ -360,7 +411,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final m = MetaStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(m.nameCallTitle),
+        title: Text(widget.nameAsYouGo ? m.nameCallAsYouGoTitle : m.nameCallTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: _confirmQuit,
@@ -372,6 +423,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
             Expanded(
               child: switch (_phase) {
                 _Phase.naming => _buildNaming(m),
+                _Phase.inlineNaming => _buildInlineNaming(m),
                 _Phase.sealed => _buildSealed(m),
                 _Phase.round || _Phase.roundResult => _buildRound(m),
                 _Phase.reveal => _buildReveal(m),
@@ -474,6 +526,106 @@ class _NameCallScreenState extends State<NameCallScreen> {
     );
   }
 
+  // 出たとき命名: 初登場のキャラにその場で名前をつける
+  Widget _buildInlineNaming(MetaStrings m) {
+    final named = _game.roster.length;
+    final total = _game.people.length;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFE9C7),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              m.newComer,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFC26A00)),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text('${m.namedSoFar}: $named / $total',
+              style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFFFC93C), width: 3),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x33FFC93C),
+                    blurRadius: 12,
+                    offset: Offset(0, 5)),
+              ],
+            ),
+            child: FaceView(person: _inlinePerson!, size: 150, radius: 18),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _nameController,
+            maxLength: 8,
+            autofocus: true,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            inputFormatters: [LengthLimitingTextInputFormatter(8)],
+            decoration: InputDecoration(
+              labelText: m.nameFieldLabel,
+              counterText: '',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            onSubmitted: (_) => _submitInlineName(),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _rollGacha,
+                  icon: const Text('🎲'),
+                  label: Text(m.gachaLabel),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _submitInlineName,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE8A400),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: Text(m.namingDecide),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF7E0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              m.asYouGoHint,
+              style: const TextStyle(fontSize: 12, height: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSealed(MetaStrings m) {
     return Center(
       child: Column(
@@ -546,7 +698,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               children: [
                 for (final c in _choices)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(vertical: 5),
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -556,11 +708,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
                           foregroundColor: const Color(0xFF2B5CA5),
                           side: const BorderSide(
                               color: Color(0xFF3A7BD5), width: 2),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 2,
+                          shadowColor: const Color(0x223A7BD5),
                         ),
                         child: Text(c,
                             style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 17, fontWeight: FontWeight.w900)),
                       ),
                     ),
                   ),
@@ -679,25 +833,37 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final active = !resultPhase && i == _answering;
     final ok = _isReferee ? (claimed && _roundClaimer[i] >= 0) : (answered && _roundHits[i]);
     final done = _isReferee ? claimed : answered;
-    return Container(
-      width: 120,
-      padding: const EdgeInsets.all(10),
+    // 1枚だけのラウンドは大きく表示（見やすさ・タップしやすさ向上）
+    final single = _round.length == 1;
+    final faceSize = single ? 148.0 : 92.0;
+    final cardWidth = single ? 190.0 : 128.0;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: cardWidth,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: active
               ? const Color(0xFFE8A400)
               : done
                   ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
                   : const Color(0xFFD8E4F0),
-          width: active ? 3 : 2,
+          width: active ? 4 : 2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          FaceView(person: person, size: 84, radius: 12),
-          const SizedBox(height: 6),
+          FaceView(person: person, size: faceSize, radius: 14),
+          const SizedBox(height: 8),
           Text(
             resultPhase
                 ? _game.roster[person]!
@@ -708,7 +874,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
                             : '—')
                         : (_roundHits[i] ? '⭕' : '❌'))
                     : '？'),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+            style: TextStyle(
+                fontSize: single ? 18 : 14, fontWeight: FontWeight.w900),
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -928,6 +1095,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                       doubleCard: widget.doubleCard,
                       customPeople: widget.customPeople,
                       peopleCount: widget.peopleCount,
+                      nameAsYouGo: widget.nameAsYouGo,
                     ),
                   ),
                 );
