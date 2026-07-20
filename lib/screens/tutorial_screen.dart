@@ -55,10 +55,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
         _TutorialPage(
           guideEmoji: '👧',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? '📣 なまえコール②：りょうどり！' : '📣 Name Call ②: Double take!',
+          title: ja ? '📣 なまえコール②：思い出す！' : '📣 Name Call ②: Recall!',
           body: ja
-              ? '本編ではランダムに2枚ずつ登場！\n2枚とも名前を思い出せたら\n「りょうどり」で2枚ゲット🎉\n片方だけなら1枚、両方外すと没収💦\nいちばん多くあつめた人の勝ち！'
-              : 'Two random cards appear each round!\nRecall both names = double take,\nboth cards are yours 🎉\nOne name = one card. Miss both? Gone!\nMost cards wins!',
+              ? 'カードが出てきたら\n名前を思い出して答えよう！\n正解すると1枚ゲット🎉\n思い出せないと没収💦\nいちばん多くあつめた人の勝ち！'
+              : 'When a card appears,\nrecall its name and answer!\nCorrect = one card 🎉\nForget it and it is gone 💦\nMost cards wins!',
           illustration: '🃏🃏',
           gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
         ),
