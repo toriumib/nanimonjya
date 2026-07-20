@@ -1,6 +1,6 @@
 {
-    "name": "名前を覚えよう〜顔と名前の記憶トレーニング〜",
-    "short_name": "名前を覚えよう",
+    "name": "名前を覚えよう：なまえコール",
+    "short_name": "なまえコール",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF9EC",
