@@ -594,14 +594,14 @@ class MetaStrings {
   String get tabTraining => ja ? 'とっくん' : 'Training';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
   String get nameCallCatch => ja
-      ? 'ぜんいんに名前をつけて名簿はひみつ。2枚同時に出てきたら…両方言えたら「りょうどり」！'
-      : 'Name everyone, seal the roster. Two cards appear — recall both to sweep them!';
+      ? 'みんなに名前をつけて、あとで思い出す。顔と名前をむすびつけて覚えよう！'
+      : 'Name everyone, then recall each one. Link every face to its name!';
   String get nameCallRule => ja
       ? '① はじめに全員の顔を見て、順番にすきな名前をつける\n'
           '② つけた名前は「名簿」にひみつで記録（終了までみられない）\n'
-          '③ 本編ではランダムに2枚ずつカードが登場\n'
-          '④ 2枚とも名前を思い出せたら「りょうどり」で2枚ゲット！片方だけなら1枚\n'
-          '⑤ どちらも外すと没収…。獲得枚数がいちばん多い人の勝ち！'
+          '③ 本編ではランダムにカードが登場\n'
+          '④ 名前を思い出せたら1枚ゲット！（2枚同時のときは両方言えたら2枚）\n'
+          '⑤ 思い出せないと没収…。獲得枚数がいちばん多い人の勝ち！'
       : '① Look at every face and give each one a name\n'
           '② Names are sealed in a hidden roster until the end\n'
           '③ Two random cards appear each round\n'
@@ -620,14 +620,14 @@ class MetaStrings {
       ? '名簿を封印！\nここからは記憶だけがたより…'
       : 'Roster sealed!\nFrom here on, memory is all you have…';
   String get whoIsThis => ja ? 'この子のなまえは？' : 'What did you name them?';
-  String get ryoudori => ja ? '🎉 りょうどり！2枚ゲット！' : '🎉 Double take! Both cards!';
+  String get ryoudori => ja ? '🎉 2枚ゲット！' : '🎉 Both cards!';
   String get katadori => ja ? '✨ 1枚ゲット！' : '✨ Got one card!';
   String get missAll => ja ? '💦 おてつき…2枚とも没収' : '💦 Missed… cards discarded';
   String get rosterReveal => ja ? '📖 名簿公開！' : '📖 Roster revealed!';
   String get rosterRevealDesc => ja
       ? 'きみがつけた名前はこちら。おぼえてた？'
       : 'Here are the names you gave. How did you do?';
-  String get ryoudoriLabel => ja ? 'りょうどり' : 'Double takes';
+  String get ryoudoriLabel => ja ? '2枚ゲット' : 'Both-card wins';
   String get cardsWonLabel => ja ? 'かくとく' : 'Cards';
   String get cardsUnit => ja ? '枚' : 'cards';
   String get toResultButton => ja ? 'けっかを見る →' : 'See results →';
@@ -650,9 +650,9 @@ class MetaStrings {
   String peopleCountLabel(int n) => ja ? '$n人' : '$n ppl';
 
   // 2枚同時オプション
-  String get doubleCardLabel => ja ? '2枚同時（りょうどり）' : 'Two at once (double take)';
+  String get doubleCardLabel => ja ? '2枚同時に出す' : 'Two cards at once';
   String get doubleCardHint => ja
-      ? 'ONにすると2枚同時に出現。両方言えたら「りょうどり」！'
+      ? 'ONにすると2枚同時に出現。両方言えたら2枚ゲット！'
       : 'Two cards appear at once. Recall both for a double take!';
 
   // 📸 おぼえるモード（自分の写真）

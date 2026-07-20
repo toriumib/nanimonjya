@@ -30,8 +30,49 @@ class TopScreen extends StatefulWidget {
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
   bool _doubleCard = false; // なまえコールの「2枚同時」オプション
-  int _peopleCount = 12; // なまえコールの登場人数（6/9/12）
   bool _nameAsYouGo = false; // true=出たとき命名（ナンジャモンジャ式）
+
+  /// グラデーションの角丸ボタン（スタイリッシュ用）
+  Widget _gradientButton({
+    required String label,
+    required List<Color> colors,
+    required VoidCallback onTap,
+    double height = 48,
+    double fontSize = 15,
+  }) {
+    return SizedBox(
+      height: height,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(colors: colors),
+          boxShadow: [
+            BoxShadow(
+              color: colors.last.withValues(alpha: 0.35),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   /// 命名ルールの選択チップ
   Widget _ruleChip(String label, bool selected, VoidCallback onTap) {
@@ -85,7 +126,6 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => NameCallScreen(
                             humanPlayers: n,
                             doubleCard: _doubleCard,
-                            peopleCount: _peopleCount,
                             nameAsYouGo: _nameAsYouGo,
                           ),
                         ),
@@ -507,206 +547,194 @@ class _TopScreenState extends State<TopScreen>
                   Builder(builder: (context) {
                     final m = MetaStrings.of(context);
                     return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                            color: const Color(0xFF4ECDC4), width: 3),
+                        borderRadius: BorderRadius.circular(28),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Colors.white, Color(0xFFF2FCFB)],
+                        ),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x334ECDC4),
-                            blurRadius: 12,
-                            offset: Offset(0, 5),
+                            color: Color(0x2E4ECDC4),
+                            blurRadius: 18,
+                            offset: Offset(0, 8),
                           ),
                         ],
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
-                          Text(
-                            m.nameCallTitle,
-                            style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF1E8A82)),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            m.nameCallCatch,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 12.5,
-                                height: 1.5,
-                                color: Colors.black54),
-                          ),
-                          const SizedBox(height: 8),
-                          // 登場人数（カード枚数）の選択
-                          Row(
-                            children: [
-                              const Text('👥', style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 6),
-                              for (final n in const [6, 9, 12]) ...[
-                                if (n > 6) const SizedBox(width: 6),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        setState(() => _peopleCount = n),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 160),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: _peopleCount == n
-                                            ? const Color(0xFF4ECDC4)
-                                            : Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: const Color(0xFF4ECDC4),
-                                            width: 2),
-                                      ),
-                                      child: Text(
-                                        m.peopleCountLabel(n),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w900,
-                                          color: _peopleCount == n
-                                              ? Colors.white
-                                              : const Color(0xFF1E8A82),
-                                        ),
-                                      ),
-                                    ),
+                          // ヘッダー帯（グラデーション）
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF4ECDC4), Color(0xFF3AB6C9)],
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  m.nameCallTitle,
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white),
+                                ),
+                                const SizedBox(height: 2),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 18),
+                                  child: Text(
+                                    m.nameCallCatch,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 11.5,
+                                        height: 1.4,
+                                        color: Color(0xFFEAFFFC)),
                                   ),
                                 ),
                               ],
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          // 命名ルール（まとめて命名／出たとき命名）
-                          Row(
-                            children: [
-                              _ruleChip(m.rulePreName, !_nameAsYouGo,
-                                  () => setState(() => _nameAsYouGo = false)),
-                              const SizedBox(width: 6),
-                              _ruleChip(m.ruleAsYouGo, _nameAsYouGo,
-                                  () => setState(() => _nameAsYouGo = true)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // 2枚同時（りょうどり）: まとめて命名のときだけ有効
-                          if (!_nameAsYouGo)
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFF7E0),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Text('🎴',
-                                      style: TextStyle(fontSize: 16)),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(m.doubleCardLabel,
-                                        style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w900)),
-                                  ),
-                                  Switch(
-                                    value: _doubleCard,
-                                    onChanged: (v) =>
-                                        setState(() => _doubleCard = v),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                            child: Column(
+                              children: [
+                                // 命名ルール（まとめて命名／出たとき命名）
+                                Row(
+                                  children: [
+                                    _ruleChip(m.rulePreName, !_nameAsYouGo,
+                                        () => setState(
+                                            () => _nameAsYouGo = false)),
+                                    const SizedBox(width: 8),
+                                    _ruleChip(m.ruleAsYouGo, _nameAsYouGo,
+                                        () => setState(
+                                            () => _nameAsYouGo = true)),
+                                  ],
+                                ),
+                                // 2枚同時: まとめて命名のときだけ
+                                if (!_nameAsYouGo) ...[
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFF7E0),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Text('🎴',
+                                            style: TextStyle(fontSize: 16)),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(m.doubleCardLabel,
+                                              style: const TextStyle(
+                                                  fontSize: 12.5,
+                                                  fontWeight:
+                                                      FontWeight.w900)),
+                                        ),
+                                        Switch(
+                                          value: _doubleCard,
+                                          activeColor: const Color(0xFF4ECDC4),
+                                          onChanged: (v) => setState(
+                                              () => _doubleCard = v),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: () {
-                              Sfx.instance.fanfare();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => NameCallScreen(
-                                        doubleCard: _doubleCard,
-                                        peopleCount: _peopleCount,
-                                        nameAsYouGo: _nameAsYouGo)),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4ECDC4),
-                              minimumSize: const Size.fromHeight(48),
-                              textStyle: const TextStyle(
-                                  fontSize: 17, fontWeight: FontWeight.w900),
-                            ),
-                            child: Text(m.nameCallSoloButton),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () =>
-                                      _pickLocalPlayers(context),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFFE8663C),
-                                    minimumSize: const Size.fromHeight(44),
-                                  ),
-                                  child: Text(m.nameCallLocalButton,
-                                      style:
-                                          const TextStyle(fontSize: 13.5)),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
+                                const SizedBox(height: 14),
+                                // メインの「ひとりで」ボタン（グラデーション）
+                                _gradientButton(
+                                  label: m.nameCallSoloButton,
+                                  colors: const [
+                                    Color(0xFF4ECDC4),
+                                    Color(0xFF35B3A6)
+                                  ],
+                                  height: 54,
+                                  fontSize: 18,
+                                  onTap: () {
                                     Sfx.instance.fanfare();
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            const OnlineLobbyScreen(
-                                                game: 'namecall'),
-                                      ),
+                                          builder: (_) => NameCallScreen(
+                                              doubleCard: _doubleCard,
+                                              nameAsYouGo: _nameAsYouGo)),
                                     );
                                   },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFFFF9F45),
-                                    minimumSize: const Size.fromHeight(44),
-                                  ),
-                                  child: Text(m.nameCallOnlineButton,
-                                      style:
-                                          const TextStyle(fontSize: 13.5)),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // 📸 自分の写真で覚える・対戦
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              Sfx.instance.pop();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const CustomRosterScreen()),
-                              );
-                            },
-                            icon: const Text('📸',
-                                style: TextStyle(fontSize: 16)),
-                            label: Text(m.customTitle),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF1E8A82),
-                              side: const BorderSide(
-                                  color: Color(0xFF4ECDC4), width: 2),
-                              minimumSize: const Size.fromHeight(44),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _gradientButton(
+                                        label: m.nameCallLocalButton,
+                                        colors: const [
+                                          Color(0xFFF08A5D),
+                                          Color(0xFFE8663C)
+                                        ],
+                                        height: 48,
+                                        fontSize: 13.5,
+                                        onTap: () =>
+                                            _pickLocalPlayers(context),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: _gradientButton(
+                                        label: m.nameCallOnlineButton,
+                                        colors: const [
+                                          Color(0xFFFFB65C),
+                                          Color(0xFFFF9F45)
+                                        ],
+                                        height: 48,
+                                        fontSize: 13.5,
+                                        onTap: () {
+                                          Sfx.instance.fanfare();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const OnlineLobbyScreen(
+                                                      game: 'namecall'),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                // 📸 自分の写真で覚える・対戦
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    Sfx.instance.pop();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              const CustomRosterScreen()),
+                                    );
+                                  },
+                                  icon: const Text('📸',
+                                      style: TextStyle(fontSize: 16)),
+                                  label: Text(m.customTitle),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF1E8A82),
+                                    side: const BorderSide(
+                                        color: Color(0xFF4ECDC4), width: 2),
+                                    minimumSize: const Size.fromHeight(46),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
