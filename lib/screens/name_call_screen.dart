@@ -242,7 +242,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
         _answering = 0;
         _roundHits.clear();
         _roundClaimer.clear();
-        if (!_isReferee) _choices = _game.choicesFor(card);
+        if (!_isReferee) _choices = _buildChoices(card);
         _phase = _Phase.round;
       });
       if (!_isReferee) _startQuizTimer();
@@ -254,7 +254,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _answering = 0;
       _roundHits.clear();
       _roundClaimer.clear();
-      if (!_isReferee) _choices = _game.choicesFor(_round[0]);
+      if (!_isReferee) _choices = _buildChoices(_round[0]);
       _phase = _Phase.round;
     });
     if (!_isReferee) _startQuizTimer();
@@ -269,6 +269,23 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _nameController.clear();
     _inlinePerson = null;
     _nextRound();
+  }
+
+  /// クイズの4択を作る。名簿の名前が4つに満たないとき（出たとき命名の序盤や
+  /// 少人数のカスタム名簿）は、おなまえガチャの偽名で4つまで補充する。
+  List<String> _buildChoices(Person card) {
+    final choices = _game.choicesFor(card).toList();
+    if (choices.length < 4) {
+      final m = MetaStrings.of(context);
+      var guard = 0;
+      while (choices.length < 4 && guard < 40) {
+        final decoy = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
+        if (!choices.contains(decoy)) choices.add(decoy);
+        guard++;
+      }
+      choices.shuffle(_rng);
+    }
+    return choices;
   }
 
   void _startQuizTimer() {
@@ -299,7 +316,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (_answering + 1 < _round.length) {
       setState(() {
         _answering += 1;
-        _choices = _game.choicesFor(_round[_answering]);
+        _choices = _buildChoices(_round[_answering]);
       });
       _startQuizTimer();
       return;

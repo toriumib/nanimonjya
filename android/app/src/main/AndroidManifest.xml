@@ -11,7 +11,7 @@
     <!-- 再起動後もスケジュール済み通知を復元する -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
-        android:label="名前を覚えよう"
+        android:label="名前を覚えよう：なまえコール"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
                android:enableOnBackInvokedCallback="true">
