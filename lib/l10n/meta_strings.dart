@@ -634,6 +634,9 @@ class MetaStrings {
   String playerGot(String p) => ja ? '$p が正解！' : '$p got it!';
   String get nobodyKnew => ja ? 'だれもわからなかった…' : 'Nobody knew…';
 
+  // 人数（カード枚数）
+  String peopleCountLabel(int n) => ja ? '$n人' : '$n ppl';
+
   // 2枚同時オプション
   String get doubleCardLabel => ja ? '2枚同時（りょうどり）' : 'Two at once (double take)';
   String get doubleCardHint => ja

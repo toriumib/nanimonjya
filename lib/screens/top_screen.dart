@@ -30,6 +30,7 @@ class TopScreen extends StatefulWidget {
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
   bool _doubleCard = false; // なまえコールの「2枚同時」オプション
+  int _peopleCount = 9; // なまえコールの登場人数（6/9/12）
 
   /// みんなで対戦（なまえコール）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
@@ -56,6 +57,7 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => NameCallScreen(
                             humanPlayers: n,
                             doubleCard: _doubleCard,
+                            peopleCount: _peopleCount,
                           ),
                         ),
                       );
@@ -321,26 +323,31 @@ class _TopScreenState extends State<TopScreen>
               padding: const EdgeInsets.only(bottom: 26.0),
               child: Column(
                 children: [
-                  Text(
-                    localizations.appTitle,
-                    style: GoogleFonts.mochiyPopOne(
-                      fontSize: 48,
-                      color: homeTheme.titleColor,
-                      letterSpacing: 2,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(3.0, 3.0),
-                          blurRadius: 0,
-                          color: homeTheme.titleShadow, // ズレ影でポップに
-                        ),
-                        const Shadow(
-                          offset: Offset(5.0, 5.0),
-                          blurRadius: 8,
-                          color: Color(0x33000000),
-                        ),
-                      ],
+                  // 長いタイトルでも1行に収まるよう横幅に合わせて自動縮小
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      localizations.appTitle,
+                      style: GoogleFonts.mochiyPopOne(
+                        fontSize: 44,
+                        color: homeTheme.titleColor,
+                        letterSpacing: 1,
+                        shadows: [
+                          Shadow(
+                            offset: const Offset(3.0, 3.0),
+                            blurRadius: 0,
+                            color: homeTheme.titleShadow, // ズレ影でポップに
+                          ),
+                          const Shadow(
+                            offset: Offset(5.0, 5.0),
+                            blurRadius: 8,
+                            color: Color(0x33000000),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
                     ),
-                    textAlign: TextAlign.center,
                   )
                       .animate()
                       .fadeIn(duration: 500.ms, curve: Curves.easeOut)
@@ -505,6 +512,50 @@ class _TopScreenState extends State<TopScreen>
                                 color: Colors.black54),
                           ),
                           const SizedBox(height: 8),
+                          // 登場人数（カード枚数）の選択
+                          Row(
+                            children: [
+                              const Text('👥', style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 6),
+                              for (final n in const [6, 9, 12]) ...[
+                                if (n > 6) const SizedBox(width: 6),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _peopleCount = n),
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 160),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: _peopleCount == n
+                                            ? const Color(0xFF4ECDC4)
+                                            : Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: const Color(0xFF4ECDC4),
+                                            width: 2),
+                                      ),
+                                      child: Text(
+                                        m.peopleCountLabel(n),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900,
+                                          color: _peopleCount == n
+                                              ? Colors.white
+                                              : const Color(0xFF1E8A82),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           // 2枚同時（りょうどり）オプション
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -538,7 +589,8 @@ class _TopScreenState extends State<TopScreen>
                                 context,
                                 MaterialPageRoute(
                                     builder: (_) => NameCallScreen(
-                                        doubleCard: _doubleCard)),
+                                        doubleCard: _doubleCard,
+                                        peopleCount: _peopleCount)),
                               );
                             },
                             style: ElevatedButton.styleFrom(
