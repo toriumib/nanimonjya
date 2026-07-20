@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -76,6 +77,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
   final List<bool> _roundHits = []; // クイズ用: そのカードを正解したか
   final List<int> _roundClaimer = []; // 審判用: そのカードを取ったプレイヤー(-1=パス)
   List<String> _choices = [];
+  String? _pickedChoice; // クイズで選んだ答え（正誤ハイライト用）
+  bool _answerLocked = false; // 正誤表示中の連打ガード
+  int _roundSeq = 0; // ラウンドごとに増やしてカード登場アニメを再生
   late final List<int> _cardsWon = List.filled(max(1, widget.humanPlayers), 0);
 
   // 回答タイマー（クイズモードのみ）
@@ -204,6 +208,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
     Sfx.instance.pop();
+    HapticFeedback.selectionClick();
     _game.roster[_namingPerson] = name;
     _nameController.clear();
     if (_namingIndex + 1 < _game.people.length) {
@@ -242,6 +247,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
         _answering = 0;
         _roundHits.clear();
         _roundClaimer.clear();
+        _roundSeq += 1;
         if (!_isReferee) _choices = _buildChoices(card);
         _phase = _Phase.round;
       });
@@ -254,6 +260,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _answering = 0;
       _roundHits.clear();
       _roundClaimer.clear();
+      _roundSeq += 1;
       if (!_isReferee) _choices = _buildChoices(_round[0]);
       _phase = _Phase.round;
     });
@@ -265,6 +272,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty || _inlinePerson == null) return;
     Sfx.instance.pop();
+    HapticFeedback.selectionClick();
     _game.roster[_inlinePerson!] = name;
     _nameController.clear();
     _inlinePerson = null;
@@ -299,8 +307,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
   }
 
   // ── クイズ回答（ひとり／オンライン） ──
+  // タップ → 正誤を色で見せる（0.75秒）→ 確定して次へ
   void _answer(String? choice) {
-    if (_phase != _Phase.round) return;
+    if (_phase != _Phase.round || _answerLocked) return;
+    _answerLocked = true;
     _quizTimer?.cancel();
     final target = _round[_answering];
     final correct = choice != null && choice == _game.roster[target];
@@ -308,25 +318,32 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (correct) {
       _quizCorrect += 1;
       Sfx.instance.correct();
+      HapticFeedback.lightImpact();
     } else {
       Sfx.instance.wrong();
+      HapticFeedback.mediumImpact();
     }
     _roundHits.add(correct);
+    setState(() => _pickedChoice = choice ?? '__timeout__');
 
-    if (_answering + 1 < _round.length) {
-      setState(() {
-        _answering += 1;
-        _choices = _buildChoices(_round[_answering]);
-      });
-      _startQuizTimer();
-      return;
-    }
-
-    final gained = _roundHits.where((h) => h).length;
-    _cardsWon[0] += gained;
-    if (gained == _round.length && _round.length == 2) _ryoudoriCount += 1;
-    if (_isOnline) widget.online!.reportProgress(_cardsWon[0]);
-    _endRound();
+    Future.delayed(const Duration(milliseconds: 750), () {
+      if (!mounted) return;
+      _pickedChoice = null;
+      _answerLocked = false;
+      if (_answering + 1 < _round.length) {
+        setState(() {
+          _answering += 1;
+          _choices = _buildChoices(_round[_answering]);
+        });
+        _startQuizTimer();
+        return;
+      }
+      final gained = _roundHits.where((h) => h).length;
+      _cardsWon[0] += gained;
+      if (gained == _round.length && _round.length == 2) _ryoudoriCount += 1;
+      if (_isOnline) widget.online!.reportProgress(_cardsWon[0]);
+      _endRound();
+    });
   }
 
   // ── 審判方式の獲得（オフライン対戦）: 早かったプレイヤーをタップ、-1=パス ──
@@ -335,6 +352,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (player >= 0) {
       _cardsWon[player] += 1;
       Sfx.instance.correct();
+      HapticFeedback.lightImpact();
     } else {
       Sfx.instance.wrong();
     }
@@ -583,7 +601,15 @@ class _NameCallScreenState extends State<NameCallScreen> {
               ],
             ),
             child: FaceView(person: _inlinePerson!, size: 150, radius: 18),
-          ),
+          )
+              .animate(key: ValueKey(_inlinePerson))
+              .fadeIn(duration: 240.ms)
+              .scale(
+                begin: const Offset(0.7, 0.7),
+                end: const Offset(1, 1),
+                duration: 380.ms,
+                curve: Curves.easeOutBack,
+              ),
           const SizedBox(height: 14),
           TextField(
             controller: _nameController,
@@ -669,6 +695,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
           _scoreHeader(m),
           const SizedBox(height: 10),
           Row(
+            key: ValueKey(_roundSeq),
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               for (var i = 0; i < _round.length; i++) ...[
@@ -676,7 +703,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 _roundCard(i, resultPhase),
               ],
             ],
-          ),
+          )
+              .animate(key: ValueKey(_roundSeq))
+              .fadeIn(duration: 260.ms)
+              .scale(
+                begin: const Offset(0.85, 0.85),
+                end: const Offset(1, 1),
+                duration: 320.ms,
+                curve: Curves.easeOutBack,
+              )
+              .slideY(begin: 0.12, end: 0, duration: 300.ms),
           const SizedBox(height: 12),
           if (resultPhase)
             _roundResultBanner(m)
@@ -718,21 +754,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _answer(c),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF2B5CA5),
-                          side: const BorderSide(
-                              color: Color(0xFF3A7BD5), width: 2),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 2,
-                          shadowColor: const Color(0x223A7BD5),
-                        ),
-                        child: Text(c,
-                            style: const TextStyle(
-                                fontSize: 17, fontWeight: FontWeight.w900)),
-                      ),
+                      child: _choiceButton(c),
                     ),
                   ),
               ],
@@ -740,6 +762,51 @@ class _NameCallScreenState extends State<NameCallScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // クイズ選択肢ボタン（回答後は正解=緑・選んだ不正解=赤にハイライト）
+  Widget _choiceButton(String c) {
+    final correctName = _game.roster[_round[_answering]];
+    Color bg = Colors.white;
+    Color fg = const Color(0xFF2B5CA5);
+    Color border = const Color(0xFF3A7BD5);
+    if (_answerLocked) {
+      if (c == correctName) {
+        bg = const Color(0xFF2E9E5B);
+        fg = Colors.white;
+        border = const Color(0xFF2E9E5B);
+      } else if (c == _pickedChoice) {
+        bg = const Color(0xFFC94A4A);
+        fg = Colors.white;
+        border = const Color(0xFFC94A4A);
+      }
+    }
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border, width: 2),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x223A7BD5), blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: _answerLocked ? null : () => _answer(c),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
+            child: Text(c,
+                style: TextStyle(
+                    fontSize: 17, fontWeight: FontWeight.w900, color: fg)),
+          ),
+        ),
+      ),
     );
   }
 
@@ -836,8 +903,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.w900, color: color),
-        ),
+              fontSize: 26, fontWeight: FontWeight.w900, color: color),
+        )
+            .animate()
+            .fadeIn(duration: 180.ms)
+            .scale(
+              begin: const Offset(0.6, 0.6),
+              end: const Offset(1, 1),
+              duration: 420.ms,
+              curve: Curves.elasticOut,
+            ),
       ),
     );
   }
