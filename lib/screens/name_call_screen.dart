@@ -17,6 +17,7 @@ import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
+import '../widgets/game_ui.dart';
 import 'home_shell.dart';
 import 'local_result_screen.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
@@ -765,58 +766,43 @@ class _NameCallScreenState extends State<NameCallScreen> {
     );
   }
 
-  // クイズ選択肢ボタン（回答後は正解=緑・選んだ不正解=赤にハイライト）
+  // クイズ選択肢ボタン（立体・回答後は正解=緑・選んだ不正解=赤にハイライト）
   Widget _choiceButton(String c) {
     final correctName = _game.roster[_round[_answering]];
-    Color bg = Colors.white;
+    // 通常時は白ベースの立体、判定中は色つきに切り替え
+    List<Color> colors = const [Colors.white, Color(0xFFEAF3FF)];
+    Color edge = const Color(0xFF9DBBD8);
     Color fg = const Color(0xFF2B5CA5);
-    Color border = const Color(0xFF3A7BD5);
     if (_answerLocked) {
       if (c == correctName) {
-        bg = const Color(0xFF2E9E5B);
+        colors = const [Color(0xFF4FBE7C), Color(0xFF2E9E5B)];
+        edge = const Color(0xFF1E7A44);
         fg = Colors.white;
-        border = const Color(0xFF2E9E5B);
       } else if (c == _pickedChoice) {
-        bg = const Color(0xFFC94A4A);
+        colors = const [Color(0xFFE06A6A), Color(0xFFC94A4A)];
+        edge = const Color(0xFF9C3232);
         fg = Colors.white;
-        border = const Color(0xFFC94A4A);
       }
     }
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border, width: 2),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x223A7BD5), blurRadius: 4, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: _answerLocked ? null : () => _answer(c),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            alignment: Alignment.center,
-            child: Text(c,
-                style: TextStyle(
-                    fontSize: 17, fontWeight: FontWeight.w900, color: fg)),
-          ),
-        ),
-      ),
+    return JuicyButton(
+      onTap: _answerLocked ? null : () => _answer(c),
+      colors: colors,
+      edgeColor: edge,
+      height: 56,
+      radius: 14,
+      child: Text(c,
+          style: TextStyle(
+              fontSize: 17, fontWeight: FontWeight.w900, color: fg)),
     );
   }
 
   // 審判パネル（オフライン対戦）: 一斉に名前を呼び、早かった人のボタンを押す
   Widget _refereePanel(MetaStrings m) {
     const colors = [
-      Color(0xFF3A7BD5),
-      Color(0xFFE8663C),
-      Color(0xFF2E9E5B),
-      Color(0xFF8A5AC2),
+      [Color(0xFF5B9BE8), Color(0xFF3A7BD5)],
+      [Color(0xFFF08A5D), Color(0xFFE8663C)],
+      [Color(0xFF56BE82), Color(0xFF2E9E5B)],
+      [Color(0xFFA57AD8), Color(0xFF8A5AC2)],
     ];
     return Column(
       children: [
@@ -835,31 +821,41 @@ class _NameCallScreenState extends State<NameCallScreen> {
         Expanded(
           child: GridView.count(
             crossAxisCount: 2,
-            childAspectRatio: 2.6,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
+            childAspectRatio: 2.4,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
             children: [
               for (var i = 0; i < widget.humanPlayers; i++)
-                ElevatedButton(
-                  onPressed: () => _claim(i),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors[i],
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w900),
+                JuicyButton(
+                  onTap: () => _claim(i),
+                  colors: colors[i],
+                  height: double.infinity,
+                  child: Text(
+                    m.playerGot('P${i + 1}'),
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                              offset: Offset(0, 1.5), color: Color(0x55000000)),
+                        ]),
                   ),
-                  child: Text(m.playerGot('P${i + 1}')),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => _claim(-1),
-            child: Text(m.nobodyKnew),
-          ),
+        const SizedBox(height: 8),
+        JuicyButton(
+          onTap: () => _claim(-1),
+          colors: const [Color(0xFFF2F4F7), Color(0xFFDCE3EC)],
+          edgeColor: const Color(0xFFB4C0CE),
+          height: 46,
+          child: Text(m.nobodyKnew,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF5A6A7A))),
         ),
       ],
     );

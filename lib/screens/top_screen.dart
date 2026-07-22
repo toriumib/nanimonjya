@@ -18,6 +18,7 @@ import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
+import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 
 // 多言語対応のために追加
 
@@ -33,7 +34,7 @@ class _TopScreenState extends State<TopScreen>
   bool _doubleCard = false; // なまえコールの「2枚同時」オプション
   bool _nameAsYouGo = false; // true=出たとき命名（ナンジャモンジャ式）
 
-  /// グラデーションの角丸ボタン（スタイリッシュ用）
+  /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
     required String label,
     required List<Color> colors,
@@ -41,36 +42,19 @@ class _TopScreenState extends State<TopScreen>
     double height = 48,
     double fontSize = 15,
   }) {
-    return SizedBox(
+    return JuicyButton(
+      onTap: onTap,
+      colors: colors,
       height: height,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(colors: colors),
-          boxShadow: [
-            BoxShadow(
-              color: colors.last.withValues(alpha: 0.35),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white),
-              ),
-            ),
-          ),
-        ),
+      child: Text(
+        label,
+        style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            shadows: const [
+              Shadow(offset: Offset(0, 1.5), color: Color(0x55000000)),
+            ]),
       ),
     );
   }
@@ -390,45 +374,62 @@ class _TopScreenState extends State<TopScreen>
               },
             ),
             const SizedBox(height: 6),
-            // アプリタイトル（テーマ連動色・立体ロゴ風）＋キャッチコピー
+            // アプリタイトル（縁取り＋後光の「ゲームロゴ」）＋キャッチコピー
             Padding(
               padding: const EdgeInsets.only(bottom: 26.0),
               child: Column(
                 children: [
-                  // 長いタイトルでも1行に収まるよう横幅に合わせて自動縮小
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      localizations.appTitle,
-                      style: GoogleFonts.mochiyPopOne(
-                        fontSize: 44,
-                        color: homeTheme.titleColor,
-                        letterSpacing: 1,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(3.0, 3.0),
-                            blurRadius: 0,
-                            color: homeTheme.titleShadow, // ズレ影でポップに
-                          ),
-                          const Shadow(
-                            offset: Offset(5.0, 5.0),
-                            blurRadius: 8,
-                            color: Color(0x33000000),
-                          ),
-                        ],
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // ロゴ背後でゆっくり回る後光
+                      SunRays(
+                        size: 230,
+                        color: homeTheme.darkBackground
+                            ? Colors.white
+                            : homeTheme.titleColor,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
-                      .scale(
-                        begin: const Offset(0.7, 0.7),
-                        end: const Offset(1.0, 1.0),
-                        duration: 500.ms,
-                        curve: Curves.elasticOut,
-                      ),
+                      // 長いタイトルでも1行に収まるよう横幅に合わせて自動縮小
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 8),
+                          child: OutlinedText(
+                            localizations.appTitle,
+                            strokeWidth: 8,
+                            strokeColor: Colors.white,
+                            maxLines: 1,
+                            style: GoogleFonts.mochiyPopOne(
+                              fontSize: 44,
+                              color: homeTheme.titleColor,
+                              letterSpacing: 1,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(3.0, 3.0),
+                                  blurRadius: 0,
+                                  color: homeTheme.titleShadow,
+                                ),
+                                const Shadow(
+                                  offset: Offset(5.0, 5.0),
+                                  blurRadius: 8,
+                                  color: Color(0x33000000),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                          .animate()
+                          .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                          .scale(
+                            begin: const Offset(0.7, 0.7),
+                            end: const Offset(1.0, 1.0),
+                            duration: 500.ms,
+                            curve: Curves.elasticOut,
+                          ),
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   // キャッチコピー（何のゲームか一目でわかる＝売れる）
                   Container(
