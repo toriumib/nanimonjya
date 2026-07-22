@@ -87,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // ★未準備なら予約→読み込み完了と同時に自動再生★
     final playedNow = await _rewardAd.showOrQueue(onReward: () {
       PlayerProfile.instance.grantBonusCoins(50);
-      Sfx.instance.fanfare(); // 報酬ゲットは盛大に
+      Sfx.instance.reward(); // 報酬ゲットは盛大に（コイン＋ファンファーレ）
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(m.earnedCoins(50))));

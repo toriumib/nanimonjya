@@ -12,6 +12,8 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
+import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
+import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
 // 多言語対応のために追加
 import 'package:flutter_localizations/flutter_localizations.dart'; // ★追加★
@@ -34,6 +36,7 @@ Future<void> main() async {
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
   DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
+  Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
   runApp(const MyApp());
 }
 
@@ -46,6 +49,17 @@ class MyApp extends StatelessWidget {
     final baseTextTheme = ThemeData(useMaterial3: true).textTheme;
     return ThemeData(
       useMaterial3: true,
+      // 全プラットフォームで push/pop を「スライド＋フェード＋微拡大」のポップな遷移に統一
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PopSlideFadeTransitionsBuilder(),
+          TargetPlatform.iOS: PopSlideFadeTransitionsBuilder(),
+          TargetPlatform.fuchsia: PopSlideFadeTransitionsBuilder(),
+          TargetPlatform.linux: PopSlideFadeTransitionsBuilder(),
+          TargetPlatform.macOS: PopSlideFadeTransitionsBuilder(),
+          TargetPlatform.windows: PopSlideFadeTransitionsBuilder(),
+        },
+      ),
       textTheme: GoogleFonts.zenMaruGothicTextTheme(baseTextTheme),
       colorScheme: ColorScheme.fromSeed(
         seedColor: accent,

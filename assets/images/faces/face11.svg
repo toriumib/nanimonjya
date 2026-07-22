@@ -1,14 +1,76 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <circle cx="100" cy="100" r="96" fill="#FFE4E4"/>
-  <ellipse cx="100" cy="104" rx="50" ry="54" fill="#F2C29B"/>
-  <ellipse cx="48" cy="106" rx="9" ry="12" fill="#F2C29B"/>
-  <ellipse cx="152" cy="106" rx="9" ry="12" fill="#F2C29B"/>
-  <path d="M58 74 Q62 44 100 42 Q138 44 142 74 Q124 56 100 56 Q76 56 58 74 Z" fill="#38302A"/>
-  
-  <circle cx="80" cy="104" r="5" fill="#33261E"/>
-  <circle cx="120" cy="104" r="5" fill="#33261E"/>
-  <circle cx="82" cy="102" r="1.6" fill="#FFFFFF"/>
-  <circle cx="122" cy="102" r="1.6" fill="#FFFFFF"/>
-  <rect x="52" y="72" width="96" height="14" rx="7" fill="#E84A4A"/><circle cx="100" cy="79" r="5" fill="#FFFFFF"/>
-  <path d="M84 134 Q100 150 116 134 Z" fill="#FFFFFF" stroke="#B0603C" stroke-width="3"/>
+<defs>
+<radialGradient id="bg11" cx="42%" cy="34%" r="75%">
+<stop offset="0%" stop-color="#E6F7E9"/>
+<stop offset="100%" stop-color="#BEE6C4"/>
+</radialGradient>
+<radialGradient id="skin11" cx="40%" cy="34%" r="72%">
+<stop offset="0%" stop-color="#A9744F"/>
+<stop offset="60%" stop-color="#8D5A3C"/>
+<stop offset="100%" stop-color="#6E4028"/>
+</radialGradient>
+<linearGradient id="hair11" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#5C4A42"/>
+<stop offset="55%" stop-color="#3A2E2A"/>
+<stop offset="100%" stop-color="#241C19"/>
+</linearGradient>
+<linearGradient id="hairD11" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#3A2E2A"/>
+<stop offset="100%" stop-color="#241C19"/>
+</linearGradient>
+<linearGradient id="hairL11" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#5C4A42"/>
+<stop offset="100%" stop-color="#3A2E2A"/>
+</linearGradient>
+<radialGradient id="cheek11" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#FF8FA3" stop-opacity="0.55"/>
+<stop offset="100%" stop-color="#FF8FA3" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="iris11" cx="50%" cy="38%" r="60%">
+<stop offset="0%" stop-color="#3B2A1E" stop-opacity="0.6"/>
+<stop offset="70%" stop-color="#3B2A1E"/>
+<stop offset="100%" stop-color="#1a1410"/>
+</radialGradient>
+<radialGradient id="vig11" cx="50%" cy="50%" r="50%">
+<stop offset="70%" stop-color="#000000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000000" stop-opacity="0.10"/>
+</radialGradient>
+</defs>
+<circle cx="100" cy="100" r="98" fill="url(#bg11)"/>
+<!-- 首と落ち影 -->
+<ellipse cx="100" cy="188" rx="34" ry="26" fill="#6E4028"/>
+<ellipse cx="100" cy="150" rx="52" ry="30" fill="#000000" opacity="0.06"/>
+<!-- 耳 -->
+<ellipse cx="50" cy="118" rx="10" ry="13" fill="url(#skin11)"/>
+<ellipse cx="150" cy="118" rx="10" ry="13" fill="url(#skin11)"/>
+<ellipse cx="50" cy="118" rx="4" ry="6" fill="#6E4028" opacity="0.6"/>
+<ellipse cx="150" cy="118" rx="4" ry="6" fill="#6E4028" opacity="0.6"/>
+<!-- 顔 -->
+<path d="M52 108 Q52 62 100 60 Q148 62 148 108 Q148 150 100 162 Q52 150 52 108 Z" fill="url(#skin11)"/>
+<!-- 頬の陰影 -->
+<path d="M100 60 Q148 62 148 108 Q148 150 100 162 Q126 140 128 108 Q128 74 100 60 Z" fill="#6E4028" opacity="0.18"/>
+<path d="M56 88 Q58 50 100 48 Q142 50 144 88 Q140 66 100 64 Q60 66 56 88 Z" fill="url(#hair11)" opacity="0.96"/>
+<!-- チーク -->
+<ellipse cx="74" cy="128" rx="13" ry="9" fill="url(#cheek11)"/>
+<ellipse cx="126" cy="128" rx="13" ry="9" fill="url(#cheek11)"/>
+<!-- 鼻 -->
+<path d="M100 116 Q96 128 100 130 Q104 128 100 116" fill="#6E4028" opacity="0.4"/>
+<ellipse cx="100" cy="130" rx="4" ry="2.4" fill="#6E4028" opacity="0.35"/>
+<ellipse cx="78" cy="112" rx="11" ry="12.5" fill="#ffffff"/>
+<ellipse cx="78" cy="112" rx="11" ry="12.5" fill="url(#vig11)"/>
+<circle cx="78" cy="113" r="6.6" fill="url(#iris11)"/>
+<circle cx="78" cy="113" r="3" fill="#140f0b"/>
+<circle cx="75.6" cy="109.5" r="2.2" fill="#ffffff"/>
+<circle cx="80" cy="115.5" r="1" fill="#ffffff" opacity="0.7"/>
+<path d="M66 104 Q78 98 90 104" fill="none" stroke="#241C19" stroke-width="3.4" stroke-linecap="round"/>
+<ellipse cx="122" cy="112" rx="11" ry="12.5" fill="#ffffff"/>
+<ellipse cx="122" cy="112" rx="11" ry="12.5" fill="url(#vig11)"/>
+<circle cx="122" cy="113" r="6.6" fill="url(#iris11)"/>
+<circle cx="122" cy="113" r="3" fill="#140f0b"/>
+<circle cx="119.6" cy="109.5" r="2.2" fill="#ffffff"/>
+<circle cx="124" cy="115.5" r="1" fill="#ffffff" opacity="0.7"/>
+<path d="M110 104 Q122 98 134 104" fill="none" stroke="#241C19" stroke-width="3.4" stroke-linecap="round"/>
+<path d="M82 138 Q100 162 118 138 Z" fill="#fff" stroke="#B0603C" stroke-width="3.5" stroke-linejoin="round"/><path d="M82 138 Q100 150 118 138" fill="none" stroke="#B0603C" stroke-width="3.5" stroke-linecap="round"/>
+<!-- ハイライト(額) -->
+<ellipse cx="82" cy="82" rx="14" ry="8" fill="#ffffff" opacity="0.16"/>
 </svg>
