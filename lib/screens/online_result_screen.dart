@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
@@ -161,10 +161,10 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
           ),
           ConfettiWidget(
             confettiController: _confetti,
-            blastDirection: pi / 2,
-            emissionFrequency: 0.05,
-            numberOfParticles: 24,
-            maxBlastForce: 24,
+            blastDirectionality: BlastDirectionality.explosive,
+            emissionFrequency: 0.08,
+            numberOfParticles: 42,
+            maxBlastForce: 32,
             minBlastForce: 8,
             gravity: 0.25,
           ),
@@ -210,15 +210,26 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
           },
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 30,
+            fontSize: 32,
             fontWeight: FontWeight.w900,
             color: _outcome == _Outcome.win
                 ? const Color(0xFFE8A400)
                 : const Color(0xFF3A7BD5),
           ),
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 200.ms)
+            .scale(
+              begin: const Offset(0.5, 0.5),
+              end: const Offset(1, 1),
+              duration: 550.ms,
+              curve: Curves.elasticOut,
+            ),
         const SizedBox(height: 16),
-        _compareCard(m),
+        _compareCard(m)
+            .animate()
+            .fadeIn(delay: 150.ms, duration: 300.ms)
+            .slideY(begin: 0.15, end: 0),
         const SizedBox(height: 12),
         if (_outcome != _Outcome.draw) _ratingCard(m, rank),
         if (_coinsEarned > 0) ...[

@@ -17,6 +17,7 @@ import '../services/reward_ad_helper.dart'; // 無料コインチェストの広
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
+import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 
 // 多言語対応のために追加
 
@@ -318,6 +319,8 @@ class _TopScreenState extends State<TopScreen>
         child: SafeArea(
         child: Stack(
           children: [
+            // 🍁 季節の装飾がゆっくり舞う（タッチ透過）
+            const Positioned.fill(child: SeasonalDecor()),
             Positioned(top: 8, right: 8, child: _topBar()),
             Center(
         child: SingleChildScrollView(
