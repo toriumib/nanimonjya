@@ -2,10 +2,12 @@ import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/count_up.dart';
 import 'match_game_screen.dart';
 import 'name_call_screen.dart';
 import 'home_shell.dart';
@@ -98,11 +100,19 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                         : m.matchDraw,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFFE8A400),
                     ),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 200.ms)
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1, 1),
+                        duration: 550.ms,
+                        curve: Curves.elasticOut,
+                      ),
                   const SizedBox(height: 18),
                   Card(
                     elevation: 3,
@@ -111,6 +121,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                           vertical: 14, horizontal: 18),
                       child: Column(
                         children: [
+                          // 順位ごとに時間差でスライドイン（1位から順に）
                           for (var rank = 0; rank < order.length; rank++) ...[
                             if (rank > 0) const Divider(height: 18),
                             Row(
@@ -122,7 +133,8 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                                     2 => '🥉',
                                     _ => '　',
                                   },
-                                  style: const TextStyle(fontSize: 22),
+                                  style: TextStyle(
+                                      fontSize: rank == 0 ? 26 : 22),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
@@ -140,14 +152,21 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                Text(
-                                  '${widget.pairsWon[order[rank]]} ${widget.nameCall ? m.cardsUnit : m.pairsUnit}',
+                                CountUp(
+                                  widget.pairsWon[order[rank]],
+                                  suffix:
+                                      ' ${widget.nameCall ? m.cardsUnit : m.pairsUnit}',
                                   style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w900),
                                 ),
                               ],
-                            ),
+                            )
+                                .animate()
+                                .fadeIn(
+                                    delay: (250 + rank * 220).ms,
+                                    duration: 260.ms)
+                                .slideX(begin: 0.25, end: 0),
                           ],
                         ],
                       ),
@@ -216,10 +235,10 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
           ),
           ConfettiWidget(
             confettiController: _confetti,
-            blastDirection: pi / 2,
-            emissionFrequency: 0.05,
-            numberOfParticles: 20,
-            maxBlastForce: 22,
+            blastDirectionality: BlastDirectionality.explosive,
+            emissionFrequency: 0.08,
+            numberOfParticles: 38,
+            maxBlastForce: 30,
             minBlastForce: 8,
             gravity: 0.25,
           ),

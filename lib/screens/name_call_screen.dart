@@ -1080,8 +1080,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
           Text(
             m.rosterReveal,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-          ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+          )
+              .animate()
+              .fadeIn(duration: 200.ms)
+              .scale(
+                begin: const Offset(0.6, 0.6),
+                end: const Offset(1, 1),
+                duration: 500.ms,
+                curve: Curves.elasticOut,
+              ),
           const SizedBox(height: 6),
           Text(
             m.rosterRevealDesc,
@@ -1101,22 +1109,33 @@ class _NameCallScreenState extends State<NameCallScreen> {
               runSpacing: 10,
               alignment: WrapAlignment.center,
               children: [
-                for (final p in _game.people)
+                // 名簿を1人ずつ時間差でポップイン
+                for (var i = 0; i < _game.people.length; i++)
                   SizedBox(
                     width: 76,
                     child: Column(
                       children: [
-                        FaceView(person: p, size: 56, radius: 10),
+                        FaceView(
+                            person: _game.people[i], size: 56, radius: 10),
                         const SizedBox(height: 3),
                         Text(
-                          _game.roster[p] ?? '',
+                          _game.roster[_game.people[i]] ?? '',
                           style: const TextStyle(
                               fontSize: 11.5, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(delay: (200 + i * 80).ms, duration: 220.ms)
+                      .scale(
+                        begin: const Offset(0.6, 0.6),
+                        end: const Offset(1, 1),
+                        delay: (200 + i * 80).ms,
+                        duration: 260.ms,
+                        curve: Curves.easeOutBack,
+                      ),
               ],
             ),
           ),

@@ -1,13 +1,13 @@
-import 'dart:math';
-
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/count_up.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
 
@@ -39,7 +39,7 @@ class MatchResultScreen extends StatefulWidget {
 
 class _MatchResultScreenState extends State<MatchResultScreen> {
   late final ConfettiController _confetti =
-      ConfettiController(duration: const Duration(seconds: 2));
+      ConfettiController(duration: const Duration(seconds: 3));
   int _coinsEarned = 0;
   int _ratingDelta = 0;
   int _ratingAfter = PlayerProfile.instance.cpuRating;
@@ -128,24 +128,49 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                         : (_won ? m.matchWin : m.matchLose),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w900,
                       color: _won
                           ? const Color(0xFFE8A400)
                           : const Color(0xFF3A7BD5),
                     ),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 200.ms)
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1, 1),
+                        duration: 550.ms,
+                        curve: Curves.elasticOut,
+                      ),
                   const SizedBox(height: 16),
-                  _scoreCard(m),
+                  _scoreCard(m)
+                      .animate()
+                      .fadeIn(delay: 150.ms, duration: 300.ms)
+                      .slideY(begin: 0.15, end: 0),
                   const SizedBox(height: 12),
-                  if (_granted && !_draw) _ratingCard(m, rank, ja),
+                  if (_granted && !_draw)
+                    _ratingCard(m, rank, ja)
+                        .animate()
+                        .fadeIn(delay: 450.ms, duration: 300.ms)
+                        .slideY(begin: 0.15, end: 0),
                   if (_granted && _coinsEarned > 0) ...[
                     const SizedBox(height: 12),
-                    _coinBanner(m),
+                    _coinBanner(m)
+                        .animate()
+                        .fadeIn(delay: 700.ms, duration: 300.ms)
+                        .slideY(begin: 0.15, end: 0),
                   ],
                   if (_granted && _newAchievements.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    _achievementsCard(m),
+                    _achievementsCard(m)
+                        .animate()
+                        .fadeIn(delay: 950.ms, duration: 300.ms)
+                        .scale(
+                          begin: const Offset(0.9, 0.9),
+                          end: const Offset(1, 1),
+                          duration: 300.ms,
+                        ),
                   ],
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -186,12 +211,12 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
           ),
           ConfettiWidget(
             confettiController: _confetti,
-            blastDirection: pi / 2,
-            emissionFrequency: 0.05,
-            numberOfParticles: 24,
-            maxBlastForce: 24,
-            minBlastForce: 8,
-            gravity: 0.25,
+            blastDirectionality: BlastDirectionality.explosive,
+            emissionFrequency: 0.08,
+            numberOfParticles: 42,
+            maxBlastForce: 32,
+            minBlastForce: 10,
+            gravity: 0.22,
           ),
         ],
       ),
@@ -207,9 +232,11 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
             Text(label,
                 style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w900, color: color)),
-            Text('$score',
-                style: TextStyle(
-                    fontSize: 34, fontWeight: FontWeight.w900, color: color)),
+            CountUp(
+              score,
+              style: TextStyle(
+                  fontSize: 34, fontWeight: FontWeight.w900, color: color),
+            ),
             Text(m.pairsUnit,
                 style: const TextStyle(fontSize: 11, color: Colors.grey)),
           ],
@@ -251,7 +278,13 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
           Text(rank.emoji, style: const TextStyle(fontSize: 28)),
           const SizedBox(width: 8),
           Text(
-            '${ja ? rank.nameJa : rank.nameEn}  $_ratingAfter',
+            '${ja ? rank.nameJa : rank.nameEn}  ',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          CountUp(
+            _ratingAfter,
+            begin: _ratingAfter - _ratingDelta,
+            duration: const Duration(milliseconds: 1200),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(width: 8),

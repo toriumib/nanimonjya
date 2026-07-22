@@ -872,50 +872,77 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 300),
         opacity: card.matched ? 0.35 : 1,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: faceUp
-                ? Colors.white
-                : (card.matched ? Colors.grey.shade200 : const Color(0xFF3A7BD5)),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: faceUp ? const Color(0xFFB8CCE0) : const Color(0xFF2B5CA5),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: faceUp
-              ? (card.isFace
-                  ? Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(card.person.faceAsset),
+        // ★3Dフリップ: 裏→表がY軸回転でめくれる★
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: faceUp ? 1.0 : 0.0),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeInOutCubic,
+          builder: (context, t, _) {
+            final angle = t * pi; // 0(裏) → pi(表)
+            final showFront = t > 0.5;
+            return Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0012) // 奥行き（パース）
+                ..rotateY(angle),
+              child: showFront
+                  // 表面はさらに180度回して鏡像を打ち消す
+                  ? Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()..rotateY(pi),
+                      child: _cardFace(card, true),
                     )
-                  : Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            card.person.name,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ),
-                    ))
-              : const Center(
-                  child: Text('🏷️', style: TextStyle(fontSize: 26)),
-                ),
+                  : _cardFace(card, false),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  /// カードの面（表: 顔or名前 / 裏: タグ柄）。
+  Widget _cardFace(_CardData card, bool front) {
+    return Container(
+      decoration: BoxDecoration(
+        color: front
+            ? Colors.white
+            : (card.matched ? Colors.grey.shade200 : const Color(0xFF3A7BD5)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: front ? const Color(0xFFB8CCE0) : const Color(0xFF2B5CA5),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: front
+          ? (card.isFace
+              ? Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: SvgPicture.asset(card.person.faceAsset),
+                )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        card.person.name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ))
+          : const Center(
+              child: Text('🏷️', style: TextStyle(fontSize: 26)),
+            ),
     );
   }
 
