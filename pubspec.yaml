@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.2.0+97
+version: 2.2.0+98
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
