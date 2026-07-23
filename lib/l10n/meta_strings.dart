@@ -726,4 +726,8 @@ class MetaStrings {
   String get recallEncourageLow => ja
       ? '思い出せなくても大丈夫。くり返すほど、名前は出てくるようになります。'
       : 'It’s OK to forget. The more you repeat, the easier names come back.';
+  String get businessCardHello => ja ? 'はじめまして' : 'Nice to meet you';
+  String get researchTipHeader =>
+      ja ? '🔬 研究にもとづく名前のコツ' : '🔬 Research-backed name tip';
+  String get sourceLabel => ja ? '出典' : 'Source';
 }

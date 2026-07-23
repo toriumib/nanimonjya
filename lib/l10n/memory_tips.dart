@@ -141,13 +141,64 @@ const List<MemoryTipPage> kMemoryTipPages = [
         '※ Everyone memorizes differently — find what works for you.',
     gradient: [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
   ),
+  MemoryTipPage(
+    emoji: '🔬',
+    titleJa: '研究が言う名前のコツ①：思い出す練習が最強',
+    titleEn: 'What research says ①: retrieval wins',
+    bodyJa: '「見て覚える」より「思い出す」ほうが記憶に残る——これは記憶研究でくり返し確かめられてきた'
+        '“テスト効果”です。覚えたい名前は、読み返すのではなく、あえて思い出してみるのがコツ。\n\n'
+        'さらに、思い出す間隔を「直後→数分後→あとでもう一度」と少しずつ延ばすと、より長く覚えていられると'
+        '報告されています（時間をあけた復習＝分散学習）。\n\n'
+        '🧠 ペタネームの「思い出しトレーニング」は、出会って→時間をおいて→思い出す、というこの流れそのもの。\n\n'
+        '🔬 出典: Roediger & Karpicke (2006), Psychological Science ／ '
+        'Morris, Fritz ほか (2005), Applied Cognitive Psychology ／ '
+        'Cepeda ほか (2006), Psychological Bulletin',
+    bodyEn: 'Recalling something beats rereading it — the well-replicated “testing effect”. '
+        'For a name you want to keep, try to retrieve it instead of just reviewing it.\n\n'
+        'Spacing your recalls at growing gaps (right away → minutes later → again later) is reported to '
+        'help names last even longer (spaced practice).\n\n'
+        '🧠 PetaName’s Recall Training is exactly this loop: meet → let time pass → recall.\n\n'
+        '🔬 Sources: Roediger & Karpicke (2006), Psychological Science; '
+        'Morris, Fritz et al. (2005), Applied Cognitive Psychology; '
+        'Cepeda et al. (2006), Psychological Bulletin',
+    gradient: [Color(0xFFE3F0FF), Color(0xFFEFE8FF)],
+  ),
+  MemoryTipPage(
+    emoji: '🔬',
+    titleJa: '研究が言う名前のコツ②：声に出す・意味づけ・自分ごと',
+    titleEn: 'What research says ②: say it, mean it, own it',
+    bodyJa: '名前は「声に出す」と記憶に残りやすいとされます（黙読より発話が有利＝プロダクション効果）。\n\n'
+        'また、字面だけでなく“どんな人か”と意味づけしたり、自分の知り合いや自分との共通点に結びつけると、'
+        '思い出す手がかりが増えます。顔の特徴と名前を1枚の絵にする映像化も定番のコツ。\n\n'
+        '💡 「ベイカーさん(名字)」より「パン屋さん(職業)」のほうが思い出しやすい——名前は意味の網に'
+        'からめるほど強くなります。\n\n'
+        '🔬 出典: MacLeod ほか (2010), J. Exp. Psychol.: LMC ／ '
+        'Craik & Tulving (1975), J. Exp. Psychol.: General ／ '
+        'Rogers, Kuiper & Kirker (1977), J. Personality & Social Psychology ／ '
+        'Morris, Jones & Hampson (1978), British Journal of Psychology ／ '
+        'McWeeny ほか (1987), British Journal of Psychology ／ '
+        'DeGutis ほか (2024), Quarterly Journal of Experimental Psychology',
+    bodyEn: 'Names are remembered better when said aloud (the “production effect”). '
+        'Adding meaning — what the person is like — and tying the name to someone you know or to yourself '
+        'gives you more cues. Fusing a facial feature and the name into one image helps too.\n\n'
+        '💡 “Baker” the job is easier to recall than “Baker” the surname — names grow stronger when woven '
+        'into meaning.\n\n'
+        '🔬 Sources: MacLeod et al. (2010), J. Exp. Psychol.: LMC; '
+        'Craik & Tulving (1975), J. Exp. Psychol.: General; '
+        'Rogers, Kuiper & Kirker (1977), J. Personality & Social Psychology; '
+        'Morris, Jones & Hampson (1978), British Journal of Psychology; '
+        'McWeeny et al. (1987), British Journal of Psychology; '
+        'DeGutis et al. (2024), Quarterly Journal of Experimental Psychology',
+    gradient: [Color(0xFFFFF3D6), Color(0xFFE8FFF0)],
+  ),
 ];
 
 /// 待合室・人数選択画面などに出す一言Tips（タップで読み物全文へ）。
 class MemoryShortTip {
   final String ja;
   final String en;
-  const MemoryShortTip(this.ja, this.en);
+  final String? source; // 出典（研究の著者・年・誌名）。研究ベースのTipsに付く
+  const MemoryShortTip(this.ja, this.en, {this.source});
 
   String text(bool isJa) => isJa ? ja : en;
 }
@@ -180,5 +231,51 @@ const List<MemoryShortTip> kMemoryShortTips = [
   MemoryShortTip(
     '💓 「おもしろい！」と感じながら覚えたことは残りやすいと言われているよ',
     '💓 Fun and curiosity are said to make memories stick better',
+  ),
+];
+
+/// 🔬 研究にもとづく「名前の覚え方」Tips（出典つき）。
+/// とっくん中や読み物、ワンポイント表示に使う。
+/// 断定は避け、原著の知見を要約したオリジナル文にしている。
+const List<MemoryShortTip> kNameScienceTips = [
+  MemoryShortTip(
+    '🔁 見て覚えるより「思い出す」練習が効く。会ったあとに名前を思い出してみよう',
+    '🔁 Recalling beats rereading — after meeting someone, quiz yourself on their name',
+    source: 'Roediger & Karpicke (2006), Psychological Science',
+  ),
+  MemoryShortTip(
+    '⏱️ 思い出す間隔を少しずつ延ばすと定着しやすい：直後→数分後→あとでもう一度',
+    '⏱️ Space your recalls at growing gaps: right away → minutes later → again later',
+    source: 'Morris, Fritz, Jackson, Nichol & Roberts (2005), Applied Cognitive Psychology',
+  ),
+  MemoryShortTip(
+    '🗣️ 名前は声に出すと残りやすい。黙読よりも「発話」した言葉のほうが思い出しやすい',
+    '🗣️ Say the name aloud — spoken words are recalled better than ones read silently',
+    source: 'MacLeod, Gopie, Hourihan, Neary & Ozubko (2010), J. Exp. Psychol.: LMC',
+  ),
+  MemoryShortTip(
+    '🧩 名前に意味づけを。字面より「どんな人か」と結びつけるほど思い出しやすい',
+    '🧩 Give the name meaning — the deeper you link it to the person, the better recall',
+    source: 'Craik & Tulving (1975), J. Exp. Psychol.: General',
+  ),
+  MemoryShortTip(
+    '💡 同じ「ベイカー」でも“パン屋(職業)”は覚えやすく“名字”は忘れやすい。名前も意味の網にからめよう',
+    '💡 “Baker” the job sticks better than “Baker” the surname — weave names into meaning',
+    source: 'McWeeny, Young, Hay & Ellis (1987), British Journal of Psychology',
+  ),
+  MemoryShortTip(
+    '🪞 自分ごとにすると覚えやすい：同じ名前の知人や、自分との共通点を探そう',
+    '🪞 Relate it to yourself — a namesake you know or a shared trait makes it stick',
+    source: 'Rogers, Kuiper & Kirker (1977), J. Personality & Social Psychology',
+  ),
+  MemoryShortTip(
+    '🎨 顔の特徴と名前を1枚の絵に：森さん＝額に小さな森、のように映像化しよう',
+    '🎨 Fuse a facial feature and the name into one image — “Mori” = a tiny forest on the brow',
+    source: 'Morris, Jones & Hampson (1978), British Journal of Psychology',
+  ),
+  MemoryShortTip(
+    '🧠 名前を思い出す練習は、顔を覚える力の高さとも結びつくと報告されている',
+    '🧠 Practising name recall is linked to stronger face-recognition ability, recent work reports',
+    source: 'DeGutis, Palsamudram, Campbell, Fry, Verfaellie & Anderson (2024), Quarterly Journal of Experimental Psychology',
   ),
 ];

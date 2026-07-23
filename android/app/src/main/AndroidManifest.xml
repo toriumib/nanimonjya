@@ -5,6 +5,10 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
         </intent>
+        <!-- flutter_tts が Android 11+ で音声読み上げエンジンを検出するために必要 -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
     </queries>
     <!-- 🎁 デイリーボーナスのリマインド通知（Android 13+ はランタイム許可も必要） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
