@@ -44,7 +44,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.nanimonjya"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 36  // flutter_tts が要求（compileSdkはtargetSdkより高くてOK）
     ndkVersion "27.0.12077973"  // 16KB ページサイズ対応に必須
 
     compileOptions {
@@ -63,7 +63,7 @@ android {
 
     defaultConfig {
         applicationId "com.nanimonjya"
-        minSdkVersion 23
+        minSdkVersion 24  // flutter_tts が最低24を要求（Android 7.0〜。6.0はシェア僅少）
         targetSdkVersion 35  // Android 15 + 16KB ページサイズ対応
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

@@ -18,6 +18,17 @@ allprojects {
         google()
         mavenCentral()
     }
+    // flutter_tts 4.2.x が引き込む kotlin-stdlib 2.2.x は、本プロジェクトの
+    // Kotlin 1.9.10 コンパイラが読めずビルドが落ちる。stdlib を 1.9.10 に固定して整合させる
+    // （flutter_tts は apply/put/let 等の基本APIしか使っておらず 1.9 stdlib で十分）。
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin' &&
+                    details.requested.name.startsWith('kotlin-stdlib')) {
+                details.useVersion '1.9.10'
+            }
+        }
+    }
 }
 
 rootProject.buildDir = '../build'
