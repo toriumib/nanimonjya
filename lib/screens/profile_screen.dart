@@ -5,6 +5,7 @@ import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
 import '../models/cosmetics.dart';
 import '../services/player_profile.dart';
+import 'character_shop_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final m = MetaStrings.of(context);
     // ★未準備なら予約→読み込み完了と同時に自動再生★
     final playedNow = await _rewardAd.showOrQueue(onReward: () {
-      PlayerProfile.instance.grantBonusCoins(50);
+      PlayerProfile.instance.grantBonusCoins(60);
       Sfx.instance.reward(); // 報酬ゲットは盛大に（コイン＋ファンファーレ）
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -269,6 +270,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ],
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CharacterShopScreen()),
+                );
+              },
+              icon: const Icon(Icons.storefront_rounded),
+              label: Text(m.storeTitle),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3A7BD5),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
         ],
       ),
     );

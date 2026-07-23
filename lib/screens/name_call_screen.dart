@@ -10,6 +10,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/name_call.dart';
+import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../services/ad_ids.dart';
 import '../services/app_analytics.dart';
@@ -121,9 +122,18 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final count = _isOnline
         ? NameCallScreen.onlinePeopleCount
         : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
+    // オンラインは両プレイヤーで顔が一致する必要があるため基本12のまま。
+    // オフライン/ひとりは購入済みキャラも出演プールに加える。
+    final charAssets = _isOnline
+        ? null
+        : [
+            ...kCharImageAssets,
+            ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
+          ];
     final people = _isCustom
         ? ([...widget.customPeople!]..shuffle(_rng))
-        : generateImagePeople(count, ja: ja, random: _rng);
+        : generateImagePeople(count,
+            ja: ja, random: _rng, charAssets: charAssets);
     _game = NameCallGame(
       people: people,
       rng: _rng,

@@ -28,7 +28,11 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 登録した名簿で: フラッシュカード学習／確認テスト（4択）／なまえコール対戦（オフライン審判方式）
 - 想定用途: 職場・学校で新しく出会う人の顔と名前を覚える
 
-### とっくんの主役「思い出しトレーニング」（recall_training_screen.dart）
+### 「ビジネス特訓」＝旧とっくん（tabTraining / recallTitle）
+- v2.2.0でタブ名・画面タイトルを「ビジネス特訓」に改名（旧「とっくん」）。他モード（なまえコール／ペアさがし／おぼえる）の名称・UIは変更なし
+- 実体は下記の「思い出しトレーニング」＋一人特訓（ペアさがしベース）＋記憶術トレーニングをまとめた training_hub_screen.dart
+
+### 思い出しトレーニング（recall_training_screen.dart、ビジネス特訓の主役）
 - 実生活の「この人だれだっけ？」を再現する想起特訓。とっくんタブ（training_hub_screen.dart）の先頭カード
 - フロー: ①**であう**（実写char*.jpgの顔＋体を1人ずつ。**名刺を差し出す演出＋ふきだし「私は○○と申します。」＋TTS音声**で自己紹介。出会った場所[Person.where]・趣味も記銘）→ ②**時間がたつ**（間をおく画面。研究ベースTipsを出典つきで表示）→ ③**思い出す**（顔を見て名前を4択想起、出会った場所がヒント）→ 結果＋おさらい
 - `models/person.dart` の `generateRecallPeople(count, ja)` で実写＋名前＋出会った場所（`_metContextJa/En`）を生成。顔は必ず実写（FaceKind.asset）で「リアルな顔と体」を出す
@@ -42,6 +46,15 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - `kMemoryShortTips`（一般Tips）＋`kNameScienceTips`（**研究ベース・出典つき**。MemoryShortTip.source）。読み物`kMemoryTipPages`にも「研究が言う名前のコツ①②」を出典つきで追加
 - 出典は名前記憶の代表研究（Roediger & Karpicke 2006, Morris/Fritz 2005, MacLeod 2010, Craik & Tulving 1975, McWeeny 1987ベイカー錯誤, Rogers 1977自己関連づけ, Morris/Jones/Hampson 1978, DeGutis 2024）。本文は断定回避のオリジナル要約
 - 表示先: ワンポイントticker（memory_tip_ticker）＋思い出しトレーニングの待ち時間/おさらい（`_tipCard`）
+
+### 🛍 キャラクターショップ（character_shop_screen.dart / models/character_catalog.dart）
+- 追加キャラ20種（`kExtraCharacters`、id: c13〜c32）をコインで購入できるショップ。画像は `assets/images/char13.webp`〜`char32.webp`（ユーザー提供の実写、価格帯120〜340コイン）
+- 購入状態は `PlayerProfile.unlockedCharacters`（Set\<String\>、SharedPreferences永続化）、購入APIは `PlayerProfile.unlockCharacter(id, cost)`
+- 購入したキャラは「なまえコール」（オフライン/ひとりのみ。オンライン対戦は両者の顔一致が必要なため基本12人のまま）と「思い出しトレーニング」の出演プールに追加（`generateImagePeople`/`generateRecallPeople` の `charAssets` 引数、`unlockedExtraAssets()`で解決）
+- ショップ画面には: コイン残高／🎁動画でコイン+60（RewardAdHelper）／⭐アプリ評価（in_app_review, `services/review_prompt.dart`と共通ロジック）／購入グリッド／基本12人の一覧
+- マイページ（profile_screen.dart）に常設の「🛍 キャラクターショップ」ボタンあり
+- **試合・特訓の結果画面**（match_result / local_result / online_result / recall_training の各result）に `widgets/store_cta.dart` の `StoreCtaCard`（「新しいキャラを仲間にしよう→ショップへ」誘導）を配置
+- レビュー依頼: `services/review_prompt.dart` の `maybeAskReview()`（1回きり、`reviewPrompted`でゲート）。勝利・全問正解などの好タイミングで呼ぶ。match_result側は従来通り閾値3ゲームで直接呼び出し
 
 ### サブモード「ペアさがし」（match_game_screen.dart）
 - おぼえタイム（人物プロフィール表示・記銘）→ カード裏返し → 顔と名前のペア当て（想起）

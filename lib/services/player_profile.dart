@@ -53,6 +53,7 @@ class PlayerProfile extends ChangeNotifier {
   bool hadPerfectQuiz = false; // 5問以上のクイズで全問正解したことがあるか
   bool hadFastReflex = false; // 5問以上のクイズで平均反応1.5秒未満だったことがあるか
   bool reviewPrompted = false; // ストアレビュー依頼を出したか（1回きり）
+  Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
 
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
@@ -117,6 +118,7 @@ class PlayerProfile extends ChangeNotifier {
     hadPerfectQuiz = p.getBool('hadPerfectQuiz') ?? false;
     hadFastReflex = p.getBool('hadFastReflex') ?? false;
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
+    unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     missionDate = p.getString('missionDate') ?? '';
     missionPlays = p.getInt('missionPlays') ?? 0;
     missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
@@ -455,6 +457,17 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 追加キャラをコインで購入。成功したら true。
+  Future<bool> unlockCharacter(String id, int cost) async {
+    if (unlockedCharacters.contains(id)) return true;
+    if (coins < cost) return false;
+    coins -= cost;
+    unlockedCharacters.add(id);
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
   /// ホーム着せ替えテーマをコインで解放。成功したら true。
   Future<bool> unlockTheme(String id, int cost) async {
     if (unlockedThemes.contains(id)) return true;
@@ -612,6 +625,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('hadPerfectQuiz', hadPerfectQuiz);
     await p.setBool('hadFastReflex', hadFastReflex);
     await p.setBool('reviewPrompted', reviewPrompted);
+    await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setString('missionDate', missionDate);
     await p.setInt('missionPlays', missionPlays);
     await p.setInt('missionCoinsEarned', missionCoinsEarned);

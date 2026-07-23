@@ -7,10 +7,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
+import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../services/player_profile.dart';
+import '../services/review_prompt.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
+import '../widgets/store_cta.dart';
 
 /// 🧠 思い出しトレーニング
 ///
@@ -92,7 +95,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     if (widget.people != null && widget.people!.isNotEmpty) {
       _people = [...widget.people!]..shuffle(_rng);
     } else {
-      _people = generateRecallPeople(_peopleCount, ja: _ja, random: _rng);
+      _people = generateRecallPeople(_peopleCount,
+          ja: _ja, random: _rng, charAssets: _photoPool());
     }
     // 最初の人が名刺を差し出して自己紹介（音声）
     WidgetsBinding.instance.addPostFrameCallback((_) => _announceMeet());
@@ -103,6 +107,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     Speech.instance.stop();
     super.dispose();
   }
+
+  /// 出演プール = 基本12＋購入済みキャラ。
+  List<String> _photoPool() => [
+        ...kCharImageAssets,
+        ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
+      ];
 
   /// 敬称なしの苗字（例: 佐藤さん→佐藤）。自己紹介の「私は○○と申します」用。
   String _bareName(Person p) =>
@@ -206,6 +216,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     if (coins > 0) await PlayerProfile.instance.grantBonusCoins(coins);
     if (total > 0 && _correct == total) {
       Sfx.instance.victory();
+      // 全問正解の好タイミングでレビュー依頼（1回きり）
+      if (total >= 4) maybeAskReview(minGames: 0);
     } else if (_correct >= (total / 2).ceil()) {
       Sfx.instance.fanfare();
     } else {
@@ -724,6 +736,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             ),
           ),
           const SizedBox(height: 10),
+          const StoreCtaCard(),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -745,7 +759,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                         _people = [...widget.people!]..shuffle(_rng);
                       } else {
                         _people = generateRecallPeople(_peopleCount,
-                            ja: _ja, random: _rng);
+                            ja: _ja, random: _rng, charAssets: _photoPool());
                       }
                       _phase = _Phase.meet;
                       _meetIndex = 0;
