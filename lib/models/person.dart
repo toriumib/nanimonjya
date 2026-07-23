@@ -13,12 +13,14 @@ class Person {
   final FaceKind kind;
   final String name; // 表示名（例: 佐藤さん / Sato）
   final String hobby; // 趣味（上級レベルの属性クイズで使用）
+  final String where; // どこで出会ったか（思い出しトレーニングの文脈。例: 会社の会議で）
 
   const Person({
     required this.face,
     this.kind = FaceKind.svg,
     required this.name,
     required this.hobby,
+    this.where = '',
   });
 
   /// 旧コード互換: SVG顔のパスを取り出す（match_game系がまだ使用）。
@@ -113,6 +115,58 @@ List<Person> generateImagePeople(int count, {required bool ja, Random? random}) 
       kind: FaceKind.asset,
       name: '',
       hobby: '',
+    );
+  });
+}
+
+/// 「どこで出会ったか」の文脈プール（思い出しトレーニング用）。
+/// 実生活で「あの人だれだっけ」となる典型シーン。顔・名前・場所を結びつけて覚える。
+const List<String> _metContextJa = [
+  '会社の会議で',
+  '取引先との打ち合わせで',
+  '飲み会で',
+  '子どもの保護者会で',
+  'ジムで',
+  'ご近所づきあいで',
+  '同窓会で',
+  '趣味のサークルで',
+  'セミナーで',
+  'カフェで',
+  '引っ越しのあいさつで',
+  '取引先の忘年会で',
+];
+
+const List<String> _metContextEn = [
+  'at a work meeting',
+  'at a client meeting',
+  'at a drinking party',
+  "at a kids' school event",
+  'at the gym',
+  'around the neighborhood',
+  'at a class reunion',
+  'at a hobby club',
+  'at a seminar',
+  'at a café',
+  'at a housewarming',
+  "at a client's year-end party",
+];
+
+/// 思い出しトレーニング用: 実写の人物に「名前」と「出会った場所」を割り当てて生成する。
+/// 実際に人と出会う→時間をおいて思い出す、を再現するために文脈([where])を持たせる。
+List<Person> generateRecallPeople(int count, {required bool ja, Random? random}) {
+  final rng = random ?? Random();
+  assert(count <= kCharImageAssets.length);
+  final faces = [...kCharImageAssets]..shuffle(rng);
+  final names = [...(ja ? _namePoolJa : _namePoolEn)]..shuffle(rng);
+  final hobbies = [...(ja ? _hobbyPoolJa : _hobbyPoolEn)]..shuffle(rng);
+  final contexts = [...(ja ? _metContextJa : _metContextEn)]..shuffle(rng);
+  return List.generate(count, (i) {
+    return Person(
+      face: faces[i],
+      kind: FaceKind.asset,
+      name: ja ? '${names[i]}さん' : names[i],
+      hobby: hobbies[i % hobbies.length],
+      where: contexts[i % contexts.length],
     );
   });
 }

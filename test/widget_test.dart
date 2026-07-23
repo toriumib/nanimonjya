@@ -25,6 +25,21 @@ void main() {
     });
   });
 
+  group('generateRecallPeople', () {
+    test('実写アセット・重複なしの名前・出会った場所が割り当てられる', () {
+      final people = generateRecallPeople(6, ja: true, random: Random(3));
+      expect(people, hasLength(6));
+      expect(people.map((p) => p.face).toSet(), hasLength(6));
+      expect(people.map((p) => p.name).toSet(), hasLength(6));
+      for (final p in people) {
+        expect(p.kind, FaceKind.asset);
+        expect(p.face, startsWith('assets/images/char'));
+        expect(p.name, endsWith('さん'));
+        expect(p.where, isNotEmpty); // 「この人だれだっけ」を支える文脈
+      }
+    });
+  });
+
   group('hobbyChoices', () {
     test('正解を含む3択で、選択肢に重複がない', () {
       final person = generatePeople(1, ja: true, random: Random(7)).first;

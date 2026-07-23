@@ -5,6 +5,7 @@ import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
+import 'recall_training_screen.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
@@ -26,6 +27,16 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
           level: _level,
           mnemonicGuide: mnemonic,
         ),
+      ),
+    );
+  }
+
+  void _startRecall() {
+    Sfx.instance.fanfare();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecallTrainingScreen(level: _level),
       ),
     );
   }
@@ -68,6 +79,54 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                         _levelChip(2, 6),
                         _levelChip(3, 8),
                       ]),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 🧠 実写で「この人だれだっけ？」を思い出す特訓（とっくんの主役）
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF3A7BD5), Color(0xFF00C2A8)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF3A7BD5).withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(m.recallTitle,
+                          style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white)),
+                      const SizedBox(height: 6),
+                      Text(m.recallHubDesc,
+                          style: const TextStyle(
+                              fontSize: 12.5,
+                              height: 1.4,
+                              color: Colors.white)),
+                      const SizedBox(height: 14),
+                      ElevatedButton(
+                        onPressed: _startRecall,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF2B5CA5),
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                        child: Text(m.recallStart,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900)),
+                      ),
                     ],
                   ),
                 ),

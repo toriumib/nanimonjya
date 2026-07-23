@@ -689,4 +689,41 @@ class MetaStrings {
   String get quizTitle => ja ? '✏️ かくにんテスト' : '✏️ Quiz';
   String quizScore(int correct, int total) =>
       ja ? '$total問中 $correct問正解！' : '$correct / $total correct!';
+
+  // 🧠 思い出しトレーニング（実際に出会って、時間をおいて思い出す）
+  String get recallTitle => ja ? '🧠 思い出しトレーニング' : '🧠 Recall Training';
+  String get recallHubDesc => ja
+      ? '実際に人と出会うように顔・名前・出会った場所を覚えて、少し時間をおいてから「この人だれだっけ？」を思い出す特訓。現実で名前が出てこない、をなくそう。'
+      : 'Meet people like in real life — link face, name and where you met — then recall "who was that again?" after a pause. Beat the moment names slip your mind.';
+  String get recallStart => ja ? '出会いに行く →' : 'Go meet them →';
+  String get recallMeetTitle => ja ? 'であう' : 'Meet';
+  String get recallMeetHint => ja
+      ? '出会った人たちです。顔・名前・出会った場所をむすびつけて覚えよう。'
+      : 'People you just met. Link each face to a name and where you met.';
+  String metAt(String where) => ja ? '$where知り合った' : 'You met them $where.';
+  String get recallHobbyLabel => ja ? 'しゅみ' : 'Hobby';
+  String get recallRemembered => ja ? 'おぼえた →' : 'Got it →';
+  String get recallMeetNext => ja ? 'つぎの人 →' : 'Next person →';
+  String get recallGapTitle => ja ? 'しばらく時間がたった…' : 'Some time has passed…';
+  String get recallGapSub => ja
+      ? 'あの人たち、名前を思い出せるかな？'
+      : 'Can you recall their names now?';
+  String get recallGapButton => ja ? '思い出す →' : 'Try to recall →';
+  String get recallWhoTitle => ja ? 'この人だれだっけ？' : 'Who is this again?';
+  String hintMetAt(String where) => ja ? 'ヒント: $where会った人' : 'Hint: you met them $where';
+  String get recallResultTitle => ja ? '思い出しレポート' : 'Recall Report';
+  String recallCorrectOf(int correct, int total) =>
+      ja ? '$total人中 $correct人 思い出せた！' : 'You recalled $correct of $total!';
+  String get recallReview => ja ? 'おさらい（顔・名前・場所）' : 'Review (face・name・place)';
+  String get recallAgain => ja ? 'もう一度' : 'Again';
+  String get recallClose => ja ? 'とじる' : 'Close';
+  String get recallEncourageHigh => ja
+      ? 'かんぺき！実際に会っても、すぐ名前が出てきますね。'
+      : 'Perfect! You’d recall their names in real life, too.';
+  String get recallEncourageMid => ja
+      ? 'いい調子！出会った場所と結びつけると、もっと思い出しやすくなるよ。'
+      : 'Nice! Tie each face to where you met — it makes recall easier.';
+  String get recallEncourageLow => ja
+      ? '思い出せなくても大丈夫。くり返すほど、名前は出てくるようになります。'
+      : 'It’s OK to forget. The more you repeat, the easier names come back.';
 }
