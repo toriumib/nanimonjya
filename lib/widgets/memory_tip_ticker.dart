@@ -19,7 +19,12 @@ class MemoryTipTicker extends StatefulWidget {
 }
 
 class _MemoryTipTickerState extends State<MemoryTipTicker> {
-  late int _index = Random().nextInt(kMemoryShortTips.length);
+  // 一般Tips＋研究ベースTips（出典つき）をまとめて回す
+  static final List<MemoryShortTip> _tips = [
+    ...kMemoryShortTips,
+    ...kNameScienceTips,
+  ];
+  late int _index = Random().nextInt(_tips.length);
   Timer? _timer;
 
   @override
@@ -28,7 +33,7 @@ class _MemoryTipTickerState extends State<MemoryTipTicker> {
     if (widget.rotate) {
       _timer = Timer.periodic(const Duration(seconds: 8), (_) {
         if (!mounted) return;
-        setState(() => _index = (_index + 1) % kMemoryShortTips.length);
+        setState(() => _index = (_index + 1) % _tips.length);
       });
     }
   }
@@ -42,7 +47,7 @@ class _MemoryTipTickerState extends State<MemoryTipTicker> {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
-    final tip = kMemoryShortTips[_index];
+    final tip = _tips[_index];
     return GestureDetector(
       onTap: () {
         Navigator.push(

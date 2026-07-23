@@ -30,9 +30,15 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 
 ### とっくんの主役「思い出しトレーニング」（recall_training_screen.dart）
 - 実生活の「この人だれだっけ？」を再現する想起特訓。とっくんタブ（training_hub_screen.dart）の先頭カード
-- フロー: ①**であう**（実写char*.jpgの顔＋体を1人ずつ、名前・出会った場所[Person.where]・趣味とともに記銘）→ ②**時間がたつ**（間をおく画面。すぐ答えさせない）→ ③**思い出す**（顔を見て名前を4択想起、出会った場所がヒント）→ 結果＋おさらい
+- フロー: ①**であう**（実写char*.jpgの顔＋体を1人ずつ。**名刺を差し出す演出＋ふきだし「私は○○と申します。」＋TTS音声**で自己紹介。出会った場所[Person.where]・趣味も記銘）→ ②**時間がたつ**（間をおく画面。研究ベースTipsを出典つきで表示）→ ③**思い出す**（顔を見て名前を4択想起、出会った場所がヒント）→ 結果＋おさらい
 - `models/person.dart` の `generateRecallPeople(count, ja)` で実写＋名前＋出会った場所（`_metContextJa/En`）を生成。顔は必ず実写（FaceKind.asset）で「リアルな顔と体」を出す
+- **音声**: `services/speech.dart`（flutter_tts）。ja-JP/en-USで「私は○○と申します」を読み上げ。敬称なし苗字。であう入場時に自動再生＋🔊で再再生。AndroidManifestに`TTS_SERVICE`のqueriesを追加済み
 - 記録は `recordSoloTraining`、コインは思い出せた人数×8（＋全問正解ボーナス20）
+
+### 記憶術Tips（l10n/memory_tips.dart）
+- `kMemoryShortTips`（一般Tips）＋`kNameScienceTips`（**研究ベース・出典つき**。MemoryShortTip.source）。読み物`kMemoryTipPages`にも「研究が言う名前のコツ①②」を出典つきで追加
+- 出典は名前記憶の代表研究（Roediger & Karpicke 2006, Morris/Fritz 2005, MacLeod 2010, Craik & Tulving 1975, McWeeny 1987ベイカー錯誤, Rogers 1977自己関連づけ, Morris/Jones/Hampson 1978, DeGutis 2024）。本文は断定回避のオリジナル要約
+- 表示先: ワンポイントticker（memory_tip_ticker）＋思い出しトレーニングの待ち時間/おさらい（`_tipCard`）
 
 ### サブモード「ペアさがし」（match_game_screen.dart）
 - おぼえタイム（人物プロフィール表示・記銘）→ カード裏返し → 顔と名前のペア当て（想起）

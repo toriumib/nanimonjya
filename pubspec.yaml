@@ -38,6 +38,7 @@ dependencies:
   in_app_review: ^2.0.9  # ストアレビュー依頼
   image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
+  flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
 
 
 dev_dependencies:

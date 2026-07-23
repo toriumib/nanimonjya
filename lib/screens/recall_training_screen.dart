@@ -1,11 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
+import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../services/speech.dart';
 
 /// 🧠 思い出しトレーニング
 ///
@@ -28,6 +31,11 @@ enum _Phase { meet, gap, recall, result }
 
 class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   final Random _rng = Random();
+  late final bool _ja =
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
+  // 待ち時間・結果に出す研究ベースTips（出典つき）
+  late final MemoryShortTip _tip =
+      kNameScienceTips[_rng.nextInt(kNameScienceTips.length)];
   late List<Person> _people; // 出会った順
   late List<Person> _quizOrder; // 思い出す順（シャッフル）
 
@@ -57,10 +65,26 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void initState() {
     super.initState();
-    final ja =
-        WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
-    _people = generateRecallPeople(_peopleCount, ja: ja, random: _rng);
+    _people = generateRecallPeople(_peopleCount, ja: _ja, random: _rng);
     _quizOrder = [..._people]..shuffle(_rng);
+    // 最初の人が名刺を差し出して自己紹介（音声）
+    WidgetsBinding.instance.addPostFrameCallback((_) => _announceMeet());
+  }
+
+  @override
+  void dispose() {
+    Speech.instance.stop();
+    super.dispose();
+  }
+
+  /// 敬称なしの苗字（例: 佐藤さん→佐藤）。自己紹介の「私は○○と申します」用。
+  String _bareName(Person p) =>
+      p.name.endsWith('さん') ? p.name.substring(0, p.name.length - 2) : p.name;
+
+  /// いま出会っている人に自己紹介を読み上げさせる。
+  void _announceMeet() {
+    if (_phase != _Phase.meet) return;
+    Speech.instance.introduce(_bareName(_people[_meetIndex]), ja: _ja);
   }
 
   // ---- であうフェーズ ----
@@ -68,7 +92,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     Sfx.instance.pop();
     if (_meetIndex + 1 < _people.length) {
       setState(() => _meetIndex += 1);
+      _announceMeet();
     } else {
+      Speech.instance.stop();
       setState(() => _phase = _Phase.gap);
     }
   }
@@ -193,6 +219,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   Widget _buildMeet(MetaStrings m) {
     final p = _people[_meetIndex];
     final isLast = _meetIndex + 1 >= _people.length;
+    final introText = _ja
+        ? '私は${_bareName(p)}と申します。'
+        : "Hello, I'm ${_bareName(p)}.";
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -210,57 +239,30 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
           Text(m.recallMeetHint,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, color: Colors.black45)),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.10),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _personPhoto(p, height: 300),
-                      const SizedBox(height: 14),
-                      // 出会った場所（文脈）
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3D6),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text('📍 ${m.metAt(p.where)}',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF7A5A00))),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(p.name,
-                          style: const TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF2B5CA5))),
-                      if (p.hobby.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text('${m.recallHobbyLabel}: ${p.hobby}',
-                            style: const TextStyle(
-                                fontSize: 13.5, color: Colors.black54)),
-                      ],
-                    ],
-                  ),
-                ),
+            child: SingleChildScrollView(
+              child: Column(
+                key: ValueKey(_meetIndex), // 人が変わるたび登場アニメを再生
+                children: [
+                  _personPhoto(p, height: 230),
+                  const SizedBox(height: 10),
+                  // ふきだしで自己紹介（🔊で読み上げ再生）
+                  _speechBubble(introText, () => _announceMeet())
+                      .animate()
+                      .fadeIn(duration: 260.ms)
+                      .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+                  const SizedBox(height: 14),
+                  // 名刺を差し出される
+                  _businessCard(p, m)
+                      .animate()
+                      .fadeIn(duration: 360.ms, delay: 120.ms)
+                      .slideY(
+                          begin: 0.5,
+                          end: 0,
+                          duration: 460.ms,
+                          curve: Curves.easeOutBack),
+                ],
               ),
             ),
           ),
@@ -276,6 +278,160 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       fontSize: 16, fontWeight: FontWeight.w900)),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // 自己紹介のふきだし（上向きのしっぽ＋読み上げボタン）。
+  Widget _speechBubble(String text, VoidCallback onReplay) {
+    const bubbleColor = Color(0xFF2B5CA5);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          decoration: BoxDecoration(
+            color: bubbleColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: bubbleColor.withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(text,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900)),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: onReplay,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.volume_up_rounded,
+                      color: Colors.white, size: 22),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 上向きのしっぽ（相手が話している合図）
+        Positioned(
+          top: -6,
+          left: 30,
+          child: Transform.rotate(
+            angle: pi / 4,
+            child: Container(width: 16, height: 16, color: bubbleColor),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 差し出される名刺。少し傾けて手渡し感を出す。
+  Widget _businessCard(Person p, MetaStrings m) {
+    return Transform.rotate(
+      angle: -0.04,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.16),
+              blurRadius: 14,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              height: 58,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3A7BD5),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(m.businessCardHello,
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.black45)),
+                  const SizedBox(height: 2),
+                  Text(_bareName(p),
+                      style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF223A5E))),
+                  const SizedBox(height: 3),
+                  Text('📍 ${m.metAt(p.where)}',
+                      style: const TextStyle(
+                          fontSize: 11.5, color: Colors.black54)),
+                  if (p.hobby.isNotEmpty)
+                    Text('🎯 ${m.recallHobbyLabel}: ${p.hobby}',
+                        style: const TextStyle(
+                            fontSize: 11.5, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const Text('🪪', style: TextStyle(fontSize: 30)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 研究ベースの名前記憶Tips（出典つき）カード。とっくん中に表示。
+  Widget _tipCard(MetaStrings m) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E0),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.researchTipHeader,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF8A6A1E))),
+          const SizedBox(height: 6),
+          Text(_tip.text(m.ja),
+              style: const TextStyle(fontSize: 13.5, height: 1.5)),
+          if (_tip.source != null) ...[
+            const SizedBox(height: 6),
+            Text('${m.sourceLabel}: ${_tip.source}',
+                style: const TextStyle(
+                    fontSize: 10.5,
+                    color: Colors.black45,
+                    fontStyle: FontStyle.italic)),
+          ],
         ],
       ),
     );
@@ -299,7 +455,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
           Text(m.recallGapSub,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.black54)),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          // 待っているあいだに研究ベースのコツを1つ（出典つき）
+          _tipCard(m),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -478,9 +637,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                   onPressed: () {
                     Sfx.instance.pop();
                     setState(() {
-                      final ja = m.ja;
-                      _people =
-                          generateRecallPeople(_peopleCount, ja: ja, random: _rng);
+                      _people = generateRecallPeople(_peopleCount,
+                          ja: _ja, random: _rng);
                       _quizOrder = [..._people]..shuffle(_rng);
                       _phase = _Phase.meet;
                       _meetIndex = 0;
@@ -488,6 +646,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       _correct = 0;
                       _totalReactionMs = 0;
                     });
+                    _announceMeet();
                   },
                   style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14)),
