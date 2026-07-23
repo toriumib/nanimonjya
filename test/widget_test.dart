@@ -36,7 +36,19 @@ void main() {
         expect(p.face, startsWith('assets/images/char'));
         expect(p.name, endsWith('さん'));
         expect(p.where, isNotEmpty); // 「この人だれだっけ」を支える文脈
+        // 架空の名刺情報が埋まっている
+        expect(p.company, isNotEmpty);
+        expect(p.title, isNotEmpty);
+        expect(p.phone, matches(r'^0\d0-\d{4}-\d{4}$'));
+        expect(p.email, contains('@'));
       }
+    });
+
+    test('recallFieldValue が各項目を返す', () {
+      final p = generateRecallPeople(1, ja: true, random: Random(9)).first;
+      expect(recallFieldValue(p, RecallField.name), p.name);
+      expect(recallFieldValue(p, RecallField.company), p.company);
+      expect(recallFieldValue(p, RecallField.email), p.email);
     });
   });
 

@@ -30,10 +30,26 @@ class Speech {
     }
   }
 
-  /// 「私は○○と申します。」/ "Hello, my name is ○○." を読み上げる。
-  /// [bareName] は敬称なしの苗字（例: 佐藤 / Sato）。
-  Future<void> introduce(String bareName, {required bool ja}) {
-    final text = ja ? '私は$bareNameと申します。' : 'Hello, my name is $bareName.';
+  /// 名刺の自己紹介を読み上げる（会社名・名前・肩書）。
+  /// [bareName] は敬称なしの苗字（例: 佐藤 / Sato）。[company]/[title] は任意。
+  Future<void> introduce(
+    String bareName, {
+    required bool ja,
+    String company = '',
+    String title = '',
+  }) {
+    final String text;
+    if (ja) {
+      final intro = company.isNotEmpty
+          ? '$companyの$bareNameと申します。'
+          : '私は$bareNameと申します。';
+      text = title.isNotEmpty ? '$intro$titleをしております。' : intro;
+    } else {
+      final intro = company.isNotEmpty
+          ? "Hello, I'm $bareName from $company."
+          : "Hello, my name is $bareName.";
+      text = title.isNotEmpty ? '$intro I am $title.' : intro;
+    }
     return speak(text, ja: ja);
   }
 

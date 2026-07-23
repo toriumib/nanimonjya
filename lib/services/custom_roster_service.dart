@@ -8,28 +8,63 @@ import 'package:uuid/uuid.dart';
 
 import '../models/person.dart';
 
-/// 自分でアップロードした「人物」1人分（写真ファイル＋名前）。
+/// 自分でアップロードした「人物」1人分（顔写真＋名前＋名刺情報）。
+/// ビジネス実用: 会社名・肩書・電話・メール、実物の名刺画像も保存できる。
 class CustomEntry {
   final String id;
-  final String imagePath; // アプリのドキュメントディレクトリ内のコピー
+  final String imagePath; // 顔写真（アプリのドキュメントディレクトリ内のコピー）
   final String name;
+  final String company;
+  final String title;
+  final String phone;
+  final String email;
+  final String cardImagePath; // 実物の名刺画像（任意）
 
   const CustomEntry({
     required this.id,
     required this.imagePath,
     required this.name,
+    this.company = '',
+    this.title = '',
+    this.phone = '',
+    this.email = '',
+    this.cardImagePath = '',
   });
 
-  Map<String, dynamic> toJson() => {'id': id, 'imagePath': imagePath, 'name': name};
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'imagePath': imagePath,
+        'name': name,
+        'company': company,
+        'title': title,
+        'phone': phone,
+        'email': email,
+        'cardImagePath': cardImagePath,
+      };
 
   factory CustomEntry.fromJson(Map<String, dynamic> j) => CustomEntry(
         id: j['id'] as String,
         imagePath: j['imagePath'] as String,
         name: j['name'] as String,
+        // 旧データ（v1）にキーが無くても壊れないよう既定値を使う
+        company: (j['company'] as String?) ?? '',
+        title: (j['title'] as String?) ?? '',
+        phone: (j['phone'] as String?) ?? '',
+        email: (j['email'] as String?) ?? '',
+        cardImagePath: (j['cardImagePath'] as String?) ?? '',
       );
 
-  Person toPerson() =>
-      Person(face: imagePath, kind: FaceKind.file, name: name, hobby: '');
+  Person toPerson() => Person(
+        face: imagePath,
+        kind: FaceKind.file,
+        name: name,
+        hobby: '',
+        company: company,
+        title: title,
+        phone: phone,
+        email: email,
+        cardImage: cardImagePath,
+      );
 }
 
 /// 自分の名簿（アップロードした写真＋名前）を管理するサービス。
@@ -74,17 +109,42 @@ class CustomRosterService extends ChangeNotifier {
   }
 
   /// 撮影/選択した一時ファイルを永続ディレクトリにコピーして名簿に追加する。
-  Future<void> add({required String sourcePath, required String name}) async {
+  /// [cardSourcePath] があれば実物の名刺画像も保存する。
+  Future<void> add({
+    required String sourcePath,
+    required String name,
+    String company = '',
+    String title = '',
+    String phone = '',
+    String email = '',
+    String? cardSourcePath,
+  }) async {
     final dir = await getApplicationDocumentsDirectory();
     final facesDir = Directory('${dir.path}/custom_faces');
     if (!facesDir.existsSync()) facesDir.createSync(recursive: true);
     final id = _uuid.v4();
-    final ext = sourcePath.contains('.')
-        ? sourcePath.substring(sourcePath.lastIndexOf('.'))
-        : '.jpg';
-    final destPath = '${facesDir.path}/$id$ext';
+    String ext(String p) =>
+        p.contains('.') ? p.substring(p.lastIndexOf('.')) : '.jpg';
+    final destPath = '${facesDir.path}/$id${ext(sourcePath)}';
     await File(sourcePath).copy(destPath);
-    _entries = [..._entries, CustomEntry(id: id, imagePath: destPath, name: name)];
+    String cardPath = '';
+    if (cardSourcePath != null && cardSourcePath.isNotEmpty) {
+      cardPath = '${facesDir.path}/${id}_card${ext(cardSourcePath)}';
+      await File(cardSourcePath).copy(cardPath);
+    }
+    _entries = [
+      ..._entries,
+      CustomEntry(
+        id: id,
+        imagePath: destPath,
+        name: name,
+        company: company,
+        title: title,
+        phone: phone,
+        email: email,
+        cardImagePath: cardPath,
+      ),
+    ];
     await _persist();
     notifyListeners();
   }
@@ -94,6 +154,10 @@ class CustomRosterService extends ChangeNotifier {
     try {
       final f = File(entry.imagePath);
       if (f.existsSync()) f.deleteSync();
+      if (entry.cardImagePath.isNotEmpty) {
+        final c = File(entry.cardImagePath);
+        if (c.existsSync()) c.deleteSync();
+      }
     } catch (_) {}
     _entries = _entries.where((e) => e.id != id).toList();
     await _persist();
