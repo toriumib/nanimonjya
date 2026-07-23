@@ -1,9 +1,28 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/person.dart';
 
 void main() {
+  group('character_catalog', () {
+    test('追加キャラは20種類・IDと画像パスが一意', () {
+      expect(kExtraCharacters, hasLength(20));
+      expect(kExtraCharacters.map((c) => c.id).toSet(), hasLength(20));
+      expect(kExtraCharacters.map((c) => c.asset).toSet(), hasLength(20));
+      for (final c in kExtraCharacters) {
+        expect(c.asset, endsWith('.webp'));
+        expect(c.cost, greaterThan(0));
+      }
+    });
+
+    test('unlockedExtraAssets は購入済みIDだけを返す', () {
+      final unlocked = unlockedExtraAssets({'c13', 'c20'});
+      expect(unlocked, hasLength(2));
+      expect(unlocked, contains('assets/images/char13.webp'));
+      expect(unlocked, contains('assets/images/char20.webp'));
+    });
+  });
   group('generatePeople', () {
     test('指定人数ぶん、顔と名前が重複なく生成される', () {
       final people = generatePeople(8, ja: true, random: Random(42));

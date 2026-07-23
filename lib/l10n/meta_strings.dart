@@ -593,7 +593,7 @@ class MetaStrings {
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
   String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
-  String get tabTraining => ja ? 'とっくん' : 'Training';
+  String get tabTraining => ja ? 'ビジネス特訓' : 'Biz Training';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
   String get nameCallCatch => ja
       ? 'みんなに名前をつけて、あとで思い出す。顔と名前をむすびつけて覚えよう！'
@@ -693,7 +693,8 @@ class MetaStrings {
       ja ? '$total問中 $correct問正解！' : '$correct / $total correct!';
 
   // 🧠 思い出しトレーニング（実際に出会って、時間をおいて思い出す）
-  String get recallTitle => ja ? '🧠 思い出しトレーニング' : '🧠 Recall Training';
+  String get recallTitle =>
+      ja ? '💼 ビジネス特訓' : '💼 Biz Face-Name Training';
   String get recallHubDesc => ja
       ? '実際に人と出会うように顔・名前・出会った場所を覚えて、少し時間をおいてから「この人だれだっけ？」を思い出す特訓。現実で名前が出てこない、をなくそう。'
       : 'Meet people like in real life — link face, name and where you met — then recall "who was that again?" after a pause. Beat the moment names slip your mind.';
@@ -765,4 +766,27 @@ class MetaStrings {
   String get researchTipHeader =>
       ja ? '🔬 研究にもとづく名前のコツ' : '🔬 Research-backed name tip';
   String get sourceLabel => ja ? '出典' : 'Source';
+
+  // 🛍 キャラクターショップ／報酬広告／レビュー誘導
+  String get storeTitle => ja ? '🛍 キャラクターショップ' : '🛍 Character Shop';
+  String storeCoins(int n) => ja ? 'コイン: $n' : 'Coins: $n';
+  String storeWatchAd(int n) =>
+      ja ? '🎁 動画でコイン +$n' : '🎁 Free coins +$n (video)';
+  String get storeAdLoading => ja ? '動画をじゅんび中…' : 'Loading video…';
+  String get storeRate => ja ? '⭐ アプリを評価する' : '⭐ Rate the app';
+  String get storeOwned => ja ? '所持ずみ' : 'Owned';
+  String get storeStarter => ja ? '基本キャラ（12人・最初から）' : 'Starter cast (12, free)';
+  String get storeMore => ja ? '➕ 追加キャラ（コインで仲間に）' : '➕ More characters (buy with coins)';
+  String get storeBought => ja ? '新しいキャラを仲間にした！🎉' : 'New character unlocked! 🎉';
+  String get storeHint => ja
+      ? '買ったキャラは「なまえコール」と「ビジネス特訓」に登場します。'
+      : 'Bought characters show up in Name Call and Biz Training.';
+  String get storeBuyConfirm => ja ? 'このキャラを仲間にする？' : 'Add this character?';
+  // 試合・特訓のあとのショップ誘導
+  String get ctaNewCharTitle =>
+      ja ? '🧑‍🤝‍🧑 新しいキャラを仲間にしよう！' : '🧑‍🤝‍🧑 Add new characters!';
+  String get ctaNewCharDesc => ja
+      ? 'コインを貯めて、出会える顔ぶれを増やそう。'
+      : 'Spend coins to grow your cast of faces.';
+  String get ctaToShop => ja ? 'ショップへ →' : 'To Shop →';
 }

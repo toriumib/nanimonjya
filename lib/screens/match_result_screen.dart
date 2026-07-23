@@ -8,6 +8,7 @@ import '../models/cpu_rank.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/count_up.dart';
+import '../widgets/store_cta.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
 
@@ -87,8 +88,8 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
     if (_won) {
       _confetti.play();
       Sfx.instance.victory();
-      // レビュー依頼: 勝利の余韻タイミングで1回だけ
-      if (!profile.reviewPrompted && profile.totalGames >= 5) {
+      // レビュー依頼: 勝利の余韻タイミングで1回だけ（依頼を出しやすく閾値を3に）
+      if (!profile.reviewPrompted && profile.totalGames >= 3) {
         Future.delayed(const Duration(milliseconds: 1600), () async {
           final review = InAppReview.instance;
           if (await review.isAvailable()) {
@@ -172,7 +173,9 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                           duration: 300.ms,
                         ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  const StoreCtaCard(),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
                       Sfx.instance.pop();

@@ -136,10 +136,14 @@ List<Person> generatePeople(int count, {required bool ja, Random? random}) {
 
 /// なまえコール用: フリー素材のキャラ画像で人物を生成する。
 /// なまえコールは名前をプレイヤーがつけるので name はプレースホルダ。
-List<Person> generateImagePeople(int count, {required bool ja, Random? random}) {
+List<Person> generateImagePeople(int count,
+    {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
-  assert(count <= kCharImageAssets.length);
-  final faces = [...kCharImageAssets]..shuffle(rng);
+  final pool = (charAssets == null || charAssets.length < count)
+      ? kCharImageAssets
+      : charAssets;
+  assert(count <= pool.length);
+  final faces = [...pool]..shuffle(rng);
   return List.generate(count, (i) {
     return Person(
       face: faces[i],
@@ -226,10 +230,14 @@ String _fakePhone(Random rng) {
 
 /// 思い出しトレーニング用: 実写の人物に「名前・会社・肩書・連絡先・出会った場所」を割り当てて生成する。
 /// 会社名/連絡先はすべて架空。実際に人と出会う→時間をおいて思い出す、を再現する。
-List<Person> generateRecallPeople(int count, {required bool ja, Random? random}) {
+List<Person> generateRecallPeople(int count,
+    {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
-  assert(count <= kCharImageAssets.length);
-  final faces = [...kCharImageAssets]..shuffle(rng);
+  final pool = (charAssets == null || charAssets.length < count)
+      ? kCharImageAssets
+      : charAssets;
+  assert(count <= pool.length);
+  final faces = [...pool]..shuffle(rng);
   // 苗字はランダム（毎回シャッフルして別人に）
   final idxs = List.generate(_namePoolJa.length, (i) => i)..shuffle(rng);
   final hobbies = [...(ja ? _hobbyPoolJa : _hobbyPoolEn)]..shuffle(rng);

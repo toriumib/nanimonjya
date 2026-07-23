@@ -9,6 +9,8 @@ import '../models/cpu_rank.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../services/review_prompt.dart';
+import '../widgets/store_cta.dart';
 import 'online_lobby_screen.dart';
 import 'home_shell.dart';
 
@@ -133,6 +135,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     if (win) {
       _confetti.play();
       Sfx.instance.victory();
+      maybeAskReview(); // オンライン勝利のあとにレビュー依頼（1回きり）
     } else {
       Sfx.instance.coin();
     }
@@ -273,7 +276,9 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
             ),
           ),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
+        const StoreCtaCard(),
+        const SizedBox(height: 16),
         ElevatedButton.icon(
           onPressed: () {
             Sfx.instance.pop();

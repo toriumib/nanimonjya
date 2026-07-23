@@ -11,6 +11,8 @@ import '../widgets/count_up.dart';
 import 'match_game_screen.dart';
 import 'name_call_screen.dart';
 import 'home_shell.dart';
+import '../services/review_prompt.dart';
+import '../widgets/store_cta.dart';
 
 /// ローカル対戦（1台で2〜4人）の結果画面。獲得数のランキングを表示する。
 /// [nameCall] がtrueなら「なまえコール」（単位は枚、再戦もなまえコール）。
@@ -66,6 +68,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
     });
     _confetti.play();
     Sfx.instance.victory();
+    maybeAskReview(); // みんなで対戦のあとにレビュー依頼（1回きり）
   }
 
   @override
@@ -193,7 +196,9 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  const StoreCtaCard(),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
                       Sfx.instance.pop();
