@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -19,15 +21,31 @@ import '../services/speech.dart';
 ///
 /// 顔はフリー素材の実写（char*.jpg / FaceKind.asset）を使い、体まで写して現実に近づける。
 class RecallTrainingScreen extends StatefulWidget {
-  final int level; // 1..3 → 人数 4/6/8
+  final int level; // 1..3 → 人数 4/6/8（people未指定のとき）
+  /// 出題する項目。デフォルトは名前＋会社。未指定時は {name, company}。
+  final Set<RecallField> fields;
+  /// 事前に用意した人物（カスタム名簿など）。null なら架空の実写を生成。
+  final List<Person>? people;
 
-  const RecallTrainingScreen({super.key, this.level = 1});
+  const RecallTrainingScreen({
+    super.key,
+    this.level = 1,
+    this.fields = const {RecallField.name, RecallField.company},
+    this.people,
+  });
 
   @override
   State<RecallTrainingScreen> createState() => _RecallTrainingScreenState();
 }
 
 enum _Phase { meet, gap, recall, result }
+
+/// 1問分（誰の・どの項目を当てるか）。
+class _Question {
+  final Person person;
+  final RecallField field;
+  const _Question(this.person, this.field);
+}
 
 class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   final Random _rng = Random();
@@ -37,13 +55,19 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   late final MemoryShortTip _tip =
       kNameScienceTips[_rng.nextInt(kNameScienceTips.length)];
   late List<Person> _people; // 出会った順
-  late List<Person> _quizOrder; // 思い出す順（シャッフル）
+
+  // 出題項目の順序（name, company, title, phone, email の順で選択されたもの）
+  late final List<RecallField> _fields = [
+    for (final f in RecallField.values)
+      if (widget.fields.contains(f)) f,
+  ];
 
   _Phase _phase = _Phase.meet;
   int _meetIndex = 0;
-  int _quizIndex = 0;
 
-  // 思い出すフェーズ
+  // 思い出すフェーズ（項目別クイズ）
+  late List<_Question> _questions;
+  int _qIndex = 0;
   List<String> _choices = [];
   bool _answered = false;
   String? _picked;
@@ -65,8 +89,11 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void initState() {
     super.initState();
-    _people = generateRecallPeople(_peopleCount, ja: _ja, random: _rng);
-    _quizOrder = [..._people]..shuffle(_rng);
+    if (widget.people != null && widget.people!.isNotEmpty) {
+      _people = [...widget.people!]..shuffle(_rng);
+    } else {
+      _people = generateRecallPeople(_peopleCount, ja: _ja, random: _rng);
+    }
     // 最初の人が名刺を差し出して自己紹介（音声）
     WidgetsBinding.instance.addPostFrameCallback((_) => _announceMeet());
   }
@@ -81,10 +108,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   String _bareName(Person p) =>
       p.name.endsWith('さん') ? p.name.substring(0, p.name.length - 2) : p.name;
 
-  /// いま出会っている人に自己紹介を読み上げさせる。
+  /// いま出会っている人に自己紹介を読み上げさせる（会社名＋名前＋肩書）。
   void _announceMeet() {
     if (_phase != _Phase.meet) return;
-    Speech.instance.introduce(_bareName(_people[_meetIndex]), ja: _ja);
+    final p = _people[_meetIndex];
+    Speech.instance.introduce(_bareName(p),
+        ja: _ja, company: p.company, title: p.title);
   }
 
   // ---- であうフェーズ ----
@@ -100,24 +129,37 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   // ---- 思い出すフェーズ ----
+  /// 出題リストを作る。人物ごとに、選択された項目のうち値があるものを出題。
+  void _buildQuestions() {
+    final order = [..._people]..shuffle(_rng);
+    _questions = [
+      for (final p in order)
+        for (final f in _fields)
+          if (recallFieldValue(p, f).trim().isNotEmpty) _Question(p, f),
+    ];
+  }
+
   void _startRecall() {
     Sfx.instance.pop();
+    _buildQuestions();
     setState(() {
       _phase = _Phase.recall;
-      _quizIndex = 0;
+      _qIndex = 0;
       _prepareChoices();
     });
   }
 
-  Person get _quizPerson => _quizOrder[_quizIndex];
+  _Question get _q => _questions[_qIndex];
+  String get _answerText => recallFieldValue(_q.person, _q.field);
 
   void _prepareChoices() {
-    final others = _people
-        .where((p) => p.name != _quizPerson.name)
-        .map((p) => p.name)
-        .toList()
-      ..shuffle(_rng);
-    _choices = [_quizPerson.name, ...others.take(3)]..shuffle(_rng);
+    final answer = _answerText;
+    final others = <String>{
+      for (final p in _people)
+        if (!identical(p, _q.person)) recallFieldValue(p, _q.field),
+    }..removeWhere((v) => v.trim().isEmpty || v == answer);
+    final pool = others.toList()..shuffle(_rng);
+    _choices = [answer, ...pool.take(3)]..shuffle(_rng);
     _answered = false;
     _picked = null;
     _questionShownAt = DateTime.now();
@@ -126,7 +168,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   void _answer(String choice) {
     if (_answered) return;
     _totalReactionMs += DateTime.now().difference(_questionShownAt).inMilliseconds;
-    final correct = choice == _quizPerson.name;
+    final correct = choice == _answerText;
     if (correct) {
       _correct += 1;
       Sfx.instance.correct();
@@ -141,9 +183,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   Future<void> _recallNext() async {
-    if (_quizIndex + 1 < _quizOrder.length) {
+    if (_qIndex + 1 < _questions.length) {
       setState(() {
-        _quizIndex += 1;
+        _qIndex += 1;
         _prepareChoices();
       });
     } else {
@@ -152,17 +194,17 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   Future<void> _finish() async {
-    final total = _quizOrder.length;
+    final total = _questions.length;
     final avgMs = total > 0 ? _totalReactionMs ~/ total : 0;
-    // 記録＆コイン付与（思い出せた人数×8＋全問正解ボーナス）
+    // 記録＆コイン付与（正解数×8＋全問正解ボーナス）
     await PlayerProfile.instance.recordSoloTraining(
       correctQuizzes: _correct,
       totalQuizzes: total,
       avgReactionMs: avgMs,
     );
-    final coins = _correct * 8 + (_correct == total ? 20 : 0);
+    final coins = _correct * 8 + (total > 0 && _correct == total ? 20 : 0);
     if (coins > 0) await PlayerProfile.instance.grantBonusCoins(coins);
-    if (_correct == total) {
+    if (total > 0 && _correct == total) {
       Sfx.instance.victory();
     } else if (_correct >= (total / 2).ceil()) {
       Sfx.instance.fanfare();
@@ -198,30 +240,44 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   // 実写の人物（顔＋体）を大きく見せるカード。頭が切れないよう上寄せでクロップ。
+  // アセット画像（架空）とアップロード写真（カスタム名簿）の両方に対応。
   Widget _personPhoto(Person p, {double height = 300}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
-      child: Image.asset(
-        p.face,
-        height: height,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        alignment: Alignment.topCenter,
-        errorBuilder: (_, __, ___) => Container(
+    Widget fallback() => Container(
           height: height,
           color: const Color(0xFFEAF3FF),
           child: const Icon(Icons.person, size: 90, color: Color(0xFF8FB4DC)),
-        ),
-      ),
-    );
+        );
+    final Widget img;
+    if (p.kind == FaceKind.file && !kIsWeb) {
+      img = Image.file(File(p.face),
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          alignment: Alignment.topCenter,
+          errorBuilder: (_, __, ___) => fallback());
+    } else if (p.kind == FaceKind.asset) {
+      img = Image.asset(p.face,
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          alignment: Alignment.topCenter,
+          errorBuilder: (_, __, ___) => fallback());
+    } else {
+      img = fallback();
+    }
+    return ClipRRect(borderRadius: BorderRadius.circular(22), child: img);
   }
 
   Widget _buildMeet(MetaStrings m) {
     final p = _people[_meetIndex];
     final isLast = _meetIndex + 1 >= _people.length;
     final introText = _ja
-        ? '私は${_bareName(p)}と申します。'
-        : "Hello, I'm ${_bareName(p)}.";
+        ? (p.company.isNotEmpty
+            ? '${p.company}の${_bareName(p)}と申します。'
+            : '私は${_bareName(p)}と申します。')
+        : (p.company.isNotEmpty
+            ? "Hello, I'm ${_bareName(p)} from ${p.company}."
+            : "Hello, I'm ${_bareName(p)}.");
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -343,12 +399,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   // 差し出される名刺。少し傾けて手渡し感を出す。
+  // アップロードした実物の名刺があればそれを表示、なければ項目からレイアウト。
   Widget _businessCard(Person p, MetaStrings m) {
     return Transform.rotate(
       angle: -0.04,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -361,45 +417,85 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 6,
-              height: 58,
-              decoration: BoxDecoration(
-                color: const Color(0xFF3A7BD5),
-                borderRadius: BorderRadius.circular(3),
+        clipBehavior: Clip.antiAlias,
+        child: (p.cardImage.isNotEmpty && !kIsWeb)
+            ? _uploadedCard(p)
+            : Padding(
+                padding: const EdgeInsets.all(14),
+                child: _cardFields(p, m),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(m.businessCardHello,
+      ),
+    );
+  }
+
+  // アップロードした実物名刺の画像を表示。
+  Widget _uploadedCard(Person p) {
+    return Image.file(
+      File(p.cardImage),
+      width: double.infinity,
+      fit: BoxFit.fitWidth,
+      errorBuilder: (_, __, ___) => Padding(
+        padding: const EdgeInsets.all(14),
+        child: _cardFields(p, MetaStrings.of(context)),
+      ),
+    );
+  }
+
+  // 項目から名刺レイアウトを組む（会社名・氏名・肩書・電話・メール）。
+  Widget _cardFields(Person p, MetaStrings m) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 6,
+          height: 84,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3A7BD5),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (p.company.isNotEmpty)
+                Text(p.company,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF3A7BD5))),
+              if (p.title.isNotEmpty)
+                Text(p.title,
+                    style:
+                        const TextStyle(fontSize: 11, color: Colors.black54)),
+              const SizedBox(height: 4),
+              Text(_bareName(p),
+                  style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF223A5E))),
+              const SizedBox(height: 6),
+              if (p.phone.isNotEmpty)
+                Text('☎ ${p.phone}',
+                    style: const TextStyle(
+                        fontSize: 11.5, color: Colors.black54)),
+              if (p.email.isNotEmpty)
+                Text('✉ ${p.email}',
+                    style: const TextStyle(
+                        fontSize: 11.5, color: Colors.black54)),
+              if (p.where.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('📍 ${m.metAt(p.where)}',
                       style: const TextStyle(
                           fontSize: 11, color: Colors.black45)),
-                  const SizedBox(height: 2),
-                  Text(_bareName(p),
-                      style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF223A5E))),
-                  const SizedBox(height: 3),
-                  Text('📍 ${m.metAt(p.where)}',
-                      style: const TextStyle(
-                          fontSize: 11.5, color: Colors.black54)),
-                  if (p.hobby.isNotEmpty)
-                    Text('🎯 ${m.recallHobbyLabel}: ${p.hobby}',
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black54)),
-                ],
-              ),
-            ),
-            const Text('🪪', style: TextStyle(fontSize: 30)),
-          ],
+                ),
+            ],
+          ),
         ),
-      ),
+        const Text('🪪', style: TextStyle(fontSize: 28)),
+      ],
     );
   }
 
@@ -476,31 +572,34 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   Widget _buildRecall(MetaStrings m) {
-    final p = _quizPerson;
+    final p = _q.person;
+    final answer = _answerText;
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Column(
         children: [
           LinearProgressIndicator(
-            value: (_quizIndex + 1) / _quizOrder.length,
+            value: (_qIndex + 1) / _questions.length,
             minHeight: 6,
             backgroundColor: Colors.white,
             color: const Color(0xFF3A7BD5),
           ),
           const SizedBox(height: 6),
-          Text('${_quizIndex + 1} / ${_quizOrder.length}',
+          Text('${_qIndex + 1} / ${_questions.length}',
               style: const TextStyle(color: Colors.black54, fontSize: 12.5)),
           const SizedBox(height: 8),
-          _personPhoto(p, height: 230),
+          _personPhoto(p, height: 210),
           const SizedBox(height: 8),
-          Text(m.recallWhoTitle,
+          Text(m.recallFieldQuestion(m.fieldLabel(_q.field)),
+              textAlign: TextAlign.center,
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF2B5CA5))),
-          Text('💡 ${m.hintMetAt(p.where)}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.black45)),
+          if (p.where.isNotEmpty)
+            Text('💡 ${m.hintMetAt(p.where)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.black45)),
           const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
@@ -516,7 +615,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: !_answered
                                 ? Colors.white
-                                : (c == _quizPerson.name
+                                : (c == answer
                                     ? const Color(0xFFDFF5E1)
                                     : (c == _picked
                                         ? const Color(0xFFFCE4E4)
@@ -544,7 +643,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   Widget _buildResult(MetaStrings m) {
-    final total = _quizOrder.length;
+    final total = _questions.length;
     final ratio = total > 0 ? _correct / total : 0.0;
     final encourage = ratio >= 1.0
         ? m.recallEncourageHigh
@@ -589,13 +688,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                   padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(p.face,
-                            width: 64,
-                            height: 64,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter),
+                      SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: _personPhoto(p, height: 64),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -604,12 +700,20 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                           children: [
                             Text(p.name,
                                 style: const TextStyle(
-                                    fontSize: 17,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w900,
                                     color: Color(0xFF2B5CA5))),
-                            Text('📍 ${m.metAt(p.where)}',
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.black54)),
+                            if (p.company.isNotEmpty)
+                              Text(
+                                  p.title.isNotEmpty
+                                      ? '${p.company} / ${p.title}'
+                                      : p.company,
+                                  style: const TextStyle(
+                                      fontSize: 11.5, color: Colors.black54)),
+                            if (p.where.isNotEmpty)
+                              Text('📍 ${m.metAt(p.where)}',
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black45)),
                           ],
                         ),
                       ),
@@ -637,12 +741,15 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                   onPressed: () {
                     Sfx.instance.pop();
                     setState(() {
-                      _people = generateRecallPeople(_peopleCount,
-                          ja: _ja, random: _rng);
-                      _quizOrder = [..._people]..shuffle(_rng);
+                      if (widget.people != null && widget.people!.isNotEmpty) {
+                        _people = [...widget.people!]..shuffle(_rng);
+                      } else {
+                        _people = generateRecallPeople(_peopleCount,
+                            ja: _ja, random: _rng);
+                      }
                       _phase = _Phase.meet;
                       _meetIndex = 0;
-                      _quizIndex = 0;
+                      _qIndex = 0;
                       _correct = 0;
                       _totalReactionMs = 0;
                     });

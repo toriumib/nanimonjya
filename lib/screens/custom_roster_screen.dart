@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'dart:io';
+
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/custom_roster_service.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
 import 'name_call_screen.dart';
+import 'recall_training_screen.dart';
 import 'study_screen.dart';
 
 /// 「おぼえる」= 自分の名簿の管理画面。
@@ -34,10 +37,17 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
       final picked =
           await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 80);
       if (picked == null || !mounted) return;
-      final name = await _askName(m);
-      if (name == null || name.trim().isEmpty) return;
-      await CustomRosterService.instance
-          .add(sourcePath: picked.path, name: name.trim());
+      final details = await _askDetails(m);
+      if (details == null || details.name.trim().isEmpty) return;
+      await CustomRosterService.instance.add(
+        sourcePath: picked.path,
+        name: details.name.trim(),
+        company: details.company.trim(),
+        title: details.title.trim(),
+        phone: details.phone.trim(),
+        email: details.email.trim(),
+        cardSourcePath: details.cardPath,
+      );
       Sfx.instance.coin();
     } catch (e) {
       if (mounted) {
@@ -47,32 +57,98 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     }
   }
 
-  Future<String?> _askName(MetaStrings m) {
-    final controller = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(m.customNameField),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 10,
+  /// 名前（必須）＋会社/肩書/電話/メール（任意）＋名刺画像（任意）を入力するフォーム。
+  Future<_CardDetails?> _askDetails(MetaStrings m) {
+    final nameC = TextEditingController();
+    final companyC = TextEditingController();
+    final titleC = TextEditingController();
+    final phoneC = TextEditingController();
+    final emailC = TextEditingController();
+    String? cardPath;
+
+    Widget field(TextEditingController c, String label,
+        {TextInputType? keyboard, int? maxLen}) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: TextField(
+          controller: c,
+          keyboardType: keyboard,
+          maxLength: maxLen,
           decoration: InputDecoration(
-            labelText: m.customNameField,
+            labelText: label,
+            isDense: true,
             counterText: '',
           ),
-          onSubmitted: (v) => Navigator.pop(context, v),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(m.cancel),
+      );
+    }
+
+    return showDialog<_CardDetails>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setSt) => AlertDialog(
+          title: Text(m.customDetailsTitle),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                field(nameC, m.customNameField, maxLen: 12),
+                field(companyC, m.customCompanyField, maxLen: 24),
+                field(titleC, m.customTitleField, maxLen: 24),
+                field(phoneC, m.customPhoneField,
+                    keyboard: TextInputType.phone, maxLen: 20),
+                field(emailC, m.customEmailField,
+                    keyboard: TextInputType.emailAddress, maxLen: 40),
+                const SizedBox(height: 4),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.badge_outlined, size: 18),
+                  label: Text(
+                    cardPath == null
+                        ? m.customPickCardImage
+                        : m.customCardSelected,
+                    style: const TextStyle(fontSize: 12.5),
+                  ),
+                  onPressed: () async {
+                    final c = await _picker.pickImage(
+                        source: ImageSource.gallery,
+                        maxWidth: 1200,
+                        imageQuality: 85);
+                    if (c != null) setSt(() => cardPath = c.path);
+                  },
+                ),
+                if (cardPath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(File(cardPath!),
+                          height: 90, fit: BoxFit.cover),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(m.customSave),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(m.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                _CardDetails(
+                  name: nameC.text,
+                  company: companyC.text,
+                  title: titleC.text,
+                  phone: phoneC.text,
+                  email: emailC.text,
+                  cardPath: cardPath,
+                ),
+              ),
+              child: Text(m.customSave),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -270,6 +346,16 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
           ],
         ),
         const SizedBox(height: 10),
+        // 🧠 名刺で思い出しクイズ（会社名・名前・肩書・連絡先を想起）
+        ElevatedButton(
+          onPressed: () => _startCustomRecall(people),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2B5CA5),
+            minimumSize: const Size.fromHeight(48),
+          ),
+          child: Text(m.customRecallQuizButton),
+        ),
+        const SizedBox(height: 10),
         // オフライン対戦（この名簿でなまえコール）: 2〜4人でみんなで
         ElevatedButton(
           onPressed: () => _startCustomBattle(people),
@@ -280,6 +366,22 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
           child: Text(m.customBattleButton),
         ),
       ],
+    );
+  }
+
+  /// カスタム名簿で思い出しクイズ。名簿に存在する項目だけを出題する。
+  void _startCustomRecall(List<Person> people) {
+    Sfx.instance.fanfare();
+    final fields = <RecallField>{RecallField.name};
+    if (people.any((p) => p.company.isNotEmpty)) fields.add(RecallField.company);
+    if (people.any((p) => p.title.isNotEmpty)) fields.add(RecallField.title);
+    if (people.any((p) => p.phone.isNotEmpty)) fields.add(RecallField.phone);
+    if (people.any((p) => p.email.isNotEmpty)) fields.add(RecallField.email);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecallTrainingScreen(people: people, fields: fields),
+      ),
     );
   }
 
@@ -364,9 +466,34 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                   const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900),
               overflow: TextOverflow.ellipsis,
             ),
+            if (e.company.isNotEmpty)
+              Text(
+                e.company,
+                style: const TextStyle(fontSize: 9.5, color: Colors.black54),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
           ],
         ),
       ),
     );
   }
+}
+
+/// 名刺の入力フォームの結果。
+class _CardDetails {
+  final String name;
+  final String company;
+  final String title;
+  final String phone;
+  final String email;
+  final String? cardPath;
+  const _CardDetails({
+    required this.name,
+    required this.company,
+    required this.title,
+    required this.phone,
+    required this.email,
+    required this.cardPath,
+  });
 }

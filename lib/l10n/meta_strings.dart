@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../models/person.dart';
+
 /// 新規追加した「メタ層」機能（コイン/実績/デイリー等）専用の簡易多言語ヘルパー。
 /// 既存の AppLocalizations とは独立して自己完結させ、arb再生成の影響を受けないようにする。
 class MetaStrings {
@@ -727,6 +729,39 @@ class MetaStrings {
       ? '思い出せなくても大丈夫。くり返すほど、名前は出てくるようになります。'
       : 'It’s OK to forget. The more you repeat, the easier names come back.';
   String get businessCardHello => ja ? 'はじめまして' : 'Nice to meet you';
+  String fieldLabel(RecallField f) {
+    switch (f) {
+      case RecallField.name:
+        return ja ? '名前' : 'name';
+      case RecallField.company:
+        return ja ? '会社名' : 'company';
+      case RecallField.title:
+        return ja ? '肩書' : 'title';
+      case RecallField.phone:
+        return ja ? '電話番号' : 'phone number';
+      case RecallField.email:
+        return ja ? 'メール' : 'email';
+    }
+  }
+
+  String recallFieldQuestion(String label) =>
+      ja ? 'この人の$labelは？' : "What's this person's $label?";
+  // 出題項目の選択（とっくんハブ）
+  String get recallFieldsTitle =>
+      ja ? '🎯 覚える項目（会社名＋名前が基本）' : '🎯 What to memorize (company + name)';
+  // 実物の名刺＋顔写真アップロード（カスタム名簿）
+  String get customCompanyField => ja ? '会社名（任意）' : 'Company (optional)';
+  String get customTitleField => ja ? '肩書（任意）' : 'Title (optional)';
+  String get customPhoneField => ja ? '電話番号（任意）' : 'Phone (optional)';
+  String get customEmailField => ja ? 'メール（任意）' : 'Email (optional)';
+  String get customPickCardImage => ja ? '📇 名刺の写真を選ぶ（任意）' : '📇 Add a business-card photo (optional)';
+  String get customCardSelected => ja ? '✓ 名刺の写真を選択済み' : '✓ Business-card photo added';
+  String get customDetailsTitle => ja ? '名刺の情報を入力' : 'Enter card details';
+  String get customRecallQuizButton =>
+      ja ? '🧠 名刺で思い出しクイズ' : '🧠 Business-card recall quiz';
+  String get customFaceFirstHint => ja
+      ? 'まず顔写真を選び、次に名刺の情報を入力します。'
+      : 'Pick a face photo first, then enter the card details.';
   String get researchTipHeader =>
       ja ? '🔬 研究にもとづく名前のコツ' : '🔬 Research-backed name tip';
   String get sourceLabel => ja ? '出典' : 'Source';

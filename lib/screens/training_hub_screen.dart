@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/person.dart';
 import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'cognitive_info_screen.dart';
@@ -17,6 +18,8 @@ class TrainingHubScreen extends StatefulWidget {
 
 class _TrainingHubScreenState extends State<TrainingHubScreen> {
   int _level = 1;
+  // 覚える項目。会社名＋名前が基本、他はオプション。
+  final Set<RecallField> _fields = {RecallField.name, RecallField.company};
 
   void _start({bool mnemonic = false}) {
     Sfx.instance.pop();
@@ -36,8 +39,37 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RecallTrainingScreen(level: _level),
+        builder: (_) => RecallTrainingScreen(level: _level, fields: {..._fields}),
       ),
+    );
+  }
+
+  // 覚える項目トグル（名前は必須、会社はデフォルトON、他はオプション）
+  Widget _fieldChip(RecallField f, String label, {bool fixed = false}) {
+    final on = _fields.contains(f);
+    return FilterChip(
+      label: Text(label,
+          style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: on ? const Color(0xFF2B5CA5) : Colors.white)),
+      selected: on,
+      showCheckmark: false,
+      backgroundColor: Colors.white.withValues(alpha: 0.18),
+      selectedColor: Colors.white,
+      side: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
+      onSelected: fixed
+          ? null
+          : (v) {
+              Sfx.instance.pop();
+              setState(() {
+                if (v) {
+                  _fields.add(f);
+                } else {
+                  _fields.remove(f);
+                }
+              });
+            },
     );
   }
 
@@ -115,6 +147,29 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                               fontSize: 12.5,
                               height: 1.4,
                               color: Colors.white)),
+                      const SizedBox(height: 12),
+                      Text(m.recallFieldsTitle,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _fieldChip(RecallField.name, m.fieldLabel(RecallField.name),
+                              fixed: true),
+                          _fieldChip(
+                              RecallField.company, m.fieldLabel(RecallField.company)),
+                          _fieldChip(
+                              RecallField.title, m.fieldLabel(RecallField.title)),
+                          _fieldChip(
+                              RecallField.phone, m.fieldLabel(RecallField.phone)),
+                          _fieldChip(
+                              RecallField.email, m.fieldLabel(RecallField.email)),
+                        ],
+                      ),
                       const SizedBox(height: 14),
                       ElevatedButton(
                         onPressed: _startRecall,

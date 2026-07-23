@@ -32,8 +32,11 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 実生活の「この人だれだっけ？」を再現する想起特訓。とっくんタブ（training_hub_screen.dart）の先頭カード
 - フロー: ①**であう**（実写char*.jpgの顔＋体を1人ずつ。**名刺を差し出す演出＋ふきだし「私は○○と申します。」＋TTS音声**で自己紹介。出会った場所[Person.where]・趣味も記銘）→ ②**時間がたつ**（間をおく画面。研究ベースTipsを出典つきで表示）→ ③**思い出す**（顔を見て名前を4択想起、出会った場所がヒント）→ 結果＋おさらい
 - `models/person.dart` の `generateRecallPeople(count, ja)` で実写＋名前＋出会った場所（`_metContextJa/En`）を生成。顔は必ず実写（FaceKind.asset）で「リアルな顔と体」を出す
-- **音声**: `services/speech.dart`（flutter_tts）。ja-JP/en-USで「私は○○と申します」を読み上げ。敬称なし苗字。であう入場時に自動再生＋🔊で再再生。AndroidManifestに`TTS_SERVICE`のqueriesを追加済み
-- 記録は `recordSoloTraining`、コインは思い出せた人数×8（＋全問正解ボーナス20）
+- **名刺**: であうフェーズは名刺を差し出す演出。会社名・氏名・肩書・電話・メール（すべて架空、`generateRecallPeople`が生成。会社名は造語パーツ2つ＋業種語尾、メールは架空ドメイン、電話はダミー）を表示。アップロードした実物名刺画像があればそれを表示
+- **音声**: `services/speech.dart`（flutter_tts）。`introduce(bareName, company, title)`で「{会社}の{名前}と申します。{肩書}をしております。」をja-JP/en-US読み上げ。敬称なし苗字。入場時自動＋🔊再生。AndroidManifestに`TTS_SERVICE`のqueries追加済み
+- **クイズ項目**: `RecallField`(name/company/title/phone/email)。デフォルト{name, company}、hubのチップでオプション追加。recall_trainingは項目別クイズに一般化（(person,field)ごとに4択、値が空の項目は出題しない）
+- **実物名刺＋顔写真アップロード**: `custom_roster_service`のCustomEntryに company/title/phone/email/cardImagePath 追加（JSONは旧v1後方互換）。custom_roster_screenの登録フォームで顔写真＋各項目＋名刺画像を入力。「🧠 名刺で思い出しクイズ」で`RecallTrainingScreen(people: 名簿, fields: 存在する項目)`を起動。ビジネス実用向け
+- 記録は `recordSoloTraining`、コインは正解数×8（＋全問正解ボーナス20）
 
 ### 記憶術Tips（l10n/memory_tips.dart）
 - `kMemoryShortTips`（一般Tips）＋`kNameScienceTips`（**研究ベース・出典つき**。MemoryShortTip.source）。読み物`kMemoryTipPages`にも「研究が言う名前のコツ①②」を出典つきで追加

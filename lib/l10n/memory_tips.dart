@@ -278,4 +278,14 @@ const List<MemoryShortTip> kNameScienceTips = [
     '🧠 Practising name recall is linked to stronger face-recognition ability, recent work reports',
     source: 'DeGutis, Palsamudram, Campbell, Fry, Verfaellie & Anderson (2024), Quarterly Journal of Experimental Psychology',
   ),
+  MemoryShortTip(
+    '🔗 名前をバラバラの音でなく「ひとかたまりの意味」にまとめると思い出しやすいとされる',
+    '🔗 Bundle a name into one meaningful unit (not loose sounds) to aid retrieval',
+    source: "O'Rourke & de Diego Balaguer (2019), Neuroscience & Biobehavioral Reviews",
+  ),
+  MemoryShortTip(
+    '🔁 顔と名前の結びつきは、くり返し練習で身につく手続き記憶として保たれやすいとされる',
+    '🔁 Face–name links can be built as procedural memory that repetition keeps well',
+    source: 'Tak & Hong (2014), Geriatric Nursing',
+  ),
 ];
