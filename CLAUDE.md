@@ -90,7 +90,7 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 広告関連は全て `kIsWeb` ガード必須（google_mobile_adsはWeb非対応）
 - 医療・認知機能への効果は断定表現禁止。「〜と言われている」「〜が期待される」等のヘッジ表現＋免責を守る（`meta_strings.dart` の `cognitiveDisclaimer` 参照）
 - 記憶術コンテンツ（`memory_tips.dart`）は完全オリジナル文章。外部記事のコピー禁止
-- targetSdk 35 / NDK 27.0.12077973（16KBページサイズ対応）を維持
+- targetSdk 36（Android 16。2026-08-31までにPlayが必須化した対象APIレベル要件に対応、v2.3.0+103で35→36に引き上げ） / compileSdk 36 / NDK 27.0.12077973（16KBページサイズ対応）を維持
 - 日本語Windows環境: PowerShellでのファイル読み書きは .NET の UTF8Encoding を明示（Get/Set-ContentはUTF-8を破壊する）
 - フォント: ロゴ=Mochiy Pop One、本文=Zen Maru Gothic（google_fonts経由）
 
