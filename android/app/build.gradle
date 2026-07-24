@@ -44,7 +44,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.nanimonjya"
-    compileSdkVersion 36  // flutter_tts が要求（compileSdkはtargetSdkより高くてOK）
+    compileSdkVersion 36  // Android 16対応のtargetSdk36と一致（flutter_ttsの要件も満たす）
     ndkVersion "27.0.12077973"  // 16KB ページサイズ対応に必須
 
     compileOptions {
@@ -64,7 +64,7 @@ android {
     defaultConfig {
         applicationId "com.nanimonjya"
         minSdkVersion 24  // flutter_tts が最低24を要求（Android 7.0〜。6.0はシェア僅少）
-        targetSdkVersion 35  // Android 15 + 16KB ページサイズ対応
+        targetSdkVersion 36  // Android 16 対応（2026-08-31までにPlay必須の対象APIレベル要件）
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
