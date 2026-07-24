@@ -42,3 +42,9 @@ const int kCpuRatingFloor = 400;
 
 /// 鬼段位CPU（oni）を選択できるようになるレーティング。
 const int kOniUnlockRating = 1500;
+
+/// 覚醒回数を段位名に添える表示（例: "鬼段位 🌌×2"）。0回なら付けない。
+String rankLabelWithAwakenings(CpuRank rank, bool ja, int awakenings) {
+  final base = '${rank.emoji} ${ja ? rank.nameJa : rank.nameEn}';
+  return awakenings > 0 ? '$base 🌌×$awakenings' : base;
+}

@@ -5,9 +5,11 @@ import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
+import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/count_up.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
@@ -54,6 +56,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
+    InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
   }
 
   @override
@@ -161,6 +164,10 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                         .animate()
                         .fadeIn(delay: 700.ms, duration: 300.ms)
                         .slideY(begin: 0.15, end: 0),
+                    const SizedBox(height: 10),
+                    DoubleCoinsButton(coinsEarned: _coinsEarned)
+                        .animate()
+                        .fadeIn(delay: 850.ms, duration: 300.ms),
                   ],
                   if (_granted && _newAchievements.isNotEmpty) ...[
                     const SizedBox(height: 12),

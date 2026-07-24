@@ -56,6 +56,18 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - **試合・特訓の結果画面**（match_result / local_result / online_result / recall_training の各result）に `widgets/store_cta.dart` の `StoreCtaCard`（「新しいキャラを仲間にしよう→ショップへ」誘導）を配置
 - レビュー依頼: `services/review_prompt.dart` の `maybeAskReview()`（1回きり、`reviewPrompted`でゲート）。勝利・全問正解などの好タイミングで呼ぶ。match_result側は従来通り閾値3ゲームで直接呼び出し
 
+### 💰 収益導線（広告・課金の再点検、v2.3.0）
+- **インタースティシャル広告を有効化**（`services/interstitial_ad_helper.dart`。3プレイに1回、リザルト画面で表示）。main.dartで先読みを開始し、match_result/local_result/online_result/recall_trainingの各`initState`/終了処理で`InterstitialAdHelper.instance.onGameFinished()`を呼ぶ。以前はコード実装のみで呼び出しが無く完全に無効化されていた（なぜなぜ分析の結論: 収益ポイントがユーザーの感情が一番盛り上がる「結果が出た直後」に配置されていなかったことが根本原因）
+- **「動画でコイン2倍」ボタン**（`widgets/double_coins_button.dart`）を全リザルト画面の獲得コイン表示直後に設置。獲得コインが0の結果では非表示。リワード広告の視聴率が最も高い定番配置
+- 無料コインギフト（top_screen.dart）のクールダウンを30分→15分に短縮（`PlayerProfile.giftCooldownMinutes`）。ショップの動画報酬は50→60コインに増額済み
+
+### 🌌 覚醒（プレステージ）システム（v2.3.0、無限リプレイ性）
+- 段位（cpuRating）は鬼段位到達後も伸ばせるが、目標が尽きる問題への対策。`PlayerProfile.canAwaken`（鬼段位帯=`kCpuRanks.last.minRating`以上 かつ `cpuOniWins >= 3`）で解放
+- `PlayerProfile.awaken()`: レーティングを1000にリセットし`awakenings`を+1。`coinMultiplier`（1.0 + awakenings*0.05、上限なし）が`_addCoins`と`claimMission`の全コイン獲得に自動適用される永続ボーナス
+- UI: profile_screen.dartの「🌌 覚醒」カード（統計カードの直後）。確認ダイアログを挟んで実行、1回きりでなく何度でも繰り返せる
+- `models/cpu_rank.dart`に`rankLabelWithAwakenings()`ヘルパーあり（段位表示に覚醒回数バッジを付けたい場合に使用。現状はプロフィール画面のみ表示、結果画面の段位表示には未適用）
+- テストは `test/player_profile_test.dart`（SharedPreferences.setMockInitialValuesでモック。シングルトンのload()は初回のみ実行される点に注意し、setUpでフィールドを直接リセットしている）
+
 ### サブモード「ペアさがし」（match_game_screen.dart）
 - おぼえタイム（人物プロフィール表示・記銘）→ カード裏返し → 顔と名前のペア当て（想起）
 - 一人特訓: レベル1/2/3 = 4/6/8ペア。Lv3は趣味ボーナスクイズ付き。手数・タイムでスコア化

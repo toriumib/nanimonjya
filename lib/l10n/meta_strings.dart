@@ -789,4 +789,32 @@ class MetaStrings {
       ? 'コインを貯めて、出会える顔ぶれを増やそう。'
       : 'Spend coins to grow your cast of faces.';
   String get ctaToShop => ja ? 'ショップへ →' : 'To Shop →';
+
+  // 🎬 動画でコイン2倍（リザルト画面）
+  String doubleCoinsButton(int n) =>
+      ja ? '🎬 動画でコイン2倍！(+$n)' : '🎬 Watch ad to double coins! (+$n)';
+  String get doubleCoinsDone => ja ? '✓ コイン2倍ずみ！' : '✓ Coins doubled!';
+
+  // 🌌 覚醒（プレステージ）システム
+  String get awakenTitle => ja ? '🌌 覚醒' : '🌌 Awakening';
+  String get awakenDesc => ja
+      ? '鬼段位をきわめた者だけが選べる、もうひとつの道。段位はリセットされるが、'
+      '獲得コインが永久にアップし、称号に覚醒の証が刻まれる。何度でも、その先へ。'
+      : 'A path only those who have mastered Oni Rank may choose. Your rating '
+      'resets, but coin gains rise forever, and your title bears the mark of '
+      'awakening. Again and again, beyond the limit.';
+  String awakenCount(int n) => ja ? '覚醒 $n回' : 'Awakened ×$n';
+  String awakenMultiplier(String pct) =>
+      ja ? 'コイン獲得 +$pct%' : '+$pct% coins from all sources';
+  String get awakenLocked => ja
+      ? '🔒 鬼段位（レート1600）で鬼CPUに3勝すると覚醒できるようになる'
+      : '🔒 Beat Oni-difficulty CPU 3 times at Oni Rank (1600+) to unlock';
+  String get awakenButton => ja ? '覚醒する' : 'Awaken';
+  String get awakenConfirmTitle => ja ? '覚醒しますか？' : 'Awaken now?';
+  String get awakenConfirmBody => ja
+      ? '段位レーティングは見習いに戻りますが、コイン獲得倍率が永久に上がり、'
+      '称号に覚醒回数が刻まれます。この操作は取り消せません。'
+      : 'Your rating returns to Novice, but your coin multiplier increases '
+      'permanently and your title records this awakening. This cannot be undone.';
+  String get awakenDone => ja ? '覚醒した！🌌' : 'You have awakened! 🌌';
 }

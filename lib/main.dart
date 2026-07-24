@@ -13,6 +13,7 @@ import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
+import 'services/interstitial_ad_helper.dart'; // 3プレイに1回のリザルト全画面広告
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
 // 多言語対応のために追加
@@ -30,8 +31,7 @@ Future<void> main() async {
       return true;
     };
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
-    // ※インタースティシャル（全画面広告）は無効化中。
-    //   復活させる場合は InterstitialAdHelper.instance.load() をここで呼ぶ。
+    InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
