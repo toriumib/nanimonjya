@@ -6,10 +6,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
+import '../services/interstitial_ad_helper.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../services/review_prompt.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import 'online_lobby_screen.dart';
 import 'home_shell.dart';
@@ -62,6 +64,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     _timeout = Timer(const Duration(seconds: 180), () {
       if (_outcome == _Outcome.waiting) _decide(win: true);
     });
+    InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
   }
 
   @override
@@ -253,6 +256,8 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
                   color: Color(0xFF8A6A1E)),
             ),
           ),
+          const SizedBox(height: 10),
+          DoubleCoinsButton(coinsEarned: _coinsEarned),
         ],
         if (_newAchievements.isNotEmpty) ...[
           const SizedBox(height: 12),

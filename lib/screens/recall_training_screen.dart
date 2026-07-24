@@ -9,10 +9,12 @@ import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/review_prompt.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 
 /// 🧠 思い出しトレーニング
@@ -77,6 +79,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   int _correct = 0;
   DateTime _questionShownAt = DateTime.now();
   int _totalReactionMs = 0;
+  int _coinsEarned = 0;
 
   int get _peopleCount {
     switch (widget.level) {
@@ -214,6 +217,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     );
     final coins = _correct * 8 + (total > 0 && _correct == total ? 20 : 0);
     if (coins > 0) await PlayerProfile.instance.grantBonusCoins(coins);
+    _coinsEarned = coins;
     if (total > 0 && _correct == total) {
       Sfx.instance.victory();
       // 全問正解の好タイミングでレビュー依頼（1回きり）
@@ -223,6 +227,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     } else {
       Sfx.instance.coin();
     }
+    InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
     if (mounted) setState(() => _phase = _Phase.result);
   }
 
@@ -736,6 +741,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             ),
           ),
           const SizedBox(height: 10),
+          DoubleCoinsButton(coinsEarned: _coinsEarned),
           const StoreCtaCard(),
           const SizedBox(height: 10),
           Row(
@@ -766,6 +772,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       _qIndex = 0;
                       _correct = 0;
                       _totalReactionMs = 0;
+                      _coinsEarned = 0;
                     });
                     _announceMeet();
                   },

@@ -130,6 +130,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _statsCard(m, profile),
             const SizedBox(height: 16),
+            _awakenCard(m, profile),
+            const SizedBox(height: 16),
             _titleCard(m, profile),
             const SizedBox(height: 16),
             _themeCard(m, profile),
@@ -324,6 +326,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Widget _awakenCard(MetaStrings m, PlayerProfile p) {
+    final pct = (p.awakenings * 5).toString();
+    return _sectionCard(
+      title: m.awakenTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.awakenDesc,
+              style: const TextStyle(fontSize: 12.5, height: 1.5)),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(m.awakenCount(p.awakenings),
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w900)),
+              Text(m.awakenMultiplier(pct),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF7B5CFF))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (p.canAwaken)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _confirmAwaken(m, p),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B5CFF),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  textStyle: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w900),
+                ),
+                child: Text(m.awakenButton),
+              ),
+            )
+          else
+            Text(m.awakenLocked,
+                style: const TextStyle(fontSize: 12, color: Colors.black45)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmAwaken(MetaStrings m, PlayerProfile p) async {
+    Sfx.instance.pop();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(m.awakenConfirmTitle),
+        content: Text(m.awakenConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(m.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B5CFF)),
+            child: Text(m.awakenButton),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final done = await p.awaken();
+      if (done) {
+        Sfx.instance.victory();
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(m.awakenDone)));
+        }
+      }
+    }
   }
 
   Widget _achievementsCard(MetaStrings m, PlayerProfile p) {

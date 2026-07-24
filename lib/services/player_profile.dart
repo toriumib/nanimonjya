@@ -55,6 +55,10 @@ class PlayerProfile extends ChangeNotifier {
   bool reviewPrompted = false; // ストアレビュー依頼を出したか（1回きり）
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
 
+  // 🌌 覚醒（プレステージ）: 鬼段位をきわめたら段位をリセットして
+  // 永続コイン倍率を積み上げられる、終わりのない成長ループ
+  int awakenings = 0;
+
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
   int missionPlays = 0; // 今日あそんだ回数
@@ -119,6 +123,7 @@ class PlayerProfile extends ChangeNotifier {
     hadFastReflex = p.getBool('hadFastReflex') ?? false;
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
+    awakenings = p.getInt('awakenings') ?? 0;
     missionDate = p.getString('missionDate') ?? '';
     missionPlays = p.getInt('missionPlays') ?? 0;
     missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
@@ -383,7 +388,8 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   // 🎁 動画で無料コインチェスト（クールダウン管理）
-  static const int giftCooldownMinutes = 30;
+  // 30分→15分に短縮: 訪問頻度が上がるほどリワード広告の視聴機会が増える
+  static const int giftCooldownMinutes = 15;
   int _lastGiftMillis = 0;
 
   bool get canClaimGift {
@@ -425,18 +431,40 @@ class PlayerProfile extends ChangeNotifier {
     _refreshMissions();
     if (missionClaimed.contains(id)) return false;
     missionClaimed.add(id);
-    coins += reward;
-    lifetimeCoins += reward;
+    final scaled = _scaled(reward);
+    coins += scaled;
+    lifetimeCoins += scaled;
     await _persist();
     notifyListeners();
     return true;
   }
 
+  /// 覚醒回数に応じた永続コイン倍率（覚醒1回につき+5%、上限なし）。
+  double get coinMultiplier => 1.0 + awakenings * 0.05;
+
+  int _scaled(int amount) => (amount * coinMultiplier).round();
+
   Future<void> _addCoins(int amount) async {
-    coins += amount;
-    lifetimeCoins += amount;
+    final scaled = _scaled(amount);
+    coins += scaled;
+    lifetimeCoins += scaled;
     _refreshMissions();
-    missionCoinsEarned += amount; // 今日かせいだコイン（ミッション用）
+    missionCoinsEarned += scaled; // 今日かせいだコイン（ミッション用）
+  }
+
+  /// 覚醒できる条件（鬼段位に到達し、鬼CPUに3勝以上）。
+  bool get canAwaken =>
+      cpuRating >= kCpuRanks.last.minRating && cpuOniWins >= 3;
+
+  /// 覚醒する: 段位レーティングを見習いスタート相当にリセットし、
+  /// 引き換えに永続コイン倍率を+5%積み上げる。何度でも繰り返せる。
+  Future<bool> awaken() async {
+    if (!canAwaken) return false;
+    awakenings += 1;
+    cpuRating = 1000;
+    await _persist();
+    notifyListeners();
+    return true;
   }
 
   /// BGMをコインで解放。成功したら true。
@@ -626,6 +654,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('hadFastReflex', hadFastReflex);
     await p.setBool('reviewPrompted', reviewPrompted);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
+    await p.setInt('awakenings', awakenings);
     await p.setString('missionDate', missionDate);
     await p.setInt('missionPlays', missionPlays);
     await p.setInt('missionCoinsEarned', missionCoinsEarned);
