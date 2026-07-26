@@ -55,12 +55,12 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'かっこいい表現よりも、思わず笑っちゃうくらい率直なタグのほうが残りやすい。'
         'そしてタグは1つより2つ、3つ。どれか1つからでも思い出せるので、'
         '再現率が上がると言われています。\n\n'
-        '🏷️ ペタネームのおぼえタイムで顔の特徴をつかむのが、まさにこの練習！',
+        '🏷️ ペアさがしのおぼえタイムで顔の特徴をつかむのが、まさにこの練習！',
     bodyEn: 'Turn your first impression into a one-word tag: '
         '"white teeth", "thick eyebrows", "high voice" — whatever you honestly notice.\n\n'
         'Blunt, funny tags beat polite ones. And two or three tags beat one: '
         'any single tag can lead you back to the name.\n\n'
-        '🏷️ Spotting features during the PetaName memorize phase is exactly this practice!',
+        '🏷️ Spotting features during the Pair Hunt memorize phase is exactly this practice!',
     gradient: [Color(0xFFFFE3EE), Color(0xFFFFF6D8)],
   ),
   MemoryTipPage(
@@ -73,13 +73,13 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'コツは連想2〜3段、長くても5段以内。長すぎると連想自体を忘れちゃう。\n\n'
         '作るときは名前側から逆算すると簡単です。'
         '「佐藤→砂糖→甘い→虫歯→歯が白い」と逆向きに考えてから、正方向に使う。'
-        'ペタネームのペア当てでも、顔の特徴→名前の連想を作っておくと思い出しやすいよ。',
+        'ペアさがしでも、顔の特徴→名前の連想を作っておくと思い出しやすいよ。',
     bodyEn: 'Chain the tag to the name with associations.\n\n'
         'Example: white teeth → zero cavities → avoids sugar → Sato '
         '(sounds like "sato" = sugar in Japanese)!\n\n'
         'Keep chains 2–3 links, 5 at most — longer chains get forgotten themselves. '
         'Building backwards from the name is easier: name → ... → tag, '
-        'then replay it forwards. Matching faces to names in PetaName works the same way.',
+        'then replay it forwards. Matching faces to names in Pair Hunt works the same way.',
     gradient: [Color(0xFFD8F0FF), Color(0xFFE8FFF7)],
   ),
   MemoryTipPage(
@@ -128,14 +128,14 @@ const List<MemoryTipPage> kMemoryTipPages = [
         '会話の中で「◯◯さんはどう思います？」と名前を呼ぶ。'
         '相手の話を聞きながら、心の中で名前をとなえる。'
         'それだけで自然な反復になって、記憶が定着しやすくなると言われています。\n\n'
-        '🏷️ 実は、ペタネームの遊びかたそのものが'
+        '🏷️ 実は、このアプリの遊びかたそのものが'
         '「タグを付ける→名前を覚える→ペアで思い出す」という記憶術の流れ。'
         '一人特訓の「記憶術トレーニング」で、ガイド付きで練習してみよう！\n\n'
         '※覚えやすさには個人差があります。自分に合うやり方を見つけてね。',
     bodyEn: 'Once you learn a name, use it. '
         'Call people by name in conversation, and silently repeat it while they talk — '
         'natural repetition that is said to help names stick.\n\n'
-        '🏷️ PetaName itself follows the mnemonic loop: '
+        '🏷️ This app itself follows the mnemonic loop: '
         'tag the look → memorize the name → recall the pair. '
         'Try the guided Mnemonic Training in solo mode!\n\n'
         '※ Everyone memorizes differently — find what works for you.',
@@ -149,7 +149,7 @@ const List<MemoryTipPage> kMemoryTipPages = [
         '“テスト効果”です。覚えたい名前は、読み返すのではなく、あえて思い出してみるのがコツ。\n\n'
         'さらに、思い出す間隔を「直後→数分後→あとでもう一度」と少しずつ延ばすと、より長く覚えていられると'
         '報告されています（時間をあけた復習＝分散学習）。\n\n'
-        '🧠 ペタネームの「思い出しトレーニング」は、出会って→時間をおいて→思い出す、というこの流れそのもの。\n\n'
+        '🧠 「ビジネス特訓」は、出会って→時間をおいて→思い出す、というこの流れそのもの。\n\n'
         '🔬 出典: Roediger & Karpicke (2006), Psychological Science ／ '
         'Morris, Fritz ほか (2005), Applied Cognitive Psychology ／ '
         'Cepeda ほか (2006), Psychological Bulletin',
@@ -157,7 +157,7 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'For a name you want to keep, try to retrieve it instead of just reviewing it.\n\n'
         'Spacing your recalls at growing gaps (right away → minutes later → again later) is reported to '
         'help names last even longer (spaced practice).\n\n'
-        '🧠 PetaName’s Recall Training is exactly this loop: meet → let time pass → recall.\n\n'
+        '🧠 Biz Training is exactly this loop: meet → let time pass → recall.\n\n'
         '🔬 Sources: Roediger & Karpicke (2006), Psychological Science; '
         'Morris, Fritz et al. (2005), Applied Cognitive Psychology; '
         'Cepeda et al. (2006), Psychological Bulletin',

@@ -119,8 +119,8 @@ class MetaStrings {
   String get shareInvite =>
       ja ? '招待リンクを送る' : 'Send invite link';
   String shareInviteText(String code, String link) => ja
-      ? 'ペタネームで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
-      : "Let's battle in PetaName! 🎮\nRoom code: $code\nTap to join 👇\n$link";
+      ? 'なまえコールで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
+      : "Let's battle in Name Call! 🎮\nRoom code: $code\nTap to join 👇\n$link";
 
   // 離脱
   String get opponentLeftWin => ja
@@ -297,13 +297,13 @@ class MetaStrings {
   String get shareOnX => ja ? 'Xで自慢する' : 'Brag on X';
   // 称号入りでシェア（バズりやすい煽り文＋絵文字）
   String shareWin(int players, int score) => ja
-      ? '【$titleForShare】ペタネームのCPU対戦で勝利！🏆 $score点で無双した😎\nキミは顔と名前、覚えられる？👇'
-      : '[$titleForShare] Beat the CPU in PetaName! 🏆 Crushed it with $score pts 😎\nCan you match the faces to the names? 👇';
+      ? '【$titleForShare】なまえコールのCPU対戦で勝利！🏆 $score点で無双した😎\nキミは顔と名前、覚えられる？👇'
+      : '[$titleForShare] Beat the CPU in Name Call! 🏆 Crushed it with $score pts 😎\nCan you match the faces to the names? 👇';
   String sharePlayed(int players, int topScore) => ja
-      ? '【$titleForShare】ペタネームで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
-      : "[$titleForShare] Training my name-memory in PetaName! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
+      ? '【$titleForShare】なまえコールで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
+      : "[$titleForShare] Training my name-memory in Name Call! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
   String get shareHashtag =>
-      ja ? '#ペタネーム #顔と名前の記憶トレ' : '#PetaName #NameMemoryTraining';
+      ja ? '#名前を覚えよう #顔と名前の記憶トレ' : '#NameCall #NameMemoryTraining';
   // シェア文に埋め込む現在の称号（シェア直前に設定）。constクラスなのでstatic。
   static String titleForShare = '';
 
@@ -497,7 +497,7 @@ class MetaStrings {
       ? '※本アプリは医療機器・治療プログラムではなく、認知症等の予防・治療効果を保証するものではありません。効果の感じ方には個人差があります。健康に関するご不安がある場合は医療専門家にご相談ください。'
       : '※ This app is not a medical device or treatment program and does not guarantee any preventive or therapeutic effect for dementia or other conditions. Individual results vary. Please consult a healthcare professional with any health concerns.';
 
-  // 🏷️ ペタネーム: 顔と名前の神経衰弱
+  // 🏷️ 顔と名前の神経衰弱（ペアさがし）
   String get cpuMatchTitle => ja ? '🤖 CPUと神経衰弱' : '🤖 Match vs CPU';
   String get memorizePrompt =>
       ja ? 'おぼえタイム！顔と名前をおぼえよう' : 'Memorize the faces & names!';
@@ -566,8 +566,8 @@ class MetaStrings {
       ? 'この合言葉を友だちに送ってね（入力してもらうと対戦開始）'
       : 'Send this code to your friend to start the match';
   String shareCodeText(String code) => ja
-      ? 'ペタネームで対戦しよう！🏷️\nアプリのオンライン対戦で合言葉「$code」を入力してね！'
-      : 'Race me in PetaName! 🏷️\nEnter room code "$code" in Online Match!';
+      ? 'なまえコールで対戦しよう！🏷️\nアプリのオンライン対戦で合言葉「$code」を入力してね！'
+      : 'Race me in Name Call! 🏷️\nEnter room code "$code" in Online Match!';
   String get roomNotFound => ja
       ? 'その合言葉のへやが見つかりませんでした'
       : 'No room found with that code';
