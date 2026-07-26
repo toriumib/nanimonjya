@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nanimonjya/models/shop_items.dart';
 import 'package:nanimonjya/services/player_profile.dart';
 
 void main() {
@@ -61,6 +62,81 @@ void main() {
       final ok = await p.awaken();
       expect(ok, isFalse);
       expect(p.awakenings, 0);
+    });
+  });
+
+  group('ショップ拡張アイテム', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final p = PlayerProfile.instance;
+      await p.load();
+      p.awakenings = 0;
+      p.coins = 0;
+      p.unlockedVoices = {'none'};
+      p.selectedVoice = 'none';
+      p.unlockedCharms = {'none'};
+      p.selectedCharm = 'none';
+      p.unlockedSkins = {'plain'};
+      p.selectedSkin = 'plain';
+    });
+
+    test('コインが足りないと買えない', () async {
+      final p = PlayerProfile.instance;
+      p.coins = 10;
+      final ok = await p.unlockVoice('cheer', 180);
+      expect(ok, isFalse);
+      expect(p.unlockedVoices.contains('cheer'), isFalse);
+      expect(p.coins, 10); // 減っていない
+    });
+
+    test('買うとコインが引かれ、装備できる', () async {
+      final p = PlayerProfile.instance;
+      p.coins = 500;
+      final ok = await p.unlockVoice('cheer', 180);
+      expect(ok, isTrue);
+      expect(p.coins, 320);
+      await p.selectVoice('cheer');
+      expect(p.selectedVoice, 'cheer');
+    });
+
+    test('持っていないものは装備できない', () async {
+      final p = PlayerProfile.instance;
+      await p.selectCharm('shield');
+      expect(p.selectedCharm, 'none');
+    });
+
+    test('招福こばんのお守りでコイン倍率が上がる', () async {
+      final p = PlayerProfile.instance;
+      expect(p.coinMultiplier, 1.0);
+      p.coins = 1000;
+      await p.unlockCharm('koban', 380);
+      await p.selectCharm('koban');
+      expect(p.coinMultiplier, closeTo(1.20, 0.001));
+    });
+
+    test('覚醒とお守りの倍率は足し合わされる', () async {
+      final p = PlayerProfile.instance;
+      p.awakenings = 2; // +10%
+      p.coins = 1000;
+      await p.unlockCharm('koban', 380);
+      await p.selectCharm('koban'); // +20%
+      expect(p.coinMultiplier, closeTo(1.30, 0.001));
+    });
+
+    test('お守りの効果が正しく引ける', () {
+      expect(luckyCharmById('koban').effect, CharmEffect.coinBoost);
+      expect(luckyCharmById('shield').effect, CharmEffect.oneMistakeShield);
+      expect(luckyCharmById('compass').effect, CharmEffect.fewerChoices);
+      // 未知のIDは「なし」に落ちる
+      expect(luckyCharmById('unknown').effect, CharmEffect.none);
+    });
+
+    test('ほめボイスと名刺スキンのカタログが引ける', () {
+      expect(praiseVoiceById('butler').linesJa, isNotEmpty);
+      expect(praiseVoiceById('none').linesJa, isEmpty);
+      expect(cardSkinById('gold').cost, greaterThan(0));
+      expect(cardSkinById('plain').cost, 0);
+      expect(cardSkinById('unknown').id, 'plain'); // 未知IDは既定へ
     });
   });
 }

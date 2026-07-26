@@ -4,9 +4,15 @@ import '../l10n/meta_strings.dart';
 import '../services/app_analytics.dart';
 
 /// 「名前の覚え方」記憶術の読み物画面。
-/// チュートリアルと同じカード式PageViewで、タグ付け法・映像化・場所法などを紹介する。
+/// チュートリアルと同じカード式PageViewで、タグ付け法・映像化・場所法・
+/// 研究にもとづくコツ（出典つき）・記憶と意識の読み物を紹介する。
+///
+/// [embedded] が true のときは下部タブの1つとして表示される想定で、
+/// 戻るボタンを出さず、最後のページでも画面を閉じない。
 class MemoryTipsScreen extends StatefulWidget {
-  const MemoryTipsScreen({super.key});
+  final bool embedded;
+
+  const MemoryTipsScreen({super.key, this.embedded = false});
 
   @override
   State<MemoryTipsScreen> createState() => _MemoryTipsScreenState();
@@ -36,7 +42,11 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     final isLast = _page == pages.length - 1;
 
     return Scaffold(
-      appBar: AppBar(title: Text(m.memoryTipsTitle)),
+      appBar: AppBar(
+        title: Text(m.memoryTipsTitle),
+        // タブとして表示するときは戻る矢印を出さない
+        automaticallyImplyLeading: !widget.embedded,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -75,7 +85,14 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (isLast) {
-                        Navigator.pop(context);
+                        // タブ表示のときは閉じずに先頭へ戻す（読み返しやすくする）
+                        if (widget.embedded) {
+                          _pageController.animateToPage(0,
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeOut);
+                        } else {
+                          Navigator.pop(context);
+                        }
                       } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
@@ -92,7 +109,11 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                       ),
                     ),
                     child: Text(
-                      isLast ? m.memoryTipsDone : (ja ? 'つぎへ →' : 'Next →'),
+                      isLast
+                          ? (widget.embedded
+                              ? (ja ? '最初から読む ↺' : 'Read again ↺')
+                              : m.memoryTipsDone)
+                          : (ja ? 'つぎへ →' : 'Next →'),
                     ),
                   ),
                 ),

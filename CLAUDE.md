@@ -42,10 +42,22 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - **実物名刺＋顔写真アップロード**: `custom_roster_service`のCustomEntryに company/title/phone/email/cardImagePath 追加（JSONは旧v1後方互換）。custom_roster_screenの登録フォームで顔写真＋各項目＋名刺画像を入力。「🧠 名刺で思い出しクイズ」で`RecallTrainingScreen(people: 名簿, fields: 存在する項目)`を起動。ビジネス実用向け
 - 記録は `recordSoloTraining`、コインは正解数×8（＋全問正解ボーナス20）
 
+### 🛍 ショップ拡張アイテム（models/shop_items.dart、v2.3.0+106）
+- **ほめボイス**（`kPraiseVoices`）: 正解・全問正解のときにTTSで褒めてくれる。元気な応援／やさしい先生／執事／熱血コーチ／禅僧。`Speech.praise(ja:, finale:)`で再生
+- **お守り**（`kLuckyCharms`、1つだけ装備）: 🍀思い出しのお守り（ヒント強調）／🪙招福こばん（コイン+20%）／🧭絞りこみコンパス（選択肢4→3）／🛡️まちがえ守り（1ゲーム1回だけ誤答を正解あつかい）。効果は`CharmEffect` enumで分岐
+- **名刺スキン**（`kCardSkins`）: ビジネス特訓の名刺の配色が変わる（ゴールド／ミッドナイト／サクラ／ミント）
+- 保存は PlayerProfile の `unlockedVoices/Charms/Skins` と `selectedVoice/Charm/Skin`。購入は`_buyInto()`共通処理、`coinMultiplier`は覚醒+お守りの加算
+- UIは character_shop_screen.dart の `_itemRow()`（買う／装備／試し聞きを1行で扱う共通行）
+
+### 📚 よみものタブ（home_shell.dart、v2.3.0+106）
+- 記憶術・研究の読み物を**下部タブに昇格**（なまえコール／ペアさがし／ビジネス特訓／**よみもの**／マイページの5タブ）
+- `MemoryTipsScreen(embedded: true)` で表示。embedded時は戻る矢印を出さず、最終ページのボタンは「最初から読む↺」になる
+
 ### 記憶術Tips（l10n/memory_tips.dart）
 - `kMemoryShortTips`（一般Tips）＋`kNameScienceTips`（**研究ベース・出典つき**。MemoryShortTip.source）。読み物`kMemoryTipPages`にも「研究が言う名前のコツ①②」を出典つきで追加
 - 出典は名前記憶の代表研究（Roediger & Karpicke 2006, Morris/Fritz 2005, MacLeod 2010, Craik & Tulving 1975, McWeeny 1987ベイカー錯誤, Rogers 1977自己関連づけ, Morris/Jones/Hampson 1978, DeGutis 2024）。本文は断定回避のオリジナル要約
-- 表示先: ワンポイントticker（memory_tip_ticker）＋思い出しトレーニングの待ち時間/おさらい（`_tipCard`）
+- **睡眠・意識の読み物（v2.3.0+106で追加）**: 「研究が言う名前のコツ③：覚えたら、眠る」（Staresina 2024 TiCS の徐波-スピンドル-リプル連携、Baranwal 2023 の睡眠衛生）／「おまけ①：記憶は残るのに、意識は消える」（Tononi 2024 Neuron、Mashour 2024 Neuron）／「おまけ②：2つの意識理論が正面から戦った」（**Cogitate Consortium 2025 Nature のIIT vs GNWT敵対的検証**）。出典は著者・年・誌名・巻号・doiまで明記
+- 表示先: **よみものタブ**（メイン）＋ワンポイントticker（memory_tip_ticker）＋ビジネス特訓の待ち時間/おさらい（`_tipCard`）
 
 ### 🛍 キャラクターショップ（character_shop_screen.dart / models/character_catalog.dart）
 - 追加キャラ20種（`kExtraCharacters`、id: c13〜c32）をコインで購入できるショップ。画像は `assets/images/char13.webp`〜`char32.webp`（ユーザー提供の実写、価格帯120〜340コイン）

@@ -1,5 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+
+import '../models/shop_items.dart';
+import 'player_profile.dart';
 
 /// 名刺の自己紹介などをテキスト読み上げ（TTS）で発声する。
 /// 日本語は ja-JP、英語は en-US。端末のTTSが無い/失敗しても無音で落ちるだけにする。
@@ -52,6 +57,22 @@ class Speech {
     }
     return speak(text, ja: ja);
   }
+
+  /// 🎉 ほめボイス。選択中のボイスから1つ選んで褒めてくれる。
+  /// [finale] が true なら締めの一言（勝利・全問正解用）。
+  Future<void> praise({required bool ja, bool finale = false}) async {
+    final voice = praiseVoiceById(PlayerProfile.instance.selectedVoice);
+    if (voice.id == 'none') return;
+    final text = finale
+        ? voice.finale(ja)
+        : (voice.lines(ja).isEmpty
+            ? ''
+            : voice.lines(ja)[_rng.nextInt(voice.lines(ja).length)]);
+    if (text.isEmpty) return;
+    await speak(text, ja: ja);
+  }
+
+  final Random _rng = Random();
 
   Future<void> speak(String text, {required bool ja}) async {
     if (!enabled) return;

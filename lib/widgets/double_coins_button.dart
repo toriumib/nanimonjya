@@ -22,6 +22,7 @@ class DoubleCoinsButton extends StatefulWidget {
 class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
   final RewardAdHelper _ad = RewardAdHelper();
   bool _doubled = false;
+  bool _busy = false; // 連打で広告を二重に予約し、コインが多重付与されるのを防ぐ
 
   @override
   void initState() {
@@ -38,18 +39,24 @@ class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
   }
 
   Future<void> _watch() async {
+    if (_busy || _doubled) return;
+    setState(() => _busy = true);
     final m = MetaStrings.of(context);
     final played = await _ad.showOrQueue(onReward: () async {
+      if (_doubled) return; // 念のため二重付与を防ぐ
+      _doubled = true;
       await PlayerProfile.instance.grantBonusCoins(widget.coinsEarned);
       Sfx.instance.reward();
       if (mounted) {
-        setState(() => _doubled = true);
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(m.earnedCoins(widget.coinsEarned))),
         );
       }
     });
-    if (!played && mounted) {
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (!played) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(m.storeAdLoading)));
     }
@@ -94,9 +101,11 @@ class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: _watch,
+                onPressed: _busy ? null : _watch,
                 icon: const Icon(Icons.play_circle_fill, size: 22),
-                label: Text(m.doubleCoinsButton(widget.coinsEarned)),
+                label: Text(_busy
+                    ? m.storeAdLoading
+                    : m.doubleCoinsButton(widget.coinsEarned)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,

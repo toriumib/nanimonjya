@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
 import '../models/cpu_rank.dart';
+import '../models/shop_items.dart';
 import 'app_analytics.dart';
 import 'daily_reminder.dart';
 
@@ -58,6 +59,14 @@ class PlayerProfile extends ChangeNotifier {
   // 🌌 覚醒（プレステージ）: 鬼段位をきわめたら段位をリセットして
   // 永続コイン倍率を積み上げられる、終わりのない成長ループ
   int awakenings = 0;
+
+  // 🛍 ショップ拡張アイテム（models/shop_items.dart）
+  Set<String> unlockedVoices = {'none'}; // ほめボイス
+  String selectedVoice = 'none';
+  Set<String> unlockedCharms = {'none'}; // お守り（1つだけ装備）
+  String selectedCharm = 'none';
+  Set<String> unlockedSkins = {'plain'}; // 名刺スキン
+  String selectedSkin = 'plain';
 
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
@@ -124,6 +133,18 @@ class PlayerProfile extends ChangeNotifier {
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     awakenings = p.getInt('awakenings') ?? 0;
+    unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
+    unlockedVoices.add('none');
+    selectedVoice = p.getString('selectedVoice') ?? 'none';
+    if (!unlockedVoices.contains(selectedVoice)) selectedVoice = 'none';
+    unlockedCharms = (p.getStringList('unlockedCharms') ?? ['none']).toSet();
+    unlockedCharms.add('none');
+    selectedCharm = p.getString('selectedCharm') ?? 'none';
+    if (!unlockedCharms.contains(selectedCharm)) selectedCharm = 'none';
+    unlockedSkins = (p.getStringList('unlockedSkins') ?? ['plain']).toSet();
+    unlockedSkins.add('plain');
+    selectedSkin = p.getString('selectedSkin') ?? 'plain';
+    if (!unlockedSkins.contains(selectedSkin)) selectedSkin = 'plain';
     missionDate = p.getString('missionDate') ?? '';
     missionPlays = p.getInt('missionPlays') ?? 0;
     missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
@@ -439,8 +460,61 @@ class PlayerProfile extends ChangeNotifier {
     return true;
   }
 
-  /// 覚醒回数に応じた永続コイン倍率（覚醒1回につき+5%、上限なし）。
-  double get coinMultiplier => 1.0 + awakenings * 0.05;
+  /// 獲得コインにかかる倍率。
+  /// 覚醒（1回につき+5%、上限なし）＋「招福こばん」のお守り（+20%）。
+  double get coinMultiplier {
+    var m = 1.0 + awakenings * 0.05;
+    if (luckyCharmById(selectedCharm).effect == CharmEffect.coinBoost) {
+      m += 0.20;
+    }
+    return m;
+  }
+
+  // ---- 🛍 ショップ拡張アイテム ----
+
+  /// ほめボイスを購入。
+  Future<bool> unlockVoice(String id, int cost) =>
+      _buyInto(unlockedVoices, id, cost);
+
+  Future<void> selectVoice(String id) async {
+    if (!unlockedVoices.contains(id)) return;
+    selectedVoice = id;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// お守りを購入。
+  Future<bool> unlockCharm(String id, int cost) =>
+      _buyInto(unlockedCharms, id, cost);
+
+  Future<void> selectCharm(String id) async {
+    if (!unlockedCharms.contains(id)) return;
+    selectedCharm = id;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 名刺スキンを購入。
+  Future<bool> unlockSkin(String id, int cost) =>
+      _buyInto(unlockedSkins, id, cost);
+
+  Future<void> selectSkin(String id) async {
+    if (!unlockedSkins.contains(id)) return;
+    selectedSkin = id;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// コインを支払って集合に加える共通処理。
+  Future<bool> _buyInto(Set<String> owned, String id, int cost) async {
+    if (owned.contains(id)) return true;
+    if (coins < cost) return false;
+    coins -= cost;
+    owned.add(id);
+    await _persist();
+    notifyListeners();
+    return true;
+  }
 
   int _scaled(int amount) => (amount * coinMultiplier).round();
 
@@ -655,6 +729,12 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('reviewPrompted', reviewPrompted);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setInt('awakenings', awakenings);
+    await p.setStringList('unlockedVoices', unlockedVoices.toList());
+    await p.setString('selectedVoice', selectedVoice);
+    await p.setStringList('unlockedCharms', unlockedCharms.toList());
+    await p.setString('selectedCharm', selectedCharm);
+    await p.setStringList('unlockedSkins', unlockedSkins.toList());
+    await p.setString('selectedSkin', selectedSkin);
     await p.setString('missionDate', missionDate);
     await p.setInt('missionPlays', missionPlays);
     await p.setInt('missionCoinsEarned', missionCoinsEarned);

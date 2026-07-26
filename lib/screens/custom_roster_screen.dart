@@ -58,12 +58,13 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   }
 
   /// 名前（必須）＋会社/肩書/電話/メール（任意）＋名刺画像（任意）を入力するフォーム。
-  Future<_CardDetails?> _askDetails(MetaStrings m) {
+  Future<_CardDetails?> _askDetails(MetaStrings m) async {
     final nameC = TextEditingController();
     final companyC = TextEditingController();
     final titleC = TextEditingController();
     final phoneC = TextEditingController();
     final emailC = TextEditingController();
+    final controllers = [nameC, companyC, titleC, phoneC, emailC];
     String? cardPath;
 
     Widget field(TextEditingController c, String label,
@@ -83,7 +84,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
       );
     }
 
-    return showDialog<_CardDetails>(
+    final result = await showDialog<_CardDetails>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setSt) => AlertDialog(
@@ -151,6 +152,10 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
         ),
       ),
     );
+    for (final c in controllers) {
+      c.dispose(); // ダイアログを閉じたら破棄（開くたびに増えるのを防ぐ）
+    }
+    return result;
   }
 
   void _showAddSheet() {

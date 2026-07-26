@@ -191,6 +191,163 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'DeGutis et al. (2024), Quarterly Journal of Experimental Psychology',
     gradient: [Color(0xFFFFF3D6), Color(0xFFE8FFF0)],
   ),
+  MemoryTipPage(
+    emoji: '😴',
+    titleJa: '研究が言う名前のコツ③：覚えたら、眠る',
+    titleEn: 'What research says ③: learn, then sleep',
+    bodyJa: '「覚えた」で終わりではありません。記憶が本当に固まるのは、そのあと眠っているあいだ——'
+        'つまり、あなたが何もしていない時間だと考えられています。\n\n'
+        '眠った脳は、静かに休んでいるわけではありません。'
+        '「ゆっくりした波（徐波）」「紡錘波（スピンドル）」「リプル」と呼ばれる3種類の活動が、'
+        'まるでオーケストラのように順序とタイミングを合わせて現れます。'
+        'この連携が、その日の経験の中から“残すべきもの”を選び出し、'
+        '海馬から大脳皮質へ書き写していく——という仕組みが提案されています。\n\n'
+        'つまり、あなたが今日出会った人の顔と名前は、'
+        '今夜の睡眠中に「保存するかどうか」の選抜を受けているわけです。\n\n'
+        '🛏️ 実践はシンプルです。\n'
+        '・名前を覚えたら、その日はしっかり眠る\n'
+        '・7〜9時間、毎日だいたい同じ時間に寝る\n'
+        '・寝る直前のカフェイン・お酒・強い光は避ける（睡眠が分断され、定着に不利になりうる）\n\n'
+        '💡 大事な商談の前夜は、詰め込むより早く寝たほうが効くかもしれません。\n\n'
+        '🔬 出典\n'
+        '・Staresina, B. P. (2024). Coupled sleep rhythms for memory consolidation. '
+        'Trends in Cognitive Sciences, 28(4), 339–351. doi:10.1016/j.tics.2024.02.002\n'
+        '・Baranwal, N., Yu, P. K., & Siegel, N. S. (2023). Sleep physiology, pathophysiology, '
+        'and sleep hygiene. Progress in Cardiovascular Diseases, 77, 59–69. '
+        'doi:10.1016/j.pcad.2023.02.005',
+    bodyEn: 'Learning is not the finish line. Memories are thought to be consolidated afterwards, '
+        'while you sleep — during the hours you are doing nothing at all.\n\n'
+        'A sleeping brain is far from idle. Three kinds of activity — slow oscillations, spindles and '
+        'ripples — appear in a finely ordered sequence, like an orchestra. This coupling is proposed to '
+        'select which of the day’s experiences are worth keeping, and to copy them from hippocampus to cortex.\n\n'
+        'So the face and name you met today are, tonight, going through selection for storage.\n\n'
+        '🛏️ The practice is simple:\n'
+        '・Sleep well on the day you learn names\n'
+        '・7–9 hours, on a roughly consistent schedule\n'
+        '・Avoid late caffeine, alcohol and bright light (they fragment sleep, which can hinder consolidation)\n\n'
+        '💡 The night before an important meeting, an early bedtime may beat cramming.\n\n'
+        '🔬 Sources\n'
+        '・Staresina, B. P. (2024). Coupled sleep rhythms for memory consolidation. '
+        'Trends in Cognitive Sciences, 28(4), 339–351. doi:10.1016/j.tics.2024.02.002\n'
+        '・Baranwal, N., Yu, P. K., & Siegel, N. S. (2023). Sleep physiology, pathophysiology, '
+        'and sleep hygiene. Progress in Cardiovascular Diseases, 77, 59–69. '
+        'doi:10.1016/j.pcad.2023.02.005',
+    gradient: [Color(0xFFE3E8FF), Color(0xFFF3E8FF)],
+  ),
+  MemoryTipPage(
+    emoji: '🌌',
+    titleJa: 'おまけ①：記憶は残るのに、意識は消える',
+    titleEn: 'Bonus ①: memory stays, consciousness fades',
+    bodyJa: 'ここからは名前の覚え方を少し離れた、おまけの読み物です。\n\n'
+        '不思議な事実があります。深い眠りのあいだ、私たちの意識はほとんど消えています。'
+        '呼びかけても気づかず、時間の流れも感じない。'
+        'それなのに、まさにその時間に、記憶はもっとも強く固まっていく。\n\n'
+        'つまり——**記憶を作る仕組みと、意識を生む仕組みは別**らしいのです。\n\n'
+        '🌙 では、意識が消えるとき、脳では何が起きているのか。'
+        '眠りに落ちると、脳の神経細胞は「一斉に活動し、一斉に静まる」という単調なリズムに'
+        '引き込まれていきます（バイステビリティ）。'
+        'すると、脳のある場所で起きたことが他の場所に伝わっても、'
+        'それ以上の複雑な反応が続かず、すぐ消えてしまう。'
+        '情報が脳の中で豊かに広がれなくなること——それが意識の消失と関係している、'
+        'という見方が提案されています。\n\n'
+        '面白いのは、同じ「眠り」の中でも夢を見ているときには意識が戻ることです。'
+        '外界から切り離され、体は動かないまま、脳は内側から鮮やかな世界を立ち上げる。'
+        '夢は「意識の材料は脳の中だけで足りる」ことを教えてくれます。\n\n'
+        '💤 麻酔の研究も同じ問いに迫っています。'
+        '麻酔薬は「眠らせる」のではなく、脳の広い範囲のつながりを変えて意識だけを取り去る。'
+        '意識をスイッチのように消せる道具として、いま意識研究の主要な手段になっています。\n\n'
+        '🔬 出典\n'
+        '・Tononi, G., Boly, M., & Cirelli, C. (2024). Consciousness and sleep. '
+        'Neuron, 112(10), 1568–1594. doi:10.1016/j.neuron.2024.04.011\n'
+        '・Mashour, G. A. (2024). Anesthesia and the neurobiology of consciousness. '
+        'Neuron, 112(10), 1553–1567. doi:10.1016/j.neuron.2024.03.002',
+    bodyEn: 'A bonus read, a little away from remembering names.\n\n'
+        'Here is a strange fact. During deep sleep, consciousness largely vanishes. '
+        'Call your name and you will not notice; time does not pass for you. '
+        'And yet it is exactly then that memories are consolidated most strongly.\n\n'
+        'In other words — **the machinery that builds memory and the machinery that produces '
+        'consciousness appear to be separable.**\n\n'
+        '🌙 So what happens in the brain as consciousness fades? '
+        'Falling asleep, neurons are drawn into a monotonous rhythm of firing and falling silent '
+        'together (bistability). An event in one region may still reach another, but no rich, '
+        'sustained response follows — it dies out. The loss of that complex spread of information '
+        'is proposed to be tied to the loss of consciousness.\n\n'
+        'What is fascinating is that within the same sleep, consciousness returns when we dream. '
+        'Cut off from the world, body still, the brain raises a vivid world from the inside. '
+        'Dreams show us that the ingredients of consciousness can be found entirely within the brain.\n\n'
+        '💤 Anesthesia research chases the same question. Anesthetics do not simply induce sleep; '
+        'they reshape large-scale brain connectivity and remove consciousness alone — which is why '
+        'they have become a central tool for studying it.\n\n'
+        '🔬 Sources\n'
+        '・Tononi, G., Boly, M., & Cirelli, C. (2024). Consciousness and sleep. '
+        'Neuron, 112(10), 1568–1594. doi:10.1016/j.neuron.2024.04.011\n'
+        '・Mashour, G. A. (2024). Anesthesia and the neurobiology of consciousness. '
+        'Neuron, 112(10), 1553–1567. doi:10.1016/j.neuron.2024.03.002',
+    gradient: [Color(0xFFE8E3FF), Color(0xFFD8F0FF)],
+  ),
+  MemoryTipPage(
+    emoji: '⚔️',
+    titleJa: 'おまけ②：2つの意識理論が、正面から戦った',
+    titleEn: 'Bonus ②: two theories of consciousness, put to a duel',
+    bodyJa: '「脳の活動が、なぜ“感じ”を生むのか」。'
+        'この問いは1990年代に**意識のハードプロブレム**と名づけられ、いまも未解決です。\n\n'
+        '有力な理論が2つあります。\n\n'
+        '🔵 **統合情報理論（IIT）**\n'
+        '意識の正体は「情報の統合度」だとする理論。'
+        'ばらばらの部品ではなく、全体として1つに結びついた情報の構造がある——'
+        'そこに意識が宿る、と考えます。主張の中心は脳の後方（後頭・側頭）にあります。\n\n'
+        '🟠 **グローバル・ニューロナル・ワークスペース理論（GNWT）**\n'
+        '情報が脳の一部から全体へ「放送」されたときに意識になる、とする理論。'
+        '前頭前野を含む広い範囲での“点火（ignition）”を重視します。\n\n'
+        '⚔️ 2025年、この2つが正面からぶつかりました。'
+        'それぞれの理論の提唱者たちが、中立の研究チームと一緒に'
+        '**「どちらが外れたら負けか」を事前に登録してから実験する**という'
+        '敵対的協働（adversarial collaboration）を実施したのです。'
+        '256人の参加者を対象に、fMRI・MEG・頭蓋内脳波という3つの方法で同時に測定。'
+        '結果はNature誌に報告されました。\n\n'
+        '結末は、どちらの完全勝利でもありませんでした。'
+        '両理論の予測は部分的に当たった一方で、'
+        'IITが中心に置く「後方皮質での持続的な同期」は見つからず、'
+        'GNWTが予測した「刺激が消えた瞬間の点火」も広くは観察されなかった。'
+        'つまり**両方の核心部分に、それぞれ課題が示された**のです。\n\n'
+        '🌌 意識は、まだ誰にも説明できていません。'
+        'いま顔を見て名前を思い出したその一瞬にも、科学が説明しきれていない何かが働いています。'
+        'そう思うと、「思い出せた！」の瞬間が少し特別に感じられるかもしれません。\n\n'
+        '🔬 出典\n'
+        '・Cogitate Consortium, Ferrante, O., et al. (2025). Adversarial testing of global neuronal '
+        'workspace and integrated information theories of consciousness. Nature, 642(8066), 133–142. '
+        'doi:10.1038/s41586-025-08888-1\n'
+        '（著者にはIIT提唱者のG. Tononi、GNWT側のS. Dehaene、C. Koch、'
+        'そして「ハードプロブレム」の名づけ親である哲学者D. J. Chalmersが名を連ねています）\n\n'
+        '※一般向けの紹介であり、解釈は研究者間で議論が続いています。',
+    bodyEn: 'Why does brain activity feel like anything at all? '
+        'Named the **hard problem of consciousness** in the 1990s, it is still unsolved.\n\n'
+        'Two leading theories:\n\n'
+        '🔵 **Integrated Information Theory (IIT)**\n'
+        'Consciousness is the integration of information — not separate parts, but a structure bound '
+        'into one whole. Its claims centre on posterior (occipital, temporal) cortex.\n\n'
+        '🟠 **Global Neuronal Workspace Theory (GNWT)**\n'
+        'Information becomes conscious when it is “broadcast” brain-wide, with an ignition across '
+        'wide areas including prefrontal cortex.\n\n'
+        '⚔️ In 2025 the two met head-on. Proponents of each theory worked with a theory-neutral '
+        'consortium in an **adversarial collaboration**: they preregistered which outcomes would '
+        'count against them, then ran the experiment. 256 participants were measured with fMRI, MEG '
+        'and intracranial EEG. The results appeared in Nature.\n\n'
+        'Neither won outright. Some predictions of both held up, but IIT’s central claim of sustained '
+        'synchronization within posterior cortex was not found, and GNWT’s predicted ignition at '
+        'stimulus offset was largely absent. **Core tenets of both were challenged.**\n\n'
+        '🌌 Nobody can explain consciousness yet. In the instant you just recalled a name, something '
+        'science cannot fully account for was at work. That may make the “I remembered!” moment feel '
+        'a little special.\n\n'
+        '🔬 Sources\n'
+        '・Cogitate Consortium, Ferrante, O., et al. (2025). Adversarial testing of global neuronal '
+        'workspace and integrated information theories of consciousness. Nature, 642(8066), 133–142. '
+        'doi:10.1038/s41586-025-08888-1\n'
+        '(Authors include IIT’s G. Tononi, GNWT-side S. Dehaene and C. Koch, and philosopher '
+        'D. J. Chalmers, who named the hard problem.)\n\n'
+        '※ A general-audience summary; interpretation remains debated among researchers.',
+    gradient: [Color(0xFFD8E8FF), Color(0xFFFFE8F0)],
+  ),
 ];
 
 /// 待合室・人数選択画面などに出す一言Tips（タップで読み物全文へ）。
@@ -287,5 +444,20 @@ const List<MemoryShortTip> kNameScienceTips = [
     '🔁 顔と名前の結びつきは、くり返し練習で身につく手続き記憶として保たれやすいとされる',
     '🔁 Face–name links can be built as procedural memory that repetition keeps well',
     source: 'Tak & Hong (2014), Geriatric Nursing',
+  ),
+  MemoryShortTip(
+    '😴 覚えたら眠るのがコツ。睡眠中の脳波の連携が、その日の記憶を選んで強めていると考えられている',
+    '😴 Sleep after learning — coupled sleep rhythms are thought to selectively strengthen the day’s memories',
+    source: 'Staresina (2024), Trends in Cognitive Sciences',
+  ),
+  MemoryShortTip(
+    '🛏️ 7〜9時間の睡眠と規則的な就寝リズムは、記憶の定着を支える土台とされる',
+    '🛏️ 7–9 hours of sleep on a regular schedule is described as the foundation for consolidation',
+    source: 'Baranwal, Yu & Siegel (2023), Progress in Cardiovascular Diseases',
+  ),
+  MemoryShortTip(
+    '☕ 寝る前のカフェイン・お酒・強い光は睡眠を分断し、記憶の定着に不利になりうる',
+    '☕ Late caffeine, alcohol and bright light fragment sleep, which can work against consolidation',
+    source: 'Baranwal, Yu & Siegel (2023), Progress in Cardiovascular Diseases',
   ),
 ];

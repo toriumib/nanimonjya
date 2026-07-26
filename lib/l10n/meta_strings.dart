@@ -817,4 +817,27 @@ class MetaStrings {
       : 'Your rating returns to Novice, but your coin multiplier increases '
       'permanently and your title records this awakening. This cannot be undone.';
   String get awakenDone => ja ? '覚醒した！🌌' : 'You have awakened! 🌌';
+
+  // 🛍 ショップ拡張（ほめボイス／お守り／名刺スキン）
+  String get shopVoicesTitle => ja ? '🎉 ほめボイス' : '🎉 Praise Voices';
+  String get shopVoicesDesc => ja
+      ? '正解や勝利のときに、声で褒めてくれます。今日のがんばりに、ひとこと。'
+      : 'A voice praises you when you get it right. A word for your effort today.';
+  String get shopCharmsTitle => ja ? '🍀 お守り' : '🍀 Lucky Charms';
+  String get shopCharmsDesc => ja
+      ? '1つだけ持てます。プレイが少しやさしくなったり、コインが増えたり。'
+      : 'Equip one. Makes play a little kinder, or your coins a little more.';
+  String get shopSkinsTitle => ja ? '💳 名刺のデザイン' : '💳 Card Designs';
+  String get shopSkinsDesc => ja
+      ? 'ビジネス特訓で差し出される名刺の見た目が変わります。'
+      : 'Changes how the business card looks in Biz Training.';
+  String get shopEquipped => ja ? '装備中' : 'Equipped';
+  String get shopEquip => ja ? '使う' : 'Equip';
+  String get shopTry => ja ? '試し聞き' : 'Preview';
+  String get shopBought => ja ? '手に入れた！🎉' : 'Unlocked! 🎉';
+  String get charmSaved =>
+      ja ? '🛡️ お守りが守ってくれた！' : '🛡️ Your charm saved you!';
+
+  // 📚 よみものタブ
+  String get tabRead => ja ? 'よみもの' : 'Read';
 }

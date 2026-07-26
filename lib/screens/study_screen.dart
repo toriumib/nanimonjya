@@ -55,6 +55,8 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   void _next() {
+    // 回答直後の遅延コールバックから呼ばれるため、離脱済みならなにもしない
+    if (!mounted) return;
     if (_index + 1 < _order.length) {
       setState(() {
         _index += 1;

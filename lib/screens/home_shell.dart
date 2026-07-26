@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
 import '../services/sfx.dart';
+import 'memory_tips_screen.dart';
 import 'player_selection_screen.dart';
 import 'profile_screen.dart';
 import 'top_screen.dart';
 import 'training_hub_screen.dart';
 
 /// アプリのルート: 下部タブでモードを切り替えるシェル。
-/// 1. なまえコール（メイン） 2. ペアさがし（神経衰弱） 3. とっくん 4. マイページ
+/// 1. なまえコール（メイン） 2. ペアさがし 3. ビジネス特訓 4. よみもの 5. マイページ
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -28,7 +29,8 @@ class _HomeShellState extends State<HomeShell> {
         children: const [
           TopScreen(), // なまえコール（メイン）
           PlayerSelectionScreen(), // ペアさがし（神経衰弱）
-          TrainingHubScreen(), // とっくん
+          TrainingHubScreen(), // ビジネス特訓
+          MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
           ProfileScreen(), // マイページ
         ],
       ),
@@ -50,6 +52,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: const Text('🏋️', style: TextStyle(fontSize: 22)),
             label: m.tabTraining,
+          ),
+          NavigationDestination(
+            icon: const Text('📚', style: TextStyle(fontSize: 22)),
+            label: m.tabRead,
           ),
           NavigationDestination(
             icon: const Text('🏆', style: TextStyle(fontSize: 22)),

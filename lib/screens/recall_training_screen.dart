@@ -9,6 +9,7 @@ import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../models/shop_items.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/review_prompt.dart';
@@ -80,6 +81,11 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   DateTime _questionShownAt = DateTime.now();
   int _totalReactionMs = 0;
   int _coinsEarned = 0;
+  bool _shieldUsed = false; // 🛡️まちがえ守りを今ゲームで使ったか
+
+  /// 装備中のお守り（ゲーム開始時に固定して、途中で変わらないようにする）
+  late final LuckyCharm _charm =
+      luckyCharmById(PlayerProfile.instance.selectedCharm);
 
   int get _peopleCount {
     switch (widget.level) {
@@ -155,6 +161,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   void _startRecall() {
     Sfx.instance.pop();
     _buildQuestions();
+    // 出題できる項目が1つも無い（例: 名前しか登録されていない名簿で名前を除外した）
+    // 場合に _questions[0] を触るとクラッシュするため、結果画面へ逃がす。
+    if (_questions.isEmpty) {
+      _finish();
+      return;
+    }
     setState(() {
       _phase = _Phase.recall;
       _qIndex = 0;
@@ -172,7 +184,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
         if (!identical(p, _q.person)) recallFieldValue(p, _q.field),
     }..removeWhere((v) => v.trim().isEmpty || v == answer);
     final pool = others.toList()..shuffle(_rng);
-    _choices = [answer, ...pool.take(3)]..shuffle(_rng);
+    // 🧭「絞りこみコンパス」のお守りを装備していると、まちがいの選択肢が1つ減る
+    final wrongCount =
+        _charm.effect == CharmEffect.fewerChoices ? 2 : 3;
+    _choices = [answer, ...pool.take(wrongCount)]..shuffle(_rng);
     _answered = false;
     _picked = null;
     _questionShownAt = DateTime.now();
@@ -181,10 +196,19 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   void _answer(String choice) {
     if (_answered) return;
     _totalReactionMs += DateTime.now().difference(_questionShownAt).inMilliseconds;
-    final correct = choice == _answerText;
+    var correct = choice == _answerText;
+    // 🛡️「まちがえ守り」は1ゲーム1回だけ、まちがいを正解あつかいにする
+    if (!correct &&
+        _charm.effect == CharmEffect.oneMistakeShield &&
+        !_shieldUsed) {
+      _shieldUsed = true;
+      correct = true;
+      _shieldJustUsed = true;
+    }
     if (correct) {
       _correct += 1;
       Sfx.instance.correct();
+      Speech.instance.praise(ja: _ja); // 🎉 ほめボイス
     } else {
       Sfx.instance.wrong();
     }
@@ -192,10 +216,17 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       _answered = true;
       _picked = choice;
     });
-    Future.delayed(const Duration(milliseconds: 950), _recallNext);
+    Future.delayed(const Duration(milliseconds: 950), () {
+      _shieldJustUsed = false;
+      _recallNext();
+    });
   }
 
+  bool _shieldJustUsed = false; // 直前の1問がお守りで救われたか（表示用）
+
   Future<void> _recallNext() async {
+    // 回答直後に「戻る」で離脱した場合、破棄済みStateへのsetStateになるのでガードする
+    if (!mounted) return;
     if (_qIndex + 1 < _questions.length) {
       setState(() {
         _qIndex += 1;
@@ -220,6 +251,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     _coinsEarned = coins;
     if (total > 0 && _correct == total) {
       Sfx.instance.victory();
+      // 🎉 締めのほめボイス（勝利SEと重ならないよう少し待つ）
+      Future.delayed(const Duration(milliseconds: 900),
+          () => Speech.instance.praise(ja: _ja, finale: true));
       // 全問正解の好タイミングでレビュー依頼（1回きり）
       if (total >= 4) maybeAskReview(minGames: 0);
     } else if (_correct >= (total / 2).ceil()) {
@@ -418,14 +452,20 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   // 差し出される名刺。少し傾けて手渡し感を出す。
   // アップロードした実物の名刺があればそれを表示、なければ項目からレイアウト。
   Widget _businessCard(Person p, MetaStrings m) {
+    // 💳 購入した名刺スキンの配色を反映
+    final skin = cardSkinById(PlayerProfile.instance.selectedSkin);
     return Transform.rotate(
       angle: -0.04,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(skin.bgTop), Color(skin.bgBottom)],
+          ),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
+          border: Border.all(color: Color(skin.accent).withValues(alpha: 0.45), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.16),
@@ -459,7 +499,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   // 項目から名刺レイアウトを組む（会社名・氏名・肩書・電話・メール）。
+  // 色は購入した名刺スキンに合わせる。
   Widget _cardFields(Person p, MetaStrings m) {
+    final skin = cardSkinById(PlayerProfile.instance.selectedSkin);
+    final accent = Color(skin.accent);
+    final text = Color(skin.textColor);
+    final sub = text.withValues(alpha: 0.65);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -467,7 +512,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
           width: 6,
           height: 84,
           decoration: BoxDecoration(
-            color: const Color(0xFF3A7BD5),
+            color: accent,
             borderRadius: BorderRadius.circular(3),
           ),
         ),
@@ -478,40 +523,36 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             children: [
               if (p.company.isNotEmpty)
                 Text(p.company,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF3A7BD5))),
+                        color: accent)),
               if (p.title.isNotEmpty)
-                Text(p.title,
-                    style:
-                        const TextStyle(fontSize: 11, color: Colors.black54)),
+                Text(p.title, style: TextStyle(fontSize: 11, color: sub)),
               const SizedBox(height: 4),
               Text(_bareName(p),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF223A5E))),
+                      color: text)),
               const SizedBox(height: 6),
               if (p.phone.isNotEmpty)
                 Text('☎ ${p.phone}',
-                    style: const TextStyle(
-                        fontSize: 11.5, color: Colors.black54)),
+                    style: TextStyle(fontSize: 11.5, color: sub)),
               if (p.email.isNotEmpty)
                 Text('✉ ${p.email}',
-                    style: const TextStyle(
-                        fontSize: 11.5, color: Colors.black54)),
+                    style: TextStyle(fontSize: 11.5, color: sub)),
               if (p.where.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text('📍 ${m.metAt(p.where)}',
-                      style: const TextStyle(
-                          fontSize: 11, color: Colors.black45)),
+                      style: TextStyle(
+                          fontSize: 11, color: text.withValues(alpha: 0.5))),
                 ),
             ],
           ),
         ),
-        const Text('🪪', style: TextStyle(fontSize: 28)),
+        Text(skin.emoji, style: const TextStyle(fontSize: 28)),
       ],
     );
   }
@@ -613,10 +654,23 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF2B5CA5))),
+          // 🍀「思い出しのお守り」を装備しているとヒントがはっきり出る
           if (p.where.isNotEmpty)
             Text('💡 ${m.hintMetAt(p.where)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: Colors.black45)),
+                style: _charm.effect == CharmEffect.extraHint
+                    ? const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E9C8E))
+                    : const TextStyle(fontSize: 12, color: Colors.black45)),
+          if (_shieldJustUsed)
+            Text(m.charmSaved,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF2E9E52))),
           const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
@@ -773,6 +827,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       _correct = 0;
                       _totalReactionMs = 0;
                       _coinsEarned = 0;
+                      _shieldUsed = false; // お守りの回数も再挑戦でリセット
                     });
                     _announceMeet();
                   },
