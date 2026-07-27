@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
 import '../models/cosmetics.dart';
+import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import 'character_shop_screen.dart';
 import '../services/reward_ad_helper.dart';
@@ -55,6 +56,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
+    // 試聴で鳴らした曲をマイページから出るときに止める
+    Bgm.instance.stop();
     _rewardAd.dispose();
     super.dispose();
   }
@@ -86,12 +89,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _watchAdForCoins() async {
     final m = MetaStrings.of(context);
     // ★未準備なら予約→読み込み完了と同時に自動再生★
+    const reward = 60; // 表示と実付与がずれていたので定数にまとめた
     final playedNow = await _rewardAd.showOrQueue(onReward: () {
-      PlayerProfile.instance.grantBonusCoins(60);
+      PlayerProfile.instance.grantBonusCoins(reward);
       Sfx.instance.reward(); // 報酬ゲットは盛大に（コイン＋ファンファーレ）
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(m.earnedCoins(50))));
+            .showSnackBar(SnackBar(content: Text(m.earnedCoins(reward))));
       }
     });
     if (!mounted) return;
@@ -892,9 +896,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           } else if (owned) {
             trailing = OutlinedButton(
-              onPressed: () {
-                p.selectBgm(b.asset);
+              onPressed: () async {
+                await p.selectBgm(b.asset);
                 Sfx.instance.pop();
+                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする
+                Bgm.instance.restartGameBgm();
               },
               child: Text(m.select),
             );

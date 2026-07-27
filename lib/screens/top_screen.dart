@@ -32,7 +32,10 @@ class TopScreen extends StatefulWidget {
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
   bool _doubleCard = false; // なまえコールの「2枚同時」オプション
-  bool _nameAsYouGo = false; // true=出たとき命名（ナンジャモンジャ式）
+  // true=出たとき命名（初登場でその場命名→再登場で想起）。こちらを既定にする
+  bool _nameAsYouGo = true;
+  // まとめて命名のとき、名前を自分で入力せず自動でつけるか
+  bool _autoNames = false;
 
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
@@ -55,6 +58,38 @@ class _TopScreenState extends State<TopScreen>
             shadows: const [
               Shadow(offset: Offset(0, 1.5), color: Color(0x55000000)),
             ]),
+      ),
+    );
+  }
+
+  /// なまえコールのオプション行（絵文字＋説明＋スイッチ）。
+  Widget _optionSwitch({
+    required String emoji,
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.only(left: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E0),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 12.5, fontWeight: FontWeight.w900)),
+          ),
+          Switch(
+            value: value,
+            activeColor: const Color(0xFF4ECDC4),
+            onChanged: onChanged,
+          ),
+        ],
       ),
     );
   }
@@ -112,6 +147,7 @@ class _TopScreenState extends State<TopScreen>
                             humanPlayers: n,
                             doubleCard: _doubleCard,
                             nameAsYouGo: _nameAsYouGo,
+                            autoNames: _autoNames,
                           ),
                         ),
                       );
@@ -620,35 +656,24 @@ class _TopScreenState extends State<TopScreen>
                                             () => _nameAsYouGo = true)),
                                   ],
                                 ),
-                                // 2枚同時: まとめて命名のときだけ
+                                // 2枚同時・名前おまかせ: まとめて命名のときだけ
                                 if (!_nameAsYouGo) ...[
                                   const SizedBox(height: 10),
-                                  Container(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFF7E0),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Text('🎴',
-                                            style: TextStyle(fontSize: 16)),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(m.doubleCardLabel,
-                                              style: const TextStyle(
-                                                  fontSize: 12.5,
-                                                  fontWeight:
-                                                      FontWeight.w900)),
-                                        ),
-                                        Switch(
-                                          value: _doubleCard,
-                                          activeColor: const Color(0xFF4ECDC4),
-                                          onChanged: (v) => setState(
-                                              () => _doubleCard = v),
-                                        ),
-                                      ],
-                                    ),
+                                  _optionSwitch(
+                                    emoji: '🎴',
+                                    label: m.doubleCardLabel,
+                                    value: _doubleCard,
+                                    onChanged: (v) =>
+                                        setState(() => _doubleCard = v),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // 名簿に1人ずつ入力するのが面倒な人向けのスキップ設定
+                                  _optionSwitch(
+                                    emoji: '🎲',
+                                    label: m.autoNamesLabel,
+                                    value: _autoNames,
+                                    onChanged: (v) =>
+                                        setState(() => _autoNames = v),
                                   ),
                                 ],
                                 const SizedBox(height: 14),
@@ -668,7 +693,8 @@ class _TopScreenState extends State<TopScreen>
                                       MaterialPageRoute(
                                           builder: (_) => NameCallScreen(
                                               doubleCard: _doubleCard,
-                                              nameAsYouGo: _nameAsYouGo)),
+                                              nameAsYouGo: _nameAsYouGo,
+                                              autoNames: _autoNames)),
                                     );
                                   },
                                 ),

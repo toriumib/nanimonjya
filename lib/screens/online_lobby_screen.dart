@@ -12,6 +12,7 @@ import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'match_game_screen.dart';
 import 'name_call_screen.dart';
+import '../widgets/themed_background.dart';
 
 /// オンライン対戦の待合室。
 /// ランダムマッチ／合言葉での友だち対戦。待ち時間には記憶術Tipsをローテ表示。
@@ -156,14 +157,8 @@ class _OnlineLobbyScreenState extends State<OnlineLobbyScreen> {
         title: Text(
             '${m.onlineMatchTitle}｜${widget.game == 'namecall' ? m.tabNameCall : m.tabPairs}'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
-          ),
-        ),
+      // 買った着せ替えテーマをこの画面にも反映する
+      body: ThemedBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(18),

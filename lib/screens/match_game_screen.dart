@@ -5,14 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:just_audio/just_audio.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/ad_ids.dart';
+import '../services/bgm.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
-import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/dog_squad.dart';
 import 'local_result_screen.dart';
@@ -102,7 +101,6 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   List<String> _quizChoices = [];
 
   BannerAd? _bannerAd;
-  final AudioPlayer _bgmPlayer = AudioPlayer();
 
   bool get _vsCpu => widget.cpuLevel != null;
   bool get _isOnline => widget.online != null;
@@ -138,9 +136,13 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
       // おぼえタイム: 1ペアあたり3秒 + ガイド時は読み時間を足す
       _memorizeLeft = _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
       _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-        if (!mounted) return;
+        // 画面破棄後もタイマーが回り続けないよう、ここで止める
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
         setState(() => _memorizeLeft -= 1);
-        if (_memorizeLeft <= 0) _startPlaying();
+        if (_memorizeLeft <= 0) _startPlaying(); // 中で cancel される
       });
     }
     AppAnalytics.gameStart(
@@ -148,7 +150,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
       players: _vsCpu || _isOnline ? 2 : widget.humanPlayers,
     );
     _loadBanner();
-    _startBgm();
+    Bgm.instance.playGame(); // 🎵 Android/Web どちらでも鳴る
   }
 
   void _tickOnlineMemorize() {
@@ -157,16 +159,6 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
         widget.online!.playStartAt.difference(DateTime.now()).inSeconds;
     setState(() => _memorizeLeft = left.clamp(0, 9999));
     if (left <= 0) _startPlaying();
-  }
-
-  Future<void> _startBgm() async {
-    if (kIsWeb) return; // Webは自動再生制限があるためBGMなし
-    try {
-      await _bgmPlayer.setAsset(PlayerProfile.instance.selectedBgm);
-      await _bgmPlayer.setLoopMode(LoopMode.one);
-      await _bgmPlayer.setVolume(0.35);
-      _bgmPlayer.play();
-    } catch (_) {}
   }
 
   void _loadBanner() {
@@ -191,7 +183,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     _memorizeTimer?.cancel();
     _cpuTimer?.cancel();
     _bannerAd?.dispose();
-    _bgmPlayer.dispose();
+    Bgm.instance.stop();
     super.dispose();
   }
 

@@ -4,9 +4,12 @@ import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
+import 'custom_roster_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
 import 'recall_training_screen.dart';
+import '../widgets/themed_background.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
@@ -78,14 +81,8 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
     final m = MetaStrings.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(m.tabTraining)),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
-          ),
-        ),
+      // 買った着せ替えテーマをこの画面にも反映する
+      body: ThemedBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(18),
@@ -225,6 +222,43 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                // 📇 実物の名刺＋顔写真で特訓する導線。
+                // ホーム画面の小さなボタンからしか行けず気づかれにくかったので、
+                // 名刺特訓の本拠地であるここにも置く（モバイル限定機能）。
+                if (!kIsWeb)
+                  _card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m.realCardTrainingTitle,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text(m.realCardTrainingDesc,
+                            style: const TextStyle(
+                                fontSize: 12.5, color: Colors.black54)),
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Sfx.instance.pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const CustomRosterScreen()),
+                            );
+                          },
+                          icon: const Text('📇',
+                              style: TextStyle(fontSize: 16)),
+                          label: Text(m.realCardTrainingButton),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2B5CA5),
+                            minimumSize: const Size.fromHeight(46),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 14),
                 TextButton.icon(
                   onPressed: () {

@@ -13,6 +13,12 @@ class HomeTheme {
   final bool darkBackground; // 暗い背景か（文字色の調整用）
   final Color accent; // アプリ全体のボタン・AppBarに使う主役色
 
+  /// ホーム以外の画面（ショップ・特訓・レポート等）に敷く、うすい2色。
+  ///
+  /// [gradient] をそのまま流用すると、暗いテーマで黒文字が読めなくなるため、
+  /// どのテーマでも必ず「明るい2色」を別に持たせている。
+  final List<Color> subtle;
+
   const HomeTheme({
     required this.id,
     required this.nameJa,
@@ -22,6 +28,7 @@ class HomeTheme {
     required this.gradient,
     required this.titleColor,
     required this.titleShadow,
+    required this.subtle,
     this.darkBackground = false,
     this.accent = const Color(0xFFFF4FA3),
   });
@@ -30,6 +37,7 @@ class HomeTheme {
 const List<HomeTheme> kHomeThemes = [
   HomeTheme(
     id: 'sunny',
+    subtle: [Color(0xFFFFF8E0), Color(0xFFFFF3F8)],
     nameJa: 'サニー',
     nameEn: 'Sunny',
     emoji: '🌞',
@@ -41,6 +49,7 @@ const List<HomeTheme> kHomeThemes = [
   ),
   HomeTheme(
     id: 'soda',
+    subtle: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
     nameJa: 'ソーダ',
     nameEn: 'Soda',
     emoji: '🥤',
@@ -52,6 +61,7 @@ const List<HomeTheme> kHomeThemes = [
   ),
   HomeTheme(
     id: 'sakura',
+    subtle: [Color(0xFFFFF3F8), Color(0xFFFFFAFC)],
     nameJa: 'サクラ',
     nameEn: 'Sakura',
     emoji: '🌸',
@@ -63,6 +73,7 @@ const List<HomeTheme> kHomeThemes = [
   ),
   HomeTheme(
     id: 'space',
+    subtle: [Color(0xFFEDEDFA), Color(0xFFF7F5FF)],
     nameJa: 'ウチュウ',
     nameEn: 'Space',
     emoji: '🚀',
@@ -72,6 +83,43 @@ const List<HomeTheme> kHomeThemes = [
     titleShadow: Color(0xFF8C7BFF),
     darkBackground: true,
     accent: Color(0xFF7B5CFF),
+  ),
+  HomeTheme(
+    id: 'sunrise',
+    subtle: [Color(0xFFFFF3E8), Color(0xFFFFF7F1)],
+    nameJa: 'あさやけ',
+    nameEn: 'Sunrise',
+    emoji: '🌅',
+    cost: 300,
+    gradient: [Color(0xFFFFE9D2), Color(0xFFFFD9E4), Color(0xFFFFF6EC)],
+    titleColor: Color(0xFFE2571E),
+    titleShadow: Color(0xFFFFD9A0),
+    accent: Color(0xFFF2703A),
+  ),
+  HomeTheme(
+    id: 'forest',
+    subtle: [Color(0xFFEDFBF3), Color(0xFFF9FFFC)],
+    nameJa: 'もりのあさ',
+    nameEn: 'Forest Morning',
+    emoji: '🌲',
+    cost: 500,
+    gradient: [Color(0xFFDFF6E6), Color(0xFFEFFBF4), Color(0xFFFBFFFD)],
+    titleColor: Color(0xFF15795E),
+    titleShadow: Color(0xFFB8EBD4),
+    accent: Color(0xFF1E9C7E),
+  ),
+  HomeTheme(
+    id: 'aurora',
+    subtle: [Color(0xFFEAF7F5), Color(0xFFF6FCFB)],
+    nameJa: 'オーロラ',
+    nameEn: 'Aurora',
+    emoji: '🌌',
+    cost: 1200,
+    gradient: [Color(0xFF10303A), Color(0xFF1C5A63), Color(0xFF2F7F72)],
+    titleColor: Color(0xFF9BFFE3),
+    titleShadow: Color(0xFF1B8C9E),
+    darkBackground: true,
+    accent: Color(0xFF23B79C),
   ),
 ];
 

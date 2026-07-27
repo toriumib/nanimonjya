@@ -8,6 +8,7 @@ import '../widgets/memory_tip_ticker.dart';
 import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
 import 'online_lobby_screen.dart';
+import '../widgets/themed_background.dart';
 
 /// あそぶモードの選択画面。
 /// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
@@ -44,14 +45,8 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('🃏 ${m.tabPairs}')),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
-          ),
-        ),
+      // 買った着せ替えテーマをこの画面にも反映する
+      body: ThemedBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(18),

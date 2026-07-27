@@ -3,12 +3,14 @@ import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
+import '../models/cosmetics.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
+import '../widgets/themed_background.dart';
 
 /// 🛍 キャラクターショップ。
 /// - 動画（リワード広告）でコインを稼ぐ導線
@@ -72,9 +74,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final p = PlayerProfile.instance;
     if (p.unlockedCharacters.contains(c.id)) return;
     if (p.coins < c.cost) {
+      // キャラ購入も同じく、その場で動画に誘導する
       Sfx.instance.wrong();
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.notEnoughCoins)));
+      await _offerAdForCoins(m, c.cost);
       return;
     }
     final ok = await p.unlockCharacter(c.id, c.cost);
@@ -92,14 +94,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final m = MetaStrings.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(m.storeTitle)),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
-          ),
-        ),
+      // 買った着せ替えテーマをこの画面にも反映する
+      body: ThemedBackground(
         child: SafeArea(
           child: AnimatedBuilder(
             animation: Listenable.merge([PlayerProfile.instance, _rewardAd]),
@@ -188,6 +184,10 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 💳 名刺のデザイン
                     _sectionHeader(m.shopSkinsTitle, m.shopSkinsDesc),
                     _skinRow(m, p),
+                    const SizedBox(height: 20),
+                    // 🎨 着せ替えテーマ（アプリ全体の色あいが変わる）
+                    _sectionHeader(m.shopThemesTitle, m.shopThemesDesc),
+                    for (final t in kHomeThemes) _themeRow(m, p, t),
                     const SizedBox(height: 20),
                     // 追加キャラ
                     Text(m.storeMore,
@@ -336,9 +336,10 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   ) async {
     final m = MetaStrings.of(context);
     if (PlayerProfile.instance.coins < cost) {
+      // 「欲しいのに足りない」瞬間が動画を見てもらえる一番のタイミング。
+      // ここで行き止まりのスナックバーを出すのはもったいないので、その場で誘う。
       Sfx.instance.wrong();
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(m.notEnoughCoins)));
+      await _offerAdForCoins(m, cost);
       return;
     }
     final ok = await buy();
@@ -349,6 +350,30 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(m.shopBought)));
     }
+  }
+
+  /// コインが足りないときに「動画を見てコインを増やす？」と確認して、
+  /// はいならそのままリワード広告を再生する。
+  Future<void> _offerAdForCoins(MetaStrings m, int cost) async {
+    final short = cost - PlayerProfile.instance.coins;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(m.notEnoughCoins),
+        content: Text(m.shortByCoins(short, _adReward)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(m.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(m.storeWatchAd(_adReward)),
+          ),
+        ],
+      ),
+    );
+    if (go == true && mounted) await _watchAd();
   }
 
   Widget _voiceRow(MetaStrings m, PlayerProfile p, PraiseVoice v) {
@@ -412,6 +437,24 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
             },
           ),
       ],
+    );
+  }
+
+  /// 着せ替えテーマ。買うとホームだけでなくアプリ全体の地の色が変わる。
+  Widget _themeRow(MetaStrings m, PlayerProfile p, HomeTheme t) {
+    return _itemRow(
+      emoji: t.emoji,
+      name: m.ja ? t.nameJa : t.nameEn,
+      cost: t.cost,
+      owned: p.unlockedThemes.contains(t.id),
+      equipped: p.selectedTheme == t.id,
+      tint: t.subtle.first,
+      onBuy: () => _buyGeneric(
+          () => p.unlockTheme(t.id, t.cost), t.cost, () => p.selectTheme(t.id)),
+      onEquip: () {
+        Sfx.instance.pop();
+        p.selectTheme(t.id);
+      },
     );
   }
 

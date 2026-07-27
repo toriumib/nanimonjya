@@ -6,6 +6,7 @@
 /// - PraiseVoice : 正解・勝利のときに声で褒めてくれる（TTSで読み上げ）
 /// - LuckyCharm  : プレイに小さな効果がつくお守り（1つだけ装備）
 /// - CardSkin    : ビジネス特訓の名刺の見た目が変わる
+/// - PlayerTitle : 名前の下に出る称号（マイページ・結果画面に表示）
 ///
 /// いずれも購入状態は PlayerProfile に保存する。
 library;
@@ -133,6 +134,12 @@ enum CharmEffect {
 
   /// 1ゲームに1回だけ、まちがえても没収されない（お守りが守ってくれる）
   oneMistakeShield,
+
+  /// なまえコールの制限時間が5秒のびる（あせらず思い出せる）
+  timeBonus,
+
+  /// 無料コインギフトの待ち時間が半分になる
+  fastGift,
 }
 
 class LuckyCharm {
@@ -210,6 +217,26 @@ const List<LuckyCharm> kLuckyCharms = [
     effect: CharmEffect.oneMistakeShield,
     descJa: '1ゲームに1回だけ、まちがえても正解あつかいになります。',
     descEn: 'Once per game, a wrong answer counts as correct.',
+  ),
+  LuckyCharm(
+    id: 'hourglass',
+    nameJa: 'ゆとりの砂時計',
+    nameEn: 'Hourglass of Ease',
+    emoji: '⏳',
+    cost: 300,
+    effect: CharmEffect.timeBonus,
+    descJa: 'なまえコールの制限時間が5秒のびて、あせらず思い出せます。',
+    descEn: 'Name Call gives you 5 more seconds to answer.',
+  ),
+  LuckyCharm(
+    id: 'bell',
+    nameJa: 'ふくびきの鈴',
+    nameEn: 'Fortune Bell',
+    emoji: '🔔',
+    cost: 340,
+    effect: CharmEffect.fastGift,
+    descJa: '無料コインギフトの待ち時間が半分になります。',
+    descEn: 'Halves the wait for the free coin gift.',
   ),
 ];
 

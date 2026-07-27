@@ -6,19 +6,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:just_audio/just_audio.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
+import '../services/bgm.dart';
+import '../services/interstitial_ad_helper.dart';
+import '../services/review_prompt.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/face_view.dart';
 import '../widgets/game_ui.dart';
+import '../widgets/store_cta.dart';
 import 'home_shell.dart';
 import 'local_result_screen.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
@@ -39,6 +44,8 @@ class NameCallScreen extends StatefulWidget {
   final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
   final int peopleCount; // 登場人数（6〜12）。カスタム/オンライン時は無視
   final bool nameAsYouGo; // true=出たとき命名（1枚ずつ・初登場でその場命名）
+  /// まとめて命名のとき、名前を自分で入力せず自動でつける（入力が面倒な人向け）。
+  final bool autoNames;
 
   const NameCallScreen({
     super.key,
@@ -48,6 +55,7 @@ class NameCallScreen extends StatefulWidget {
     this.customPeople,
     this.peopleCount = NameCallGame.peopleCount,
     this.nameAsYouGo = false,
+    this.autoNames = false,
   });
 
   /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
@@ -70,7 +78,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
   int _namingIndex = 0;
   final TextEditingController _nameController = TextEditingController();
 
-  // 出たとき命名（ナンジャモンジャ式）: いま命名しようとしているカード
+  // 出たとき命名: いま命名しようとしているカード
   Person? _inlinePerson;
 
   // ラウンド
@@ -86,6 +94,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   // 回答タイマー（クイズモードのみ）
   Timer? _quizTimer;
+  // ⏳「ゆとりの砂時計」を装備していると持ち時間が5秒のびる
+  int get _answerSeconds =>
+      NameCallGame.answerSeconds +
+      (luckyCharmById(PlayerProfile.instance.selectedCharm).effect ==
+              CharmEffect.timeBonus
+          ? 5
+          : 0);
   int _timeLeft = NameCallGame.answerSeconds;
 
   // 記録
@@ -99,7 +114,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
   bool _rewarded = false;
 
   BannerAd? _bannerAd;
-  final AudioPlayer _bgmPlayer = AudioPlayer();
 
   bool get _isOnline => widget.online != null;
   bool get _isLocalMulti => !_isOnline && widget.humanPlayers >= 2;
@@ -156,6 +170,29 @@ class _NameCallScreenState extends State<NameCallScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _nextRound();
       });
+    } else if (widget.autoNames) {
+      // 🎲 名前おまかせ: 入力の手間を省き、おなまえガチャで全員に命名して本編へ。
+      // 同じ名前が2人に付くと4択の正解が定まらないので、重複しないようにする。
+      final m = MetaStrings(ja);
+      final used = <String>{};
+      for (final p in people) {
+        var name = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
+        var guard = 0;
+        while (used.contains(name) && guard < 60) {
+          name = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
+          guard += 1;
+        }
+        // それでも重複するなら末尾に番号を足して必ず一意にする
+        if (used.contains(name)) name = '$name${used.length + 1}';
+        used.add(name);
+        _game.roster[p] = name;
+      }
+      _phase = _Phase.sealed;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) _nextRound();
+        });
+      });
     }
     AppAnalytics.gameStart(
       mode: _isCustom
@@ -166,17 +203,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       players: _isOnline ? 2 : widget.humanPlayers,
     );
     _loadBanner();
-    _startBgm();
-  }
-
-  Future<void> _startBgm() async {
-    if (kIsWeb) return;
-    try {
-      await _bgmPlayer.setAsset(PlayerProfile.instance.selectedBgm);
-      await _bgmPlayer.setLoopMode(LoopMode.one);
-      await _bgmPlayer.setVolume(0.35);
-      _bgmPlayer.play();
-    } catch (_) {}
+    Bgm.instance.playGame(); // 🎵 Android/Web どちらでも鳴る
   }
 
   void _loadBanner() {
@@ -201,7 +228,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _quizTimer?.cancel();
     _nameController.dispose();
     _bannerAd?.dispose();
-    _bgmPlayer.dispose();
+    Bgm.instance.stop();
     super.dispose();
   }
 
@@ -309,11 +336,20 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   void _startQuizTimer() {
     _quizTimer?.cancel();
-    _timeLeft = NameCallGame.answerSeconds;
+    _timeLeft = _answerSeconds;
     _quizTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
+      // 画面が破棄されたあともタイマーが動き続けるとリークになるので止める
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
       setState(() => _timeLeft -= 1);
-      if (_timeLeft <= 0) _answer(null); // 時間切れ＝おてつき
+      if (_timeLeft <= 0) {
+        // _answer() は回答ロック中だと即returnするため、タイマー側で止めないと
+        // 残り秒数がマイナスに進み続けてしまう。
+        t.cancel();
+        _answer(null); // 時間切れ＝おてつき
+      }
     });
   }
 
@@ -414,6 +450,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
           _coinsEarned = reward.total;
           _newAchievements = newly;
         });
+      }
+      // ひとりプレイはリザルト画面を経由せずこの画面で終わるため、
+      // 他モードで呼んでいる全画面広告とリザルト曲がここだけ抜けていた。
+      Bgm.instance.playResult();
+      InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回
+      if (_quizTotal > 0 && _quizCorrect == _quizTotal) {
+        maybeAskReview(minGames: 0); // 全問正解の好タイミングでレビュー依頼
       }
     }
   }
@@ -743,7 +786,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: _timeLeft / NameCallGame.answerSeconds,
+            value: _timeLeft / _answerSeconds,
             minHeight: 8,
             backgroundColor: Colors.grey.shade300,
             color: _timeLeft <= 3
@@ -1186,6 +1229,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
                       color: Color(0xFF8A6A1E)),
                 ),
               ),
+              // 💰 コインを見せた直後がリワード広告の一番刺さる位置。
+              // ひとりプレイのこの画面だけ設置されていなかったので追加する。
+              const SizedBox(height: 10),
+              DoubleCoinsButton(coinsEarned: _coinsEarned),
             ],
             if (_newAchievements.isNotEmpty) ...[
               const SizedBox(height: 10),
@@ -1201,6 +1248,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
                     .toList(),
               ),
             ],
+            const SizedBox(height: 14),
+            // 🛍 「次はどのキャラで遊ぶ？」でショップへ送る（他のリザルトと同じ導線）
+            const StoreCtaCard(),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
@@ -1213,6 +1263,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                       customPeople: widget.customPeople,
                       peopleCount: widget.peopleCount,
                       nameAsYouGo: widget.nameAsYouGo,
+                      autoNames: widget.autoNames,
                     ),
                   ),
                 );

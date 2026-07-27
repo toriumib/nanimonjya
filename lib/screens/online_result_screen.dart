@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
+import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
@@ -64,6 +65,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     _timeout = Timer(const Duration(seconds: 180), () {
       if (_outcome == _Outcome.waiting) _decide(win: true);
     });
+    Bgm.instance.playResult(); // 🎵 選んだリザルト曲（今までどこからも鳴っていなかった）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
   }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
+import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
@@ -51,6 +52,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
+    Bgm.instance.playResult(); // 🎵 選んだリザルト曲（今までどこからも鳴っていなかった）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
   }
 

@@ -579,18 +579,30 @@ class MetaStrings {
 
   // 📣 メインモード「なまえコール」
   String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
+  String get namingDecide => ja ? 'これにする！' : 'Name it!';
   String get nameCallAsYouGoTitle => ja ? '📣 なづけコール' : '📣 Name-as-you-go';
 
-  // 出たとき命名（ナンジャモンジャ式）
+  // 出たとき命名: 初登場はその場で命名（無得点）、再登場で想起して獲得
   String get newComer => ja ? '✨ はじめまして！名前をつけてね' : '✨ New face! Give a name';
   String get namedSoFar => ja ? 'なづけ済み' : 'Named';
-  String get namingDecide => ja ? 'これにする！' : 'Name it!';
   String get asYouGoHint => ja
       ? '💡 はじめて出た子には名前をつけ、もう一度出てきたら思い出して答えよう！'
       : '💡 Name each new face — when it appears again, recall the name!';
   String get rulePreName => ja ? 'まとめて命名' : 'Name first';
   String get ruleAsYouGo => ja ? '出たとき命名' : 'Name as you go';
+  String get autoNamesLabel => ja
+      ? '名前はおまかせ（入力しない）'
+      : 'Auto-name them (no typing)';
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
+  // 📇 実物の名刺＋顔写真での特訓（モバイル限定）
+  String get realCardTrainingTitle =>
+      ja ? '📇 本物の名刺で特訓する' : '📇 Train with real business cards';
+  String get realCardTrainingDesc => ja
+      ? 'もらった名刺と顔写真を登録して、そのまま思い出しクイズにできます。（スマホアプリ限定）'
+      : 'Register the cards you received with a photo of the person, then quiz yourself. (Mobile app only)'
+      ;
+  String get realCardTrainingButton =>
+      ja ? '名刺・顔写真を登録する' : 'Register cards & faces';
   String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
   String get tabTraining => ja ? 'ビジネス特訓' : 'Biz Training';
@@ -718,6 +730,11 @@ class MetaStrings {
   String recallCorrectOf(int correct, int total) =>
       ja ? '$total人中 $correct人 思い出せた！' : 'You recalled $correct of $total!';
   String get recallReview => ja ? 'おさらい（顔・名前・場所）' : 'Review (face・name・place)';
+  // 🔁 弱点の即時復習（テスト効果を活かして、まちがえた人だけもう1周する）
+  String get reviewRoundBadge =>
+      ja ? '🔁 復習ラウンド：まちがえた人だけ' : '🔁 Review round: missed faces only';
+  String reviewRecovered(int n) =>
+      ja ? '🔁 復習で $n 人 思い出せた！' : '🔁 Recovered $n in review!';
   String get recallAgain => ja ? 'もう一度' : 'Again';
   String get recallClose => ja ? 'とじる' : 'Close';
   String get recallEncourageHigh => ja
@@ -831,6 +848,13 @@ class MetaStrings {
   String get shopSkinsDesc => ja
       ? 'ビジネス特訓で差し出される名刺の見た目が変わります。'
       : 'Changes how the business card looks in Biz Training.';
+  String shortByCoins(int short, int reward) => ja
+      ? 'あと $short コインで手に入ります。動画を1本見ると $reward コインもらえます。'
+      : 'You need $short more coins. Watching one video gives you $reward.';
+  String get shopThemesTitle => ja ? '🎨 着せ替えテーマ' : '🎨 Themes';
+  String get shopThemesDesc => ja
+      ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
+      : 'Recolors the whole app — you’ll see it every time.';
   String get shopEquipped => ja ? '装備中' : 'Equipped';
   String get shopEquip => ja ? '使う' : 'Equip';
   String get shopTry => ja ? '試し聞き' : 'Preview';

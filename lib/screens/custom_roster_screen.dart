@@ -12,6 +12,7 @@ import '../widgets/face_view.dart';
 import 'name_call_screen.dart';
 import 'recall_training_screen.dart';
 import 'study_screen.dart';
+import '../widgets/themed_background.dart';
 
 /// 「おぼえる」= 自分の名簿の管理画面。
 /// 職場・学校などの写真＋名前を登録し、学習・テスト・対戦の起点になる。
@@ -245,14 +246,8 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
         icon: const Icon(Icons.add_a_photo),
         label: Text(m.customAddButton),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF3FF), Color(0xFFFFF9EC)],
-          ),
-        ),
+      // 買った着せ替えテーマをこの画面にも反映する
+      body: ThemedBackground(
         child: SafeArea(
           child: AnimatedBuilder(
             animation: CustomRosterService.instance,

@@ -5,6 +5,7 @@ import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
+import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
@@ -56,6 +57,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
+    Bgm.instance.playResult(); // 🎵 選んだリザルト曲（今までどこからも鳴っていなかった）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
   }
 

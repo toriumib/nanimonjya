@@ -413,14 +413,20 @@ class PlayerProfile extends ChangeNotifier {
   static const int giftCooldownMinutes = 15;
   int _lastGiftMillis = 0;
 
+  /// 実際の待ち時間。「ふくびきの鈴」を装備していると半分になる。
+  int get effectiveGiftCooldownMinutes =>
+      luckyCharmById(selectedCharm).effect == CharmEffect.fastGift
+          ? (giftCooldownMinutes / 2).ceil()
+          : giftCooldownMinutes;
+
   bool get canClaimGift {
     if (_lastGiftMillis == 0) return true;
     final elapsed = DateTime.now().millisecondsSinceEpoch - _lastGiftMillis;
-    return elapsed >= giftCooldownMinutes * 60 * 1000;
+    return elapsed >= effectiveGiftCooldownMinutes * 60 * 1000;
   }
 
   Duration get giftCooldownRemaining {
-    final next = _lastGiftMillis + giftCooldownMinutes * 60 * 1000;
+    final next = _lastGiftMillis + effectiveGiftCooldownMinutes * 60 * 1000;
     final ms = next - DateTime.now().millisecondsSinceEpoch;
     return ms > 0 ? Duration(milliseconds: ms) : Duration.zero;
   }
@@ -504,6 +510,7 @@ class PlayerProfile extends ChangeNotifier {
     await _persist();
     notifyListeners();
   }
+
 
   /// コインを支払って集合に加える共通処理。
   Future<bool> _buyInto(Set<String> owned, String id, int cost) async {
