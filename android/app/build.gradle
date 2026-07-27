@@ -31,13 +31,12 @@ def keystorePropertiesFile = file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-    // ✅ デバッグ出力
-    println "=== 🔐 Loaded Keystore Properties ==="
-    println "keyAlias: ${keystoreProperties['keyAlias']}"
-    println "keyPassword: ${keystoreProperties['keyPassword']}"
-    println "storePassword: ${keystoreProperties['storePassword']}"
-    println "storeFile: ${keystoreProperties['storeFile']}"
-    println "storeFile exists: ${file(keystoreProperties['storeFile']).exists()}"
+    // 署名設定が読めたことだけを出す。
+    // ⚠️ keyPassword / storePassword を println しないこと。
+    // ビルドログに平文で残り、貼り付けやCIログ経由で署名鍵のパスワードが漏れる。
+    // 署名鍵を失うとPlayのアプリを更新できなくなるため、値は絶対に出力しない。
+    println "=== 🔐 Keystore loaded (alias=${keystoreProperties['keyAlias']}, " +
+            "storeFile exists=${file(keystoreProperties['storeFile']).exists()}) ==="
 } else {
     println "❌ key.properties file not found: ${keystorePropertiesFile}"
 }
