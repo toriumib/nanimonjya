@@ -801,7 +801,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
           ElevatedButton.icon(
             // 未入力でも押せる。その場合はガチャ名を自動でつけて進む
             onPressed: () => _submitInlineName(autoNameIfEmpty: true),
-            icon: const Text('🧠', style: TextStyle(fontSize: 18)),
+            icon: const Text('✨', style: TextStyle(fontSize: 18)),
             label: Text(m.memorizedNext),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4ECDC4),
