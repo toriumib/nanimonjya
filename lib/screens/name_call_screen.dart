@@ -742,6 +742,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
+            // 「暗記した！」ボタンの有効・無効を切り替えるため入力を監視する
+            onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _submitInlineName(),
           ),
           const SizedBox(height: 10),
@@ -766,6 +768,22 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          // 🧠 このモードの肝は「名前を暗記して次に備える」こと。
+          // 名前を決めるだけで流してしまわないよう、覚えたことを自分で確認して
+          // 進むボタンを用意する（動作は「これにする！」と同じで次のカードへ）。
+          ElevatedButton.icon(
+            onPressed: _nameController.text.trim().isEmpty
+                ? null
+                : _submitInlineName,
+            icon: const Text('🧠', style: TextStyle(fontSize: 18)),
+            label: Text(m.memorizedNext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4ECDC4),
+              disabledBackgroundColor: const Color(0xFFD8E4F0),
+              minimumSize: const Size.fromHeight(50),
+            ),
           ),
           const SizedBox(height: 12),
           Container(
