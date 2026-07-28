@@ -10,6 +10,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
 import 'services/bgm.dart'; // ホーム/ゲーム/リザルトのBGM
+import 'services/push_service.dart'; // 既存ユーザーへのお知らせプッシュ
 import 'services/purchase_service.dart'; // 広告除去の買い切り課金
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
@@ -35,6 +36,7 @@ Future<void> main() async {
     };
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
     InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
+    PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視

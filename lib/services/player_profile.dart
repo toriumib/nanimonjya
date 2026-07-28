@@ -53,7 +53,9 @@ class PlayerProfile extends ChangeNotifier {
   int soloTrainingSessions = 0; // 一人特訓モードの完了回数
   bool hadPerfectQuiz = false; // 5問以上のクイズで全問正解したことがあるか
   bool hadFastReflex = false; // 5問以上のクイズで平均反応1.5秒未満だったことがあるか
-  bool reviewPrompted = false; // ストアレビュー依頼を出したか（1回きり）
+  bool reviewPrompted = false; // ストアレビュー依頼を出したことがあるか
+  int reviewPromptCount = 0; // 依頼した回数（Google側の頻度制限で出ないことがあるため複数回試す）
+  int reviewPromptedAtGames = 0; // 最後に依頼したときの総プレイ数
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
@@ -136,6 +138,9 @@ class PlayerProfile extends ChangeNotifier {
     hadPerfectQuiz = p.getBool('hadPerfectQuiz') ?? false;
     hadFastReflex = p.getBool('hadFastReflex') ?? false;
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
+    // 旧バージョンで1回頼み済みの人は、その1回を数えた状態から始める
+    reviewPromptCount = p.getInt('reviewPromptCount') ?? (reviewPrompted ? 1 : 0);
+    reviewPromptedAtGames = p.getInt('reviewPromptedAtGames') ?? 0;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     adsRemoved = p.getBool('adsRemoved') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
@@ -368,9 +373,12 @@ class PlayerProfile extends ChangeNotifier {
     }
   }
 
-  /// ストアレビュー依頼を出したことを記録（1回きり）。
+  /// ストアレビュー依頼を出したことを記録する。
+  /// 何回目か・そのときのプレイ数も残し、次に頼む間隔の判定に使う。
   Future<void> markReviewPrompted() async {
     reviewPrompted = true;
+    reviewPromptCount += 1;
+    reviewPromptedAtGames = totalGames;
     await _persist();
   }
 
@@ -757,6 +765,8 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('hadPerfectQuiz', hadPerfectQuiz);
     await p.setBool('hadFastReflex', hadFastReflex);
     await p.setBool('reviewPrompted', reviewPrompted);
+    await p.setInt('reviewPromptCount', reviewPromptCount);
+    await p.setInt('reviewPromptedAtGames', reviewPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('reminderHour', reminderHour);

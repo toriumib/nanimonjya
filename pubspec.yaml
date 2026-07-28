@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+115
+version: 2.5.0+116
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -30,6 +30,7 @@ dependencies:
   share_plus: ^10.1.1  # 合言葉リンクをLINE/Discord等で共有
   app_links: ^6.3.2  # ディープリンク（リンクからルーム入室）
   firebase_analytics: ^11.3.0  # 画面遷移・広告視聴などの行動ログ
+  firebase_messaging: ^15.1.0  # 既存ユーザーへのお知らせプッシュ（Firebaseコンソールから配信）
   firebase_crashlytics: ^4.1.0  # クラッシュレポート（Web非対応、kIsWebガード必須）
   flutter_local_notifications: ^18.0.1  # デイリーボーナスのリマインド通知
   timezone: ^0.10.0  # 通知の毎日スケジュール用
