@@ -65,7 +65,18 @@ class NameCallScreen extends StatefulWidget {
   State<NameCallScreen> createState() => _NameCallScreenState();
 }
 
-enum _Phase { naming, inlineNaming, sealed, round, roundResult, reveal }
+enum _Phase {
+  naming,
+  inlineNaming,
+  /// 名簿を一覧で見て覚える画面。
+  /// - 🎲名前おまかせのときは自動命名した名前をここで初めて見せる（必須）
+  /// - 手入力のときは命名画面の「暗記する」ボタンからいつでも来られる
+  rosterReview,
+  sealed,
+  round,
+  roundResult,
+  reveal
+}
 
 class _NameCallScreenState extends State<NameCallScreen> {
   late final Random _rng =
@@ -187,12 +198,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
         used.add(name);
         _game.roster[p] = name;
       }
-      _phase = _Phase.sealed;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted) _nextRound();
-        });
-      });
+      // 自動でつけた名前は、ここで見せないと誰が誰だか分からないまま本編に入って
+      // しまう。必ず名簿一覧を挟み、自分のタイミングで開始してもらう。
+      _phase = _Phase.rosterReview;
     }
     AppAnalytics.gameStart(
       mode: _isCustom
@@ -252,11 +260,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (_namingIndex + 1 < _game.people.length) {
       setState(() => _namingIndex += 1);
     } else {
-      // 名簿を封印して本編へ
-      setState(() => _phase = _Phase.sealed);
-      Future.delayed(const Duration(milliseconds: 1800), () {
-        if (mounted) _nextRound();
-      });
+      // 全員に名前がついた → 封印する前に名簿を見て覚える時間をとる。
+      // （準備ができてから自分で開始してもらう）
+      setState(() => _phase = _Phase.rosterReview);
     }
   }
 
@@ -513,6 +519,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               child: switch (_phase) {
                 _Phase.naming => _buildNaming(m),
                 _Phase.inlineNaming => _buildInlineNaming(m),
+                _Phase.rosterReview => _buildRosterReview(m),
                 _Phase.sealed => _buildSealed(m),
                 _Phase.round || _Phase.roundResult => _buildRound(m),
                 _Phase.reveal => _buildReveal(m),
@@ -598,6 +605,24 @@ class _NameCallScreenState extends State<NameCallScreen> {
               ),
             ],
           ),
+          // 📖 命名の途中でも、ここまでつけた名前を一覧で見返して覚えられる。
+          // （1人ずつ入力していると、前に何とつけたか忘れてしまうため）
+          if (_namingIndex > 0) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                setState(() => _phase = _Phase.rosterReview);
+              },
+              icon: const Text('📖', style: TextStyle(fontSize: 15)),
+              label: Text(m.namingMemorize),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2B5CA5),
+                side: const BorderSide(color: Color(0xFF3A7BD5), width: 2),
+                minimumSize: const Size.fromHeight(44),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(10),
@@ -717,6 +742,97 @@ class _NameCallScreenState extends State<NameCallScreen> {
               m.asYouGoHint,
               style: const TextStyle(fontSize: 12, height: 1.5),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 命名済みの名簿を一覧で見せて覚えてもらう画面。
+  /// 全員に名前がついていれば「おぼえた！はじめる」で本編へ、
+  /// 途中なら「つづける」で命名画面に戻る。
+  Widget _buildRosterReview(MetaStrings m) {
+    final named = _game.people
+        .where((p) => (_game.roster[p] ?? '').isNotEmpty)
+        .toList();
+    final done = named.length >= _game.people.length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+      child: Column(
+        children: [
+          Text(m.rosterReviewTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2B5CA5))),
+          const SizedBox(height: 4),
+          Text(m.rosterReviewHint(named.length, _game.people.length),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
+          const SizedBox(height: 10),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.78,
+              children: [
+                for (final p in named)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: const Color(0xFFD8E4F0), width: 1.5),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: FaceView(person: p, size: 200, radius: 0),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 6),
+                          child: Text(
+                            _game.roster[p] ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF2B5CA5)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Sfx.instance.pop();
+              if (!done) {
+                // まだ命名の途中 → 命名画面に戻る
+                setState(() => _phase = _Phase.naming);
+                return;
+              }
+              setState(() => _phase = _Phase.sealed);
+              Future.delayed(const Duration(milliseconds: 1200), () {
+                if (mounted) _nextRound();
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4ECDC4),
+              minimumSize: const Size.fromHeight(52),
+            ),
+            child: Text(done ? m.rosterReviewStart : m.rosterReviewBack,
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w900)),
           ),
         ],
       ),

@@ -580,6 +580,17 @@ class MetaStrings {
   // 📣 メインモード「なまえコール」
   String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
   String get namingDecide => ja ? 'これにする！' : 'Name it!';
+  // 📖 名簿を見て覚える画面（おまかせ命名の確認＋命名中の暗記）
+  String get rosterReviewTitle =>
+      ja ? '📖 名簿をおぼえよう' : '📖 Memorize the roster';
+  String rosterReviewHint(int named, int total) => ja
+      ? '$total人中 $named人 に名前がついています。覚えたら封印します。'
+      : '$named of $total have names. They get sealed once you start.';
+  String get rosterReviewStart =>
+      ja ? 'おぼえた！はじめる' : "Got it — let's start";
+  String get rosterReviewBack => ja ? '命名にもどる' : 'Back to naming';
+  String get namingMemorize => ja ? 'ここまでの名簿を見る' : 'Review names so far';
+
   String get nameCallAsYouGoTitle => ja ? '📣 なづけコール' : '📣 Name-as-you-go';
 
   // 出たとき命名: 初登場はその場で命名（無得点）、再登場で想起して獲得
@@ -855,6 +866,14 @@ class MetaStrings {
   String get shopThemesDesc => ja
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
+  String get shopBgmTitle => ja ? '🎵 BGM' : '🎵 Music';
+  String get shopBgmDesc => ja
+      ? 'ゲーム中に流れる曲。コインで買うか、動画1本でも解放できます。'
+      : 'In-game music. Buy with coins, or unlock with one video.';
+  String get unlockByAd => ja ? '🎬 動画で解放' : '🎬 Free via video';
+  String get bgmCredit => ja
+      ? '楽曲提供: 魔王魂／クラシック曲はパブリックドメイン'
+      : 'Music: MaouDamashii / classical tracks are public domain';
   String get shopEquipped => ja ? '装備中' : 'Equipped';
   String get shopEquip => ja ? '使う' : 'Equip';
   String get shopTry => ja ? '試し聞き' : 'Preview';

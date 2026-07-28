@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
+import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
@@ -188,6 +190,18 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 🎨 着せ替えテーマ（アプリ全体の色あいが変わる）
                     _sectionHeader(m.shopThemesTitle, m.shopThemesDesc),
                     for (final t in kHomeThemes) _themeRow(m, p, t),
+                    const SizedBox(height: 20),
+                    // 🎵 BGM（コインで買う or 動画1本で解放）
+                    _sectionHeader(m.shopBgmTitle, m.shopBgmDesc),
+                    for (final b in kBgmCatalog) _bgmRow(m, p, b),
+                    // 🎼 魔王魂の楽曲は提供元のクレジット表記が利用条件
+                    if (kHasCreditedBgm)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: Text(m.bgmCredit,
+                            style: const TextStyle(
+                                fontSize: 11, color: Colors.black54)),
+                      ),
                     const SizedBox(height: 20),
                     // 追加キャラ
                     Text(m.storeMore,
@@ -456,6 +470,121 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
         p.selectTheme(t.id);
       },
     );
+  }
+
+  /// 🎵 BGM行。買う／**動画1本で解放**／試聴／装備 を1行で扱う。
+  ///
+  /// 「コインが足りないから諦める」で終わらせず、動画を見れば必ず手に入る道を
+  /// 用意しておくと、リワード広告の再生数が伸びる（かつユーザーも損をしない）。
+  Widget _bgmRow(MetaStrings m, PlayerProfile p, BgmItem b) {
+    final owned = p.unlockedBgm.contains(b.asset);
+    final selected = p.selectedBgm == b.asset;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: selected ? const Color(0xFF4ECDC4) : const Color(0xFFD8E4F0),
+            width: selected ? 2 : 1.5),
+      ),
+      child: Row(
+        children: [
+          const Text('🎵', style: TextStyle(fontSize: 22)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(b.name(m.ja),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w900)),
+                if (b.needsCredit)
+                  const Text('魔王魂',
+                      style: TextStyle(fontSize: 10.5, color: Colors.black45)),
+              ],
+            ),
+          ),
+          // 試聴（持っている曲だけ）
+          if (owned)
+            IconButton(
+              onPressed: () async {
+                await p.selectBgm(b.asset);
+                Bgm.instance.restartGameBgm();
+              },
+              icon: const Icon(Icons.play_arrow_rounded, size: 22),
+              tooltip: m.shopTry,
+              color: const Color(0xFF3A7BD5),
+            ),
+          if (selected)
+            Text(m.shopEquipped,
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E9C8E)))
+          else if (owned)
+            TextButton(
+              onPressed: () async {
+                Sfx.instance.pop();
+                await p.selectBgm(b.asset);
+                Bgm.instance.restartGameBgm();
+              },
+              child: Text(m.shopEquip,
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
+            )
+          else ...[
+            // 動画1本で解放（コイン不要）
+            if (RewardAdHelper.available)
+              TextButton(
+                onPressed: () => _unlockBgmByAd(m, b),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  minimumSize: const Size(0, 34),
+                ),
+                child: Text(m.unlockByAd,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w900)),
+              ),
+            ElevatedButton(
+              onPressed: () => _buyGeneric(
+                  () => p.unlockBgm(b.asset, b.cost), b.cost, () async {
+                await p.selectBgm(b.asset);
+                Bgm.instance.restartGameBgm();
+              }),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFC93C),
+                foregroundColor: const Color(0xFF7A5A00),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(0, 34),
+              ),
+              child: Text('🪙 ${b.cost}',
+                  style: const TextStyle(
+                      fontSize: 12.5, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// 動画を最後まで見たら、その曲をコインなしで解放してすぐ再生する。
+  Future<void> _unlockBgmByAd(MetaStrings m, BgmItem b) async {
+    final p = PlayerProfile.instance;
+    final playedNow = await _rewardAd.showOrQueue(onReward: () async {
+      await p.unlockBgm(b.asset, 0); // 広告視聴分なのでコインは引かない
+      await p.selectBgm(b.asset);
+      Bgm.instance.restartGameBgm();
+      Sfx.instance.reward();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(m.shopBought)));
+      }
+    });
+    if (!playedNow && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(m.storeAdLoading)));
+    }
   }
 
   Widget _ownedThumb(String asset) {

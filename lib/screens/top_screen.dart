@@ -344,240 +344,227 @@ class _TopScreenState extends State<TopScreen>
             Positioned(top: 8, right: 8, child: _topBar()),
             Center(
         child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // ★ブランドの顔：2人のチアガールが出迎えるヒーロー（ふわり浮遊）★
+            // ★ヒーロー（コンパクト版）★
+            // 以前はマスコット130px＋後光230px＋キャッチ＋称号＋ギフトを縦に積んでいて、
+            // 「あそぶ」ボタンまでスクロールが必要だった。
+            // マスコットをロゴの左右に寄せ、称号とギフトを1行にまとめて高さを約半分にする。
             AnimatedBuilder(
               animation: _bounceController,
               builder: (context, _) {
                 final t = _bounceController.value;
                 final wave = t < 0.5 ? t * 2 : (1 - t) * 2; // 0→1→0
-                final dyL = -9.0 * wave;
-                final dyR = -9.0 * (1 - wave);
-                return Stack(
-                  alignment: Alignment.center,
-                  clipBehavior: Clip.none,
-                  children: [
-                    // やわらかな後光
-                    Container(
-                      width: 230,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.7),
-                            Colors.white.withOpacity(0.0),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Transform.translate(
-                          offset: Offset(0, dyL),
-                          child: SvgPicture.asset(
-                            'assets/images/supporters/cheer_girl2.svg',
-                            width: 92,
-                            height: 92,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Transform.translate(
-                          offset: Offset(0, dyR),
-                          child: SvgPicture.asset(
-                            'assets/images/supporters/cheer_girl.svg',
-                            width: 92,
-                            height: 92,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Positioned(
-                        top: -8,
-                        child: Text('✨', style: TextStyle(fontSize: 26))),
-                    const Positioned(
-                        top: 6, left: 30,
-                        child: Text('⭐', style: TextStyle(fontSize: 18))),
-                    const Positioned(
-                        top: 6, right: 30,
-                        child: Text('💖', style: TextStyle(fontSize: 18))),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 6),
-            // アプリタイトル（縁取り＋後光の「ゲームロゴ」）＋キャッチコピー
-            Padding(
-              padding: const EdgeInsets.only(bottom: 26.0),
-              child: Column(
-                children: [
-                  Stack(
+                final dyL = -7.0 * wave;
+                final dyR = -7.0 * (1 - wave);
+                return SizedBox(
+                  height: 132,
+                  child: Stack(
                     alignment: Alignment.center,
+                    clipBehavior: Clip.none,
                     children: [
                       // ロゴ背後でゆっくり回る後光
                       SunRays(
-                        size: 230,
+                        size: 168,
                         color: homeTheme.darkBackground
                             ? Colors.white
                             : homeTheme.titleColor,
                       ),
-                      // 長いタイトルでも1行に収まるよう横幅に合わせて自動縮小
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 8),
-                          child: OutlinedText(
-                            localizations.appTitle,
-                            strokeWidth: 8,
-                            strokeColor: Colors.white,
+                      // 左右のマスコット（ロゴの外側でふわり浮遊）
+                      Positioned(
+                        left: 0,
+                        bottom: 8,
+                        child: Transform.translate(
+                          offset: Offset(0, dyL),
+                          child: SvgPicture.asset(
+                            'assets/images/supporters/cheer_girl2.svg',
+                            width: 66,
+                            height: 66,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 8,
+                        child: Transform.translate(
+                          offset: Offset(0, dyR),
+                          child: SvgPicture.asset(
+                            'assets/images/supporters/cheer_girl.svg',
+                            width: 66,
+                            height: 66,
+                          ),
+                        ),
+                      ),
+                      // タイトルロゴ＋キャッチコピー
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 66),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: OutlinedText(
+                                localizations.appTitle,
+                                strokeWidth: 7,
+                                strokeColor: Colors.white,
+                                maxLines: 1,
+                                style: GoogleFonts.mochiyPopOne(
+                                  fontSize: 34,
+                                  color: homeTheme.titleColor,
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(2.5, 2.5),
+                                      blurRadius: 0,
+                                      color: homeTheme.titleShadow,
+                                    ),
+                                    const Shadow(
+                                      offset: Offset(4.0, 4.0),
+                                      blurRadius: 7,
+                                      color: Color(0x33000000),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                                .scale(
+                                  begin: const Offset(0.7, 0.7),
+                                  end: const Offset(1.0, 1.0),
+                                  duration: 500.ms,
+                                  curve: Curves.elasticOut,
+                                ),
+                            const SizedBox(height: 5),
+                            // キャッチコピー（何のゲームか一目でわかる）
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 11, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: homeTheme.darkBackground
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : homeTheme.titleColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  MetaStrings.of(context).tagline,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: homeTheme.darkBackground
+                                        ? const Color(0xFF2B2D64)
+                                        : Colors.white,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            // 称号バッジ と 🎁無料コイン を横1行に（以前は縦に積んでいた）
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+              child: AnimatedBuilder(
+                animation: PlayerProfile.instance,
+                builder: (context, _) {
+                  final title =
+                      currentTitle(PlayerProfile.instance.lifetimeCoins);
+                  final ja =
+                      Localizations.localeOf(context).languageCode == 'ja';
+                  final ready = PlayerProfile.instance.canClaimGift;
+                  final m = MetaStrings.of(context);
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(20),
+                            border:
+                                Border.all(color: homeTheme.titleColor, width: 2),
+                          ),
+                          child: Text(
+                            '${title.emoji} ${ja ? title.nameJa : title.nameEn}',
                             maxLines: 1,
-                            style: GoogleFonts.mochiyPopOne(
-                              fontSize: 44,
-                              color: homeTheme.titleColor,
-                              letterSpacing: 1,
-                              shadows: [
-                                Shadow(
-                                  offset: const Offset(3.0, 3.0),
-                                  blurRadius: 0,
-                                  color: homeTheme.titleShadow,
-                                ),
-                                const Shadow(
-                                  offset: Offset(5.0, 5.0),
-                                  blurRadius: 8,
-                                  color: Color(0x33000000),
-                                ),
-                              ],
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: homeTheme.darkBackground
+                                  ? const Color(0xFF2B2D64)
+                                  : homeTheme.titleColor,
                             ),
                           ),
                         ),
-                      )
-                          .animate()
-                          .fadeIn(duration: 500.ms, curve: Curves.easeOut)
-                          .scale(
-                            begin: const Offset(0.7, 0.7),
-                            end: const Offset(1.0, 1.0),
-                            duration: 500.ms,
-                            curve: Curves.elasticOut,
+                      ),
+                      // 🎁 無料コインチェスト（受け取れるときだけ揺れて目立つ）
+                      if (RewardAdHelper.available) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: AnimatedBuilder(
+                            animation: _bounceController,
+                            builder: (context, child) {
+                              final wobble = ready
+                                  ? (_bounceController.value - 0.5) * 0.08
+                                  : 0.0;
+                              return Transform.rotate(
+                                  angle: wobble, child: child);
+                            },
+                            child: ElevatedButton.icon(
+                              onPressed: _claimGift,
+                              icon: const Text('🎁',
+                                  style: TextStyle(fontSize: 16)),
+                              label: Text(
+                                ready
+                                    ? m.freeGift
+                                    : m.giftWaitMin(PlayerProfile.instance
+                                            .giftCooldownRemaining.inMinutes +
+                                        1),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: ready
+                                    ? const Color(0xFFFFC93C)
+                                    : Colors.grey.shade400,
+                                foregroundColor: const Color(0xFF5A3E00),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                textStyle: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w900),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22),
+                                  side: const BorderSide(
+                                      color: Colors.white, width: 2),
+                                ),
+                                elevation: 5,
+                                shadowColor: const Color(0xAAFFC93C),
+                              ),
+                            ),
                           ),
+                        ),
+                      ],
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  // キャッチコピー（何のゲームか一目でわかる＝売れる）
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: homeTheme.darkBackground
-                          ? Colors.white.withOpacity(0.9)
-                          : homeTheme.titleColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      MetaStrings.of(context).tagline,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        color: homeTheme.darkBackground
-                            ? const Color(0xFF2B2D64)
-                            : Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // 現在の称号バッジ（累計コインでランクアップ）
-                  AnimatedBuilder(
-                    animation: PlayerProfile.instance,
-                    builder: (context, _) {
-                      final title = currentTitle(
-                        PlayerProfile.instance.lifetimeCoins,
-                      );
-                      final ja = Localizations.localeOf(context)
-                              .languageCode ==
-                          'ja';
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: homeTheme.titleColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: Text(
-                          '${title.emoji} ${ja ? title.nameJa : title.nameEn}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: homeTheme.darkBackground
-                                ? const Color(0xFF2B2D64)
-                                : homeTheme.titleColor,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // 🎁 無料コインチェスト（動画）— 揺れて目立つ・広告視聴を促す
-            if (RewardAdHelper.available)
-              AnimatedBuilder(
-                animation: PlayerProfile.instance,
-                builder: (context, _) {
-                  final ready = PlayerProfile.instance.canClaimGift;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 18),
-                    child: AnimatedBuilder(
-                      animation: _bounceController,
-                      builder: (context, child) {
-                        final wobble = ready
-                            ? (_bounceController.value - 0.5) * 0.08
-                            : 0.0;
-                        return Transform.rotate(angle: wobble, child: child);
-                      },
-                      child: ElevatedButton.icon(
-                        onPressed: _claimGift,
-                        icon: const Text('🎁', style: TextStyle(fontSize: 22)),
-                        label: Text(
-                          ready
-                              ? MetaStrings.of(context).freeGift
-                              : MetaStrings.of(context).giftWaitMin(
-                                  PlayerProfile.instance
-                                          .giftCooldownRemaining.inMinutes +
-                                      1),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ready
-                              ? const Color(0xFFFFC93C)
-                              : Colors.grey.shade400,
-                          foregroundColor: const Color(0xFF5A3E00),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 14),
-                          textStyle: const TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.w900),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
-                            side: const BorderSide(
-                                color: Colors.white, width: 3),
-                          ),
-                          elevation: 8,
-                          shadowColor: const Color(0xAAFFC93C),
-                        ),
-                      ),
-                    ),
                   );
                 },
               ),
+            ),
             // フェードインアニメーション付きのボタン
             FadeTransition(
               opacity: _animation,

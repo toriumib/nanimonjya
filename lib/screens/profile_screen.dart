@@ -3,36 +3,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
+import '../models/bgm_catalog.dart';
 import '../models/cosmetics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import 'character_shop_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
-
-/// アンロック可能なBGMカタログ（既存のショパン音源を活用）。
-class BgmItem {
-  final String asset;
-  final String nameJa;
-  final String nameEn;
-  final int cost;
-  const BgmItem(this.asset, this.nameJa, this.nameEn, this.cost);
-}
-
-const List<BgmItem> kBgmCatalog = [
-  // --- クラシック ---
-  BgmItem('op9-2-Nocturne.mp3', 'ノクターン Op.9-2', 'Nocturne Op.9-2', 0),
-  BgmItem('bgm_ode_to_joy.wav', '歓喜の歌', 'Ode to Joy', 150),
-  BgmItem('for_siciliano.mp3', 'シチリアーノ', 'Siciliano', 300),
-  BgmItem('bgm_fur_elise.wav', 'エリーゼのために', 'Für Elise', 400),
-  BgmItem('op.10-4.mp3', '練習曲 Op.10-4', 'Étude Op.10-4', 500),
-  BgmItem('bgm_eine_kleine.wav', 'アイネ・クライネ', 'Eine kleine Nachtmusik', 700),
-  BgmItem('c00Chopin_Fantaisie-Impromptu.mp3', '幻想即興曲', 'Fantaisie-Impromptu', 800),
-  // --- 魔王魂（著作権フリー・クレジット表記済み） ---
-  BgmItem('05_halzion.mp3', 'ハルジオン', 'Halzion', 250),
-  BgmItem('08_burning_heart.mp3', 'バーニングハート', 'Burning Heart', 350),
-  BgmItem('19_12345.mp3', '12345', '12345', 450),
-];
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -885,7 +862,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _sectionCard(
       title: '🎵 ${m.selectBgm}',
       child: Column(
-        children: kBgmCatalog.map((b) {
+        children: [
+          ..._bgmRows(m, p, ja),
+          // 🎼 魔王魂の楽曲はクレジット表記が利用条件。
+          // コード中のコメントで「表記済み」となっていたが実際には
+          // どこにも出ていなかったため、ここで必ず表示する。
+          if (kHasCreditedBgm)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(m.bgmCredit,
+                    style:
+                        const TextStyle(fontSize: 11, color: Colors.black54)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _bgmRows(MetaStrings m, PlayerProfile p, bool ja) {
+    return [
+      ...(() {
+        return kBgmCatalog.map((b) {
           final owned = p.unlockedBgm.contains(b.asset);
           final selected = p.selectedBgm == b.asset;
           Widget trailing;
@@ -929,9 +929,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: Text(b.cost == 0 ? m.free : (owned ? m.unlocked : '${b.cost} ${m.coins}')),
             trailing: trailing,
           );
-        }).toList(),
-      ),
-    );
+        }).toList();
+      })(),
+    ];
   }
 
   // リザルト画面の曲を選ぶ（シャイニングスター＋アンロック済みクラシック曲）
