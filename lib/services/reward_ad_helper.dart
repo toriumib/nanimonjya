@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:ui' show PlatformDispatcher;
+
 import 'ad_ids.dart';
+import 'app_toast.dart';
 import 'app_analytics.dart';
 
 /// リワード広告のロード＆表示ヘルパー。
@@ -101,6 +104,9 @@ class RewardAdHelper extends ChangeNotifier {
         rewarded = true;
         AppAnalytics.adRewardEarned('rewarded'); // 最後まで視聴した数（分子）
         onReward();
+        // 🙏 最後まで見てくれた人に、ひとことだけお礼を出す。
+        // 報酬の通知は各画面が別に出すので、ここは短く控えめに。
+        AppToast.thanksForAd(PlatformDispatcher.instance.locale.languageCode == 'ja');
       },
     );
     return rewarded;

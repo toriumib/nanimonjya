@@ -8,6 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
+import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
+import 'services/purchase_service.dart'; // 広告除去の買い切り課金
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
@@ -37,6 +39,8 @@ Future<void> main() async {
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
   DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
+  // 💳 課金の初期化。購入ストリームを張って、未処理の購入や復元も拾う（await不要）
+  PurchaseService.instance.init();
   runApp(const MyApp());
 }
 
@@ -129,6 +133,7 @@ class MyApp extends StatelessWidget {
         final accent =
             homeThemeById(PlayerProfile.instance.selectedTheme).accent;
         return MaterialApp(
+      scaffoldMessengerKey: AppToast.messengerKey, // 広告のお礼など全画面共通のトースト
       navigatorKey: DeepLinkService.navigatorKey, // ディープリンク遷移用
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),

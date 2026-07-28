@@ -6,6 +6,7 @@ import 'dart:io';
 
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
+import '../services/card_ocr_service.dart';
 import '../services/custom_roster_service.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
@@ -67,6 +68,10 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     final emailC = TextEditingController();
     final controllers = [nameC, companyC, titleC, phoneC, emailC];
     String? cardPath;
+    // 📇 OCRの状態（読み取り中／自動入力できた／読めなかった）
+    bool ocrBusy = false;
+    bool ocrDone = false;
+    bool ocrFailed = false;
 
     Widget field(TextEditingController c, String label,
         {TextInputType? keyboard, int? maxLen}) {
@@ -113,11 +118,65 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                   onPressed: () async {
                     final c = await _picker.pickImage(
                         source: ImageSource.gallery,
-                        maxWidth: 1200,
-                        imageQuality: 85);
-                    if (c != null) setSt(() => cardPath = c.path);
+                        // OCRにかけるので、解像度は落としすぎない
+                        maxWidth: 1600,
+                        imageQuality: 92);
+                    if (c == null) return;
+                    setSt(() {
+                      cardPath = c.path;
+                      ocrBusy = CardOcrService.available;
+                    });
+                    if (!CardOcrService.available) return;
+                    // 📇 名刺を読み取って空欄だけ自動で埋める。
+                    // 端末内で処理されるので、名刺の内容は外部に送られない。
+                    final r = await CardOcrService.instance.scan(c.path);
+                    if (!mounted) return;
+                    setSt(() {
+                      ocrBusy = false;
+                      // すでに手で入れた項目は上書きしない
+                      if (nameC.text.isEmpty) nameC.text = r.name;
+                      if (companyC.text.isEmpty) companyC.text = r.company;
+                      if (titleC.text.isEmpty) titleC.text = r.title;
+                      if (phoneC.text.isEmpty) phoneC.text = r.phone;
+                      if (emailC.text.isEmpty) emailC.text = r.email;
+                      ocrDone = !r.isEmpty;
+                      ocrFailed = r.isEmpty;
+                    });
                   },
                 ),
+                // OCRの状態表示（読み取り中／自動入力した／読めなかった）
+                if (ocrBusy)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                        const SizedBox(width: 8),
+                        Text(m.ocrReading,
+                            style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  )
+                else if (ocrDone)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(m.ocrFilled,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 11.5, color: Color(0xFF1E7BA6))),
+                  )
+                else if (ocrFailed)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(m.ocrFailed,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 11.5, color: Colors.black54)),
+                  ),
                 if (cardPath != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),

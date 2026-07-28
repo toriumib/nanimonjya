@@ -866,6 +866,24 @@ class MetaStrings {
   String get shopThemesDesc => ja
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
+  // 📇 名刺OCR
+  String get ocrReading => ja ? '名刺を読み取り中…' : 'Reading the card…';
+  String get ocrFilled => ja
+      ? '✅ 読み取った内容を入れました。ちがっていたら直してください。'
+      : '✅ Filled from the card. Please correct anything wrong.';
+  String get ocrFailed => ja
+      ? '読み取れませんでした。明るい場所で、まっすぐ撮ると成功しやすいです。'
+      : "Couldn't read it. Bright light and a straight angle help.";
+  // 💳 広告除去（買い切り課金）
+  String get removeAdsTitle => ja ? '💎 広告を消す（買い切り）' : '💎 Remove ads (one-time)';
+  String get removeAdsDesc => ja
+      ? 'バナーと全画面広告が出なくなります。動画でコインを増やす機能はそのまま使えます。'
+      : 'Removes banners and full-screen ads. Video-for-coins still works.';
+  String get removeAdsThanksToast => ja ? '💎 ありがとうございます！' : '💎 Thank you!';
+  String get adsRemovedThanks => ja
+      ? '💎 広告なしでご利用いただけます。ありがとうございます！'
+      : '💎 Ads are off. Thank you for your support!';
+  String get restorePurchase => ja ? '購入を復元' : 'Restore purchase';
   String get shopBgmTitle => ja ? '🎵 BGM' : '🎵 Music';
   String get shopBgmDesc => ja
       ? 'ゲーム中に流れる曲。コインで買うか、動画1本でも解放できます。'

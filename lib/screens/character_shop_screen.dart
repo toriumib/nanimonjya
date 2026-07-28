@@ -9,6 +9,7 @@ import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
+import '../services/purchase_service.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
@@ -172,6 +173,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 11.5, color: Colors.black54)),
+                    const SizedBox(height: 16),
+                    // 💳 広告除去（買い切り）
+                    _removeAdsCard(m, p),
                     const SizedBox(height: 20),
                     // 🎉 ほめボイス（気分が良くなる系）
                     _sectionHeader(m.shopVoicesTitle, m.shopVoicesDesc),
@@ -244,6 +248,97 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 💳 広告除去（買い切り）のカード。
+  ///
+  /// 購入済みならお礼を出すだけにする。
+  /// 未購入でも、ストアに繋がらない・商品が未登録のときは何も出さない
+  /// （押せないボタンを見せても混乱するだけなので）。
+  Widget _removeAdsCard(MetaStrings m, PlayerProfile p) {
+    if (p.adsRemoved) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEAF7F0),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF4ECDC4), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            const Text('💎', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(m.adsRemovedThanks,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w900,
+                      color: Color(0xFF12705E))),
+            ),
+          ],
+        ),
+      );
+    }
+    return AnimatedBuilder(
+      animation: PurchaseService.instance,
+      builder: (context, _) {
+        final svc = PurchaseService.instance;
+        final price = svc.removeAdsPrice;
+        // 商品が取れていない（Play Console未登録・審査中・ストア未接続）
+        if (!svc.available || price == null) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F0FF),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF8C7BFF), width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('💎', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m.removeAdsTitle,
+                            style: const TextStyle(
+                                fontSize: 14.5, fontWeight: FontWeight.w900)),
+                        Text(m.removeAdsDesc,
+                            style: const TextStyle(
+                                fontSize: 11.5, color: Colors.black54)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: svc.pending ? null : svc.buyRemoveAds,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B5CFF),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      minimumSize: const Size(0, 38),
+                    ),
+                    child: Text(svc.pending ? '…' : price,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w900)),
+                  ),
+                ],
+              ),
+              // 機種変更・再インストール用（ストアの要件でもある）
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: svc.pending ? null : svc.restore,
+                  child: Text(m.restorePurchase,
+                      style: const TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

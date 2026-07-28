@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ad_ids.dart';
+import 'player_profile.dart';
 
 /// インタースティシャル（全画面）広告のヘルパー。
 /// 「3プレイごとに1回」のペースでリザルト画面表示時に出す。
@@ -51,6 +52,8 @@ class InterstitialAdHelper {
   /// リザルト画面の表示時に呼ぶ想定。
   Future<void> onGameFinished() async {
     if (!available) return;
+    // 💳 広告除去を買ってくれた人には全画面広告を出さない
+    if (PlayerProfile.instance.adsRemoved) return;
     final prefs = await SharedPreferences.getInstance();
     int plays = (prefs.getInt(_prefsKey) ?? 0) + 1;
 

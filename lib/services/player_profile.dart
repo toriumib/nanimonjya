@@ -55,6 +55,8 @@ class PlayerProfile extends ChangeNotifier {
   bool hadFastReflex = false; // 5問以上のクイズで平均反応1.5秒未満だったことがあるか
   bool reviewPrompted = false; // ストアレビュー依頼を出したか（1回きり）
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
+  // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
+  bool adsRemoved = false;
 
   // 🌌 覚醒（プレステージ）: 鬼段位をきわめたら段位をリセットして
   // 永続コイン倍率を積み上げられる、終わりのない成長ループ
@@ -132,6 +134,7 @@ class PlayerProfile extends ChangeNotifier {
     hadFastReflex = p.getBool('hadFastReflex') ?? false;
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
+    adsRemoved = p.getBool('adsRemoved') ?? false;
     awakenings = p.getInt('awakenings') ?? 0;
     unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
     unlockedVoices.add('none');
@@ -512,6 +515,14 @@ class PlayerProfile extends ChangeNotifier {
   }
 
 
+  /// 💳 広告除去の購入状態を反映する（購入時・復元時に呼ばれる）。
+  Future<void> setAdsRemoved(bool value) async {
+    if (adsRemoved == value) return;
+    adsRemoved = value;
+    await _persist();
+    notifyListeners();
+  }
+
   /// コインを支払って集合に加える共通処理。
   Future<bool> _buyInto(Set<String> owned, String id, int cost) async {
     if (owned.contains(id)) return true;
@@ -735,6 +746,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('hadFastReflex', hadFastReflex);
     await p.setBool('reviewPrompted', reviewPrompted);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
+    await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('awakenings', awakenings);
     await p.setStringList('unlockedVoices', unlockedVoices.toList());
     await p.setString('selectedVoice', selectedVoice);

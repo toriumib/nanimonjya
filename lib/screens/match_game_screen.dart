@@ -12,6 +12,7 @@ import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
+import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/dog_squad.dart';
 import 'local_result_screen.dart';
@@ -163,6 +164,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
 
   void _loadBanner() {
     if (kIsWeb) return;
+    // 💳 広告除去を買ってくれた人にはバナーを出さない
+    if (PlayerProfile.instance.adsRemoved) return;
     final ad = BannerAd(
       adUnitId: AdIds.banner,
       size: AdSize.banner,
