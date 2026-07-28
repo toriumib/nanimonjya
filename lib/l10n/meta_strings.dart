@@ -589,6 +589,8 @@ class MetaStrings {
   String get rosterReviewStart =>
       ja ? 'おぼえた！はじめる' : "Got it — let's start";
   String get rosterReviewBack => ja ? '命名にもどる' : 'Back to naming';
+  /// 未入力のまま進んだとき、自動でついた名前を知らせる
+  String namedAs(String name) => ja ? '「$name」と名づけた！' : 'Named "$name"!';
   /// 出たとき命名で、名前を決めたあと『覚えた』と確認して次へ進むボタン
   String get memorizedNext => ja ? '暗記した！つぎへ' : 'Memorized — next!';
   String get namingMemorize => ja ? 'ここまでの名簿を見る' : 'Review names so far';

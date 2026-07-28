@@ -13,6 +13,7 @@ import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
+import '../services/app_toast.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/review_prompt.dart';
@@ -334,15 +335,39 @@ class _NameCallScreenState extends State<NameCallScreen> {
   }
 
   // 出たとき命名: 初登場カードに名前をつけて次へ
-  void _submitInlineName() {
-    final name = _nameController.text.trim();
-    if (name.isEmpty || _inlinePerson == null) return;
+  /// 出たとき命名で、いまのカードに名前を確定して次へ進む。
+  ///
+  /// [autoNameIfEmpty] が true のときは、未入力でもガチャ名を自動でつけて進む。
+  /// このカードは再登場したときに名前を答える対象になるので、
+  /// 「名前なし」のままにはできない（＝空でも必ず何かの名前を割り当てる）。
+  void _submitInlineName({bool autoNameIfEmpty = false}) {
+    if (_inlinePerson == null) return;
+    var name = _nameController.text.trim();
+    if (name.isEmpty) {
+      if (!autoNameIfEmpty) return;
+      name = _uniqueGachaName();
+      // 自分で決めていない名前なので、何になったかは必ず知らせる
+      AppToast.show(MetaStrings(PlatformDispatcherLocale.isJa).namedAs(name));
+    }
     Sfx.instance.pop();
     HapticFeedback.selectionClick();
     _game.roster[_inlinePerson!] = name;
     _nameController.clear();
     _inlinePerson = null;
     _nextRound();
+  }
+
+  /// まだ名簿で使われていないガチャ名を作る。
+  /// 同じ名前が2人につくと、再登場時にどちらが正解か決まらなくなるため。
+  String _uniqueGachaName() {
+    final m = MetaStrings(PlatformDispatcherLocale.isJa);
+    final used = _game.roster.values.toSet();
+    for (var i = 0; i < 60; i++) {
+      final n = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
+      if (!used.contains(n)) return n;
+    }
+    // 出尽くしたときは番号を足して必ず一意にする
+    return '${m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999))}${used.length + 1}';
   }
 
   /// クイズの4択を作る。名簿の名前が4つに満たないとき（出たとき命名の序盤や
@@ -774,9 +799,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
           // 名前を決めるだけで流してしまわないよう、覚えたことを自分で確認して
           // 進むボタンを用意する（動作は「これにする！」と同じで次のカードへ）。
           ElevatedButton.icon(
-            onPressed: _nameController.text.trim().isEmpty
-                ? null
-                : _submitInlineName,
+            // 未入力でも押せる。その場合はガチャ名を自動でつけて進む
+            onPressed: () => _submitInlineName(autoNameIfEmpty: true),
             icon: const Text('🧠', style: TextStyle(fontSize: 18)),
             label: Text(m.memorizedNext),
             style: ElevatedButton.styleFrom(
