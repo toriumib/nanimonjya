@@ -125,6 +125,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _achievementsCard(m, profile),
             const SizedBox(height: 16),
+            _reminderCard(m, profile),
+            const SizedBox(height: 16),
             _bgmCard(m, profile),
             const SizedBox(height: 16),
             _resultMusicCard(m, profile),
@@ -851,6 +853,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Color(0xFFB4326E),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 🔔 練習リマインドの時刻を自分で決めるカード。
+  ///
+  /// 習慣づけの研究では、やる気だけでなく**「いつ・どこで・何のあとに」やるかを
+  /// 具体的に決めること**と、続きを自分で確認できること（自己モニタリング）が
+  /// 効くとされる。決め打ちの19時ではなく、生活の合図に結びつけてもらう。
+  Widget _reminderCard(MetaStrings m, PlayerProfile p) {
+    return _sectionCard(
+      title: '🔔 ${m.reminderTitle}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.reminderDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 4),
+          Text(m.reminderCueHint,
+              style: const TextStyle(fontSize: 11.5, color: Colors.black54)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final h in const [7, 8, 12, 18, 19, 20, 21, 22])
+                ChoiceChip(
+                  label: Text(m.hourLabel(h),
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w900)),
+                  selected: p.reminderHour == h,
+                  onSelected: (_) async {
+                    Sfx.instance.pop();
+                    await p.setReminderHour(h);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(m.reminderSaved(m.hourLabel(h)))),
+                    );
+                  },
+                ),
+            ],
           ),
         ],
       ),

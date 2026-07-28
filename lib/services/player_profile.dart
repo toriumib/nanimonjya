@@ -57,6 +57,9 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
+  /// 🔔 復習リマインドの時刻（時。既定19時）。自分で決めた時刻のほうが
+  /// 生活の合図と結びつけやすく、習慣として続きやすいとされる。
+  int reminderHour = 19;
 
   // 🌌 覚醒（プレステージ）: 鬼段位をきわめたら段位をリセットして
   // 永続コイン倍率を積み上げられる、終わりのない成長ループ
@@ -135,6 +138,7 @@ class PlayerProfile extends ChangeNotifier {
     reviewPrompted = p.getBool('reviewPrompted') ?? false;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     adsRemoved = p.getBool('adsRemoved') ?? false;
+    reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
     unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
     unlockedVoices.add('none');
@@ -523,6 +527,14 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 🔔 練習リマインドの時刻を変える。変更したら通知を予約し直す。
+  Future<void> setReminderHour(int hour) async {
+    reminderHour = hour.clamp(0, 23);
+    await _persist();
+    await DailyReminder.instance.scheduleNext();
+    notifyListeners();
+  }
+
   /// コインを支払って集合に加える共通処理。
   Future<bool> _buyInto(Set<String> owned, String id, int cost) async {
     if (owned.contains(id)) return true;
@@ -747,6 +759,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('reviewPrompted', reviewPrompted);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setBool('adsRemoved', adsRemoved);
+    await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);
     await p.setStringList('unlockedVoices', unlockedVoices.toList());
     await p.setString('selectedVoice', selectedVoice);

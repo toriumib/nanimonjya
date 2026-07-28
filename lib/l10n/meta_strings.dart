@@ -891,6 +891,17 @@ class MetaStrings {
   String get storeCharsDesc => ja
       ? 'なまえコールとビジネス特訓に登場する人が増えます。'
       : 'Adds more people to Name Call and Biz Training.';
+  // 🔔 練習リマインド
+  String get reminderTitle => ja ? '練習のリマインド' : 'Practice reminder';
+  String get reminderDesc => ja
+      ? '毎日この時刻に「名前トレーニングの時間です」とお知らせします。'
+      : "We'll remind you to train at this time every day.";
+  String get reminderCueHint => ja
+      ? '「夕食のあと」「通勤電車で」など、毎日必ずやることの直後に決めると続きやすいと言われています。'
+      : 'Tying it to something you already do daily — after dinner, on the commute — is said to help it stick.';
+  String hourLabel(int h) => ja ? '$h時' : '$h:00';
+  String reminderSaved(String time) =>
+      ja ? '$time にお知らせします' : "We'll remind you at $time";
   // 📇 名刺OCR
   String get ocrReading => ja ? '名刺を読み取り中…' : 'Reading the card…';
   String get ocrFilled => ja
