@@ -34,9 +34,13 @@ import 'online_result_screen.dart';
 /// 1. 命名フェーズ: 全員の顔に順番に名前をつける（名簿はひみつ）
 ///    ※カスタム名簿（自分の写真）で遊ぶ場合は名前つき済みなのでスキップ
 /// 2. 本編: カードが出てくる（基本は1枚ずつ／[doubleCard]で2枚同時）
-///    - ひとり/オンライン: 4択クイズで回答
-///    - みんなで(オフライン): 顔を見て一斉に名前を呼び、早かった人のボタンをタップ（審判方式）
 /// 3. 終了時に名簿を公開して答え合わせ。獲得枚数で勝敗
+///
+/// 回答方式は2つ（[quizMode]で切替）:
+/// - **呼んで判定（既定）**: 名前は暗記しておき、カードを見たら声に出して呼ぶ。
+///   取れた人のボタンをタップして獲得。誰も思い出せなければ付け直して山札に戻す
+/// - **4択クイズ**: 選択肢から選ぶ。ひとりで静かに遊びたいとき用
+/// - オンライン対戦は相手の宣言を判定できないため常にクイズ
 class NameCallScreen extends StatefulWidget {
   final int humanPlayers; // 1=ひとりで, 2..4=1台でみんなで
   final OnlineMatchSession? online;
@@ -47,6 +51,16 @@ class NameCallScreen extends StatefulWidget {
   /// まとめて命名のとき、名前を自分で入力せず自動でつける（入力が面倒な人向け）。
   final bool autoNames;
 
+  /// 回答方式。
+  ///
+  /// false（既定）= **呼んで判定**。原作のボードゲームと同じで、
+  /// カードを見たら声に出して名前を呼び、取れた人のボタンをタップする。
+  /// 名前は「暗記しておくもの」で、選択肢は出ない。
+  ///
+  /// true = **4択クイズ**。1人で黙々と遊びたいとき用のオプション。
+  /// オンライン対戦は相手の宣言を判定できないため常にクイズ。
+  final bool quizMode;
+
   const NameCallScreen({
     super.key,
     this.humanPlayers = 1,
@@ -56,6 +70,7 @@ class NameCallScreen extends StatefulWidget {
     this.peopleCount = NameCallGame.peopleCount,
     this.nameAsYouGo = false,
     this.autoNames = false,
+    this.quizMode = false,
   });
 
   /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
@@ -131,8 +146,12 @@ class _NameCallScreenState extends State<NameCallScreen> {
   bool get _isSolo => !_isOnline && !_isLocalMulti;
   bool get _isCustom => widget.customPeople != null;
 
-  /// オフライン対戦は「審判方式」（一斉に呼んで早い人がタップで獲得）。
-  bool get _isReferee => _isLocalMulti;
+  /// 「呼んで判定」方式か（原作のボードゲームと同じ流れ）。
+  ///
+  /// カードを見たら声に出して名前を呼び、取れた人のボタンをタップする。
+  /// 名前は暗記しておくものなので選択肢は出さない。
+  /// オンラインは相手の宣言を判定できないため、常に4択クイズになる。
+  bool get _isReferee => !_isOnline && !widget.quizMode;
 
   String get _modeName => _isOnline
       ? 'namecall_race'
@@ -402,7 +421,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     });
   }
 
-  // ── 審判方式の獲得（オフライン対戦）: 早かったプレイヤーをタップ、-1=パス ──
+  // ── 呼んで判定: 早かったプレイヤーをタップ、-1=だれも思い出せなかった ──
   void _claim(int player) {
     if (_phase != _Phase.round) return;
     if (player >= 0) {
@@ -411,6 +430,20 @@ class _NameCallScreenState extends State<NameCallScreen> {
       HapticFeedback.lightImpact();
     } else {
       Sfx.instance.wrong();
+      // 📛 原作のルール: 誰も名前を正確に思い出せなかったら、
+      // そのカードに**あらためて新しい名前をつけて**ゲームを続ける。
+      // （出たとき命名のときだけ。まとめて命名は名簿が決まっているので対象外）
+      if (widget.nameAsYouGo && _round.isNotEmpty) {
+        final card = _round[_answering];
+        _game.roster.remove(card); // 古い名前を捨てて付け直す
+        // 付け直した名前をあとで試せるよう、山札に戻す
+        _game.returnToDeck(card);
+        setState(() {
+          _inlinePerson = card;
+          _phase = _Phase.inlineNaming;
+        });
+        return;
+      }
     }
     _roundClaimer.add(player);
 
@@ -979,14 +1012,17 @@ class _NameCallScreenState extends State<NameCallScreen> {
     return Column(
       children: [
         Text(
-          _round.length == 2
-              ? m.refereePromptCard(_answering + 1)
-              : m.refereePrompt,
+          // ひとりで遊ぶときは「一斉にコール」だと不自然なので言い方を変える
+          widget.humanPlayers <= 1
+              ? m.soloRecallPrompt
+              : (_round.length == 2
+                  ? m.refereePromptCard(_answering + 1)
+                  : m.refereePrompt),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 4),
-        Text(m.refereeHint,
+        Text(widget.humanPlayers <= 1 ? m.soloRecallHint : m.refereeHint,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
         const SizedBox(height: 10),
@@ -1003,7 +1039,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
                   colors: colors[i],
                   height: double.infinity,
                   child: Text(
-                    m.playerGot('P${i + 1}'),
+                    widget.humanPlayers <= 1
+                        ? m.soloGot
+                        : m.playerGot('P${i + 1}'),
                     style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -1383,6 +1421,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                       peopleCount: widget.peopleCount,
                       nameAsYouGo: widget.nameAsYouGo,
                       autoNames: widget.autoNames,
+                      quizMode: widget.quizMode,
                     ),
                   ),
                 );

@@ -36,6 +36,8 @@ class _TopScreenState extends State<TopScreen>
   bool _nameAsYouGo = true;
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
   bool _autoNames = false;
+  // 回答方式。false=呼んで判定（原作どおり・既定） / true=4択クイズ
+  bool _quizMode = false;
 
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
@@ -148,6 +150,7 @@ class _TopScreenState extends State<TopScreen>
                             doubleCard: _doubleCard,
                             nameAsYouGo: _nameAsYouGo,
                             autoNames: _autoNames,
+                            quizMode: _quizMode,
                           ),
                         ),
                       );
@@ -663,6 +666,25 @@ class _TopScreenState extends State<TopScreen>
                                         setState(() => _autoNames = v),
                                   ),
                                 ],
+                                const SizedBox(height: 8),
+                                // 回答方式: 既定は原作どおりの「呼んで判定」。
+                                // 4択クイズはひとりで黙々と遊ぶ人向けのオプション。
+                                _optionSwitch(
+                                  emoji: '📝',
+                                  label: m.quizModeLabel,
+                                  value: _quizMode,
+                                  onChanged: (v) =>
+                                      setState(() => _quizMode = v),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _quizMode
+                                      ? m.quizModeOnHint
+                                      : m.quizModeOffHint,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
+                                ),
                                 const SizedBox(height: 14),
                                 // メインの「ひとりで」ボタン（グラデーション）
                                 _gradientButton(
@@ -681,7 +703,8 @@ class _TopScreenState extends State<TopScreen>
                                           builder: (_) => NameCallScreen(
                                               doubleCard: _doubleCard,
                                               nameAsYouGo: _nameAsYouGo,
-                                              autoNames: _autoNames)),
+                                              autoNames: _autoNames,
+                                              quizMode: _quizMode)),
                                     );
                                   },
                                 ),

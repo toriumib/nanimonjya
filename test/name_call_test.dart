@@ -61,4 +61,40 @@ void main() {
       }
     });
   });
+
+  // 原作ルール: 誰も名前を思い出せなかったカードは、
+  // 新しい名前をつけ直して山札に戻し、あとでもう一度出す。
+  group('returnToDeck（思い出せなかったカードの付け直し）', () {
+    test('山札に戻ると枚数が1増える', () {
+      final game = makeGame(3);
+      final card = game.drawRound().first;
+      final before = game.deck.length;
+      expect(game.returnToDeck(card), isTrue);
+      expect(game.deck.length, before + 1);
+      expect(game.deck, contains(card));
+    });
+
+    test('戻した直後に同じカードは引かれない（覚える間をあける）', () {
+      for (var seed = 0; seed < 20; seed++) {
+        final game = makeGame(seed);
+        final card = game.drawRound().first;
+        game.returnToDeck(card);
+        final next = game.drawRound().first;
+        expect(identical(next, card), isFalse,
+            reason: '戻した直後に同じ顔が出た (seed=$seed)');
+      }
+    });
+
+    test('山札が空なら戻さない（戻すとゲームが終われなくなるため）', () {
+      final game = makeGame(5);
+      Person? last;
+      while (!game.isFinished) {
+        final r = game.drawRound();
+        if (r.isNotEmpty) last = r.first;
+      }
+      expect(game.returnToDeck(last!), isFalse);
+      expect(game.deck, isEmpty);
+      expect(game.isFinished, isTrue);
+    });
+  });
 }

@@ -604,6 +604,13 @@ class MetaStrings {
   String get autoNamesLabel => ja
       ? '名前はおまかせ（入力しない）'
       : 'Auto-name them (no typing)';
+  String get quizModeLabel => ja ? '4択クイズにする' : 'Use 4-choice quiz';
+  String get quizModeOffHint => ja
+      ? '名前は暗記して声に出し、取れた人のボタンを押します（元のあそび方）'
+      : 'Memorize names, call them out, then tap who got it (original rules)';
+  String get quizModeOnHint => ja
+      ? '選択肢から選ぶ形式。ひとりで静かに遊びたいときに'
+      : 'Pick from choices — for playing quietly on your own';
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
   // 📇 実物の名刺＋顔写真での特訓（モバイル限定）
   String get realCardTrainingTitle =>
@@ -660,7 +667,7 @@ class MetaStrings {
   String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
   String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
 
-  // 審判方式（オフライン対戦）
+  // 呼んで判定（原作のボードゲームと同じ流れ）
   String get refereePrompt =>
       ja ? 'この子の名前を一斉にコール！' : 'Call out this name together!';
   String refereePromptCard(int n) =>
@@ -668,8 +675,19 @@ class MetaStrings {
   String get refereeHint => ja
       ? '早く正しく呼べた人のボタンを押そう'
       : 'Tap the button of whoever called it first & correctly';
+  /// ひとりで遊ぶときは「P1がとった」だと不自然なので言い方を変える
+  String get soloRecallPrompt =>
+      ja ? 'この子の名前、言える？' : 'Can you name this one?';
+  String get soloRecallHint => ja
+      ? '声に出して言ってから、下のボタンで自己申告しよう'
+      : 'Say it out loud, then judge yourself below';
+  String get soloGot => ja ? '✅ 言えた！' : '✅ I got it!';
   String playerGot(String p) => ja ? '$p が正解！' : '$p got it!';
   String get nobodyKnew => ja ? 'だれもわからなかった…' : 'Nobody knew…';
+  /// 原作どおり、思い出せなかったカードは新しい名前をつけ直して山札に戻る
+  String get renamedAfterMiss => ja
+      ? '思い出せなかったので、新しい名前をつけよう'
+      : 'Nobody recalled it — give it a new name';
 
   // 人数（カード枚数）
   String peopleCountLabel(int n) => ja ? '$n人' : '$n ppl';
