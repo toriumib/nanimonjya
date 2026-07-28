@@ -46,3 +46,9 @@ const List<BgmItem> kBgmCatalog = [
 
 /// クレジット表記が必要な提供元があるか。
 bool get kHasCreditedBgm => kBgmCatalog.any((b) => b.needsCredit);
+
+/// 🏠 ホーム画面で流す曲（魔王魂「ハルジオン」）。
+///
+/// ショップの購入対象とは別枠で、**最初から無料で流れる**アプリの雰囲気づくり用。
+/// ここで魔王魂の曲を使うため、クレジット表記はショップとマイページに常時出している。
+const String kHomeBgmAsset = '05_halzion.mp3';

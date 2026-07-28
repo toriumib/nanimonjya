@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../models/bgm_catalog.dart';
 import 'player_profile.dart';
 
 /// 🎵 BGMの再生を1か所にまとめたサービス。
@@ -19,6 +21,15 @@ class Bgm {
   Bgm._();
   static final Bgm instance = Bgm._();
 
+  /// ホームBGMの再開に使うルート監視。
+  ///
+  /// ホーム（HomeShell）はタブなので、ゲーム画面から戻ってきても
+  /// initState は再実行されない。そのため「別の画面が上に乗った／戻ってきた」を
+  /// これで拾って、ホームBGMを止める・再開する。
+  /// MaterialApp の navigatorObservers に登録すること。
+  static final RouteObserver<ModalRoute<void>> routeObserver =
+      RouteObserver<ModalRoute<void>>();
+
   final AudioPlayer _player = AudioPlayer();
 
   /// いま鳴らしているアセットキー（同じ曲の二重再生を防ぐ）。
@@ -35,6 +46,22 @@ class Bgm {
   /// SharedPreferences には素のファイル名が入っているので、アセットキーに直す。
   static String assetKey(String fileName) =>
       fileName.startsWith('assets/') ? fileName : 'assets/audio/$fileName';
+
+  /// 🏠 ホーム（タブシェル）で流すBGM。
+  ///
+  /// ゲーム画面へ移ると [playGame] に上書きされ、戻ってくると
+  /// [routeObserver] 経由でまたこれが呼ばれる。
+  /// ホームは操作していない時間も長いので、音量は控えめにする。
+  Future<void> playHome() {
+    _mode = _BgmMode.home;
+    return _play(assetKey(kHomeBgmAsset), volume: 0.22);
+  }
+
+  /// ホームBGMだけを止める（ゲーム画面が先に鳴らし始めていたら何もしない）。
+  Future<void> stopHome() async {
+    if (_mode != _BgmMode.home) return;
+    await stop();
+  }
 
   /// ゲーム中のBGM（プレイヤーが選んだ曲）をループ再生する。
   Future<void> playGame() {
@@ -90,4 +117,4 @@ class Bgm {
 }
 
 /// BGMをいまどの用途で鳴らしているか。
-enum _BgmMode { none, game, result }
+enum _BgmMode { none, home, game, result }

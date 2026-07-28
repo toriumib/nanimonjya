@@ -9,6 +9,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
+import 'services/bgm.dart'; // ホーム/ゲーム/リザルトのBGM
 import 'services/purchase_service.dart'; // 広告除去の買い切り課金
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
@@ -137,6 +138,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: DeepLinkService.navigatorKey, // ディープリンク遷移用
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+        Bgm.routeObserver, // ホームBGMの停止・再開に使う
       ],
       title: '名前を覚えよう：なまえコール', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
