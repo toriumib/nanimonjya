@@ -177,6 +177,38 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 💳 広告除去（買い切り）
                     _removeAdsCard(m, p),
                     const SizedBox(height: 20),
+                    // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
+                    _sectionHeader(m.storeMore, m.storeCharsDesc),
+                    GridView.count(
+                      crossAxisCount: 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.72,
+                      children: [
+                        for (final c in kExtraCharacters)
+                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // 基本キャラ（最初から持っている12人）
+                    Text(m.storeStarter,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    GridView.count(
+                      crossAxisCount: 4,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 0.9,
+                      children: [
+                        for (final a in kCharImageAssets) _ownedThumb(a),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                     // 🎉 ほめボイス（気分が良くなる系）
                     _sectionHeader(m.shopVoicesTitle, m.shopVoicesDesc),
                     for (final v in kPraiseVoices)
@@ -206,41 +238,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                             style: const TextStyle(
                                 fontSize: 11, color: Colors.black54)),
                       ),
-                    const SizedBox(height: 20),
-                    // 追加キャラ
-                    Text(m.storeMore,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 8),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.72,
-                      children: [
-                        for (final c in kExtraCharacters)
-                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // 基本キャラ（所持）
-                    Text(m.storeStarter,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 8),
-                    GridView.count(
-                      crossAxisCount: 4,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 0.9,
-                      children: [
-                        for (final a in kCharImageAssets) _ownedThumb(a),
-                      ],
-                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               );

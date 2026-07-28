@@ -238,7 +238,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _quizTimer?.cancel();
     _nameController.dispose();
     _bannerAd?.dispose();
-    Bgm.instance.stop();
+    // リザルト画面が先に鳴らし始めていたら止めない
+    Bgm.instance.stopGame();
     super.dispose();
   }
 

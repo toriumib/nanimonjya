@@ -186,7 +186,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     _memorizeTimer?.cancel();
     _cpuTimer?.cancel();
     _bannerAd?.dispose();
-    Bgm.instance.stop();
+    // リザルト画面が先に鳴らし始めていたら止めない
+    Bgm.instance.stopGame();
     super.dispose();
   }
 

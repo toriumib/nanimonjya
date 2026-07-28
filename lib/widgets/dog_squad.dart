@@ -25,21 +25,7 @@ class _DogSquadState extends State<DogSquad>
   String _bubbleText = '';
 
   static const List<String> _dogCheersJa = ['ワン！', 'ワンワン♪', 'クゥ〜ン'];
-  static const List<String> _cheerCheersJa = [
-    'がんばれ〜！',
-    'ナイス！',
-    'その調子！',
-    'いけいけ〜！',
-    'フレー！フレー！',
-  ];
   static const List<String> _dogCheersEn = ['Woof!', 'Arf arf♪', 'Awoo~'];
-  static const List<String> _cheerCheersEn = [
-    'Go go!',
-    'Nice!',
-    'Keep it up!',
-    'You got this!',
-    'Hooray!',
-  ];
 
   @override
   void initState() {

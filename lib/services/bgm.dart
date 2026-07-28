@@ -24,17 +24,30 @@ class Bgm {
   /// いま鳴らしているアセットキー（同じ曲の二重再生を防ぐ）。
   String? _current;
 
+  /// いま誰のためにに鳴らしているか。
+  ///
+  /// `pushReplacement`（ゲーム画面→リザルト画面）では、
+  /// **新しい画面の initState が先に走り、古い画面の dispose が後から走る**。
+  /// そのため古い画面が無条件に stop() すると、リザルト画面が鳴らし始めた曲を
+  /// 直後に止めてしまう。用途を持たせて「自分が鳴らした曲だけ止める」ようにする。
+  _BgmMode _mode = _BgmMode.none;
+
   /// SharedPreferences には素のファイル名が入っているので、アセットキーに直す。
   static String assetKey(String fileName) =>
       fileName.startsWith('assets/') ? fileName : 'assets/audio/$fileName';
 
   /// ゲーム中のBGM（プレイヤーが選んだ曲）をループ再生する。
-  Future<void> playGame() => _play(assetKey(PlayerProfile.instance.selectedBgm));
+  Future<void> playGame() {
+    _mode = _BgmMode.game;
+    return _play(assetKey(PlayerProfile.instance.selectedBgm));
+  }
 
   /// 結果画面のBGM。選ばれていた `selectedResultBgm` はどこからも再生されて
   /// いなかったため、ここで使う。
-  Future<void> playResult() =>
-      _play(assetKey(PlayerProfile.instance.selectedResultBgm));
+  Future<void> playResult() {
+    _mode = _BgmMode.result;
+    return _play(assetKey(PlayerProfile.instance.selectedResultBgm));
+  }
 
   Future<void> _play(String key, {double volume = 0.35}) async {
     if (_current == key && _player.playing) return;
@@ -52,9 +65,18 @@ class Bgm {
     }
   }
 
-  /// 画面を離れるときに止める。プレイヤー自体は使い回すので dispose しない。
+  /// ゲーム画面を離れるときに止める。
+  ///
+  /// リザルト画面がすでに鳴らし始めていたら**止めない**（上記の順序問題への対策）。
+  Future<void> stopGame() async {
+    if (_mode != _BgmMode.game) return;
+    await stop();
+  }
+
+  /// 無条件に止める。プレイヤー自体は使い回すので dispose しない。
   Future<void> stop() async {
     _current = null;
+    _mode = _BgmMode.none;
     try {
       await _player.stop();
     } catch (_) {}
@@ -66,3 +88,6 @@ class Bgm {
     await playGame();
   }
 }
+
+/// BGMをいまどの用途で鳴らしているか。
+enum _BgmMode { none, game, result }

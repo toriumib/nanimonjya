@@ -866,6 +866,9 @@ class MetaStrings {
   String get shopThemesDesc => ja
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
+  String get storeCharsDesc => ja
+      ? 'なまえコールとビジネス特訓に登場する人が増えます。'
+      : 'Adds more people to Name Call and Biz Training.';
   // 📇 名刺OCR
   String get ocrReading => ja ? '名刺を読み取り中…' : 'Reading the card…';
   String get ocrFilled => ja
