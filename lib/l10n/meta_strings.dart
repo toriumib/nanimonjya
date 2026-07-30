@@ -615,13 +615,6 @@ class MetaStrings {
   String get autoNamesLabel => ja
       ? '名前はおまかせ（入力しない）'
       : 'Auto-name them (no typing)';
-  String get quizModeLabel => ja ? '4択クイズにする' : 'Use 4-choice quiz';
-  String get quizModeOffHint => ja
-      ? '名前は暗記して声に出し、取れた人のボタンを押します（元のあそび方）'
-      : 'Memorize names, call them out, then tap who got it (original rules)';
-  String get quizModeOnHint => ja
-      ? '選択肢から選ぶ形式。ひとりで静かに遊びたいときに'
-      : 'Pick from choices — for playing quietly on your own';
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
   // 📇 実物の名刺＋顔写真での特訓（モバイル限定）
   String get realCardTrainingTitle =>
@@ -674,7 +667,6 @@ class MetaStrings {
   String get cardsWonLabel => ja ? 'かくとく' : 'Cards';
   String get cardsUnit => ja ? '枚' : 'cards';
   String get toResultButton => ja ? 'けっかを見る →' : 'See results →';
-  String get nameCallSoloButton => ja ? '👤 ひとりで' : '👤 Solo';
   String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
   String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
 
