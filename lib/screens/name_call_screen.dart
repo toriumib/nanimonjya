@@ -13,7 +13,6 @@ import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
-import '../services/app_toast.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/review_prompt.dart';
@@ -345,9 +344,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
     var name = _nameController.text.trim();
     if (name.isEmpty) {
       if (!autoNameIfEmpty) return;
+      // 「名前をつけた！」の場合、覚えるのはプレイヤーが声に出した名前。
+      // アプリはその名前を知らないので、札を区別するための識別子として
+      // 内部的にガチャ名を割り当てるだけ。**画面には出さない**
+      // （出すと「言ってない名前」が表示されて混乱するため）。
       name = _uniqueGachaName();
-      // 自分で決めていない名前なので、何になったかは必ず知らせる
-      AppToast.show(MetaStrings(PlatformDispatcherLocale.isJa).namedAs(name));
     }
     Sfx.instance.pop();
     HapticFeedback.selectionClick();
@@ -355,6 +356,52 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _nameController.clear();
     _inlinePerson = null;
     _nextRound();
+  }
+
+  /// 🎲 アプリに名前を決めてもらう。
+  ///
+  /// 決まった名前は**この人を覚えるための名前**なので、小さなトーストではなく
+  /// 画面いっぱいに大きく見せてから次へ進む（覚える時間をとる）。
+  Future<void> _nameWithGacha() async {
+    final person = _inlinePerson;
+    if (person == null) return;
+    final m = MetaStrings.of(context);
+    final name = _uniqueGachaName();
+    Sfx.instance.pop();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FaceView(person: person, size: 120, radius: 16),
+            const SizedBox(height: 14),
+            Text(name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF2B5CA5))),
+            const SizedBox(height: 6),
+            Text(m.gachaNamedHint,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(46),
+            ),
+            child: Text(m.memorizedNext),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    _nameController.text = name;
+    _submitInlineName();
   }
 
   /// まだ名簿で使われていないガチャ名を作る。
@@ -751,62 +798,37 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 curve: Curves.easeOutBack,
               ),
           const SizedBox(height: 14),
-          TextField(
-            controller: _nameController,
-            maxLength: 8,
-            autofocus: true,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-            inputFormatters: [LengthLimitingTextInputFormatter(8)],
-            decoration: InputDecoration(
-              labelText: m.nameFieldLabel,
-              counterText: '',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            // 「暗記した！」ボタンの有効・無効を切り替えるため入力を監視する
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (_) => _submitInlineName(),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _rollGacha,
-                  icon: const Text('🎲'),
-                  label: Text(m.gachaLabel),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _submitInlineName,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE8A400),
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                  child: Text(m.namingDecide),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // 🧠 このモードの肝は「名前を暗記して次に備える」こと。
-          // 名前を決めるだけで流してしまわないよう、覚えたことを自分で確認して
-          // 進むボタンを用意する（動作は「これにする！」と同じで次のカードへ）。
+          // ⌨️ テキスト入力はやめた。
+          // みんなで遊ぶときは口で名前を言うので、入力欄があると
+          // 「打つ人」を待つことになって場が止まる。ボタン2つに絞る。
+          //
+          // ① 名前をつけた！ … 声に出してつけた名前を各自が覚える（アプリは記録だけ）
+          // ② 🎲おまかせ    … アプリが名前を決める。決まった名前は大きく表示する
+          //
+          // ①のときアプリ側は名前を知らないので、内部的にはガチャ名を割り当てて
+          // 「札を区別する識別子」として使う。プレイヤーが覚えるのは自分でつけた名前。
           ElevatedButton.icon(
-            // 未入力でも押せる。その場合はガチャ名を自動でつけて進む
             onPressed: () => _submitInlineName(autoNameIfEmpty: true),
-            icon: const Text('✨', style: TextStyle(fontSize: 18)),
-            label: Text(m.memorizedNext),
+            icon: const Text('✨', style: TextStyle(fontSize: 20)),
+            label: Text(m.namedItAloud),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4ECDC4),
-              disabledBackgroundColor: const Color(0xFFD8E4F0),
+              minimumSize: const Size.fromHeight(56),
+              textStyle:
+                  const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _nameWithGacha,
+            icon: const Text('🎲', style: TextStyle(fontSize: 18)),
+            label: Text(m.gachaNameIt),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF2B5CA5),
+              side: const BorderSide(color: Color(0xFF3A7BD5), width: 2),
               minimumSize: const Size.fromHeight(50),
+              textStyle:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
             ),
           ),
           const SizedBox(height: 12),

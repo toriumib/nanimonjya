@@ -592,6 +592,13 @@ class MetaStrings {
   /// 未入力のまま進んだとき、自動でついた名前を知らせる
   String namedAs(String name) => ja ? '「$name」と名づけた！' : 'Named "$name"!';
   /// 出たとき命名で、名前を決めたあと『覚えた』と確認して次へ進むボタン
+  /// 出たとき命名: 声に出して名前をつけた（アプリは名前を知らない）
+  String get namedItAloud => ja ? '名前をつけた！' : 'We named it!';
+  String get gachaNameIt => ja ? 'おまかせで名前をつける' : 'Let the app name it';
+  String get gachaNamedHint => ja
+      ? 'この名前で覚えてね。つぎに出てきたら呼んであげよう'
+      : 'Remember this name — call it out when it appears again';
+  String get shopTabLabel => ja ? 'ショップ' : 'Shop';
   String get memorizedNext => ja ? '暗記した！つぎへ' : 'Memorized — next!';
   String get namingMemorize => ja ? 'ここまでの名簿を見る' : 'Review names so far';
 
