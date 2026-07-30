@@ -78,4 +78,48 @@ class AppAnalytics {
       });
 
   static void reviewPromptShown() => _log('review_prompt_shown');
+
+  // ───────── 📊 使われ方の可視化 ─────────
+  // 「どの機能が使われ、ショップで何が売れているか」を後から数えられるようにする。
+  // Firebase コンソール → Analytics → イベント で見られる。
+  // ⚠️ 個人を特定できる値（入力した名前・写真・名刺の中身）は絶対に送らない。
+  //    送るのはカタログ上のIDと数量だけ。
+
+  /// タブ・モードに入った回数。どの遊び方が人気かを測る。
+  /// [feature] は 'namecall' / 'pairs' / 'training' / 'read' / 'profile' /
+  /// 'shop' / 'recall' / 'custom_roster' / 'spaced_review' など固定の識別子。
+  static void featureOpen(String feature) =>
+      _log('feature_open', {'feature': feature});
+
+  /// ショップの購入。何がどれだけ売れているかを商品単位で数える。
+  /// [category] は 'character' / 'voice' / 'charm' / 'skin' / 'theme' / 'bgm'。
+  /// [method] は 'coins'（コイン購入）/ 'ad'（動画で解放）/ 'iap'（課金）。
+  static void shopPurchase({
+    required String category,
+    required String itemId,
+    required int cost,
+    required String method,
+  }) =>
+      _log('shop_purchase', {
+        'category': category,
+        'item_id': itemId,
+        'cost': cost,
+        'method': method,
+      });
+
+  /// 買おうとしたがコインが足りなかった。値付けが高すぎる商品を見つけられる。
+  static void shopBlockedByCoins({
+    required String category,
+    required String itemId,
+    required int shortBy,
+  }) =>
+      _log('shop_short_of_coins', {
+        'category': category,
+        'item_id': itemId,
+        'short_by': shortBy,
+      });
+
+  /// 日をまたいだ復習をやり切った。定着の指標。
+  static void spacedReviewDone({required int total, required int correct}) =>
+      _log('spaced_review_done', {'total': total, 'correct': correct});
 }

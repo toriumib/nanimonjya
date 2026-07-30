@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
+import '../services/review_queue.dart';
 import '../services/sfx.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
@@ -21,6 +22,12 @@ class TrainingHubScreen extends StatefulWidget {
 
 class _TrainingHubScreenState extends State<TrainingHubScreen> {
   int _level = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    ReviewQueue.instance.load(); // 期限が来ている人がいるか読み込む
+  }
   // 覚える項目。会社名＋名前が基本、他はオプション。
   final Set<RecallField> _fields = {RecallField.name, RecallField.company};
 
@@ -32,6 +39,23 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
         builder: (_) => MatchGameScreen(
           level: _level,
           mnemonicGuide: mnemonic,
+        ),
+      ),
+    );
+  }
+
+  /// 🔁 期限が来ている人だけで思い出しトレーニングを始める。
+  /// 顔と名前だけを問うので、出題項目は name に絞る。
+  void _startSpacedReview() {
+    final people = ReviewQueue.instance.duePeople();
+    if (people.isEmpty) return;
+    Sfx.instance.fanfare();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecallTrainingScreen(
+          people: people,
+          fields: const {RecallField.name},
         ),
       ),
     );
@@ -91,6 +115,55 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
               children: [
                 const MemoryTipTicker(),
                 const SizedBox(height: 16),
+                // 🔁 日をまたいだ復習（期限が来ている人がいるときだけ出す）
+                AnimatedBuilder(
+                  animation: ReviewQueue.instance,
+                  builder: (context, _) {
+                    final due = ReviewQueue.instance.dueCount();
+                    if (due == 0) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE8A400), Color(0xFFE8663C)],
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(m.spacedReviewTitle(due),
+                                style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white)),
+                            const SizedBox(height: 4),
+                            Text(m.spacedReviewDesc,
+                                style: const TextStyle(
+                                    fontSize: 12.5,
+                                    height: 1.4,
+                                    color: Colors.white)),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _startSpacedReview,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFFB35A00),
+                                minimumSize: const Size.fromHeight(48),
+                              ),
+                              child: Text(m.spacedReviewStart,
+                                  style: const TextStyle(
+                                      fontSize: 15.5,
+                                      fontWeight: FontWeight.w900)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 _card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

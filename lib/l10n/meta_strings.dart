@@ -892,6 +892,14 @@ class MetaStrings {
       ? 'なまえコールとビジネス特訓に登場する人が増えます。'
       : 'Adds more people to Name Call and Biz Training.';
   // 🔔 練習リマインド
+  // 🔁 日をまたいだ復習（間隔をあけた再テスト）
+  String spacedReviewTitle(int n) =>
+      ja ? '🔁 きょう復習する人が $n 人います' : '🔁 $n to review today';
+  String get spacedReviewDesc => ja
+      ? '前に思い出せなかった人です。間隔をあけてもう一度会うと、長く残りやすいとされています。'
+      : 'People you missed before. Meeting them again after a gap is said to make names last.';
+  String get spacedReviewStart => ja ? '復習をはじめる' : 'Start review';
+
   String get reminderTitle => ja ? '練習のリマインド' : 'Practice reminder';
   String get reminderDesc => ja
       ? '毎日この時刻に「名前トレーニングの時間です」とお知らせします。'

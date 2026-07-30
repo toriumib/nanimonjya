@@ -13,6 +13,7 @@ import '../models/shop_items.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/review_prompt.dart';
+import '../services/review_queue.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/double_coins_button.dart';
@@ -222,10 +223,18 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       }
       Sfx.instance.correct();
       Speech.instance.praise(ja: _ja); // 🎉 ほめボイス
+      // 🔁 日をまたぐ復習: 名前を当てられたら次の間隔へ送る（卒業もここ）
+      if (_q.field == RecallField.name) {
+        ReviewQueue.instance.recordSuccess(_q.person);
+      }
     } else {
       Sfx.instance.wrong();
       // まちがえた問題は復習キューへ（本編で外したものだけ。復習で外しても無限には続けない）
       if (!_inReview) _reviewQueue.add(_q);
+      // 🔁 日をまたぐ復習にも登録して、後日もう一度出す
+      if (_q.field == RecallField.name) {
+        ReviewQueue.instance.recordMiss(_q.person);
+      }
     }
     setState(() {
       _answered = true;

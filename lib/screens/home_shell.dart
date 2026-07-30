@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
+import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/sfx.dart';
 import 'memory_tips_screen.dart';
@@ -76,6 +77,10 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // マイページで曲を試聴したあとタブを移ると、その曲が鳴り続けてしまう。
           // タブはどれも「ホーム」なので、切り替えたらホームBGMに戻す。
           // （すでにホームBGMが鳴っていれば何もしない）
+          // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
+          AppAnalytics.featureOpen(const [
+            'namecall', 'pairs', 'training', 'read', 'profile'
+          ][i]);
           Bgm.instance.playHome();
           setState(() => _index = i);
         },

@@ -7,6 +7,7 @@ import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
+import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import '../services/purchase_service.dart';
@@ -78,12 +79,16 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     if (p.unlockedCharacters.contains(c.id)) return;
     if (p.coins < c.cost) {
       // キャラ購入も同じく、その場で動画に誘導する
+      AppAnalytics.shopBlockedByCoins(
+          category: 'character', itemId: c.id, shortBy: c.cost - p.coins);
       Sfx.instance.wrong();
       await _offerAdForCoins(m, c.cost);
       return;
     }
     final ok = await p.unlockCharacter(c.id, c.cost);
     if (ok) {
+      AppAnalytics.shopPurchase(
+          category: 'character', itemId: c.id, cost: c.cost, method: 'coins');
       Sfx.instance.reward();
       if (mounted) {
         ScaffoldMessenger.of(context)
