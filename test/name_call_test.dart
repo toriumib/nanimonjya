@@ -18,6 +18,36 @@ void main() {
     return game;
   }
 
+  group('NameCallGame 進捗（離脱地点の計測用）', () {
+    test('開始時は0%、引ききると100%', () {
+      final game = makeGame(7);
+      expect(game.progressPct, 0);
+      expect(game.consumedCards, 0);
+      while (!game.isFinished) {
+        game.drawRound();
+      }
+      expect(game.progressPct, 100);
+      expect(game.consumedCards, game.totalCards);
+    });
+
+    test('途中まで引いたら0〜100の範囲におさまる', () {
+      final game = makeGame(8);
+      game.drawRound();
+      game.drawRound();
+      expect(game.progressPct, inInclusiveRange(0, 100));
+      expect(game.consumedCards, 2);
+    });
+
+    test('山札に戻しても進捗は負にならない', () {
+      final game = makeGame(9);
+      final card = game.drawRound().first;
+      // 戻すと残り山札が増えるので、素朴な引き算だと進捗が負になりうる
+      game.returnToDeck(card);
+      expect(game.progressPct, inInclusiveRange(0, 100));
+      expect(game.consumedCards, greaterThanOrEqualTo(0));
+    });
+  });
+
   group('NameCallGame', () {
     test('山札は人数×2枚で、2枚ずつ引くと使い切れる', () {
       final game = makeGame(1);

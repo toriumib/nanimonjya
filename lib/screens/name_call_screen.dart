@@ -100,6 +100,21 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   _Phase _phase = _Phase.naming;
 
+  // 📉 完走率ファネル: 各通過点を1回だけ撃つためのフラグ。
+  // 終了(_finishGame)まで到達したかどうかも持ち、dispose時に
+  // 「完走せずに画面を出た＝離脱」を game_exit として記録する。
+  final Set<String> _funnelSent = {};
+  bool _finished = false;
+
+  void _markProgress(String phase) {
+    if (!_funnelSent.add(phase)) return; // すでに撃った通過点は無視
+    AppAnalytics.namecallProgress(
+      phase: phase,
+      people: _game.people.length,
+      mode: _modeName,
+    );
+  }
+
   // 命名フェーズ
   int _namingIndex = 0;
   final TextEditingController _nameController = TextEditingController();
@@ -257,6 +272,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   @override
   void dispose() {
+    // 📉 完走せずに画面を出た＝離脱。どこまで進んでいたかと一緒に記録する。
+    // （_finishGame まで行った場合は 'completed' を撃ってあるので二重に撃たない）
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: _modeName,
+        reason: 'quit',
+        progressPct: _game.progressPct,
+        people: _game.people.length,
+      );
+    }
     _quizTimer?.cancel();
     _nameController.dispose();
     _bannerAd?.dispose();
@@ -299,6 +324,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
       return;
     }
 
+    // 📉 ファネル: 全員に名前がついた時点＝本編に入れた
+    if (_game.roster.length >= _game.people.length) {
+      _markProgress('naming_done');
+    }
+    // 半分まで消化できたか（ここから先の離脱は「飽き」より「難しさ」を疑う）
+    if (_game.progressPct >= 50) _markProgress('recall_half');
+
     // 出たとき命名モード: 1枚引いて、初登場なら命名・再登場なら想起
     if (widget.nameAsYouGo) {
       final card = _game.drawRound().first; // cardsPerRound=1固定
@@ -311,6 +343,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
         return;
       }
       // 再登場 → 想起（1枚ラウンド）
+      _markProgress('recall_first');
       setState(() {
         _round = [card];
         _answering = 0;
@@ -324,6 +357,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       return;
     }
 
+    _markProgress('recall_first');
     setState(() {
       _round = _game.drawRound();
       _answering = 0;
@@ -546,7 +580,14 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   Future<void> _finishGame() async {
     setState(() => _phase = _Phase.reveal);
+    _finished = true;
     AppAnalytics.gameEnd(mode: _modeName, topScore: _cardsWon.reduce(max));
+    AppAnalytics.gameExit(
+      mode: _modeName,
+      reason: 'completed',
+      progressPct: 100,
+      people: _game.people.length,
+    );
     if (_isOnline) {
       final elapsedMs = DateTime.now()
           .difference(widget.online!.startedAt)

@@ -110,6 +110,14 @@ class NameCallGame {
 
   bool get isFinished => deck.isEmpty;
 
+  /// 消化したカード枚数（= totalCards - 残り山札）。
+  /// 山札に戻したぶん進捗が戻ることがあるので、負にはならないよう丸める。
+  int get consumedCards => (totalCards - deck.length).clamp(0, totalCards);
+
+  /// どこまで進んだか（0-100）。離脱地点の分析に使う。
+  int get progressPct =>
+      totalCards == 0 ? 0 : (consumedCards * 100 / totalCards).round();
+
   /// クイズの選択肢: 正解＋名簿のほかの名前から最大3つ（通常4択）。
   /// 名簿の名前だけで作るので「自分がつけたはずの名前」から選ぶことになる。
   /// 登録人数が少ない（カスタム名簿など）場合は選択肢が4未満になることもある。

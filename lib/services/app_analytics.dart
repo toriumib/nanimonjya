@@ -32,6 +32,45 @@ class AppAnalytics {
   static void gameEnd({required String mode, required int topScore}) =>
       _log('game_end', {'mode': mode, 'top_score': topScore});
 
+  // ───────── 📉 完走率のファネル ─────────
+  // game_start と game_end のあいだが真っ暗で「どこで離脱したか」が
+  // 分からなかったため、通過点を撃つ。GA4の「目標到達プロセスデータ探索」に
+  // game_start → namecall_progress(各phase) → game_end を順に並べると、
+  // 何人がどの段で消えたかが段ごとの実数で出る。
+
+  /// ゲーム中の通過点。[phase] は到達順に固定の識別子を使う:
+  /// - 'naming_done'  : 全員の命名がおわって本編に入った
+  /// - 'recall_first' : 最初の想起（1枚目の出題）にたどりついた
+  /// - 'recall_half'  : 出題の半分をこなした
+  /// [people] は登場人数（6/9/12）。人数が多いほど落ちるのかを見分ける。
+  static void namecallProgress({
+    required String phase,
+    required int people,
+    required String mode,
+  }) =>
+      _log('namecall_progress', {
+        'phase': phase,
+        'people': people,
+        'mode': mode,
+      });
+
+  /// ゲームがどう終わったか。完走と中断を分けて数える。
+  /// [reason] は 'completed'（最後まで）/ 'quit'（戻るで自分から離脱）/
+  /// 'backgrounded'（アプリを閉じた・別アプリへ）。
+  /// [progressPct] は何%まで進んでいたか（0-100）。
+  static void gameExit({
+    required String mode,
+    required String reason,
+    required int progressPct,
+    required int people,
+  }) =>
+      _log('game_exit', {
+        'mode': mode,
+        'reason': reason,
+        'progress_pct': progressPct,
+        'people': people,
+      });
+
   // ── 広告（視聴率の分析用）──
   static void adRewardPrompt(String placement) =>
       _log('ad_reward_prompt', {'placement': placement});
