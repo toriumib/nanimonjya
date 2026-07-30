@@ -20,8 +20,17 @@ import 'person.dart';
 /// 4. 名前を思い出せたら獲得。2枚同時のときは両方言えたら「りょうどり」で2枚
 /// 5. 思い出せなかったカードは没収（こぼれ札）。獲得枚数で勝敗
 class NameCallGame {
-  /// 登場人数のデフォルト（画面側でサイズ選択可能）。
-  static const int peopleCount = 12;
+  /// 登場人数のデフォルト。
+  ///
+  /// ⚠️ 12人にしていたが、Analyticsで**ゲームを始めた54人のうち20人しか
+  /// 終わりまで到達していなかった**（63%が1ゲームも完走せず）。
+  /// 12人＝山札24枚で、出たとき命名なら命名12回＋想起12回。初回には長すぎる。
+  /// まず1ゲーム終わらせて手応えを持ってもらうため6人を既定にし、
+  /// 物足りない人はホームで9人・12人を選べるようにした。
+  static const int peopleCount = 6;
+
+  /// ホームで選べる登場人数。
+  static const List<int> selectableCounts = [6, 9, 12];
 
   /// 使える顔の最大数（フリー素材キャラ画像の枚数）。
   static const int maxPeople = 12;
@@ -86,6 +95,16 @@ class NameCallGame {
     // 直後にまた同じ顔が出ると覚える間がないので、少し後ろに差し込む
     final at = deck.length == 1 ? 1 : 1 + rng.nextInt(deck.length);
     deck.insert(at.clamp(0, deck.length), p);
+    // 山札には同じ人物が2枚あるため、先頭がすでに同じ人物のこともある。
+    // その場合は「直後に出さない」が守れないので、先頭を別の人物と入れ替える。
+    if (deck.first == p) {
+      final other = deck.indexWhere((c) => c != p);
+      if (other > 0) {
+        final tmp = deck[0];
+        deck[0] = deck[other];
+        deck[other] = tmp;
+      }
+    }
     return true;
   }
 

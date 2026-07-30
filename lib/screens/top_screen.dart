@@ -11,6 +11,7 @@ import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
+import '../models/name_call.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
@@ -38,6 +39,8 @@ class _TopScreenState extends State<TopScreen>
   bool _autoNames = false;
   // 回答方式。false=呼んで判定（原作どおり・既定） / true=4択クイズ
   bool _quizMode = false;
+  // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
+  int _peopleCount = NameCallGame.peopleCount;
 
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
@@ -151,6 +154,7 @@ class _TopScreenState extends State<TopScreen>
                             nameAsYouGo: _nameAsYouGo,
                             autoNames: _autoNames,
                             quizMode: _quizMode,
+                            peopleCount: _peopleCount,
                           ),
                         ),
                       );
@@ -666,6 +670,24 @@ class _TopScreenState extends State<TopScreen>
                                         setState(() => _autoNames = v),
                                   ),
                                 ],
+                                const SizedBox(height: 10),
+                                // 登場人数。既定は6人（まず1ゲーム終わらせてもらう）。
+                                // 選択UIが無く常に12人だったため、初回が長すぎて
+                                // 完走できない人が多かった。
+                                Row(
+                                  children: [
+                                    for (final n
+                                        in NameCallGame.selectableCounts) ...[
+                                      if (n != NameCallGame.selectableCounts.first)
+                                        const SizedBox(width: 8),
+                                      _ruleChip(
+                                        m.peopleCountLabel(n),
+                                        _peopleCount == n,
+                                        () => setState(() => _peopleCount = n),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                                 const SizedBox(height: 8),
                                 // 回答方式: 既定は原作どおりの「呼んで判定」。
                                 // 4択クイズはひとりで黙々と遊ぶ人向けのオプション。
@@ -704,7 +726,8 @@ class _TopScreenState extends State<TopScreen>
                                               doubleCard: _doubleCard,
                                               nameAsYouGo: _nameAsYouGo,
                                               autoNames: _autoNames,
-                                              quizMode: _quizMode)),
+                                              quizMode: _quizMode,
+                                              peopleCount: _peopleCount)),
                                     );
                                   },
                                 ),
