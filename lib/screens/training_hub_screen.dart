@@ -8,9 +8,11 @@ import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
+import 'line_match_screen.dart';
 import 'match_game_screen.dart';
 import 'recall_training_screen.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
@@ -44,6 +46,15 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
     );
   }
 
+  /// 🖇 線むすび特訓。めくる運に左右されず、顔から名前を引き出す形で判定する。
+  void _startLineMatch() {
+    Sfx.instance.pop();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => LineMatchScreen(level: _level)),
+    );
+  }
+
   /// 🔁 期限が来ている人だけで思い出しトレーニングを始める。
   /// 顔と名前だけを問うので、出題項目は name に絞る。
   void _startSpacedReview() {
@@ -74,6 +85,20 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   // 覚える項目トグル（名前は必須、会社はデフォルトON、他はオプション）
   Widget _fieldChip(RecallField f, String label, {bool fixed = false}) {
     final on = _fields.contains(f);
+    // 🏷️ 名前は「覚える項目」の主役なので、他の項目より一段目立たせる
+    // （会社名・肩書などのビジネス項目と横並びだと埋もれてトーンダウンして見えるため）
+    if (fixed) {
+      return Chip(
+        label: Text(label,
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF2B5CA5))),
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.white, width: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      );
+    }
     return FilterChip(
       label: Text(label,
           style: TextStyle(
@@ -85,18 +110,16 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
       backgroundColor: Colors.white.withValues(alpha: 0.18),
       selectedColor: Colors.white,
       side: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
-      onSelected: fixed
-          ? null
-          : (v) {
-              Sfx.instance.pop();
-              setState(() {
-                if (v) {
-                  _fields.add(f);
-                } else {
-                  _fields.remove(f);
-                }
-              });
-            },
+      onSelected: (v) {
+        Sfx.instance.pop();
+        setState(() {
+          if (v) {
+            _fields.add(f);
+          } else {
+            _fields.remove(f);
+          }
+        });
+      },
     );
   }
 
@@ -104,6 +127,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text(m.tabTraining)),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(
@@ -228,7 +252,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          _fieldChip(RecallField.name, m.fieldLabel(RecallField.name),
+                          _fieldChip(RecallField.name, m.nameFieldChipLabel,
                               fixed: true),
                           _fieldChip(
                               RecallField.company, m.fieldLabel(RecallField.company)),
@@ -268,10 +292,19 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                           style: const TextStyle(
                               fontSize: 12.5, color: Colors.black54)),
                       const SizedBox(height: 12),
+                      // 🖇 線むすびを一人特訓の主役に（顔→名前を自力で引き出す形）
                       ElevatedButton(
-                        onPressed: () => _start(),
+                        onPressed: _startLineMatch,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4ECDC4),
+                          minimumSize: const Size.fromHeight(46),
+                        ),
+                        child: Text(m.lineMatchButton),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: () => _start(),
+                        style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(46),
                         ),
                         child: Text(m.soloTrainingStart),

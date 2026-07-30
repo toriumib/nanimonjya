@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/meta_strings.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 一人特訓モード・トレーニングレポートから開ける「認知トレーニングについて」説明画面。
 /// 査読研究の一般的な知見を紹介するが、効果を断定・保証する表現は避けている。
@@ -10,6 +11,7 @@ class CognitiveInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text(m.cognitiveInfoTitle)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

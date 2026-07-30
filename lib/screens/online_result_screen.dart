@@ -16,6 +16,7 @@ import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import 'online_lobby_screen.dart';
 import 'home_shell.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// オンライン同時レースの結果画面。
 /// 相手の結果が届くのを待ち、手数（同数ならタイム）で勝敗を決める。
@@ -152,6 +153,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     final rank = cpuRankForRating(_ratingAfter);
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.onlineMatchTitle),
         automaticallyImplyLeading: false,

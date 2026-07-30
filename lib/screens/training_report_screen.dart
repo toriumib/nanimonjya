@@ -6,6 +6,7 @@ import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
 import 'memory_tips_screen.dart';
 import 'home_shell.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 一人特訓モード（顔と名前の神経衰弱）終了後のトレーニングレポート。
 /// 勝敗ではなく、一致成功率・手数効率・判断時間などの自己記録をフィードバックする。
@@ -75,6 +76,7 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
     final avgSec = (widget.avgReactionMs / 1000).toStringAsFixed(1);
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.trainingReportTitle),
         automaticallyImplyLeading: false,

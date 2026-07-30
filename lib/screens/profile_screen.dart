@@ -7,9 +7,11 @@ import '../models/bgm_catalog.dart';
 import '../models/cosmetics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
-import 'character_shop_screen.dart';
+import 'character_deck_screen.dart';
+import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
+import '../widgets/banner_ad_slot.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -88,6 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = PlayerProfile.instance;
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.profileTitle),
         actions: [
@@ -256,6 +259,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
           const SizedBox(height: 10),
+          // 🎴 ゲームに出てくる顔ぶれを自分で選ぶ画面。
+          // 買ったキャラや登録した写真がここで初めて「使える」ようになる。
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -264,14 +269,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const CharacterShopScreen()),
+                      builder: (_) => const CharacterDeckScreen()),
                 );
               },
-              icon: const Icon(Icons.storefront_rounded),
-              label: Text(m.storeTitle),
+              icon: const Icon(Icons.style_rounded),
+              label: Text(m.deckEditButton),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3A7BD5),
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // ペアさがしはタブから外したので、遊びたい人のための入口を残す
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const PlayerSelectionScreen()),
+                );
+              },
+              icon: const Text('🃏', style: TextStyle(fontSize: 18)),
+              label: Text(m.tabPairs),
+              style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 textStyle: const TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w900),

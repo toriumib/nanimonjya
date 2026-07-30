@@ -32,6 +32,24 @@ class Bgm {
 
   final AudioPlayer _player = AudioPlayer();
 
+  /// 直列化用のチェーン。
+  ///
+  /// playHome() は「タブを押すたび」「initState」「他画面から戻ったとき」の
+  /// 3経路から await なしで呼ばれる。just_audio の setAsset は内部で
+  /// プラットフォーム側のプレイヤーを初期化するため、同時に走ると
+  /// `Platform player ... already exists` / `abort, Loading interrupted` で
+  /// 落ちる（Crashlyticsのクラッシュ上位2件がこれ）。
+  /// すべての操作をこのチェーンに並べて、必ず1つずつ実行する。
+  Future<void> _chain = Future<void>.value();
+
+  Future<void> _serialize(Future<void> Function() action) {
+    final next = _chain.then((_) => action()).catchError((Object e) {
+      debugPrint('BGM op failed: $e');
+    });
+    _chain = next;
+    return next;
+  }
+
   /// いま鳴らしているアセットキー（同じ曲の二重再生を防ぐ）。
   String? _current;
 
@@ -76,20 +94,22 @@ class Bgm {
     return _play(assetKey(PlayerProfile.instance.selectedResultBgm));
   }
 
-  Future<void> _play(String key, {double volume = 0.35}) async {
-    if (_current == key && _player.playing) return;
-    try {
-      await _player.stop();
-      await _player.setAsset(key);
-      await _player.setLoopMode(LoopMode.one);
-      await _player.setVolume(volume);
-      _current = key;
-      await _player.play();
-    } catch (e) {
-      // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行する。
-      _current = null;
-      debugPrint('BGM play failed ($key): $e');
-    }
+  Future<void> _play(String key, {double volume = 0.35}) {
+    return _serialize(() async {
+      if (_current == key && _player.playing) return;
+      try {
+        await _player.stop();
+        await _player.setAsset(key);
+        await _player.setLoopMode(LoopMode.one);
+        await _player.setVolume(volume);
+        _current = key;
+        await _player.play();
+      } catch (e) {
+        // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行する。
+        _current = null;
+        debugPrint('BGM play failed ($key): $e');
+      }
+    });
   }
 
   /// ゲーム画面を離れるときに止める。
@@ -101,12 +121,14 @@ class Bgm {
   }
 
   /// 無条件に止める。プレイヤー自体は使い回すので dispose しない。
-  Future<void> stop() async {
-    _current = null;
-    _mode = _BgmMode.none;
-    try {
-      await _player.stop();
-    } catch (_) {}
+  Future<void> stop() {
+    return _serialize(() async {
+      _current = null;
+      _mode = _BgmMode.none;
+      try {
+        await _player.stop();
+      } catch (_) {}
+    });
   }
 
   /// 曲を選び直したときに、鳴っている曲を即座に差し替える。

@@ -13,6 +13,7 @@ import '../widgets/memory_tip_ticker.dart';
 import 'match_game_screen.dart';
 import 'name_call_screen.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// オンライン対戦の待合室。
 /// ランダムマッチ／合言葉での友だち対戦。待ち時間には記憶術Tipsをローテ表示。
@@ -153,6 +154,7 @@ class _OnlineLobbyScreenState extends State<OnlineLobbyScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(
             '${m.onlineMatchTitle}｜${widget.game == 'namecall' ? m.tabNameCall : m.tabPairs}'),

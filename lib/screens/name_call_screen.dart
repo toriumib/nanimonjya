@@ -170,10 +170,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
     // オフライン/ひとりは購入済みキャラも出演プールに加える。
     final charAssets = _isOnline
         ? null
-        : [
-            ...kCharImageAssets,
-            ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-          ];
+        : applyDeckFilter(
+            [
+              ...kCharImageAssets,
+              ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
+            ],
+            PlayerProfile.instance.deckExcluded,
+          );
     final people = _isCustom
         ? ([...widget.customPeople!]..shuffle(_rng))
         : generateImagePeople(count,

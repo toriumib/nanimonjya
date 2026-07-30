@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../services/app_analytics.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 「名前の覚え方」記憶術の読み物画面。
 /// チュートリアルと同じカード式PageViewで、タグ付け法・映像化・場所法・
@@ -42,6 +43,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     final isLast = _page == pages.length - 1;
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.memoryTipsTitle),
         // タブとして表示するときは戻る矢印を出さない

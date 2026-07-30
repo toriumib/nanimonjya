@@ -14,6 +14,7 @@ import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// CPU対戦（神経衰弱）の結果画面。
 /// 獲得ペア数の勝敗、段位レーティングの増減、コイン・実績を表示する。
@@ -115,6 +116,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
     final ja = m.ja;
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,

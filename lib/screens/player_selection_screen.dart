@@ -9,6 +9,7 @@ import 'cognitive_info_screen.dart';
 import 'match_game_screen.dart';
 import 'online_lobby_screen.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// あそぶモードの選択画面。
 /// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
@@ -44,6 +45,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     final m = MetaStrings.of(context);
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text('🃏 ${m.tabPairs}')),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(

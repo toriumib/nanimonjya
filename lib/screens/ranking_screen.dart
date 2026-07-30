@@ -4,6 +4,7 @@ import '../l10n/meta_strings.dart';
 import '../services/player_profile.dart';
 import '../services/ranking_service.dart';
 import '../services/sfx.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// ランダムマッチの全体ランキング画面。
 class RankingScreen extends StatefulWidget {
@@ -47,6 +48,7 @@ class _RankingScreenState extends State<RankingScreen> {
     final myUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text('🏅 ${m.ranking}')),
       body: Container(
         decoration: const BoxDecoration(

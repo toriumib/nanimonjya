@@ -57,6 +57,10 @@ class PlayerProfile extends ChangeNotifier {
   int reviewPromptCount = 0; // 依頼した回数（Google側の頻度制限で出ないことがあるため複数回試す）
   int reviewPromptedAtGames = 0; // 最後に依頼したときの総プレイ数
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
+  /// 🎴 デッキから外したキャラの画像パス。空なら「全員出る」（既定）。
+  /// 除外リスト方式にしているのは、キャラを買い足したり写真を登録したときに
+  /// 自動でデッキに加わってほしいため（選択リスト方式だと毎回選び直しになる）。
+  Set<String> deckExcluded = {};
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
   /// 🔔 復習リマインドの時刻（時。既定19時）。自分で決めた時刻のほうが
@@ -142,6 +146,7 @@ class PlayerProfile extends ChangeNotifier {
     reviewPromptCount = p.getInt('reviewPromptCount') ?? (reviewPrompted ? 1 : 0);
     reviewPromptedAtGames = p.getInt('reviewPromptedAtGames') ?? 0;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
+    deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
     adsRemoved = p.getBool('adsRemoved') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
@@ -608,6 +613,25 @@ class PlayerProfile extends ChangeNotifier {
     return true;
   }
 
+  /// 🎴 デッキの出演ON/OFFを切り替える。[assetPath] は画像パス
+  /// （バンドルキャラは 'assets/images/...'、自分の写真は保存先ファイルパス）。
+  Future<void> setDeckIncluded(String assetPath, bool included) async {
+    if (included) {
+      deckExcluded.remove(assetPath);
+    } else {
+      deckExcluded.add(assetPath);
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 全員をデッキに戻す。
+  Future<void> resetDeck() async {
+    deckExcluded.clear();
+    await _persist();
+    notifyListeners();
+  }
+
   /// ホーム着せ替えテーマをコインで解放。成功したら true。
   Future<bool> unlockTheme(String id, int cost) async {
     if (unlockedThemes.contains(id)) return true;
@@ -768,6 +792,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('reviewPromptCount', reviewPromptCount);
     await p.setInt('reviewPromptedAtGames', reviewPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
+    await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);

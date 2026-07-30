@@ -20,6 +20,7 @@ import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
+import '../widgets/banner_ad_slot.dart';
 
 // 多言語対応のために追加
 
@@ -37,8 +38,6 @@ class _TopScreenState extends State<TopScreen>
   bool _nameAsYouGo = true;
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
   bool _autoNames = false;
-  // 回答方式。false=呼んで判定（原作どおり・既定） / true=4択クイズ
-  bool _quizMode = false;
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
 
@@ -153,7 +152,6 @@ class _TopScreenState extends State<TopScreen>
                             doubleCard: _doubleCard,
                             nameAsYouGo: _nameAsYouGo,
                             autoNames: _autoNames,
-                            quizMode: _quizMode,
                             peopleCount: _peopleCount,
                           ),
                         ),
@@ -334,6 +332,7 @@ class _TopScreenState extends State<TopScreen>
     final homeTheme = homeThemeById(PlayerProfile.instance.selectedTheme);
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       body: Container(
         // ★選択中テーマのグラデーション背景★
         decoration: BoxDecoration(
@@ -688,89 +687,41 @@ class _TopScreenState extends State<TopScreen>
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                // 回答方式: 既定は原作どおりの「呼んで判定」。
-                                // 4択クイズはひとりで黙々と遊ぶ人向けのオプション。
-                                _optionSwitch(
-                                  emoji: '📝',
-                                  label: m.quizModeLabel,
-                                  value: _quizMode,
-                                  onChanged: (v) =>
-                                      setState(() => _quizMode = v),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _quizMode
-                                      ? m.quizModeOnHint
-                                      : m.quizModeOffHint,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.black54),
-                                ),
                                 const SizedBox(height: 14),
-                                // メインの「ひとりで」ボタン（グラデーション）
+                                // 「みんなで」をメインに昇格。
+                                // ひとりで遊びたい人は「ビジネス特訓」タブの
+                                // 線むすび特訓のほうが向いているため、
+                                // なまえコールは本来の複数人プレイに専念させる。
                                 _gradientButton(
-                                  label: m.nameCallSoloButton,
+                                  label: m.nameCallLocalButton,
                                   colors: const [
-                                    Color(0xFF4ECDC4),
-                                    Color(0xFF35B3A6)
+                                    Color(0xFFF08A5D),
+                                    Color(0xFFE8663C)
                                   ],
                                   height: 54,
                                   fontSize: 18,
+                                  onTap: () => _pickLocalPlayers(context),
+                                ),
+                                const SizedBox(height: 10),
+                                _gradientButton(
+                                  label: m.nameCallOnlineButton,
+                                  colors: const [
+                                    Color(0xFFFFB65C),
+                                    Color(0xFFFF9F45)
+                                  ],
+                                  height: 48,
+                                  fontSize: 14,
                                   onTap: () {
                                     Sfx.instance.fanfare();
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (_) => NameCallScreen(
-                                              doubleCard: _doubleCard,
-                                              nameAsYouGo: _nameAsYouGo,
-                                              autoNames: _autoNames,
-                                              quizMode: _quizMode,
-                                              peopleCount: _peopleCount)),
+                                        builder: (_) =>
+                                            const OnlineLobbyScreen(
+                                                game: 'namecall'),
+                                      ),
                                     );
                                   },
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _gradientButton(
-                                        label: m.nameCallLocalButton,
-                                        colors: const [
-                                          Color(0xFFF08A5D),
-                                          Color(0xFFE8663C)
-                                        ],
-                                        height: 48,
-                                        fontSize: 13.5,
-                                        onTap: () =>
-                                            _pickLocalPlayers(context),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: _gradientButton(
-                                        label: m.nameCallOnlineButton,
-                                        colors: const [
-                                          Color(0xFFFFB65C),
-                                          Color(0xFFFF9F45)
-                                        ],
-                                        height: 48,
-                                        fontSize: 13.5,
-                                        onTap: () {
-                                          Sfx.instance.fanfare();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const OnlineLobbyScreen(
-                                                      game: 'namecall'),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
                                 ),
                                 const SizedBox(height: 10),
                                 // 📸 自分の写真で覚える・対戦

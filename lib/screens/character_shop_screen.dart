@@ -15,13 +15,17 @@ import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 🛍 キャラクターショップ。
 /// - 動画（リワード広告）でコインを稼ぐ導線
 /// - コインで追加キャラを購入（なまえコール／ビジネス特訓の出演プールに加わる）
 /// - アプリ評価（★）でストア評価を後押し
 class CharacterShopScreen extends StatefulWidget {
-  const CharacterShopScreen({super.key});
+  /// タブとして表示するときは true。戻る矢印と重複するバナーを出さない。
+  final bool embedded;
+
+  const CharacterShopScreen({super.key, this.embedded = false});
 
   @override
   State<CharacterShopScreen> createState() => _CharacterShopScreenState();
@@ -101,7 +105,12 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(m.storeTitle)),
+      bottomNavigationBar:
+          widget.embedded ? null : const BannerAdSlot(),
+      appBar: AppBar(
+        title: Text(m.storeTitle),
+        automaticallyImplyLeading: !widget.embedded,
+      ),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(
         child: SafeArea(

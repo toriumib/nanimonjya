@@ -22,6 +22,25 @@ void main() {
       expect(unlocked, contains('assets/images/char13.webp'));
       expect(unlocked, contains('assets/images/char20.webp'));
     });
+
+    test('applyDeckFilter 除外したキャラがプールから消える', () {
+      final pool = ['a', 'b', 'c', 'd', 'e', 'f'];
+      final kept = applyDeckFilter(pool, {'b', 'e'});
+      expect(kept, ['a', 'c', 'd', 'f']);
+    });
+
+    test('applyDeckFilter 除外なしなら元のプールをそのまま返す', () {
+      final pool = ['a', 'b', 'c', 'd'];
+      expect(applyDeckFilter(pool, {}), same(pool));
+    });
+
+    test('applyDeckFilter 残りが最低人数を割るときは除外を無視する', () {
+      // 全部OFFにされてもゲームが成立しなくならないようにするための保険
+      final pool = ['a', 'b', 'c', 'd', 'e'];
+      expect(applyDeckFilter(pool, {'a', 'b', 'c'}), same(pool));
+      // ちょうど最低人数(4)残るなら除外は有効
+      expect(applyDeckFilter(pool, {'a'}), ['b', 'c', 'd', 'e']);
+    });
   });
   group('generatePeople', () {
     test('指定人数ぶん、顔と名前が重複なく生成される', () {

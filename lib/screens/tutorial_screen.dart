@@ -1,4 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/speech.dart';
+import '../widgets/banner_ad_slot.dart';
+
+/// チュートリアルを見終えたかどうかの保存キー。
+/// 初回起動時だけ自動で開き、一度終えたら二度と出さない。
+const String kTutorialDoneKey = 'tutorialDone';
+
+/// 初回起動かどうか（= まだチュートリアルを見ていないか）。
+Future<bool> shouldShowTutorial() async {
+  final p = await SharedPreferences.getInstance();
+  return !(p.getBool(kTutorialDoneKey) ?? false);
+}
+
+Future<void> markTutorialDone() async {
+  final p = await SharedPreferences.getInstance();
+  await p.setBool(kTutorialDoneKey, true);
+}
 
 /// あそびかたチュートリアル。
 /// かわいい女の子(ナナちゃん)と男の子(モンくん)が交互に案内してくれる。
@@ -65,29 +83,57 @@ class _TutorialScreenState extends State<TutorialScreen> {
         _TutorialPage(
           guideEmoji: '👦',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? '🃏 ペアさがし＆とっくん' : '🃏 Pair Hunt & Training',
+          title: ja ? '🖇 ひとりでも「線むすび」' : '🖇 Solo: Line Match',
           body: ja
-              ? '「ペアさがし」タブは顔と名前の神経衰弱。\nCPU対戦で段位レーティングを上げよう📈\n「とっくん」タブでは記憶術ガイド付きの\n一人特訓で記憶力をきたえられるよ📚'
-              : 'The Pair Hunt tab is face-name\nconcentration — beat the CPU to\nraise your rating 📈 The Training tab\nteaches real mnemonics as you play 📚',
-          illustration: '🤖📚',
+              ? 'ひとりのときは「ビジネス特訓」タブ！\n顔と名前を指で線でむすんで答えるよ✏️\nまちがえても何回でも引きなおせる。\n運じゃなくて実力でとける特訓だよ💪'
+              : 'Alone? Open the Training tab!\nDrag your finger from a face to a name\nto connect them ✏️ Redo as often as\nyou like — pure skill, no luck 💪',
+          illustration: '👤🖇️🏷️',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
+        ),
+        _TutorialPage(
+          guideEmoji: '👧',
+          guideName: ja ? 'ナナちゃん' : 'Nana',
+          title: ja ? '🛍 ショップと🎴キャラデッキ' : '🛍 Shop & 🎴 Deck',
+          body: ja
+              ? 'あそぶとコインがたまるよ🪙\n「ショップ」タブで新しいキャラをおむかえ！\nそして「マイページ」の🎴キャラデッキで\nゲームに出す顔ぶれを自分で選べるんだ😊'
+              : 'Playing earns you coins 🪙\nMeet new characters in the Shop tab!\nThen open 🎴 Character Deck in My Page\nto choose exactly who shows up 😊',
+          illustration: '🛍🎴',
+          gradient: const [Color(0xFFE8E3FF), Color(0xFFFFF6D8)],
         ),
         _TutorialPage(
           guideEmoji: '👧👦',
           guideName: ja ? 'ふたりから' : 'From us both',
           title: ja ? 'さあ、きたえよう！' : "Let's train!",
           body: ja
-              ? 'コインできせかえ、実績で称号UP👑\nゲームで身につけたコツは\n明日出会う「あの人」の名前にも\nきっと役立つはず…！'
-              : 'Earn coins, unlock titles 👑\nThe tricks you learn here may help\nwith real names tomorrow!',
+              ? 'じぶんの写真も登録できるよ📷\n本当に覚えたい人の顔で練習しよう！\nゲームで身につけたコツは\n明日出会う「あの人」にもきっと役立つ…！'
+              : 'You can add your own photos too 📷\nPractice with the faces you truly\nneed to remember. The tricks you learn\nhere may help with real names tomorrow!',
           illustration: '🎉🏆',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
         ),
       ];
 
+  bool _voiceOn = true;
+  bool _spokeFirstPage = false;
+
   @override
   void dispose() {
+    Speech.instance.stop();
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// 案内キャラのセリフを読み上げる。小学生でも読み飛ばさずに済むよう、
+  /// タイトルと本文をそのまま声にする。
+  Future<void> _speak(_TutorialPage page, bool ja) async {
+    if (!_voiceOn) return;
+    await Speech.instance.stop();
+    await Speech.instance.speak('${page.title}。${page.body}', ja: ja);
+  }
+
+  Future<void> _finish() async {
+    await Speech.instance.stop();
+    await markTutorialDone();
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -96,9 +142,38 @@ class _TutorialScreenState extends State<TutorialScreen> {
     final pages = _pages(ja);
     final isLast = _page == pages.length - 1;
 
+    // 最初のページだけは自動で話しかける（以降はページ送りのたびに話す）
+    if (!_spokeFirstPage) {
+      _spokeFirstPage = true;
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _speak(pages[0], ja));
+    }
+
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(ja ? 'あそびかた' : 'How to Play'),
+        automaticallyImplyLeading: false,
+        actions: [
+          // 🔊 声のON/OFF（うるさいときや電車の中で切れるように）
+          IconButton(
+            tooltip: ja ? 'こえ' : 'Voice',
+            icon: Icon(_voiceOn ? Icons.volume_up : Icons.volume_off),
+            onPressed: () {
+              setState(() => _voiceOn = !_voiceOn);
+              if (_voiceOn) {
+                _speak(pages[_page], ja);
+              } else {
+                Speech.instance.stop();
+              }
+            },
+          ),
+          TextButton(
+            onPressed: _finish,
+            child: Text(ja ? 'スキップ' : 'Skip',
+                style: const TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -106,7 +181,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
             child: PageView.builder(
               controller: _pageController,
               itemCount: pages.length,
-              onPageChanged: (i) => setState(() => _page = i),
+              onPageChanged: (i) {
+                setState(() => _page = i);
+                _speak(pages[i], ja);
+              },
               itemBuilder: (context, i) => _buildPage(pages[i]),
             ),
           ),
@@ -139,7 +217,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (isLast) {
-                        Navigator.pop(context);
+                        _finish();
                       } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),

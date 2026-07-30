@@ -56,3 +56,20 @@ List<String> unlockedExtraAssets(Set<String> unlockedIds) => [
       for (final c in kExtraCharacters)
         if (unlockedIds.contains(c.id)) c.asset,
     ];
+
+/// 🎴 キャラデッキ編集でOFFにしたキャラを出演プールから外す。
+///
+/// ゲームが成立しなくなるのを避けるため、除外した結果が [minimum] 未満に
+/// なる場合は除外を無視して元のプールをそのまま返す。
+List<String> applyDeckFilter(
+  List<String> pool,
+  Set<String> excluded, {
+  int minimum = 4,
+}) {
+  if (excluded.isEmpty) return pool;
+  final kept = [
+    for (final a in pool)
+      if (!excluded.contains(a)) a,
+  ];
+  return kept.length >= minimum ? kept : pool;
+}

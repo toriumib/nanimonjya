@@ -16,6 +16,7 @@ import 'home_shell.dart';
 import '../services/review_prompt.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// ローカル対戦（1台で2〜4人）の結果画面。獲得数のランキングを表示する。
 /// [nameCall] がtrueなら「なまえコール」（単位は枚、再戦もなまえコール）。
@@ -89,6 +90,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
       ..sort((a, b) => widget.pairsWon[b].compareTo(widget.pairsWon[a]));
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,

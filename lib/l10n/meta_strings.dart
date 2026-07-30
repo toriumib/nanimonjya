@@ -806,7 +806,52 @@ class MetaStrings {
       ja ? 'この人の$labelは？' : "What's this person's $label?";
   // 出題項目の選択（とっくんハブ）
   String get recallFieldsTitle =>
-      ja ? '🎯 覚える項目（会社名＋名前が基本）' : '🎯 What to memorize (company + name)';
+      ja ? '🎯 覚える項目（🏷️名前は必須・ほかは自由に追加）' : '🎯 What to memorize (🏷️ name is required, add more freely)';
+  // なまえチップ専用の強調ラベル（クイズの設問文には使わないUI表示専用）
+  String get nameFieldChipLabel => ja ? '🏷️ 名前' : '🏷️ Name';
+
+  // 🎴 キャラデッキ編集
+  String get deckTitle => ja ? '🎴 キャラデッキ' : '🎴 Character Deck';
+  String get deckHeadline =>
+      ja ? 'ゲームに出てくる顔ぶれを決めよう' : 'Choose who shows up in your games';
+  String get deckDesc => ja
+      ? 'タップでON／OFF。OFFにしたキャラはなまえコールとビジネス特訓に出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
+      : 'Tap to toggle. Characters turned off will not appear in Name Call or Business Training. Purchased characters and your own photos join automatically.';
+  String deckActiveCount(int n) => ja ? '✅ 出演中 $n人' : '✅ $n in the deck';
+  String get deckTooFew =>
+      ja ? '⚠️ 4人以上えらんでね' : '⚠️ Pick at least 4';
+  String get deckSelectAll => ja ? 'ぜんいん出す' : 'Select all';
+  String get deckSectionBase => ja ? '基本の12人' : 'The original 12';
+  String get deckSectionBought => ja ? '🛍 買ったキャラ' : '🛍 Purchased';
+  String get deckSectionMine => ja ? '📷 自分で登録した人' : '📷 Your own photos';
+  String get deckEmptyBought => ja
+      ? 'まだ買ったキャラがいません。ショップでコインと交換できます。'
+      : 'No purchased characters yet. Trade coins for them in the shop.';
+  String get deckEmptyMine => ja
+      ? 'まだ写真を登録していません。職場や学校で会う人の顔を登録すると、その人でゲームができます。'
+      : 'No photos yet. Register the faces of people you meet and play with them.';
+  String get deckGoShop => ja ? '🛍 ショップへ' : '🛍 Go to shop';
+  String get deckGoRoster => ja ? '📷 写真を登録する' : '📷 Register photos';
+  String get deckEditButton => ja ? '🎴 キャラデッキを編集' : '🎴 Edit character deck';
+  String get tabShop => ja ? 'ショップ' : 'Shop';
+
+  // 🖇 一人特訓（線むすび）
+  String get lineMatchTitle => ja ? '🖇 線むすび特訓' : '🖇 Line Match';
+  String get lineMatchMemorizeTitle =>
+      ja ? 'おぼえタイム！' : 'Memorize time!';
+  String get lineMatchMemorizeDesc => ja
+      ? '顔と名前をセットでおぼえよう。準備ができたらボタンを押してね。'
+      : 'Learn each face with its name. Tap the button when you are ready.';
+  String get lineMatchStart => ja ? 'おぼえた！線むすびへ' : 'Got it! Start matching';
+  String get lineMatchConnectTitle =>
+      ja ? '顔と名前を線でむすぼう' : 'Connect faces to names';
+  String get lineMatchConnectDesc => ja
+      ? '顔から名前へ指でドラッグ。まちがえたら引きなおせます。'
+      : 'Drag from a face to a name. You can redo any line.';
+  String get lineMatchJudge => ja ? '✅ 答えあわせ' : '✅ Check answers';
+  String lineMatchProgress(int done, int total) =>
+      ja ? 'あと${total - done}人（$done/$total）' : '$done/$total connected';
+  String get lineMatchButton => ja ? '🖇 線むすびで特訓' : '🖇 Line match training';
   // 実物の名刺＋顔写真アップロード（カスタム名簿）
   String get customCompanyField => ja ? '会社名（任意）' : 'Company (optional)';
   String get customTitleField => ja ? '肩書（任意）' : 'Title (optional)';

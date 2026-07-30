@@ -34,9 +34,22 @@ class Sfx {
   ];
 
   /// アプリ起動時に呼ぶ（main）。全SFXをメモリに載せてワンタップ即発音にする。
-  Future<void> preload() async {
-    if (_ready) return;
-    _ready = true;
+  ///
+  /// 以前は先頭で `_ready = true` にしていたため、プリロード中のタップが
+  /// 「準備済みだがプールは空」と判定され、使い捨てAudioPlayerを次々に
+  /// 生成して `Platform player ... already exists` で落ちていた。
+  /// 進行中の Future を共有して、呼び出しが重なっても1回だけ走らせる。
+  Future<void>? _preloading;
+
+  Future<void> preload() {
+    if (_ready) return Future<void>.value();
+    return _preloading ??= _doPreload().whenComplete(() {
+      _ready = true;
+      _preloading = null;
+    });
+  }
+
+  Future<void> _doPreload() async {
     for (final a in _assets) {
       final players = <AudioPlayer>[];
       for (var i = 0; i < _poolSize; i++) {
@@ -61,14 +74,9 @@ class Sfx {
       if (!_ready) await preload();
       final players = _pool[asset];
       if (players == null || players.isEmpty) {
-        // フォールバック: 使い捨て再生
-        final p = AudioPlayer();
-        await p.setAsset('assets/audio/$asset');
-        await p.setVolume(volume);
-        await p.play();
-        p.playerStateStream.listen((s) {
-          if (s.processingState == ProcessingState.completed) p.dispose();
-        });
+        // プールを作れなかった音（ファイル欠損など）は鳴らさず黙って諦める。
+        // ここで使い捨てAudioPlayerを作ると、連打のたびに生成されて
+        // `Platform player ... already exists` で落ちるため。
         return;
       }
       final idx = _cursor[asset]!;

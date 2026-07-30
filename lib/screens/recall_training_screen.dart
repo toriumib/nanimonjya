@@ -19,6 +19,7 @@ import '../services/speech.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 🧠 思い出しトレーニング
 ///
@@ -125,11 +126,14 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     super.dispose();
   }
 
-  /// 出演プール = 基本12＋購入済みキャラ。
-  List<String> _photoPool() => [
-        ...kCharImageAssets,
-        ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-      ];
+  /// 出演プール = 基本12＋購入済みキャラ（キャラデッキでOFFにした人は除く）。
+  List<String> _photoPool() => applyDeckFilter(
+        [
+          ...kCharImageAssets,
+          ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
+        ],
+        PlayerProfile.instance.deckExcluded,
+      );
 
   /// 敬称なしの苗字（例: 佐藤さん→佐藤）。自己紹介の「私は○○と申します」用。
   String _bareName(Person p) =>
@@ -311,6 +315,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text(m.recallTitle)),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(

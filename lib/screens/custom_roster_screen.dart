@@ -14,6 +14,7 @@ import 'name_call_screen.dart';
 import 'recall_training_screen.dart';
 import 'study_screen.dart';
 import '../widgets/themed_background.dart';
+import '../widgets/banner_ad_slot.dart';
 
 /// 「おぼえる」= 自分の名簿の管理画面。
 /// 職場・学校などの写真＋名前を登録し、学習・テスト・対戦の起点になる。
@@ -299,6 +300,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     }
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(title: Text(m.tabMemorize)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddSheet,
