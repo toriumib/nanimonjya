@@ -51,10 +51,15 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
 
   int get _count => const {1: 4, 2: 6, 3: 8}[widget.level] ?? 4;
 
+  bool _built = false;
+
   @override
-  void initState() {
-    super.initState();
-    const ja = true; // ロケールはbuildで解決するが、生成時は日本語名を既定にする
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_built) return;
+    _built = true;
+    // ロケールは context が要るのでここで解決する（initState では読めない）
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
     final pool = applyDeckFilter(
       [
         ...kCharImageAssets,
@@ -62,7 +67,15 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
       ],
       PlayerProfile.instance.deckExcluded,
     );
-    _people = generateImagePeople(_count, ja: ja, random: _rng, charAssets: pool);
+    // ⚠️ generateImagePeople は name が空文字（なまえコールは各自が命名する
+    //    仕様のため）。線むすびは名前を表示して結ぶので、名前が入る
+    //    generateRecallPeople を使う。
+    _people =
+        generateRecallPeople(_count, ja: ja, random: _rng, charAssets: pool);
+    // 名前が空だと「線でむすぶ相手」が見えなくなる。生成器を取り違えたら
+    // その場で気づけるように、デバッグ時は必ず落とす。
+    assert(_people.every((p) => p.name.trim().isNotEmpty),
+        '線むすびには名前が必要（generateImagePeople は name が空）');
     _nameOrder = [..._people]..shuffle(_rng);
     for (var i = 0; i < _count; i++) {
       _faceKeys[i] = GlobalKey();

@@ -24,12 +24,23 @@ class LocalResultScreen extends StatefulWidget {
   final List<int> pairsWon; // index=プレイヤー番号
   final int level;
   final bool nameCall;
+  // 「もう一度あそぶ」で同じ設定のまま遊べるように、遊んだときの条件を
+  // そのまま持ち回る。渡さないと既定値（まとめて命名）に戻ってしまい、
+  // 出たとき命名で遊んでいた人が急にテキスト入力を求められる。
+  final bool nameAsYouGo;
+  final bool autoNames;
+  final bool doubleCard;
+  final int peopleCount;
 
   const LocalResultScreen({
     super.key,
     required this.pairsWon,
     required this.level,
     this.nameCall = false,
+    this.nameAsYouGo = true,
+    this.autoNames = false,
+    this.doubleCard = false,
+    this.peopleCount = 6,
   });
 
   @override
@@ -216,7 +227,12 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                         MaterialPageRoute(
                           builder: (_) => widget.nameCall
                               ? NameCallScreen(
-                                  humanPlayers: widget.pairsWon.length)
+                                  humanPlayers: widget.pairsWon.length,
+                                  nameAsYouGo: widget.nameAsYouGo,
+                                  autoNames: widget.autoNames,
+                                  doubleCard: widget.doubleCard,
+                                  peopleCount: widget.peopleCount,
+                                )
                               : MatchGameScreen(
                                   level: widget.level,
                                   humanPlayers: widget.pairsWon.length,

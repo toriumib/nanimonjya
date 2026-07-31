@@ -119,9 +119,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
           guideEmoji: '👦',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? '🖇 ひとりのときは「ビジネス特訓」' : '🖇 Alone? Use Training',
+          title: ja ? '🖇 ひとりのときは「名刺おぼえ」' : '🖇 Alone? Use Training',
           body: ja
-              ? 'ひとりで あそびたいときは\n「ビジネス特訓」タブへ！\n\n🖇線むすび … 顔と名前を ゆびで つなぐ\n🧠思い出し … 名刺の人を おぼえて 当てる\n\nじぶんの しゃしんも とうろく できるよ📷'
+              ? 'ひとりで あそびたいときは\n「名刺おぼえ」タブへ！\n\n🖇線むすび … 顔と名前を ゆびで つなぐ\n🧠思い出し … 名刺の人を おぼえて 当てる\n\nじぶんの しゃしんも とうろく できるよ📷'
               : 'Playing alone? Open the Training tab!\n\n🖇 Line Match — connect faces to names\n🧠 Recall — remember people from cards\n\nYou can add your own photos too 📷',
           illustration: '🖇️',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFE8E3FF)],

@@ -619,7 +619,7 @@ class MetaStrings {
   /// 「名前をつけた！」で進んだ人の表示。アプリは名前を知らないので伏せる。
   /// （ここに内部の識別子を出すと「言ってない名前」が出て混乱する）
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
-  // 🏋️ ビジネス特訓タブの初回説明（小学生でも分かる言い方にする）
+  // 🏋️ 名刺おぼえタブの初回説明（小学生でも分かる言い方にする）
   String get trainingIntroTitle =>
       ja ? 'ここは「ひとりで練習」する場所だよ！' : 'This is your solo practice room!';
   String get trainingIntroBody => ja
@@ -656,7 +656,7 @@ This tab is where you get stronger on your own.
       ja ? '名刺・顔写真を登録する' : 'Register cards & faces';
   String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
-  String get tabTraining => ja ? 'ビジネス特訓' : 'Biz Training';
+  String get tabTraining => ja ? '名刺おぼえ' : 'Card Memory';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
   String get nameCallCatch => ja
       ? 'みんなに名前をつけて、あとで思い出す。顔と名前をむすびつけて覚えよう！'
@@ -767,7 +767,7 @@ This tab is where you get stronger on your own.
 
   // 🧠 思い出しトレーニング（実際に出会って、時間をおいて思い出す）
   String get recallTitle =>
-      ja ? '💼 ビジネス特訓' : '💼 Biz Face-Name Training';
+      ja ? '💼 名刺おぼえ' : '💼 Card Memory';
   String get recallHubDesc => ja
       ? '実際に人と出会うように顔・名前・出会った場所を覚えて、少し時間をおいてから「この人だれだっけ？」を思い出す特訓。現実で名前が出てこない、をなくそう。'
       : 'Meet people like in real life — link face, name and where you met — then recall "who was that again?" after a pause. Beat the moment names slip your mind.';
@@ -836,7 +836,7 @@ This tab is where you get stronger on your own.
   String get deckHeadline =>
       ja ? 'ゲームに出てくる顔ぶれを決めよう' : 'Choose who shows up in your games';
   String get deckDesc => ja
-      ? 'タップでON／OFF。OFFにしたキャラはなまえコールとビジネス特訓に出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
+      ? 'タップでON／OFF。OFFにしたキャラはなまえコールと名刺おぼえに出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
       : 'Tap to toggle. Characters turned off will not appear in Name Call or Business Training. Purchased characters and your own photos join automatically.';
   String deckActiveCount(int n) => ja ? '✅ 出演中 $n人' : '✅ $n in the deck';
   String get deckTooFew =>
@@ -902,8 +902,8 @@ This tab is where you get stronger on your own.
   String get storeMore => ja ? '➕ 追加キャラ（コインで仲間に）' : '➕ More characters (buy with coins)';
   String get storeBought => ja ? '新しいキャラを仲間にした！🎉' : 'New character unlocked! 🎉';
   String get storeHint => ja
-      ? '買ったキャラは「なまえコール」と「ビジネス特訓」に登場します。'
-      : 'Bought characters show up in Name Call and Biz Training.';
+      ? '買ったキャラは「なまえコール」と「名刺おぼえ」に登場します。'
+      : 'Bought characters show up in Name Call and Card Memory.';
   String get storeBuyConfirm => ja ? 'このキャラを仲間にする？' : 'Add this character?';
   // 試合・特訓のあとのショップ誘導
   String get ctaNewCharTitle =>
@@ -952,8 +952,8 @@ This tab is where you get stronger on your own.
       : 'Equip one. Makes play a little kinder, or your coins a little more.';
   String get shopSkinsTitle => ja ? '💳 名刺のデザイン' : '💳 Card Designs';
   String get shopSkinsDesc => ja
-      ? 'ビジネス特訓で差し出される名刺の見た目が変わります。'
-      : 'Changes how the business card looks in Biz Training.';
+      ? '名刺おぼえで差し出される名刺の見た目が変わります。'
+      : 'Changes how the business card looks in Card Memory.';
   String shortByCoins(int short, int reward) => ja
       ? 'あと $short コインで手に入ります。動画を1本見ると $reward コインもらえます。'
       : 'You need $short more coins. Watching one video gives you $reward.';
@@ -962,8 +962,8 @@ This tab is where you get stronger on your own.
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
   String get storeCharsDesc => ja
-      ? 'なまえコールとビジネス特訓に登場する人が増えます。'
-      : 'Adds more people to Name Call and Biz Training.';
+      ? 'なまえコールと名刺おぼえに登場する人が増えます。'
+      : 'Adds more people to Name Call and Card Memory.';
   // 🔔 練習リマインド
   // 🔁 日をまたいだ復習（間隔をあけた再テスト）
   String spacedReviewTitle(int n) =>
