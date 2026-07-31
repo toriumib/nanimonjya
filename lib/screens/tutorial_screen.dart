@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -28,19 +29,25 @@ class TutorialScreen extends StatefulWidget {
 }
 
 class _TutorialPage {
-  final String guideEmoji; // 案内キャラ
+  final String guideEmoji; // 案内キャラ（SVGが無いページのフォールバック）
+  /// ホームにいる応援キャラのSVG。ここを指定すると絵文字より優先される。
+  final String? guideAsset;
   final String guideName;
   final String title;
   final String body;
   final String illustration; // ページの大きな挿絵（絵文字）
+  /// 実際のゲーム画面のスクショ。あると絵文字の代わりにこれを大きく出す。
+  final String? screenshot;
   final List<Color> gradient;
 
   const _TutorialPage({
     required this.guideEmoji,
+    this.guideAsset,
     required this.guideName,
     required this.title,
     required this.body,
     required this.illustration,
+    this.screenshot,
     required this.gradient,
   });
 }
@@ -52,63 +59,72 @@ class _TutorialScreenState extends State<TutorialScreen> {
   List<_TutorialPage> _pages(bool ja) => [
         _TutorialPage(
           guideEmoji: '👧',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? 'ペタネームへようこそ！' : 'Welcome to PetaName!',
+          title: ja ? 'ようこそ！' : 'Welcome!',
           body: ja
-              ? 'ペタネームは「顔と名前の記憶トレーニング」！\n人の名前を覚えるのが苦手…\nそんなあなたのための覚えゲームだよ💕'
-              : 'PetaName is face & name memory training!\nBad with names? This game is\nmade exactly for you 💕',
+              ? 'このアプリは「顔と名前をおぼえる」ゲームだよ。\nメインのあそび「なまえコール」のやりかたを\nこれから じゅんばんに せつめいするね！\n\nともだちや かぞくと 1台のスマホで あそぶよ📱'
+              : 'This app is a face-and-name memory game.\nLet me walk you through Name Call,\nour main mode, step by step!\n\nPlay with friends on one phone 📱',
           illustration: '🏷️✨',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFFFF6D8)],
         ),
         _TutorialPage(
           guideEmoji: '👦',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
           guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? '📣 なまえコール①：名づけ' : '📣 Name Call ①: Naming',
+          title: ja ? '① まずは人数をえらぶ' : '1. Choose players',
           body: ja
-              ? 'メインモード「なまえコール」は\nはじめに全員の顔に順番に名前をつけるよ。\nつけた名前は「名簿」にひみつで記録📖🔒\nゲームがおわるまで見られない！'
-              : 'In Name Call, you start by naming\nevery face one by one.\nYour names go into a secret roster 📖🔒\nsealed until the game ends!',
-          illustration: '✏️😀',
+              ? '「出たとき命名」をえらんで\n🎉みんなで（1台）を おす！\nそのあと なん人で あそぶか えらぶよ。\n\nはじめては 6人 が ちょうどいいよ😊'
+              : 'Pick "Name as you go", tap\n🎉 Party (1 phone), then choose\nhow many of you are playing.\n\n6 faces is a good start 😊',
+          illustration: '👥',
+          screenshot: 'assets/images/tutorial/step_home.png',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFE8FFF7)],
         ),
         _TutorialPage(
           guideEmoji: '👧',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? '📣 なまえコール②：思い出す！' : '📣 Name Call ②: Recall!',
+          title: ja ? '② はじめての子に名前をつける' : '2. Name each newcomer',
           body: ja
-              ? 'カードが出てきたら\n名前を思い出して答えよう！\n正解すると1枚ゲット🎉\n思い出せないと没収💦\nいちばん多くあつめた人の勝ち！'
-              : 'When a card appears,\nrecall its name and answer!\nCorrect = one card 🎉\nForget it and it is gone 💦\nMost cards wins!',
-          illustration: '🃏🃏',
-          gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
-        ),
-        _TutorialPage(
-          guideEmoji: '👦',
-          guideName: ja ? 'モンくん' : 'Mon',
-          title: ja ? '🖇 ひとりでも「線むすび」' : '🖇 Solo: Line Match',
-          body: ja
-              ? 'ひとりのときは「ビジネス特訓」タブ！\n顔と名前を指で線でむすんで答えるよ✏️\nまちがえても何回でも引きなおせる。\n運じゃなくて実力でとける特訓だよ💪'
-              : 'Alone? Open the Training tab!\nDrag your finger from a face to a name\nto connect them ✏️ Redo as often as\nyou like — pure skill, no luck 💪',
-          illustration: '👤🖇️🏷️',
+              ? 'カードが 1まいずつ 出てくるよ。\nはじめて出た子には その場で 名前をつけよう！\n\n口に出して「〇〇！」と 名前を言ってから\n✨名前をつけた！を おす。\nまよったら 🎲おまかせ でもOK。\n\nこのときは まだ 点は入らないよ。'
+              : 'Cards appear one at a time.\nWhen a new face shows up, name it!\n\nSay the name out loud, then tap\n✨ We named it!\nOr tap 🎲 to let the app decide.\n\nNo points yet at this step.',
+          illustration: '✏️',
+          screenshot: 'assets/images/tutorial/step_naming.png',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
         ),
         _TutorialPage(
-          guideEmoji: '👧',
-          guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? '🛍 ショップと🎴キャラデッキ' : '🛍 Shop & 🎴 Deck',
+          guideEmoji: '👦',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
+          guideName: ja ? 'モンくん' : 'Mon',
+          title: ja ? '③ 同じ子が出たら 名前をさけぶ！' : '3. Shout the name!',
           body: ja
-              ? 'あそぶとコインがたまるよ🪙\n「ショップ」タブで新しいキャラをおむかえ！\nそして「マイページ」の🎴キャラデッキで\nゲームに出す顔ぶれを自分で選べるんだ😊'
-              : 'Playing earns you coins 🪙\nMeet new characters in the Shop tab!\nThen open 🎴 Character Deck in My Page\nto choose exactly who shows up 😊',
-          illustration: '🛍🎴',
-          gradient: const [Color(0xFFE8E3FF), Color(0xFFFFF6D8)],
+              ? 'まえに 名前をつけた子が また出てきたら…\nみんなで いっせいに 名前をさけぶ！📣\n\nいちばん早く 正しく 言えた人の\nボタン（P1・P2…）を おしてね。\nおされた人が そのカードを もらえるよ🎉\n\nだれも 思い出せなかったら\n「だれもわからなかった…」を おそう。'
+              : 'When a face you already named comes back,\neveryone shouts its name at once! 📣\n\nTap the button (P1, P2...) of whoever\nsaid it first and correctly.\nThat player wins the card 🎉\n\nIf nobody remembers, tap\n"Nobody knew...".',
+          illustration: '📣',
+          screenshot: 'assets/images/tutorial/step_recall.png',
+          gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
         ),
         _TutorialPage(
-          guideEmoji: '👧👦',
-          guideName: ja ? 'ふたりから' : 'From us both',
-          title: ja ? 'さあ、きたえよう！' : "Let's train!",
+          guideEmoji: '👧',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
+          guideName: ja ? 'ナナちゃん' : 'Nana',
+          title: ja ? '④ カードを多くあつめた人の勝ち！' : '4. Most cards wins!',
           body: ja
-              ? 'じぶんの写真も登録できるよ📷\n本当に覚えたい人の顔で練習しよう！\nゲームで身につけたコツは\n明日出会う「あの人」にもきっと役立つ…！'
-              : 'You can add your own photos too 📷\nPractice with the faces you truly\nneed to remember. The tricks you learn\nhere may help with real names tomorrow!',
-          illustration: '🎉🏆',
+              ? 'カードが なくなったら おしまい。\nいちばん たくさん カードを あつめた人の勝ち🏆\n\nさいごに みんなの 名前が ぜんぶ 出るから\n「そんな名前だったっけ！？」で もりあがるよ😆'
+              : 'The game ends when the cards run out.\nWhoever collected the most cards wins 🏆\n\nAt the end every name is revealed —\nthat is where the laughs happen 😆',
+          illustration: '🏆',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
+        ),
+        _TutorialPage(
+          guideEmoji: '👦',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
+          guideName: ja ? 'モンくん' : 'Mon',
+          title: ja ? '🖇 ひとりのときは「ビジネス特訓」' : '🖇 Alone? Use Training',
+          body: ja
+              ? 'ひとりで あそびたいときは\n「ビジネス特訓」タブへ！\n\n🖇線むすび … 顔と名前を ゆびで つなぐ\n🧠思い出し … 名刺の人を おぼえて 当てる\n\nじぶんの しゃしんも とうろく できるよ📷'
+              : 'Playing alone? Open the Training tab!\n\n🖇 Line Match — connect faces to names\n🧠 Recall — remember people from cards\n\nYou can add your own photos too 📷',
+          illustration: '🖇️',
+          gradient: const [Color(0xFFFFF6D8), Color(0xFFE8E3FF)],
         ),
       ];
 
@@ -170,8 +186,12 @@ class _TutorialScreenState extends State<TutorialScreen> {
           ),
           TextButton(
             onPressed: _finish,
-            child: Text(ja ? 'スキップ' : 'Skip',
-                style: const TextStyle(fontWeight: FontWeight.w900)),
+            // AppBarの地色がピンクなので、既定色のままだとピンク文字になって
+            // 事実上見えなかった。白で固定する。
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
+            child: Text(ja ? 'スキップ ▶' : 'Skip ▶',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w900, fontSize: 15)),
           ),
         ],
       ),
@@ -270,8 +290,30 @@ class _TutorialScreenState extends State<TutorialScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(p.illustration, style: const TextStyle(fontSize: 64)),
-          const SizedBox(height: 20),
+          // 実際のゲーム画面があれば、絵文字よりそちらを大きく見せる。
+          // 「どのボタンを押すのか」は文章より画面のほうが早く伝わる。
+          if (p.screenshot != null)
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 3)),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(p.screenshot!, fit: BoxFit.contain),
+              ),
+            )
+          else ...[
+            Text(p.illustration, style: const TextStyle(fontSize: 64)),
+            const SizedBox(height: 20),
+          ],
           // 案内キャラの吹き出しカード
           Container(
             padding: const EdgeInsets.all(18),
@@ -284,7 +326,11 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(p.guideEmoji, style: const TextStyle(fontSize: 34)),
+                    if (p.guideAsset != null)
+                      SvgPicture.asset(p.guideAsset!, width: 46, height: 46)
+                    else
+                      Text(p.guideEmoji,
+                          style: const TextStyle(fontSize: 34)),
                     const SizedBox(width: 8),
                     Text(
                       p.guideName,

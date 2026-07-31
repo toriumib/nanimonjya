@@ -616,6 +616,35 @@ class MetaStrings {
       ? '名前はおまかせ（入力しない）'
       : 'Auto-name them (no typing)';
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
+  /// 「名前をつけた！」で進んだ人の表示。アプリは名前を知らないので伏せる。
+  /// （ここに内部の識別子を出すと「言ってない名前」が出て混乱する）
+  String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
+  // 🏋️ ビジネス特訓タブの初回説明（小学生でも分かる言い方にする）
+  String get trainingIntroTitle =>
+      ja ? 'ここは「ひとりで練習」する場所だよ！' : 'This is your solo practice room!';
+  String get trainingIntroBody => ja
+      ? '''なまえコールは みんなであそぶゲーム。
+ここは ひとりで つよくなる ばしょだよ。
+
+🖇 線むすび … 顔と名前を ゆびで線をひいて むすぶ。ぜんぶむすんだら 答えあわせ！
+
+🧠 思い出しトレーニング … 名刺をもった人が じこしょうかいしてくれる。少し時間がたってから「だれだっけ？」を当てるよ。
+
+🔁 きのう まちがえた人は 次の日にまた出てくる。くりかえすほど おぼえられるよ！'''
+      : '''Name Call is the game you play with friends.
+This tab is where you get stronger on your own.
+
+🖇 Line Match — drag your finger from each face to its name, then check your answers!
+
+🧠 Recall Training — people introduce themselves with a business card. After a short break, you try to remember who was who.
+
+🔁 Anyone you got wrong comes back the next day. Repetition is what makes it stick!''';
+  String get trainingIntroOk => ja ? 'わかった！' : 'Got it!';
+  // 🔇 BGMのON/OFF
+  String get bgmEnabledLabel => ja ? '🎵 音楽を鳴らす' : '🎵 Play music';
+  String get bgmEnabledHint => ja
+      ? 'OFFにすると音楽が止まります（効果音はそのまま）'
+      : 'Turning this off stops the music (sound effects stay on)';
   // 📇 実物の名刺＋顔写真での特訓（モバイル限定）
   String get realCardTrainingTitle =>
       ja ? '📇 本物の名刺で特訓する' : '📇 Train with real business cards';

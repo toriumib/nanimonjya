@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+121
+version: 2.5.0+122
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -38,7 +38,13 @@ dependencies:
   flutter_animate: ^4.5.0  # ポップな演出アニメーション
   in_app_review: ^2.0.9  # ストアレビュー依頼
   image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
-  in_app_purchase: ^3.2.0  # 広告除去の買い切り課金
+  # 💳 in_app_purchase は取り下げた。
+  # Play が Billing Library 8.0.0 以降を必須化したが、それを積む
+  # in_app_purchase_android は 0.4.0+11 以降すべて Dart 3.10（Flutter 3.35+）
+  # 必須で、本プロジェクトの Flutter 3.32 では解決できない。
+  # 依存を残すとアップデート自体が承認されないため削除する。
+  # 購入済みユーザーの adsRemoved は端末に残り、広告は出ないままになる。
+  # 課金を再開するときは Flutter を上げてから in_app_purchase: ^3.3.0 を入れる。
   google_mlkit_text_recognition: ^0.13.0  # 名刺のOCR取り込み（端末内処理・モバイル限定）
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
@@ -58,6 +64,8 @@ flutter:
     - assets/images/
     - assets/images/supporters/
     - assets/images/faces/
+    # チュートリアルで使う実際のゲーム画面のスクショ
+    - assets/images/tutorial/
     - assets/audio/
   # ... (他のflutter設定) ...
 

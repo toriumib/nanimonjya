@@ -8,6 +8,7 @@ import '../models/cosmetics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
+import 'character_shop_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
@@ -276,6 +277,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: Text(m.deckEditButton),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3A7BD5),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 🛍 ショップはタブにもあるが、コイン残高を見た直後に行きたくなるので
+          // マイページからも直接飛べるようにする
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CharacterShopScreen()),
+                );
+              },
+              icon: const Icon(Icons.storefront_rounded),
+              label: Text(m.storeTitle),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE8A400),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 textStyle: const TextStyle(
@@ -934,7 +960,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: '🎵 ${m.selectBgm}',
       child: Column(
         children: [
-          ..._bgmRows(m, p, ja),
+          // 🔇 まず「鳴らすかどうか」。曲選びより先に置く。
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(m.bgmEnabledLabel,
+                style: const TextStyle(
+                    fontSize: 14.5, fontWeight: FontWeight.w900)),
+            subtitle: Text(m.bgmEnabledHint,
+                style: const TextStyle(fontSize: 11.5)),
+            value: p.bgmEnabled,
+            onChanged: (v) async {
+              Sfx.instance.pop();
+              await p.setBgmEnabled(v);
+              // 切ったら即無音に、戻したらその場でホームの曲を鳴らす
+              if (v) {
+                Bgm.instance.playHome();
+              } else {
+                Bgm.instance.stop();
+              }
+            },
+          ),
+          if (p.bgmEnabled) ..._bgmRows(m, p, ja),
           // 🎼 魔王魂の楽曲はクレジット表記が利用条件。
           // コード中のコメントで「表記済み」となっていたが実際には
           // どこにも出ていなかったため、ここで必ず表示する。

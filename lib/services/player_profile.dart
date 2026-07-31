@@ -57,6 +57,9 @@ class PlayerProfile extends ChangeNotifier {
   int reviewPromptCount = 0; // 依頼した回数（Google側の頻度制限で出ないことがあるため複数回試す）
   int reviewPromptedAtGames = 0; // 最後に依頼したときの総プレイ数
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
+  /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
+  bool bgmEnabled = true;
+
   /// 🎴 デッキから外したキャラの画像パス。空なら「全員出る」（既定）。
   /// 除外リスト方式にしているのは、キャラを買い足したり写真を登録したときに
   /// 自動でデッキに加わってほしいため（選択リスト方式だと毎回選び直しになる）。
@@ -147,6 +150,7 @@ class PlayerProfile extends ChangeNotifier {
     reviewPromptedAtGames = p.getInt('reviewPromptedAtGames') ?? 0;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
+    bgmEnabled = p.getBool('bgmEnabled') ?? true;
     adsRemoved = p.getBool('adsRemoved') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
@@ -625,6 +629,13 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 🔇 BGMのON/OFF。切ったら即座に鳴っている曲を止める。
+  Future<void> setBgmEnabled(bool on) async {
+    bgmEnabled = on;
+    await _persist();
+    notifyListeners();
+  }
+
   /// 全員をデッキに戻す。
   Future<void> resetDeck() async {
     deckExcluded.clear();
@@ -793,6 +804,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('reviewPromptedAtGames', reviewPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setStringList('deckExcluded', deckExcluded.toList());
+    await p.setBool('bgmEnabled', bgmEnabled);
     await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);

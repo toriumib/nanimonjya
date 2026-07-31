@@ -96,6 +96,15 @@ class Bgm {
 
   Future<void> _play(String key, {double volume = 0.35}) {
     return _serialize(() async {
+      // 🔇 マイページでBGMを切っている人には何も鳴らさない。
+      // （効果音は別設定なので、ここでは止めない）
+      if (!PlayerProfile.instance.bgmEnabled) {
+        _current = null;
+        try {
+          await _player.stop();
+        } catch (_) {}
+        return;
+      }
       if (_current == key && _player.playing) return;
       try {
         await _player.stop();

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/review_queue.dart';
 import '../services/sfx.dart';
+import '../services/speech.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +19,14 @@ import '../widgets/banner_ad_slot.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
-  const TrainingHubScreen({super.key});
+  /// このタブが今えらばれているか。
+  ///
+  /// HomeShell は IndexedStack なので、**開いていないタブの initState も
+  /// アプリ起動と同時に走る**。これを見ずに説明ダイアログを出すと、
+  /// 初回起動時にチュートリアルの上に重なって出てしまう。
+  final bool active;
+
+  const TrainingHubScreen({super.key, this.active = true});
 
   @override
   State<TrainingHubScreen> createState() => _TrainingHubScreenState();
@@ -29,7 +39,59 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   void initState() {
     super.initState();
     ReviewQueue.instance.load(); // 期限が来ている人がいるか読み込む
+    if (widget.active) _maybeExplain();
   }
+
+  @override
+  void didUpdateWidget(TrainingHubScreen old) {
+    super.didUpdateWidget(old);
+    // タブが選ばれた瞬間に初めて説明を出す
+    if (!old.active && widget.active) _maybeExplain();
+  }
+
+  /// 🏋️ このタブを初めて開いた人に、何をする場所なのかを1回だけ説明する。
+  /// （「ビジネス特訓」という名前だけでは中身が想像できないため）
+  Future<void> _maybeExplain() async {
+    final p = await SharedPreferences.getInstance();
+    if (p.getBool(_explainedKey) ?? false) return;
+    if (!mounted) return;
+    final m = MetaStrings.of(context);
+    await p.setBool(_explainedKey, true);
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            SvgPicture.asset('assets/images/supporters/cheer_girl2.svg',
+                width: 40, height: 40),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(m.trainingIntroTitle,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
+        content: Text(m.trainingIntroBody,
+            style: const TextStyle(fontSize: 13.5, height: 1.6)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Speech.instance.stop();
+              Navigator.pop(ctx);
+            },
+            child: Text(m.trainingIntroOk),
+          ),
+        ],
+      ),
+    );
+    // 読み上げは小学生でも内容がつかめるように（チュートリアルと同じ方針）
+    Speech.instance.speak('${m.trainingIntroTitle}。${m.trainingIntroBody}',
+        ja: m.ja);
+  }
+
+  static const String _explainedKey = 'trainingHubExplained';
   // 覚える項目。会社名＋名前が基本、他はオプション。
   final Set<RecallField> _fields = {RecallField.name, RecallField.company};
 

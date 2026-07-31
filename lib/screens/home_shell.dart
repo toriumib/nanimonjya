@@ -12,7 +12,7 @@ import 'training_hub_screen.dart';
 import 'tutorial_screen.dart';
 
 /// アプリのルート: 下部タブでモードを切り替えるシェル。
-/// 1. なまえコール（メイン） 2. ショップ 3. ビジネス特訓 4. よみもの 5. マイページ
+/// 1. なまえコール（メイン） 2. ビジネス特訓 3. ショップ 4. よみもの 5. マイページ
 /// ※ ペアさがしはタブから外したが、一人特訓の土台として画面は生きている。
 ///   マイページから引き続き遊べる。
 class HomeShell extends StatefulWidget {
@@ -74,12 +74,14 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
-          TopScreen(), // なまえコール（メイン）
-          CharacterShopScreen(embedded: true), // ショップ
-          TrainingHubScreen(), // ビジネス特訓
-          MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
-          ProfileScreen(), // マイページ
+        children: [
+          const TopScreen(), // なまえコール（メイン）
+          // active を渡す: IndexedStack は全タブを最初に組み立てるので、
+          // 「開かれたかどうか」を渡さないと初回説明が起動時に出てしまう
+          TrainingHubScreen(active: _index == 1), // ビジネス特訓
+          const CharacterShopScreen(embedded: true), // ショップ
+          const MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
+          const ProfileScreen(), // マイページ
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -91,7 +93,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
           AppAnalytics.featureOpen(const [
-            'namecall', 'shop', 'training', 'read', 'profile'
+            'namecall', 'training', 'shop', 'read', 'profile'
           ][i]);
           Bgm.instance.playHome();
           setState(() => _index = i);
@@ -102,12 +104,12 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             label: m.tabNameCall,
           ),
           NavigationDestination(
-            icon: const Text('🛍', style: TextStyle(fontSize: 22)),
-            label: m.tabShop,
-          ),
-          NavigationDestination(
             icon: const Text('🏋️', style: TextStyle(fontSize: 22)),
             label: m.tabTraining,
+          ),
+          NavigationDestination(
+            icon: const Text('🛍', style: TextStyle(fontSize: 22)),
+            label: m.tabShop,
           ),
           NavigationDestination(
             icon: const Text('📚', style: TextStyle(fontSize: 22)),

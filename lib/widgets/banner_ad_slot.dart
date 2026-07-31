@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../services/ad_ids.dart';
+import '../services/player_profile.dart';
 
 /// 画面下部に置く共通バナー広告。
 /// Scaffold の `bottomNavigationBar` にそのまま渡せる（高さ0で自動的に隙間を空ける）。
@@ -21,7 +22,9 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) _loadBanner();
+    // 💎 広告除去を購入済みの人には出さない。
+    // 課金機能自体は取り下げたが、買ってくれた人の権利は残す。
+    if (!kIsWeb && !PlayerProfile.instance.adsRemoved) _loadBanner();
   }
 
   void _loadBanner() {

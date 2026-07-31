@@ -115,6 +115,20 @@ class _NameCallScreenState extends State<NameCallScreen> {
     );
   }
 
+  /// 🤫 アプリが本当の名前を知らない人。
+  ///
+  /// 「名前をつけた！」で進んだ場合、名前はプレイヤーが口で言っただけで
+  /// アプリには伝わっていない。札を区別するために内部でガチャ名を入れるが、
+  /// **それを画面に出すと「言ってない名前」が出て混乱する**（報告されたバグ）。
+  /// ここに入れておき、表示のときは必ず [_displayName] を通して伏せる。
+  final Set<Person> _secretNames = {};
+
+  /// 画面に出してよい名前。アプリが知らない名前は伏せ字にする。
+  String _displayName(Person p, MetaStrings m) {
+    if (_secretNames.contains(p)) return m.secretNamePlaceholder;
+    return _game.roster[p] ?? '';
+  }
+
   // 命名フェーズ
   int _namingIndex = 0;
   final TextEditingController _nameController = TextEditingController();
@@ -386,6 +400,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
       // 内部的にガチャ名を割り当てるだけ。**画面には出さない**
       // （出すと「言ってない名前」が表示されて混乱するため）。
       name = _uniqueGachaName();
+      // アプリはこの人の本当の名前を知らない → 画面に出さない印をつける
+      _secretNames.add(_inlinePerson!);
     }
     Sfx.instance.pop();
     HapticFeedback.selectionClick();
@@ -940,7 +956,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4, vertical: 6),
                           child: Text(
-                            _game.roster[p] ?? '',
+                            _displayName(p, m),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
@@ -1014,7 +1030,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
             children: [
               for (var i = 0; i < _round.length; i++) ...[
                 if (i > 0) const SizedBox(width: 14),
-                _roundCard(i, resultPhase),
+                _roundCard(i, resultPhase, m),
               ],
             ],
           )
@@ -1231,7 +1247,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     );
   }
 
-  Widget _roundCard(int i, bool resultPhase) {
+  Widget _roundCard(int i, bool resultPhase, MetaStrings m) {
     final person = _round[i];
     final claimed = i < _roundClaimer.length;
     final answered = i < _roundHits.length;
@@ -1272,7 +1288,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
           const SizedBox(height: 8),
           Text(
             resultPhase
-                ? _game.roster[person]!
+                ? _displayName(person, m)
                 : (done
                     ? (_isReferee
                         ? (_roundClaimer[i] >= 0
@@ -1433,7 +1449,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                             person: _game.people[i], size: 56, radius: 10),
                         const SizedBox(height: 3),
                         Text(
-                          _game.roster[_game.people[i]] ?? '',
+                          _displayName(_game.people[i], m),
                           style: const TextStyle(
                               fontSize: 11.5, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
