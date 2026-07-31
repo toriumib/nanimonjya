@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/memory_tips.dart';
+import '../services/interstitial_ad_helper.dart';
 import '../l10n/meta_strings.dart';
 import '../services/app_analytics.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -35,6 +36,23 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     super.dispose();
   }
 
+  /// この画面で読んだページ数。
+  int _read = 0;
+
+  /// 何ページか読んだところで全画面広告の判定に回す。
+  ///
+  /// ⚠️ 読んでいる最中に割り込むと記事が読めなくなるので、
+  ///    ページを送った直後だけにする。実際に出るかどうかは
+  ///    InterstitialAdHelper 側の回数ゲートが決めるので、
+  ///    連続では出ない（広告除去を買った人には出ない）。
+  static const int _pagesPerAdCheck = 5;
+
+  void _countRead() {
+    _read += 1;
+    if (_read % _pagesPerAdCheck != 0) return;
+    InterstitialAdHelper.instance.onGameFinished();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ja = Localizations.localeOf(context).languageCode == 'ja';
@@ -55,7 +73,10 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
             child: PageView.builder(
               controller: _pageController,
               itemCount: pages.length,
-              onPageChanged: (i) => setState(() => _page = i),
+              onPageChanged: (i) {
+                setState(() => _page = i);
+                _countRead();
+              },
               itemBuilder: (context, i) => _buildPage(pages[i], ja),
             ),
           ),

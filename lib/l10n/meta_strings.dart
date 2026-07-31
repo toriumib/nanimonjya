@@ -2,6 +2,9 @@ import 'package:flutter/widgets.dart';
 
 import '../models/person.dart';
 
+/// 📮 バグ報告・改善要望の宛先。ここ1か所に置いて画面側から参照する。
+const String kFeedbackEmail = 'entorip@gmail.com';
+
 /// 新規追加した「メタ層」機能（コイン/実績/デイリー等）専用の簡易多言語ヘルパー。
 /// 既存の AppLocalizations とは独立して自己完結させ、arb再生成の影響を受けないようにする。
 class MetaStrings {
@@ -628,6 +631,34 @@ class MetaStrings {
   String get homeMusicDesc => ja
       ? 'ホーム画面と試合前に流れる曲です。ショップで買った曲から選べます。'
       : 'Plays on the home screen. Pick from music you own in the shop.';
+  // 📮 フィードバック
+  String get feedbackButton =>
+      ja ? 'ご意見・不具合を送る' : 'Send feedback';
+  String get feedbackSubject =>
+      ja ? '【ペタネーム】ご意見・不具合の報告' : '[PetaName] Feedback / bug report';
+  String get feedbackBody => ja
+      ? '''※わかる範囲で大丈夫です。書ける項目だけ埋めて送ってください。
+
+■ どの画面で
+■ 何をしたら
+■ どうなった（期待した動きとの違い）
+
+■ 端末（例: Pixel 8 / Android 15）
+
+--------------------
+'''
+      : '''Fill in whatever you can.
+
+- Which screen
+- What you did
+- What happened (vs. what you expected)
+- Device
+
+--------------------
+''';
+  String get feedbackNoMailApp => ja
+      ? 'メールアプリを開けませんでした。お手数ですが、こちらの宛先へ送ってください。'
+      : 'Could not open a mail app. Please write to this address instead.';
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
   // 🏋️ 名刺おぼえタブの初回説明（小学生でも分かる言い方にする）
   String get trainingIntroTitle =>

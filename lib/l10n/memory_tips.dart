@@ -27,6 +27,24 @@ class MemoryTipPage {
 
 const List<MemoryTipPage> kMemoryTipPages = [
   MemoryTipPage(
+    emoji: '💳',
+    titleJa: '名刺をもらった30秒で、名前と番号を落とし込む',
+    titleEn: 'Lock in a name and number in the 30 seconds after the card',
+    bodyJa: '''名刺交換の直後は、覚えるのに一番いい30秒です。研究で効くとされている手を、その場でできる順に並べます。\n\n**① 声に出して呼び返す**\n「〇〇さんですね、よろしくお願いします」。黙読より声に出したほうが後で思い出しやすいことは**生成効果**として繰り返し確認されています。相手にも失礼になりません。\n\n**② 電話番号は3〜4桁の塊に切る**\n09012345678 を一続きで覚えるのは無理です。**090／1234／5678** と切れば3つの塊になります。作業記憶に入る「塊」の数には限りがあり、塊にまとめること自体が記憶量を押し上げると報告されています。\n\n**③ 会社名・肩書と結びつける**\n名前だけを覚えようとせず「〇〇商事の△△さん、経理」とセットで扱う。意味の道が増えるほど後から取り出しやすくなります（処理水準）。\n\n**④ 別れたあと、見ずに思い出す**\n名刺を見返すのではなく、**あえて思い出す**。読み返すより思い出すほうが定着することは、テスト効果として最もよく確かめられている知見のひとつです。\n\n⏱ 15分後・その日の夜・翌朝、と間をあけて思い出すとさらに残ります（分散学習）。\n\n🔬 出典: MacLeod ほか (2010), Journal of Experimental Psychology: LMC 36(3) ／ Thalmann, Souza & Oberauer (2019), Journal of Experimental Psychology: LMC 45(1) ／ Craik & Tulving (1975), JEP: General 104(3) ／ Roediger & Karpicke (2006), Psychological Science 17(3) ／ Cepeda ほか (2006), Psychological Bulletin 132(3)'''
+        ,
+    bodyEn: '''The 30 seconds after a business card exchange are the best moment to encode it. Here is what research supports, in the order you can do it.\n\n**1. Say it back out loud**\n“Nice to meet you, [name].” Saying a word aloud beats reading it silently — the **production effect** — and it is perfectly polite.\n\n**2. Chunk the phone number into 3–4 digit groups**\nA long string is hopeless; **090 / 1234 / 5678** is three chunks. Working memory holds a limited number of chunks, and grouping itself raises how much you retain.\n\n**3. Tie it to the company and title**\nNot just the name: “[name] in accounting at [company]”. More semantic routes mean easier retrieval later.\n\n**4. After you part, recall without looking**\nRetrieve rather than re-read. The testing effect is one of the best-replicated findings in memory research.\n\n⏱ Recall again after 15 minutes, that evening, and the next morning (spaced practice).\n\n🔬 Sources: MacLeod et al. (2010), JEP: LMC 36(3); Thalmann, Souza & Oberauer (2019), JEP: LMC 45(1); Craik & Tulving (1975), JEP: General 104(3); Roediger & Karpicke (2006), Psychological Science 17(3); Cepeda et al. (2006), Psychological Bulletin 132(3)''',
+    gradient: [Color(0xFFE3F0FF), Color(0xFFFFF6D8)],
+  ),
+  MemoryTipPage(
+    emoji: '🤝',
+    titleJa: '名前を覚えていることは、仕事でどう効くのか',
+    titleEn: 'What remembering names actually does at work',
+    bodyJa: '''「名前を覚えると印象がいい」はよく言われますが、研究で確かめられているのはもう少し具体的な話です。\n\n**呼びかけに名前を入れると、頼みが通りやすくなる**\n相手の名前を会話に入れた条件のほうが、入れない条件より要請への応諾が高かったという実験があります。名前を使うこと自体が、個人として扱っているという合図になるためだと説明されています。\n\n**名前を知られていると、その場にいてよいと感じる**\n授業での研究ですが、**相手が自分の名前を知っていると感じている人ほど、参加意欲と所属感が高い**という関連が報告されています。職場の会議や商談でも、構図は同じでしょう。\n\n**脳は自分の名前を特別に扱っている**\n自分の名前を聞いたときは、他人の名前のときより前頭部・側頭部の反応が強まったという報告があります。雑音のなかでも自分の名前だけは気づく、あの感覚です。\n\n💼 だから、名前を覚えることは記憶力の誇示ではなく**相手を個人として扱う技術**です。\n\n⚠️ いずれも関連や実験室での知見であり、「名前を呼べば必ず商談が通る」と言えるものではありません。\n\n🔬 出典: Howard, Gengler & Jain (1995), Journal of Consumer Research 22(2) ／ Cooper ほか (2017), CBE—Life Sciences Education 16(1) ／ Carmody & Lewis (2006), Brain Research 1116(1)'''
+        ,
+    bodyEn: '''“Remembering names makes a good impression” is often said. What research shows is more specific.\n\n**Using a name makes requests more likely to be accepted**\nIn experiments, including the other person’s name in conversation was associated with higher compliance with a subsequent request — read as a signal of treating them as an individual.\n\n**Being known by name creates belonging**\nIn classroom research, people who felt the other person knew their name reported higher engagement and belonging. Meetings and sales calls are structurally similar.\n\n**The brain treats your own name specially**\nHearing your own name has been reported to produce stronger frontal and temporal responses than other names — the cocktail-party effect.\n\n💼 So remembering names is not a memory stunt. It is a way of treating someone as an individual.\n\n⚠️ These are associations and lab findings, not a guarantee of business outcomes.\n\n🔬 Sources: Howard, Gengler & Jain (1995), Journal of Consumer Research 22(2); Cooper et al. (2017), CBE—Life Sciences Education 16(1); Carmody & Lewis (2006), Brain Research 1116(1)''',
+    gradient: [Color(0xFFFFF0E3), Color(0xFFE8FFF7)],
+  ),
+  MemoryTipPage(
     emoji: '🧠',
     titleJa: 'なんで名前って覚えにくいの？',
     titleEn: 'Why are names so hard?',
@@ -826,6 +844,26 @@ const List<MemoryShortTip> kMemoryShortTips = [
 /// とっくん中や読み物、ワンポイント表示に使う。
 /// 断定は避け、原著の知見を要約したオリジナル文にしている。
 const List<MemoryShortTip> kNameScienceTips = [
+  MemoryShortTip(
+    '💳 電話番号は3〜4桁の塊に切ると入りやすい。作業記憶に入る「塊」の数には限りがあるとされる',
+    '💳 Chunk phone numbers into 3–4 digit groups — working memory holds a limited number of chunks',
+    source: 'Thalmann, Souza & Oberauer (2019), JEP: LMC 45(1)',
+  ),
+  MemoryShortTip(
+    '🗣 名刺をもらったら「〇〇さんですね」と声に出す。黙読より声に出すほうが残るとされる（生成効果）',
+    '🗣 Say the name back out loud — speaking beats silent reading (the production effect)',
+    source: 'MacLeod ほか (2010), JEP: LMC 36(3)',
+  ),
+  MemoryShortTip(
+    '🤝 会話に相手の名前を入れた条件のほうが、要請への応諾が高かったという実験がある',
+    '🤝 Including the other person’s name in conversation was linked to higher compliance',
+    source: 'Howard, Gengler & Jain (1995), Journal of Consumer Research 22(2)',
+  ),
+  MemoryShortTip(
+    '🏫 相手が自分の名前を知っていると感じている人ほど、参加意欲と所属感が高いと報告されている',
+    '🏫 Feeling that someone knows your name is linked to higher engagement and belonging',
+    source: 'Cooper ほか (2017), CBE—Life Sciences Education 16(1)',
+  ),
   MemoryShortTip(
     '🔁 見て覚えるより「思い出す」練習が効く。会ったあとに名前を思い出してみよう',
     '🔁 Recalling beats rereading — after meeting someone, quiz yourself on their name',
