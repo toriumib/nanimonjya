@@ -159,7 +159,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
   /// 🤖 CPUが「思い出した」タイミングを表すタイマー。
   Timer? _cpuTimer;
   /// このラウンドでCPUが先に取ったか（プレイヤーの回答を無効にするため）。
-  bool _cpuTookRound = false;
 
   // 回答タイマー（クイズモードのみ）
   Timer? _quizTimer;
@@ -530,7 +529,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
   /// ときどきCPUも思い出せないことにして、取り返す余地を残す。
   void _startCpuTimer() {
     _cpuTimer?.cancel();
-    _cpuTookRound = false;
     if (!_isCpu) return;
     if (_rng.nextInt(10) < 2) return; // 2割はCPUも分からない
     final ms = 2500 + _rng.nextInt(4000); // 2.5〜6.5秒
@@ -582,7 +580,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       HapticFeedback.mediumImpact();
     }
     // CPUに先を越された、または自分がまちがえた場合はCPUの取り分になる
-    if (_isCpu && (takenByCpu || !correct)) _cpuTookRound = true;
+    // CPUに取られたぶんは、下の _cardsWon[1] += (枚数 - 取れた数) で加算する
     _roundHits.add(correct && !takenByCpu);
     setState(() => _pickedChoice = choice ?? '__timeout__');
 
@@ -1601,6 +1599,51 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 ),
               ),
             ),
+            // 🏆 実績で新しく参戦したキャラを大きく知らせる。
+            // ここを出さないと、条件を満たしても本人が気づけない。
+            if (_featUnlocked.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              for (final id in _featUnlocked)
+                Builder(builder: (context) {
+                  final c = extraCharacterById(id);
+                  if (c == null) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8A5AC2), Color(0xFF3D1E6B)],
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(c.asset,
+                              width: 56, height: 56, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            m.featJoined(c.emoji),
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 300.ms)
+                      .scale(
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1, 1),
+                          curve: Curves.easeOutBack);
+                }),
+            ],
             // 🤖 CPU戦は勝敗をはっきり出す（ひとりでも手応えが残るように）
             if (_isCpu) ...[
               const SizedBox(height: 10),
