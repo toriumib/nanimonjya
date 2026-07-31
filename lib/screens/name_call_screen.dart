@@ -11,6 +11,7 @@ import '../l10n/meta_strings.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../models/surnames.dart';
 import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
@@ -485,14 +486,17 @@ class _NameCallScreenState extends State<NameCallScreen> {
   /// まだ名簿で使われていないガチャ名を作る。
   /// 同じ名前が2人につくと、再登場時にどちらが正解か決まらなくなるため。
   String _uniqueGachaName() {
-    final m = MetaStrings(PlatformDispatcherLocale.isJa);
+    final ja = PlatformDispatcherLocale.isJa;
     final used = _game.roster.values.toSet();
-    for (var i = 0; i < 60; i++) {
-      final n = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
+    // 🏷 実在しそうな苗字から選ぶ。造語のガチャ名だと
+    //    「人の名前を覚える」練習として現実味がないため。
+    final pool = [...kCommonSurnames]..shuffle(_rng);
+    for (final s in pool) {
+      final n = surnameWithHonorific(s, ja);
       if (!used.contains(n)) return n;
     }
-    // 出尽くしたときは番号を足して必ず一意にする
-    return '${m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999))}${used.length + 1}';
+    // 100人ぶん使い切ったときだけ番号を足して必ず一意にする
+    return '${surnameWithHonorific(pool.first, ja)}${used.length + 1}';
   }
 
   /// クイズの4択を作る。名簿の名前が4つに満たないとき（出たとき命名の序盤や

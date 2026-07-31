@@ -13,7 +13,8 @@ class AdIds {
   // --- リワード ---
   static const String _testRewardedAndroid = 'ca-app-pub-3940256099942544/5224354917';
   static const String _testRewardedIOS = 'ca-app-pub-3940256099942544/1712485313';
-  static const String _realRewardedAndroid = 'ca-app-pub-6744940157577324/9009716197'; // AdMobで作成
+  // AdMobコンソールで新規作成したリワード枠（アプリID ~9444754212 配下）
+  static const String _realRewardedAndroid = 'ca-app-pub-6744940157577324/2619409531';
 
   // --- インタースティシャル（3プレイごとの全画面広告） ---
   static const String _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';

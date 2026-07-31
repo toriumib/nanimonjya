@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/name_call.dart';
 import 'package:nanimonjya/models/person.dart';
+import 'package:nanimonjya/models/surnames.dart';
 
 /// 🛡 ゲームが成立しなくなる系のバグを止めるための不変条件テスト。
 ///
@@ -137,6 +138,26 @@ void main() {
       expect(people.every((p) => p.name.trim().isNotEmpty), isTrue);
       expect(people.map((p) => p.name).toSet(), hasLength(8),
           reason: '同じ名前が2人いると線むすびの判定が壊れる');
+    });
+  });
+
+  group('おまかせ命名の苗字プール', () {
+    test('100個あり、重複がない（同名が2人出ない前提）', () {
+      expect(kCommonSurnames, hasLength(100));
+      expect(kCommonSurnames.toSet(), hasLength(100));
+    });
+
+    test('空文字が混ざっていない（名前が空欄になるのを防ぐ）', () {
+      expect(kCommonSurnames.every((s) => s.trim().isNotEmpty), isTrue);
+    });
+
+    test('日本語では敬称がつき、英語では苗字のみ', () {
+      expect(surnameWithHonorific('佐藤', true), '佐藤さん');
+      expect(surnameWithHonorific('佐藤', false), '佐藤');
+    });
+
+    test('最大12キャラでも苗字が足りる', () {
+      expect(kCommonSurnames.length, greaterThan(12));
     });
   });
 }

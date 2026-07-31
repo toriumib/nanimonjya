@@ -99,7 +99,7 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 
 ## 重要な決まりごと
 - versionCode は必ずbumpスクリプトを使う（Play Consoleで重複拒否）
-- AdMob本番ID: App `ca-app-pub-6744940157577324~1059924160`, Banner `/4880687935`, Rewarded `/9009716197`（`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）
+- AdMob本番ID: App `ca-app-pub-6744940157577324~9444754212`, Banner `/4880687935`, Rewarded `/2619409531`（`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）
 - `dart:io` の `Platform` は使用禁止（Webでクラッシュ）。`kIsWeb`/`defaultTargetPlatform` を使う
 - 広告関連は全て `kIsWeb` ガード必須（google_mobile_adsはWeb非対応）
 - 医療・認知機能への効果は断定表現禁止。「〜と言われている」「〜が期待される」等のヘッジ表現＋免責を守る（`meta_strings.dart` の `cognitiveDisclaimer` 参照）

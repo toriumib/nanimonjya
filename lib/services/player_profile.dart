@@ -29,11 +29,11 @@ class PlayerProfile extends ChangeNotifier {
   String lastLoginDate = ''; // yyyy-mm-dd
   bool dailyClaimedToday = false;
   Set<String> unlockedAchievements = {};
-  Set<String> unlockedBgm = {'op9-2-Nocturne.mp3'}; // デフォルトBGMは最初から解放
-  String selectedBgm = 'op9-2-Nocturne.mp3';
+  Set<String> unlockedBgm = {'op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3'}; // デフォルトBGMは最初から解放
+  String selectedBgm = '08_burning_heart.mp3';
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
-  String selectedResultBgm = 'shining_star.mp3'; // リザルト画面の曲
+  String selectedResultBgm = '19_12345.mp3'; // リザルト画面の曲
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
   String nickname = ''; // ランキング表示名
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
@@ -126,11 +126,12 @@ class PlayerProfile extends ChangeNotifier {
     lastLoginDate = p.getString('lastLoginDate') ?? '';
     unlockedAchievements = (p.getStringList('achievements') ?? []).toSet();
     unlockedBgm =
-        (p.getStringList('unlockedBgm') ?? ['op9-2-Nocturne.mp3']).toSet();
-    unlockedBgm.add('op9-2-Nocturne.mp3');
-    selectedBgm = p.getString('selectedBgm') ?? 'op9-2-Nocturne.mp3';
+        (p.getStringList('unlockedBgm') ?? ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']).toSet();
+    // 各場面の既定曲は最初から鳴らせるようにしておく
+    unlockedBgm.addAll(const ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']);
+    selectedBgm = p.getString('selectedBgm') ?? '08_burning_heart.mp3';
     if (!unlockedBgm.contains(selectedBgm)) {
-      selectedBgm = 'op9-2-Nocturne.mp3';
+      selectedBgm = '08_burning_heart.mp3';
     }
     unlockedThemes = (p.getStringList('unlockedThemes') ?? ['sunny']).toSet();
     unlockedThemes.add('sunny');
@@ -192,11 +193,11 @@ class PlayerProfile extends ChangeNotifier {
     missionOnline = p.getInt('missionOnline') ?? 0;
     missionClaimed = (p.getStringList('missionClaimed') ?? []).toSet();
     _refreshMissions();
-    selectedResultBgm = p.getString('selectedResultBgm') ?? 'shining_star.mp3';
+    selectedResultBgm = p.getString('selectedResultBgm') ?? '19_12345.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
-    if (selectedResultBgm != 'shining_star.mp3' &&
+    if (selectedResultBgm != '19_12345.mp3' &&
         !unlockedBgm.contains(selectedResultBgm)) {
-      selectedResultBgm = 'shining_star.mp3';
+      selectedResultBgm = '19_12345.mp3';
     }
     _loaded = true;
     _refreshDailyState();
