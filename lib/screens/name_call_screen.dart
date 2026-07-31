@@ -750,6 +750,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
             pairsWon: _cardsWon,
             level: 1,
             nameCall: true,
+            // ⚠️ ここを渡し忘れると、結果画面の「もう一度あそぶ」が
+            //    既定値（まとめて命名）で作り直され、出たとき命名で
+            //    遊んでいた人が急にテキスト入力を求められる。
+            nameAsYouGo: widget.nameAsYouGo,
+            autoNames: widget.autoNames,
+            doubleCard: widget.doubleCard,
+            peopleCount: _game.people.length,
           ),
         ),
       );
