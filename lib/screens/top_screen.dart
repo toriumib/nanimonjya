@@ -175,7 +175,7 @@ class _TopScreenState extends State<TopScreen>
   late AnimationController _controller;
   late Animation<double> _animation;
   late AnimationController _bounceController; // マスコットのぴょこぴょこ
-  final RewardAdHelper _giftAd = RewardAdHelper(); // 無料コインチェスト用
+  final RewardAdHelper _giftAd = RewardAdHelper(placement: 'home_gift'); // 無料コインチェスト用
   final Random _random = Random();
   Timer? _giftTicker; // 🎁残り時間表示の更新用
 

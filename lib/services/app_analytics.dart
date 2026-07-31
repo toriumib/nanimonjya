@@ -72,11 +72,48 @@ class AppAnalytics {
       });
 
   // ── 広告（視聴率の分析用）──
+  // [placement] は 'shop' / 'shop_short_of_coins' / 'home_gift' /
+  // 'result_double' / 'profile'。どこから見られたのかを必ず入れる。
   static void adRewardPrompt(String placement) =>
       _log('ad_reward_prompt', {'placement': placement});
 
   static void adRewardEarned(String placement) =>
       _log('ad_reward_earned', {'placement': placement});
+
+  /// 「なぜ動画を見たのか」を残す。
+  ///
+  /// コインが足りずに広告へ誘導した瞬間を、**買おうとしていた商品と一緒に**
+  /// 記録する。これがないと「広告がよく見られた」までは分かっても
+  /// 「何が欲しくて見たのか」が永久に分からない（実際、過去に広告が
+  /// 伸びたときの目的を後から特定できなかった）。
+  static void adOfferedForItem({
+    required String category,
+    required String itemId,
+    required int cost,
+    required int coinsHeld,
+  }) =>
+      _log('ad_offered_for_item', {
+        'category': category,
+        'item_id': itemId,
+        'cost': cost,
+        'coins_held': coinsHeld,
+        'short_by': cost - coinsHeld,
+      });
+
+  /// ショップの商品を見た（一覧に表示された、ではなく詳細に反応した）。
+  /// 欲しがられているが買われていない商品＝値段が高すぎる商品を見つける。
+  static void shopItemTapped({
+    required String category,
+    required String itemId,
+    required int cost,
+    required bool affordable,
+  }) =>
+      _log('shop_item_tap', {
+        'category': category,
+        'item_id': itemId,
+        'cost': cost,
+        'affordable': affordable,
+      });
 
   // ── メタ層 ──
   static void dailyBonusClaimed(int streak) =>

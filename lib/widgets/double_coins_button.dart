@@ -20,7 +20,7 @@ class DoubleCoinsButton extends StatefulWidget {
 }
 
 class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
-  final RewardAdHelper _ad = RewardAdHelper();
+  final RewardAdHelper _ad = RewardAdHelper(placement: 'result_double');
   bool _doubled = false;
   bool _busy = false; // 連打で広告を二重に予約し、コインが多重付与されるのを防ぐ
 

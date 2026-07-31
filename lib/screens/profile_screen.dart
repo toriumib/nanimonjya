@@ -22,7 +22,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final RewardAdHelper _rewardAd = RewardAdHelper();
+  final RewardAdHelper _rewardAd = RewardAdHelper(placement: 'profile');
 
   @override
   void initState() {

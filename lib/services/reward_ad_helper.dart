@@ -11,6 +11,13 @@ import 'app_analytics.dart';
 ///   「じゅんび中…→準備OK」をボタンが自動で反映できる★
 /// ★読み込み失敗時は指数バックオフで自動リトライ（電波不安定でも復帰）★
 class RewardAdHelper extends ChangeNotifier {
+  /// この広告がどこから再生されたか（分析用）。
+  /// shop / shop_short_of_coins / home_gift / result_double / profile など。
+  /// 「なぜ広告が見られたのか」を後から数えられるようにするために持たせる。
+  final String placement;
+
+  RewardAdHelper({this.placement = 'unknown'});
+
   RewardedAd? _ad;
   bool _loading = false;
   int _retryCount = 0;
@@ -84,7 +91,7 @@ class RewardAdHelper extends ChangeNotifier {
       return false;
     }
     bool rewarded = false;
-    AppAnalytics.adRewardPrompt('rewarded'); // 表示成功数（視聴率の分母）
+    AppAnalytics.adRewardPrompt(placement); // 表示成功数（視聴率の分母）
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
@@ -102,7 +109,7 @@ class RewardAdHelper extends ChangeNotifier {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         rewarded = true;
-        AppAnalytics.adRewardEarned('rewarded'); // 最後まで視聴した数（分子）
+        AppAnalytics.adRewardEarned(placement); // 最後まで視聴した数（分子）
         onReward();
         // 🙏 最後まで見てくれた人に、ひとことだけお礼を出す。
         // 報酬の通知は各画面が別に出すので、ここは短く控えめに。

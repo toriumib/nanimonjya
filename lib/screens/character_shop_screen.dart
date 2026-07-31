@@ -31,7 +31,7 @@ class CharacterShopScreen extends StatefulWidget {
 }
 
 class _CharacterShopScreenState extends State<CharacterShopScreen> {
-  final RewardAdHelper _rewardAd = RewardAdHelper();
+  final RewardAdHelper _rewardAd = RewardAdHelper(placement: 'shop');
   static const int _adReward = 60;
 
   @override
@@ -80,10 +80,25 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
     if (p.unlockedCharacters.contains(c.id)) return;
+    // 何がタップされたか（買えたかどうかも含めて）を残す。
+    // 「よくタップされるのに買われない＝値段が高すぎる」商品を見つけるため。
+    AppAnalytics.shopItemTapped(
+      category: 'character',
+      itemId: c.id,
+      cost: c.cost,
+      affordable: p.coins >= c.cost,
+    );
     if (p.coins < c.cost) {
       // キャラ購入も同じく、その場で動画に誘導する
       AppAnalytics.shopBlockedByCoins(
           category: 'character', itemId: c.id, shortBy: c.cost - p.coins);
+      // 「この商品が欲しくて動画を見た」という因果を残す
+      AppAnalytics.adOfferedForItem(
+        category: 'character',
+        itemId: c.id,
+        cost: c.cost,
+        coinsHeld: p.coins,
+      );
       Sfx.instance.wrong();
       await _offerAdForCoins(m, c.cost);
       return;

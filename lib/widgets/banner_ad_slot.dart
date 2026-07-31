@@ -58,15 +58,30 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || _bannerAd == null || !_isLoaded) {
+    // 広告を出さない環境では場所も取らない
+    if (kIsWeb || PlayerProfile.instance.adsRemoved) {
       return const SizedBox.shrink();
     }
+
+    // ⚠️ 読み込めるまで高さ0にすると、広告が届いた瞬間に画面全体が
+    // ガクッと上へずれる。ボタンを押そうとした指が広告に当たってしまい、
+    // 誤タップ（AdMobのポリシー違反にもなりうる）と操作ミスの原因になる。
+    // そこで最初から同じ高さを確保し、中身だけ差し替える。
+    final h = AdSize.banner.height.toDouble();
     return SafeArea(
       top: false,
       child: SizedBox(
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: _bannerAd!),
+        height: h,
+        width: double.infinity,
+        child: (_isLoaded && _bannerAd != null)
+            ? Center(
+                child: SizedBox(
+                  width: _bannerAd!.size.width.toDouble(),
+                  height: h,
+                  child: AdWidget(ad: _bannerAd!),
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }

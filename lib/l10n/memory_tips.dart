@@ -665,6 +665,84 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'established technology with scientific backing.',
     gradient: [Color(0xFFE3F6FF), Color(0xFFEDE4FF)],
   ),
+  MemoryTipPage(
+    emoji: '👅',
+    titleJa: 'なぜ「顔は分かるのに名前だけ出ない」のか',
+    titleEn: 'Why the face comes back but the name does not',
+    bodyJa: 'あの人だと分かっているのに名前だけ出てこない——この状態は「舌先現象（tip-of-the-tongue）」と'
+        '呼ばれ、1966年から実験的に研究されてきました。頭文字や音の数など「部分的な情報」だけが'
+        '出てくることが多いと報告されています。\n\n'
+        'なぜ名前だけが落ちるのか。ひとつの説明が「伝達不足（transmission deficit）」仮説です。'
+        '人の名前は、意味とのつながりが薄く、その名前だけに通じる音の経路を1本たどるしかない。'
+        'そのため経路が弱っていると、意味は思い出せても音が出てこない、と考えられています。\n\n'
+        '💡 だからこそ「意味づけ」が効きます。田中さん→田んぼ、のように名前に意味の道をもう1本'
+        '足しておくと、片方が詰まってももう片方から辿り着ける、という発想です。\n\n'
+        '🔬 出典: Brown & McNeill (1966), Journal of Verbal Learning and Verbal Behavior ／ '
+        'Burke, MacKay, Worthley & Wade (1991), Journal of Memory and Language',
+    bodyEn: 'You know exactly who they are, but the name will not come. This is the '
+        '“tip-of-the-tongue” state, studied experimentally since 1966. People in this state often '
+        'recover partial information — the first letter, the number of syllables — but not the word.\n\n'
+        'Why do names in particular fail? One account is the “transmission deficit” hypothesis: a person’s '
+        'name has thin semantic connections and only one dedicated route to its sounds. If that route is '
+        'weak, meaning can be retrieved while the sounds stay out of reach.\n\n'
+        '💡 That is why adding meaning helps. Giving a name a second, semantic path means that when one '
+        'route is blocked, the other may still get you there.\n\n'
+        '🔬 Sources: Brown & McNeill (1966), Journal of Verbal Learning and Verbal Behavior; '
+        'Burke, MacKay, Worthley & Wade (1991), Journal of Memory and Language',
+    gradient: [Color(0xFFFFF0E3), Color(0xFFFFE8F2)],
+  ),
+  MemoryTipPage(
+    emoji: '😰',
+    titleJa: '緊張すると名前が飛ぶのは、気のせいではない',
+    titleEn: 'Blanking under pressure is not just in your head',
+    bodyJa: '大事な場面ほど名前が出てこない。これは性格の問題というより、ストレスホルモンが'
+        '「思い出す」はたらきを邪魔している可能性が指摘されています。\n\n'
+        'ストレス下で分泌されるコルチゾールを投与した実験では、**新しく覚える力よりも、すでに覚えた'
+        'ことを取り出す力のほうが落ちた**という報告があります。つまり、覚えていないのではなく'
+        '「出せない」状態になりうる、ということです。\n\n'
+        '💡 対策として研究で挙げられるのは、①事前に何度も思い出しておく（自動化しておく）'
+        '②その場で深呼吸などをして立て直す時間をつくる、といった方向です。\n\n'
+        '⚠️ 効果の大きさには個人差があり、ここに書いたことは治療や診断の助言ではありません。\n\n'
+        '🔬 出典: Kuhlmann, Piel & Wolf (2005), The Journal of Neuroscience ／ '
+        'Het, Ramlow & Wolf (2005), Psychoneuroendocrinology',
+    bodyEn: 'The bigger the moment, the more likely the name vanishes. Research suggests this is less '
+        'about personality than about stress hormones interfering with retrieval itself.\n\n'
+        'In studies where cortisol was administered, **retrieval of already-learned material was impaired '
+        'more than the ability to learn new material**. In other words, the memory may be there — you just '
+        'cannot get it out at that moment.\n\n'
+        '💡 Directions suggested by this work: (1) rehearse retrieval beforehand until it is automatic, '
+        'and (2) give yourself a beat to settle before you speak.\n\n'
+        '⚠️ Effects vary between people, and none of this is medical advice.\n\n'
+        '🔬 Sources: Kuhlmann, Piel & Wolf (2005), The Journal of Neuroscience; '
+        'Het, Ramlow & Wolf (2005), Psychoneuroendocrinology',
+    gradient: [Color(0xFFE8F0FF), Color(0xFFFFF3E0)],
+  ),
+  MemoryTipPage(
+    emoji: '🌏',
+    titleJa: '「みんな同じ顔に見える」には名前がある',
+    titleEn: 'There is a name for “they all look alike to me”',
+    bodyJa: '見慣れないグループの顔は区別しにくい——これは「他人種効果（cross-race effect）」として'
+        '長く研究されてきた現象です。39年ぶんの研究をまとめた解析では、自分と同じ人種の顔のほうが'
+        '正しく再認されやすく、見慣れない人種の顔では誤認が増える傾向が報告されています。\n\n'
+        '原因として有力なのは「経験の差」です。ふだん多く接している顔ほど、その集団の中で個人を'
+        '見分けるのに役立つ特徴に注意が向くようになる、と説明されています。逆に言えば、'
+        '**練習で縮められる可能性がある**ということでもあります。\n\n'
+        '💡 顔を「グループ」でなく「その人固有の特徴」で見るクセをつけるのがコツ。'
+        'このアプリでいろいろな顔を反復するのは、その練習そのものです。\n\n'
+        '🔬 出典: Meissner & Brigham (2001), Psychology, Public Policy, and Law ／ '
+        'Young, Hugenberg, Bernstein & Sacco (2012), Personality and Social Psychology Review',
+    bodyEn: 'Faces from an unfamiliar group can be harder to tell apart. This is the long-studied '
+        '“cross-race effect”. A meta-analysis covering 39 years of research reported better recognition '
+        'for own-race faces and more false identifications for less familiar groups.\n\n'
+        'The leading explanation is experience: the more you see a given kind of face, the more your '
+        'attention tunes to the features that actually distinguish individuals within it. Which also '
+        'means **practice may narrow the gap**.\n\n'
+        '💡 The trick is to look for what is specific to this person rather than to the group. '
+        'Repeatedly working through varied faces here is exactly that practice.\n\n'
+        '🔬 Sources: Meissner & Brigham (2001), Psychology, Public Policy, and Law; '
+        'Young, Hugenberg, Bernstein & Sacco (2012), Personality and Social Psychology Review',
+    gradient: [Color(0xFFE3FFF4), Color(0xFFE8ECFF)],
+  ),
 ];
 
 /// 待合室・人数選択画面などに出す一言Tips（タップで読み物全文へ）。
