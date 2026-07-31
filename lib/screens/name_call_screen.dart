@@ -768,6 +768,20 @@ class _NameCallScreenState extends State<NameCallScreen> {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
+    // ⚠️ 端末の戻るボタンは ×ボタン(_confirmQuit) を通らないため、
+    //    そのままだと「オンラインで降参を送らずに離脱」できてしまい、
+    //    相手が結果を待ち続けることになる。戻るも確認ダイアログに寄せる。
+    //    ゲームが終わって名簿公開まで来ていれば、そのまま閉じてよい。
+    return PopScope(
+      canPop: _phase == _Phase.reveal,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmQuit();
+      },
+      child: _buildGame(m),
+    );
+  }
+
+  Widget _buildGame(MetaStrings m) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.nameAsYouGo ? m.nameCallAsYouGoTitle : m.nameCallTitle),

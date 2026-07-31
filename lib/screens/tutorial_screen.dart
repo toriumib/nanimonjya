@@ -165,6 +165,20 @@ class _TutorialScreenState extends State<TutorialScreen> {
           .addPostFrameCallback((_) => _speak(pages[0], ja));
     }
 
+    // ⚠️ Androidの戻るボタンで抜けられると markTutorialDone() を通らず、
+    //    「見終えた」記録が残らないまま毎回起動のたびに出続けてしまう。
+    //    戻るで閉じるときも必ず記録してから閉じる。
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _finish();
+      },
+      child: _buildScaffold(ja, pages, isLast),
+    );
+  }
+
+  Widget _buildScaffold(
+      bool ja, List<_TutorialPage> pages, bool isLast) {
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
