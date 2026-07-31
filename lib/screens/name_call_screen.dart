@@ -662,6 +662,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
       progressPct: 100,
       people: _game.people.length,
     );
+    // 📅 今週おぼえた人数。
+    //    みんなで(審判方式)は誰か1人ではなく「その場で思い出せた枚数」を数える。
+    //    ここを solo/cpu の分岐に入れていたため、メインモードの
+    //    みんなでで遊んでも一生0のままだった。
+    if (!_isOnline) {
+      final recalled = _isReferee
+          ? _cardsWon.fold<int>(0, (a, b) => a + b)
+          : _quizCorrect;
+      await PlayerProfile.instance.addWeeklyLearned(recalled);
+    }
     if (_isOnline) {
       final elapsedMs = DateTime.now()
           .difference(widget.online!.startedAt)
@@ -676,8 +686,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _rewarded = true;
       final profile = PlayerProfile.instance;
       final reward = await profile.recordGamePlayed(_cardsWon[0]);
-      // 📅 今週おぼえた人数（実務で効いている実感のメーター）
-      await profile.addWeeklyLearned(_quizCorrect > 0 ? _quizCorrect : _cardsWon[0]);
       // 🤖 CPU戦は勝敗を段位に反映し、勝ったら難易度ぶんのボーナスを出す。
       if (_isCpu) {
         final won = _cardsWon[0] > _cardsWon[1];
@@ -1581,7 +1589,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          if (_isSolo) ...[
+          // ⚠️ _isSolo は _isCpu を除外する定義なので、ここを _isSolo だけに
+          //    するとCPU戦の勝敗・コイン・参戦バナーが一切出ず、
+          //    みんなで用の結果画面へ飛んでしまう。CPU戦もここで締める。
+          if (_isSolo || _isCpu) ...[
             Card(
               elevation: 2,
               child: Padding(
@@ -1739,6 +1750,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
                       nameAsYouGo: widget.nameAsYouGo,
                       autoNames: widget.autoNames,
                       quizMode: widget.quizMode,
+                      // CPU戦の再戦で難易度が消えないように引き継ぐ
+                      cpuLevel: widget.cpuLevel,
                     ),
                   ),
                 );
