@@ -159,6 +159,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   /// 🤖 CPUが「思い出した」タイミングを表すタイマー。
   Timer? _cpuTimer;
+  /// このラウンドをCPUが先に取ったか。
+  /// CPUに点が入るのは「CPUが先に思い出したとき」だけ。
+  /// プレイヤーのおてつきは没収ではなく、単に点が入らないだけにする。
+  bool _cpuTookRound = false;
   /// このラウンドでCPUが先に取ったか（プレイヤーの回答を無効にするため）。
 
   // 回答タイマー（クイズモードのみ）
@@ -538,6 +542,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
   /// ときどきCPUも思い出せないことにして、取り返す余地を残す。
   void _startCpuTimer() {
     _cpuTimer?.cancel();
+    _cpuTookRound = false;
     if (!_isCpu) return;
     if (_rng.nextInt(10) < 2) return; // 2割はCPUも分からない
     final ms = 2500 + _rng.nextInt(4000); // 2.5〜6.5秒
@@ -589,7 +594,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       HapticFeedback.mediumImpact();
     }
     // CPUに先を越された、または自分がまちがえた場合はCPUの取り分になる
-    // CPUに取られたぶんは、下の _cardsWon[1] += (枚数 - 取れた数) で加算する
+    if (takenByCpu) _cpuTookRound = true;
     _roundHits.add(correct && !takenByCpu);
     setState(() => _pickedChoice = choice ?? '__timeout__');
 
@@ -607,6 +612,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
       }
       final gained = _roundHits.where((h) => h).length;
       _cardsWon[0] += gained;
+      // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
+      //    プレイヤーのおてつきは没収せず、誰の点にもならない。
+      if (_isCpu && _cpuTookRound) _cardsWon[1] += 1;
       if (gained == _round.length && _round.length == 2) _ryoudoriCount += 1;
       if (_isOnline) widget.online!.reportProgress(_cardsWon[0]);
       _endRound();

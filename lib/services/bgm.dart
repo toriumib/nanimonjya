@@ -53,6 +53,32 @@ class Bgm {
   /// いま鳴らしているアセットキー（同じ曲の二重再生を防ぐ）。
   String? _current;
 
+  /// 自動再生をブラウザに止められたか。
+  ///
+  /// Webは「ユーザーが1度も操作していない状態」での再生を拒否する。
+  /// 起動直後の playHome() はこれに当たって無音になるため、
+  /// 最初のタップで鳴らし直せるように覚えておく。
+  bool _blocked = false;
+
+  /// 何か操作があったときに呼ぶ。自動再生を止められていたら鳴らし直す。
+  Future<void> retryIfBlocked() async {
+    if (!_blocked) return;
+    _blocked = false;
+    switch (_mode) {
+      case _BgmMode.home:
+        await playHome();
+        break;
+      case _BgmMode.game:
+        await playGame();
+        break;
+      case _BgmMode.result:
+        await playResult();
+        break;
+      case _BgmMode.none:
+        break;
+    }
+  }
+
   /// いま誰のためにに鳴らしているか。
   ///
   /// `pushReplacement`（ゲーム画面→リザルト画面）では、
@@ -116,8 +142,10 @@ class Bgm {
         _current = key;
         await _player.play();
       } catch (e) {
-        // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行する。
+        // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行し、
+        // 最初のタップで鳴らし直せるよう印をつける。
         _current = null;
+        _blocked = true;
         debugPrint('BGM play failed ($key): $e');
       }
     });

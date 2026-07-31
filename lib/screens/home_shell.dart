@@ -71,6 +71,15 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
+    // 🔊 Webは最初のユーザー操作より前の再生を拒否する。
+    //    どこかを触った時点で鳴らし直す（Androidでは何も起きない）。
+    return Listener(
+      onPointerDown: (_) => Bgm.instance.retryIfBlocked(),
+      child: _buildShell(m),
+    );
+  }
+
+  Widget _buildShell(MetaStrings m) {
     return Scaffold(
       body: IndexedStack(
         index: _index,
