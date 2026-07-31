@@ -88,6 +88,11 @@ const List<String> kCharImageAssets = [
   'assets/images/char10.jpg',
   'assets/images/char11.jpg',
   'assets/images/char12.jpg',
+  // 追加した実写4枚（12→16）。デッキ編集で選んだ数ぶんだけ登場する。
+  'assets/images/25808650_m.jpg',
+  'assets/images/26948510_s.jpg',
+  'assets/images/4353720_s.jpg',
+  'assets/images/char13.webp', // ショップのc13を無料枠へ昇格
 ];
 
 /// 名前プール（日本でよくある姓。記憶術の読み物の例とも対応）。

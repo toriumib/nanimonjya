@@ -26,10 +26,10 @@ void main() {
   });
 
   group('実績キャラのカタログ', () {
-    test('実績キャラはちょうど5体、購入キャラは15体', () {
+    test('実績キャラはちょうど5体、購入キャラは14体', () {
       final feats = kExtraCharacters.where((c) => c.isFeatCharacter).toList();
       expect(feats, hasLength(5));
-      expect(kExtraCharacters.length - feats.length, 15);
+      expect(kExtraCharacters.length - feats.length, 14);
     });
 
     test('解放条件は重複していない（同じ条件で複数解放されない）', () {
@@ -131,7 +131,7 @@ void _dailyTests() {
     });
 
     test('実績キャラはガチャから出ない（腕前の枠を守る）', () async {
-      // 購入枠15体を先に全部持たせる
+      // 購入枠を先に全部持たせる
       p.unlockedCharacters = {
         for (final c in kExtraCharacters)
           if (!c.isFeatCharacter) c.id,

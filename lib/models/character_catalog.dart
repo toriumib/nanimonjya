@@ -29,7 +29,7 @@ class GameCharacter {
   /// null ならコインで買える通常キャラ。
   /// 値が入っているキャラは**コインでは買えず**、条件を満たすと参戦する。
   /// 「勝てば無料で手に入る」枠を少しだけ作ることで、
-  /// 腕前の目標を用意しつつ、購入枠（15体）は残す。
+  /// 腕前の目標を用意しつつ、購入枠（14体）は残す。
   final UnlockFeat? feat;
 
   const GameCharacter({
@@ -43,9 +43,9 @@ class GameCharacter {
   bool get isFeatCharacter => feat != null;
 }
 
-/// 追加キャラ20種。価格ラダー（最初は安く、後半は高めのプレミア）。
+/// 追加キャラ19種（購入14＋実績解放5）。価格ラダー。
+/// c13 は基本16人の無料枠へ昇格したのでここには無い。
 const List<GameCharacter> kExtraCharacters = [
-  GameCharacter(id: 'c13', asset: 'assets/images/char13.webp', emoji: '😆', cost: 120),
   GameCharacter(id: 'c14', asset: 'assets/images/char14.webp', emoji: '💇‍♀️', cost: 120),
   GameCharacter(id: 'c15', asset: 'assets/images/char15.webp', emoji: '💻', cost: 150),
   GameCharacter(id: 'c16', asset: 'assets/images/char16.webp', emoji: '🍠', cost: 150),

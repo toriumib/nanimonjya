@@ -6,10 +6,10 @@ import 'package:nanimonjya/models/person.dart';
 
 void main() {
   group('character_catalog', () {
-    test('追加キャラは20種類・IDと画像パスが一意', () {
-      expect(kExtraCharacters, hasLength(20));
-      expect(kExtraCharacters.map((c) => c.id).toSet(), hasLength(20));
-      expect(kExtraCharacters.map((c) => c.asset).toSet(), hasLength(20));
+    test('追加キャラは19種類・IDと画像パスが一意（c13は無料枠へ昇格）', () {
+      expect(kExtraCharacters, hasLength(19));
+      expect(kExtraCharacters.map((c) => c.id).toSet(), hasLength(19));
+      expect(kExtraCharacters.map((c) => c.asset).toSet(), hasLength(19));
       for (final c in kExtraCharacters) {
         expect(c.asset, endsWith('.webp'));
         expect(c.cost, greaterThan(0));
@@ -17,9 +17,9 @@ void main() {
     });
 
     test('unlockedExtraAssets は購入済みIDだけを返す', () {
-      final unlocked = unlockedExtraAssets({'c13', 'c20'});
+      final unlocked = unlockedExtraAssets({'c14', 'c20'});
       expect(unlocked, hasLength(2));
-      expect(unlocked, contains('assets/images/char13.webp'));
+      expect(unlocked, contains('assets/images/char14.webp'));
       expect(unlocked, contains('assets/images/char20.webp'));
     });
 
@@ -71,7 +71,9 @@ void main() {
       expect(people.map((p) => p.name).toSet(), hasLength(6));
       for (final p in people) {
         expect(p.kind, FaceKind.asset);
-        expect(p.face, startsWith('assets/images/char'));
+        // 基本デッキに char*.jpg 以外の実写も入ったので、
+        // 「実写アセットであること」だけを見る
+        expect(p.face, startsWith('assets/images/'));
         expect(p.name, endsWith('さん'));
         expect(p.where, isNotEmpty); // 「この人だれだっけ」を支える文脈
         // 架空の名刺情報が埋まっている

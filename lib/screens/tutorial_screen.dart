@@ -96,6 +96,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ? 'このアプリは「顔と名前をおぼえる」ゲームだよ。\nメインのあそび「なまえコール」のやりかたを\nこれから じゅんばんに せつめいするね！\n\nともだちや かぞくと 1台のスマホで あそぶよ📱'
               : 'This app is a face-and-name memory game.\nLet me walk you through Name Call,\nour main mode, step by step!\n\nPlay with friends on one phone 📱',
           illustration: '🏷️✨',
+          screenshot: 'assets/images/tutorial/hook_lab.png',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFFFF6D8)],
         ),
         _TutorialPage(
@@ -143,6 +144,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ? 'カードが なくなったら おしまい。\nいちばん たくさん カードを あつめた人の勝ち🏆\n\nさいごに みんなの 名前が ぜんぶ 出るから\n「そんな名前だったっけ！？」で もりあがるよ😆'
               : 'The game ends when the cards run out.\nWhoever collected the most cards wins 🏆\n\nAt the end every name is revealed —\nthat is where the laughs happen 😆',
           illustration: '🏆',
+          screenshot: 'assets/images/tutorial/hook_school.png',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
         ),
         _TutorialPage(
@@ -154,6 +156,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ? 'ひとりで あそびたいときは\n「名刺おぼえ」タブへ！\n\n🖇線むすび … 顔と名前を ゆびで つなぐ\n🧠思い出し … 名刺の人を おぼえて 当てる\n\nじぶんの しゃしんも とうろく できるよ📷'
               : 'Playing alone? Open the Training tab!\n\n🖇 Line Match — connect faces to names\n🧠 Recall — remember people from cards\n\nYou can add your own photos too 📷',
           illustration: '🖇️',
+          screenshot: 'assets/images/tutorial/hook_office.png',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFE8E3FF)],
         ),
       ];

@@ -141,6 +141,17 @@ void main() {
     });
   });
 
+  group('基本デッキ', () {
+    test('16キャラある（重複なし）', () {
+      expect(kCharImageAssets, hasLength(16));
+      expect(kCharImageAssets.toSet(), hasLength(16));
+    });
+
+    test('12キャラ選んでも足りる', () {
+      expect(kCharImageAssets.length, greaterThanOrEqualTo(12));
+    });
+  });
+
   group('おまかせ命名の苗字プール', () {
     test('100個あり、重複がない（同名が2人出ない前提）', () {
       expect(kCommonSurnames, hasLength(100));
