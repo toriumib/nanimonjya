@@ -15,6 +15,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import 'character_deck_screen.dart';
 
 /// 🛍 キャラクターショップ。
 /// - 動画（リワード広告）でコインを稼ぐ導線
@@ -109,8 +110,21 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
           category: 'character', itemId: c.id, cost: c.cost, method: 'coins');
       Sfx.instance.reward();
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(m.storeBought)));
+        // 買っただけでは何も変わらないように見えるので、
+        // 「デッキに入った」ことを伝え、その場で編集画面へ行けるようにする。
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(m.storeBoughtDeckHint),
+            duration: const Duration(seconds: 6),
+            action: SnackBarAction(
+              label: m.storeOpenDeck,
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const CharacterDeckScreen()));
+              },
+            ),
+          ),
+        );
       }
     }
   }

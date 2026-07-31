@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'name_call_screen.dart'; // メインモード「なまえコール」
+import 'cpu_entry_screen.dart'; // CPU対戦まえの参戦演出
+import 'match_game_screen.dart' show CpuLevel;
 import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
@@ -119,6 +121,91 @@ class _TopScreenState extends State<TopScreen>
               fontWeight: FontWeight.w900,
               color: selected ? Colors.white : const Color(0xFF2B5CA5),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 🤖 CPU対戦の難易度を選んでスタート。
+  ///
+  /// 「むずかしいほど報酬が大きい」を選ぶ時点で見せて、
+  /// コインを貯める動機づけにする。
+  void _pickCpuLevel(BuildContext context) {
+    Sfx.instance.pop();
+    final m = MetaStrings.of(context);
+    const rows = [
+      (CpuLevel.easy, '🐣', 20, Color(0xFF4ECDC4)),
+      (CpuLevel.normal, '🙂', 45, Color(0xFF3A7BD5)),
+      (CpuLevel.hard, '🔥', 90, Color(0xFFE8663C)),
+      (CpuLevel.oni, '👹', 180, Color(0xFF8A5AC2)),
+    ];
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(m.cpuPickTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 4),
+              Text(m.cpuPickHint,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 12, color: Colors.black54)),
+              const SizedBox(height: 14),
+              for (final (lv, emoji, coins, color) in rows) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      Sfx.instance.fanfare();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CpuEntryScreen(
+                            level: lv,
+                            nameAsYouGo: _nameAsYouGo,
+                            autoNames: _autoNames,
+                            peopleCount: _peopleCount,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(emoji, style: const TextStyle(fontSize: 22)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(m.cpuLevelName(lv),
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900)),
+                        ),
+                        Text(m.cpuLevelReward(coins),
+                            style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -673,6 +760,20 @@ class _TopScreenState extends State<TopScreen>
                                 // 登場人数。既定は6人（まず1ゲーム終わらせてもらう）。
                                 // 選択UIが無く常に12人だったため、初回が長すぎて
                                 // 完走できない人が多かった。
+                                //
+                                // 数字だけだと「プレイ人数」と紛らわしいので、
+                                // 何の数なのかを見出しで明示する。
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    m.peopleCountTitle,
+                                    style: const TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF2B5CA5)),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: [
                                     for (final n
@@ -686,6 +787,12 @@ class _TopScreenState extends State<TopScreen>
                                       ),
                                     ],
                                   ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  m.peopleCountHint(_peopleCount),
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
                                 ),
                                 const SizedBox(height: 14),
                                 // 「みんなで」をメインに昇格。
@@ -722,6 +829,25 @@ class _TopScreenState extends State<TopScreen>
                                       ),
                                     );
                                   },
+                                ),
+                                const SizedBox(height: 10),
+                                // 🤖 ひとりでも勝ち負けのある遊びができるように。
+                                // 相手を呼べないときの受け皿でもある。
+                                _gradientButton(
+                                  label: m.nameCallCpuButton,
+                                  colors: const [
+                                    Color(0xFF8A5AC2),
+                                    Color(0xFF6E44A8)
+                                  ],
+                                  height: 48,
+                                  fontSize: 14,
+                                  onTap: () => _pickCpuLevel(context),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  m.nameCallCpuHint,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
                                 ),
                                 const SizedBox(height: 10),
                                 // 📸 自分の写真で覚える・対戦

@@ -697,6 +697,40 @@ This tab is where you get stronger on your own.
   String get cardsUnit => ja ? '枚' : 'cards';
   String get toResultButton => ja ? 'けっかを見る →' : 'See results →';
   String get nameCallLocalButton => ja ? '🎉 みんなで（1台）' : '🎉 Party (1 phone)';
+  // 🤖 CPU対戦（ひとりでも勝ち負けのある遊びにする）
+  String get nameCallCpuButton => ja ? '🤖 CPUとたいせん' : '🤖 Play vs CPU';
+  String get nameCallCpuHint => ja
+      ? 'ひとりで遊ぶモード。顔が出たら4つの中から名前をえらぶ。CPUより早く正解できたらカードをもらえるよ'
+      : 'Solo mode. Pick the right name from four choices — beat the CPU to win the card.';
+  String get cpuPickTitle => ja ? '🤖 だれと たいせんする？' : '🤖 Choose your rival';
+  String get cpuPickHint => ja
+      ? 'つよい相手ほど もらえるコインが多い！\nコインを貯めてキャラや音楽を変えよう🪙'
+      : 'Tougher rivals pay more coins!\nSave up to unlock characters and music 🪙';
+  String cpuLevelName(dynamic lv) {
+    // CpuLevel を直接参照すると循環importになるので name で判定する
+    switch ('$lv'.split('.').last) {
+      case 'easy':
+        return ja ? 'かんたん' : 'Easy';
+      case 'hard':
+        return ja ? 'つよい' : 'Hard';
+      case 'oni':
+        return ja ? '鬼' : 'Oni';
+      default:
+        return ja ? 'ふつう' : 'Normal';
+    }
+  }
+
+  String cpuLevelReward(int coins) => ja ? '勝って🪙$coins' : 'Win 🪙$coins';
+  String get cpuEntryJoin => ja ? '参戦！' : 'JOINS THE BATTLE!';
+  String get cpuEntryTapToSkip => ja ? 'タップでとばす' : 'Tap to skip';
+  String get cpuWinTitle => ja ? '🏆 CPUに勝った！' : '🏆 You beat the CPU!';
+  String get cpuLoseTitle => ja ? '😢 CPUに負けた…' : '😢 The CPU won…';
+  String cpuBonusCoins(int n) =>
+      ja ? '難易度ボーナス 🪙+$n' : 'Difficulty bonus 🪙+$n';
+  /// コインを貯める動機づけの謳い文句（結果画面などで出す）
+  String get saveCoinsPitch => ja
+      ? 'コインを貯めて、キャラや音楽を変えよう！🪙'
+      : 'Save up coins to unlock characters and music! 🪙';
   String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
 
   // 呼んで判定（原作のボードゲームと同じ流れ）
@@ -722,7 +756,14 @@ This tab is where you get stronger on your own.
       : 'Nobody recalled it — give it a new name';
 
   // 人数（カード枚数）
-  String peopleCountLabel(int n) => ja ? '$n人' : '$n ppl';
+  /// 「6人」だけでは何の人数か伝わらない（プレイ人数と紛らわしい）ので、
+  /// 出てくるキャラの数だと分かる書き方にする。
+  String peopleCountLabel(int n) => ja ? '$n キャラ' : '$n chars';
+  String get peopleCountTitle =>
+      ja ? '👥 出てくるキャラの数' : '👥 How many characters appear';
+  String peopleCountHint(int n) => ja
+      ? '$n人ぶんの顔と名前をおぼえます（多いほどむずかしい）'
+      : 'You will learn $n faces and names (more = harder)';
 
   // 2枚同時オプション
   String get doubleCardLabel => ja ? '2枚同時に出す' : 'Two cards at once';
@@ -901,6 +942,12 @@ This tab is where you get stronger on your own.
   String get storeStarter => ja ? '基本キャラ（12人・最初から）' : 'Starter cast (12, free)';
   String get storeMore => ja ? '➕ 追加キャラ（コインで仲間に）' : '➕ More characters (buy with coins)';
   String get storeBought => ja ? '新しいキャラを仲間にした！🎉' : 'New character unlocked! 🎉';
+  /// 買った直後の案内。買っただけでは変化が見えないので、
+  /// デッキに入ったことを伝えて編集画面への導線を出す。
+  String get storeBoughtDeckHint => ja
+      ? '🎉 仲間にした！ゲームに出るようになったよ'
+      : '🎉 Unlocked! They will now appear in your games';
+  String get storeOpenDeck => ja ? 'デッキを見る' : 'View deck';
   String get storeHint => ja
       ? '買ったキャラは「なまえコール」と「名刺おぼえ」に登場します。'
       : 'Bought characters show up in Name Call and Card Memory.';

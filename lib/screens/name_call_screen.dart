@@ -26,7 +26,7 @@ import '../widgets/game_ui.dart';
 import '../widgets/store_cta.dart';
 import 'home_shell.dart';
 import 'local_result_screen.dart';
-import 'match_game_screen.dart' show PlatformDispatcherLocale;
+import 'match_game_screen.dart' show PlatformDispatcherLocale, CpuLevel;
 import 'online_result_screen.dart';
 
 /// メインモード「なまえコール」。
@@ -61,6 +61,12 @@ class NameCallScreen extends StatefulWidget {
   /// オンライン対戦は相手の宣言を判定できないため常にクイズ。
   final bool quizMode;
 
+  /// 🤖 CPU対戦の難易度。null ならCPU戦ではない。
+  /// 顔が再登場したら4択で答え、CPUが思い出すより早く正解できれば
+  /// そのカードを取れる。難易度が上がるほどCPUの反応が速くなり、
+  /// 勝ったときのコインも大きくなる。
+  final CpuLevel? cpuLevel;
+
   const NameCallScreen({
     super.key,
     this.humanPlayers = 1,
@@ -71,6 +77,7 @@ class NameCallScreen extends StatefulWidget {
     this.nameAsYouGo = false,
     this.autoNames = false,
     this.quizMode = false,
+    this.cpuLevel,
   });
 
   /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
@@ -145,7 +152,13 @@ class _NameCallScreenState extends State<NameCallScreen> {
   String? _pickedChoice; // クイズで選んだ答え（正誤ハイライト用）
   bool _answerLocked = false; // 正誤表示中の連打ガード
   int _roundSeq = 0; // ラウンドごとに増やしてカード登場アニメを再生
-  late final List<int> _cardsWon = List.filled(max(1, widget.humanPlayers), 0);
+  late final List<int> _cardsWon =
+      List.filled(widget.cpuLevel != null ? 2 : max(1, widget.humanPlayers), 0);
+
+  /// 🤖 CPUが「思い出した」タイミングを表すタイマー。
+  Timer? _cpuTimer;
+  /// このラウンドでCPUが先に取ったか（プレイヤーの回答を無効にするため）。
+  bool _cpuTookRound = false;
 
   // 回答タイマー（クイズモードのみ）
   Timer? _quizTimer;
@@ -165,6 +178,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   // 報酬（一人プレイの終了ビューで表示）
   int _coinsEarned = 0;
+  /// 🤖 CPUに勝ったときの難易度ボーナス（終了画面で内訳を見せる）
+  int _cpuBonus = 0;
   List<String> _newAchievements = [];
   bool _rewarded = false;
 
@@ -172,7 +187,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   bool get _isOnline => widget.online != null;
   bool get _isLocalMulti => !_isOnline && widget.humanPlayers >= 2;
-  bool get _isSolo => !_isOnline && !_isLocalMulti;
+  bool get _isCpu => !_isOnline && widget.cpuLevel != null;
+  bool get _isSolo => !_isOnline && !_isLocalMulti && !_isCpu;
   bool get _isCustom => widget.customPeople != null;
 
   /// 「呼んで判定」方式か（原作のボードゲームと同じ流れ）。
@@ -180,13 +196,15 @@ class _NameCallScreenState extends State<NameCallScreen> {
   /// カードを見たら声に出して名前を呼び、取れた人のボタンをタップする。
   /// 名前は暗記しておくものなので選択肢は出さない。
   /// オンラインは相手の宣言を判定できないため、常に4択クイズになる。
-  bool get _isReferee => !_isOnline && !widget.quizMode;
+  bool get _isReferee => !_isOnline && !widget.quizMode && !_isCpu;
 
   String get _modeName => _isOnline
       ? 'namecall_race'
-      : _isLocalMulti
-          ? 'namecall_local'
-          : 'namecall_solo';
+      : _isCpu
+          ? 'namecall_cpu_${widget.cpuLevel!.name}'
+          : _isLocalMulti
+              ? 'namecall_local'
+              : 'namecall_solo';
 
   @override
   void initState() {
@@ -487,9 +505,40 @@ class _NameCallScreenState extends State<NameCallScreen> {
     return choices;
   }
 
+  /// 難易度ごとのCPUの手強さ。
+  /// (最短ms, ばらつきms, 見逃す確率%, 勝ったときのボーナスコイン)
+  static const Map<CpuLevel, List<int>> _cpuSpec = {
+    CpuLevel.easy: [4200, 3500, 35, 20],
+    CpuLevel.normal: [3000, 3000, 20, 45],
+    CpuLevel.hard: [2000, 2200, 10, 90],
+    CpuLevel.oni: [1300, 1400, 3, 180],
+  };
+
+  List<int> get _spec =>
+      _cpuSpec[widget.cpuLevel] ?? _cpuSpec[CpuLevel.normal]!;
+
+  /// 🤖 CPUが「思い出す」までの時間を決める。
+  /// 速すぎると理不尽なので、人が選択肢を読んで押せる範囲でばらつかせる。
+  /// ときどきCPUも思い出せないことにして、取り返す余地を残す。
+  void _startCpuTimer() {
+    _cpuTimer?.cancel();
+    _cpuTookRound = false;
+    if (!_isCpu) return;
+    if (_rng.nextInt(10) < 2) return; // 2割はCPUも分からない
+    final ms = 2500 + _rng.nextInt(4000); // 2.5〜6.5秒
+    _cpuTimer = Timer(Duration(milliseconds: ms), _cpuAnswers);
+  }
+
+  /// CPUが先に思い出した。プレイヤーの回答を締め切ってCPUの取り分にする。
+  void _cpuAnswers() {
+    if (!mounted || _phase != _Phase.round || _answerLocked) return;
+    _answer(null, takenByCpu: true);
+  }
+
   void _startQuizTimer() {
     _quizTimer?.cancel();
     _timeLeft = _answerSeconds;
+    _startCpuTimer();
     _quizTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       // 画面が破棄されたあともタイマーが動き続けるとリークになるので止める
       if (!mounted) {
@@ -508,10 +557,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   // ── クイズ回答（ひとり／オンライン） ──
   // タップ → 正誤を色で見せる（0.75秒）→ 確定して次へ
-  void _answer(String? choice) {
+  void _answer(String? choice, {bool takenByCpu = false}) {
     if (_phase != _Phase.round || _answerLocked) return;
     _answerLocked = true;
     _quizTimer?.cancel();
+    _cpuTimer?.cancel();
     final target = _round[_answering];
     final correct = choice != null && choice == _game.roster[target];
     _quizTotal += 1;
@@ -523,7 +573,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
       Sfx.instance.wrong();
       HapticFeedback.mediumImpact();
     }
-    _roundHits.add(correct);
+    // CPUに先を越された、または自分がまちがえた場合はCPUの取り分になる
+    if (_isCpu && (takenByCpu || !correct)) _cpuTookRound = true;
+    _roundHits.add(correct && !takenByCpu);
     setState(() => _pickedChoice = choice ?? '__timeout__');
 
     Future.delayed(const Duration(milliseconds: 750), () {
@@ -614,10 +666,15 @@ class _NameCallScreenState extends State<NameCallScreen> {
         ms: elapsedMs,
         pairs: _cardsWon[0],
       );
-    } else if (_isSolo && !_rewarded) {
+    } else if ((_isSolo || _isCpu) && !_rewarded) {
       _rewarded = true;
       final profile = PlayerProfile.instance;
       final reward = await profile.recordGamePlayed(_cardsWon[0]);
+      // 🤖 CPUに勝ったら難易度ぶんのボーナス。むずかしいほど大きく報いる。
+      if (_isCpu && _cardsWon[0] > _cardsWon[1]) {
+        _cpuBonus = _spec[3];
+        await profile.grantBonusCoins(_cpuBonus);
+      }
       final newly = await profile.refreshAchievements();
       if (mounted) {
         setState(() {
@@ -867,18 +924,24 @@ class _NameCallScreenState extends State<NameCallScreen> {
           //
           // ①のときアプリ側は名前を知らないので、内部的にはガチャ名を割り当てて
           // 「札を区別する識別子」として使う。プレイヤーが覚えるのは自分でつけた名前。
-          ElevatedButton.icon(
-            onPressed: () => _submitInlineName(autoNameIfEmpty: true),
-            icon: const Text('✨', style: TextStyle(fontSize: 20)),
-            label: Text(m.namedItAloud),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4ECDC4),
-              minimumSize: const Size.fromHeight(56),
-              textStyle:
-                  const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          //
+          // ⚠️ ただし4択クイズ（CPU戦・オンライン）では、アプリが正解の名前を
+          //    知らないと選択肢が作れず出題が成立しない。そのため①は出さず、
+          //    かならずアプリが名前を決める（＝おまかせ）方式に一本化する。
+          if (_isReferee) ...[
+            ElevatedButton.icon(
+              onPressed: () => _submitInlineName(autoNameIfEmpty: true),
+              icon: const Text('✨', style: TextStyle(fontSize: 20)),
+              label: Text(m.namedItAloud),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4ECDC4),
+                minimumSize: const Size.fromHeight(56),
+                textStyle:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
           OutlinedButton.icon(
             onPressed: _nameWithGacha,
             icon: const Text('🎲', style: TextStyle(fontSize: 18)),
@@ -1324,6 +1387,18 @@ class _NameCallScreenState extends State<NameCallScreen> {
         ],
       );
     }
+    // 🤖 CPU対戦: 自分とCPUの取ったカード数を並べる
+    if (_isCpu) {
+      return Row(
+        children: [
+          _chip('😀 ${m.you}', '${_cardsWon[0]}', const Color(0xFF3A7BD5)),
+          const SizedBox(width: 8),
+          _chip('🤖 CPU', '${_cardsWon[1]}', const Color(0xFF8A5AC2)),
+          const SizedBox(width: 8),
+          _chip('🃏', '${_game.deck.length}', const Color(0xFF8A9AA8)),
+        ],
+      );
+    }
     if (_isLocalMulti) {
       const colors = [
         Color(0xFF3A7BD5),
@@ -1490,6 +1565,21 @@ class _NameCallScreenState extends State<NameCallScreen> {
                 ),
               ),
             ),
+            // 🤖 CPU戦は勝敗をはっきり出す（ひとりでも手応えが残るように）
+            if (_isCpu) ...[
+              const SizedBox(height: 10),
+              Text(
+                _cardsWon[0] > _cardsWon[1] ? m.cpuWinTitle : m.cpuLoseTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w900,
+                  color: _cardsWon[0] > _cardsWon[1]
+                      ? const Color(0xFF2E9E5B)
+                      : const Color(0xFF8A9AA8),
+                ),
+              ),
+            ],
             if (_coinsEarned > 0) ...[
               const SizedBox(height: 10),
               Container(
@@ -1501,13 +1591,35 @@ class _NameCallScreenState extends State<NameCallScreen> {
                   border:
                       Border.all(color: const Color(0xFFE6B54A), width: 1.5),
                 ),
-                child: Text(
-                  '🪙 ${m.earnedCoins(_coinsEarned)}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF8A6A1E)),
+                child: Column(
+                  children: [
+                    Text(
+                      '🪙 ${m.earnedCoins(_coinsEarned)}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF8A6A1E)),
+                    ),
+                    // 難易度ボーナスは内訳として見せる（強い相手を選ぶ動機になる）
+                    if (_cpuBonus > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        m.cpuBonusCoins(_cpuBonus),
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFB07A00)),
+                      ),
+                    ],
+                    const SizedBox(height: 6),
+                    Text(
+                      m.saveCoinsPitch,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 11.5, color: Color(0xFF8A6A1E)),
+                    ),
+                  ],
                 ),
               ),
               // 💰 コインを見せた直後がリワード広告の一番刺さる位置。
