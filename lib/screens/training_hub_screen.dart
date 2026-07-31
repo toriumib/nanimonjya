@@ -14,6 +14,7 @@ import 'cognitive_info_screen.dart';
 import 'line_match_screen.dart';
 import 'match_game_screen.dart';
 import 'recall_training_screen.dart';
+import 'rulebook_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
 
@@ -190,7 +191,17 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
     final m = MetaStrings.of(context);
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(),
-      appBar: AppBar(title: Text(m.tabTraining)),
+      appBar: AppBar(
+        title: Text(m.tabTraining),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(
+                child: RulebookButton(
+                    focus: RuleTopic.cardMemory, onDark: true)),
+          ),
+        ],
+      ),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(
         child: SafeArea(

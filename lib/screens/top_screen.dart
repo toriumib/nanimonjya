@@ -19,6 +19,7 @@ import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
+import 'rulebook_screen.dart'; // 📖 いつでも見直せるルールブック
 import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
@@ -793,6 +794,21 @@ class _TopScreenState extends State<TopScreen>
                                   m.peopleCountHint(_peopleCount),
                                   style: const TextStyle(
                                       fontSize: 11, color: Colors.black54),
+                                ),
+                                const SizedBox(height: 10),
+                                // 📖 ルールをいつでも見直せる丸ボタン
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const RulebookButton(
+                                        focus: RuleTopic.nameCall),
+                                    const SizedBox(width: 8),
+                                    Text(m.rulebookTitle,
+                                        style: const TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFF2B5CA5))),
+                                  ],
                                 ),
                                 const SizedBox(height: 14),
                                 // 「みんなで」をメインに昇格。

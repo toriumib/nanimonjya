@@ -948,6 +948,29 @@ This tab is where you get stronger on your own.
       ? '🎉 仲間にした！ゲームに出るようになったよ'
       : '🎉 Unlocked! They will now appear in your games';
   String get storeOpenDeck => ja ? 'デッキを見る' : 'View deck';
+  // 🏆 実績で解放するキャラ（コインでは買えない枠）
+  String featCondition(dynamic feat) {
+    switch ('$feat'.split('.').last) {
+      case 'hardWins3':
+        return ja ? 'つよいに3勝' : 'Beat Hard ×3';
+      case 'oniWin1':
+        return ja ? '鬼に勝つ' : 'Beat Oni';
+      case 'oniWins3':
+        return ja ? '鬼に3勝' : 'Beat Oni ×3';
+      case 'play50':
+        return ja ? '50回あそぶ' : 'Play 50 games';
+      case 'perfectWin':
+        return ja ? '全問正解で勝つ' : 'Perfect win';
+      default:
+        return ja ? '条件を満たす' : 'Meet the condition';
+    }
+  }
+
+  String featLocked(String cond) => ja
+      ? 'このキャラはコインで買えません。「$cond」で参戦します🏆'
+      : 'Not for sale. Unlock by: $cond 🏆';
+  String featJoined(String name) =>
+      ja ? '🏆 $name が参戦した！' : '🏆 $name joins the battle!';
   String get storeHint => ja
       ? '買ったキャラは「なまえコール」と「名刺おぼえ」に登場します。'
       : 'Bought characters show up in Name Call and Card Memory.';
@@ -1065,4 +1088,66 @@ This tab is where you get stronger on your own.
 
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
+  // 📖 ルールブック（いつでも見直せるルール一覧）
+  String get rulebookTitle => ja ? '📖 ルールブック' : '📖 Rulebook';
+  String get rulebookRead => ja ? '読み上げる' : 'Read aloud';
+  String get rulebookLead => ja
+      ? 'あそび方をわすれたら、ここを見てね。ゲーム中でも 📖 ボタンから開けます。'
+      : 'Forgot how to play? Look here. The 📖 button works during a game too.';
+
+  String ruleEmoji(dynamic t) {
+    switch ('$t'.split('.').last) {
+      case 'cpu':
+        return '🤖';
+      case 'lineMatch':
+        return '🖇';
+      case 'cardMemory':
+        return '💼';
+      case 'pairs':
+        return '🃏';
+      default:
+        return '📣';
+    }
+  }
+
+  String ruleTitle(dynamic t) {
+    switch ('$t'.split('.').last) {
+      case 'cpu':
+        return ja ? 'CPUとたいせん' : 'Play vs CPU';
+      case 'lineMatch':
+        return ja ? '線むすび特訓' : 'Line Match';
+      case 'cardMemory':
+        return ja ? '名刺おぼえ（思い出しトレーニング）' : 'Card Memory';
+      case 'pairs':
+        return ja ? 'ペアさがし' : 'Pair Hunt';
+      default:
+        return ja ? 'なまえコール（メイン）' : 'Name Call (main)';
+    }
+  }
+
+  String ruleBody(dynamic t) {
+    switch ('$t'.split('.').last) {
+      case 'cpu':
+        return ja
+            ? '''ひとりであそぶモード。CPUと カードのとりあいをするよ。\n\n① はじめて出たキャラに 名前がつく（おまかせ）\n② 同じキャラが また出てきたら、4つの中から 正しい名前をえらぶ\n③ CPUが思い出すより 早く正解できたら カードをゲット\n④ おそかったり まちがえたら CPUに とられる\n\n🏆 むずかしい相手ほど 勝ったときのコインが多い。\nかんたん20 / ふつう45 / つよい90 / 鬼180\n\nコインを貯めて、キャラや音楽を変えよう！'''
+            : '''Solo mode. You and the CPU compete for cards.\n\n1. Each new character is given a name (auto)\n2. When they appear again, pick the right name from four\n3. Answer correctly before the CPU to win the card\n4. Too slow or wrong, and the CPU takes it\n\n🏆 Tougher rivals pay more coins:\nEasy 20 / Normal 45 / Hard 90 / Oni 180''';
+      case 'lineMatch':
+        return ja
+            ? '''ひとりで、じっくり練習するモード。運の要素はありません。\n\n① おぼえタイム … 顔と名前をセットでおぼえる\n② 線むすび … 顔から名前へ 指でドラッグして つなぐ\n③ まちがえたら 何回でも 引きなおせる\n④ ぜんぶつないだら「答えあわせ」\n\n💡 顔を見て名前を引き出す形なので、実生活にいちばん近い練習です。'''
+            : '''A calm solo drill — no luck involved.\n\n1. Memorize each face with its name\n2. Drag from a face to a name to connect them\n3. Redo any line as often as you like\n4. Connect them all, then check your answers''';
+      case 'cardMemory':
+        return ja
+            ? '''仕事で会う人をおぼえる練習。\n\n① であう … 名刺をもった人が じこしょうかいしてくれる（声つき）\n② 時間がたつ … わざと間をあける（この「間」が記憶に効きます）\n③ 思い出す … 顔を見て「だれだっけ？」を答える\n\n🎯 おぼえる項目は 名前が必須。会社名・肩書・電話・メールを 自由に足せます。\n🔁 まちがえた人は 次の日にまた出てきます。'''
+            : '''Practice for people you meet at work.\n\n1. Meet — they introduce themselves with a business card (with voice)\n2. Time passes — a deliberate gap helps memory\n3. Recall — look at the face and answer who it was\n\n🎯 Name is required; add company, title, phone, email as you like.''';
+      case 'pairs':
+        return ja
+            ? '''顔と名前の神経衰弱。マイページから あそべます。\n\n① おぼえタイム … 顔と名前の組み合わせを見る\n② カードが裏返る\n③ 顔カードと 名前カードの 正しいペアをさがす\n\nCPU対戦・1台でみんなで対戦も できます。'''
+            : '''Face-and-name concentration. Open it from My Page.\n\n1. Study the face-name pairs\n2. The cards flip over\n3. Find the matching face and name''';
+      default:
+        return ja
+            ? '''ともだちや かぞくと 1台のスマホであそぶ メインのゲーム。\n\n① カードが 1まいずつ 出てくる\n② はじめて出たキャラには その場で 名前をつける\n　 声に出して「〇〇！」と言ってから ✨名前をつけた！を おす\n　 （まよったら 🎲おまかせ でもOK）\n③ まえに名前をつけたキャラが また出てきたら\n　 みんなで いっせいに 名前をさけぶ！📣\n④ いちばん早く 正しく 言えた人のボタン（P1・P2…）を おす\n　 おされた人が そのカードをもらえる\n⑤ だれも思い出せなかったら「だれもわからなかった…」\n\n🏆 カードが なくなったら おしまい。いちばん多く あつめた人の勝ち！\nさいごに みんなの名前が ぜんぶ出ます。'''
+            : '''The main game — play with friends on one phone.\n\n1. Cards appear one at a time\n2. Name each newcomer out loud, then tap "We named it!"\n3. When a named character returns, everyone shouts the name\n4. Tap the button (P1, P2...) of whoever said it first\n5. If nobody remembers, tap "Nobody knew..."\n\n🏆 When the cards run out, whoever collected the most wins!''';
+    }
+  }
+
 }

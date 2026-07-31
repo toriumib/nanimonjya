@@ -682,8 +682,16 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       );
 
   Widget _charCard(MetaStrings m, GameCharacter c, bool owned) {
+    // 🏆 実績キャラはコインで買えない。条件だけ見せて、腕前で取ってもらう。
+    final feat = c.feat;
+    final locked = feat != null && !owned;
     return GestureDetector(
-      onTap: owned ? null : () => _buy(c),
+      onTap: owned
+          ? null
+          : locked
+              ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(m.featLocked(m.featCondition(feat)))))
+              : () => _buy(c),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -721,16 +729,26 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              color: owned ? const Color(0xFFDFF5F2) : const Color(0xFFFFF3D6),
+              color: owned
+                  ? const Color(0xFFDFF5F2)
+                  : locked
+                      ? const Color(0xFFEFE6FF)
+                      : const Color(0xFFFFF3D6),
               child: Text(
-                owned ? m.storeOwned : '🪙 ${c.cost}',
+                owned
+                    ? m.storeOwned
+                    : locked
+                        ? '🏆 ${m.featCondition(feat)}'
+                        : '🪙 ${c.cost}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w900,
                     color: owned
                         ? const Color(0xFF1E9C8E)
-                        : const Color(0xFF7A5A00)),
+                        : locked
+                            ? const Color(0xFF5B3E9E)
+                            : const Color(0xFF7A5A00)),
               ),
             ),
           ],

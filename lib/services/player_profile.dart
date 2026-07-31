@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
+import '../models/character_catalog.dart';
 import '../models/cpu_rank.dart';
 import '../models/shop_items.dart';
 import 'app_analytics.dart';
@@ -48,6 +49,8 @@ class PlayerProfile extends ChangeNotifier {
   int cpuNormalWins = 0;
   int cpuHardWins = 0;
   int cpuOniWins = 0;
+  /// 全問正解でCPUに勝ったことがあるか（実績キャラの解放条件）
+  bool hadPerfectCpuWin = false;
   int bestQuizAccuracyPct = 0; // 1ゲーム内のベスト正答率(0-100)
   int bestAvgReactionMs = 0; // ベスト平均反応時間(ms)。0は未計測
   int soloTrainingSessions = 0; // 一人特訓モードの完了回数
@@ -139,6 +142,7 @@ class PlayerProfile extends ChangeNotifier {
     cpuNormalWins = p.getInt('cpuNormalWins') ?? 0;
     cpuHardWins = p.getInt('cpuHardWins') ?? 0;
     cpuOniWins = p.getInt('cpuOniWins') ?? 0;
+    hadPerfectCpuWin = p.getBool('hadPerfectCpuWin') ?? false;
     bestQuizAccuracyPct = p.getInt('bestQuizAccuracyPct') ?? 0;
     bestAvgReactionMs = p.getInt('bestAvgReactionMs') ?? 0;
     soloTrainingSessions = p.getInt('soloTrainingSessions') ?? 0;
@@ -434,7 +438,11 @@ class PlayerProfile extends ChangeNotifier {
 
   // 🎁 動画で無料コインチェスト（クールダウン管理）
   // 30分→15分に短縮: 訪問頻度が上がるほどリワード広告の視聴機会が増える
-  static const int giftCooldownMinutes = 15;
+  /// 🎁 無料コインチェストの待ち時間。
+  /// 0 = 待ち時間なし（連続で受け取れる）。
+  /// リワード広告は本人がボタンを押して見るものなので回数制限は設けない。
+  /// 実際には広告在庫が尽きた時点で出なくなるため、そこが自然な上限になる。
+  static const int giftCooldownMinutes = 0;
   int _lastGiftMillis = 0;
 
   /// 実際の待ち時間。「ふくびきの鈴」を装備していると半分になる。
@@ -444,6 +452,7 @@ class PlayerProfile extends ChangeNotifier {
           : giftCooldownMinutes;
 
   bool get canClaimGift {
+    if (giftCooldownMinutes == 0) return true;
     if (_lastGiftMillis == 0) return true;
     final elapsed = DateTime.now().millisecondsSinceEpoch - _lastGiftMillis;
     return elapsed >= effectiveGiftCooldownMinutes * 60 * 1000;
@@ -606,9 +615,55 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 全問正解でCPUに勝った記録をつける（実績キャラの解放条件）。
+  Future<void> markPerfectCpuWin() async {
+    if (hadPerfectCpuWin) return;
+    hadPerfectCpuWin = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 🏆 腕前で解放するキャラの条件を満たしているか。
+  bool hasFeat(UnlockFeat f) {
+    switch (f) {
+      case UnlockFeat.hardWins3:
+        return cpuHardWins >= 3;
+      case UnlockFeat.oniWin1:
+        return cpuOniWins >= 1;
+      case UnlockFeat.oniWins3:
+        return cpuOniWins >= 3;
+      case UnlockFeat.play50:
+        return totalGames >= 50;
+      case UnlockFeat.perfectWin:
+        return hadPerfectCpuWin;
+    }
+  }
+
+  /// 条件を満たした実績キャラを解放する。新しく解放したIDを返す。
+  /// 結果画面で「参戦！」を出すために使う。
+  Future<List<String>> refreshFeatCharacters() async {
+    final newly = <String>[];
+    for (final c in kExtraCharacters) {
+      final f = c.feat;
+      if (f == null) continue;
+      if (unlockedCharacters.contains(c.id)) continue;
+      if (hasFeat(f)) {
+        unlockedCharacters.add(c.id);
+        newly.add(c.id);
+      }
+    }
+    if (newly.isNotEmpty) {
+      await _persist();
+      notifyListeners();
+    }
+    return newly;
+  }
+
   /// 追加キャラをコインで購入。成功したら true。
+  /// 実績キャラはコインでは買えない（腕前でしか手に入らない枠）。
   Future<bool> unlockCharacter(String id, int cost) async {
     if (unlockedCharacters.contains(id)) return true;
+    if (extraCharacterById(id)?.isFeatCharacter ?? false) return false;
     if (coins < cost) return false;
     coins -= cost;
     unlockedCharacters.add(id);
@@ -804,6 +859,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('reviewPromptedAtGames', reviewPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setStringList('deckExcluded', deckExcluded.toList());
+    await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);
     await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('reminderHour', reminderHour);

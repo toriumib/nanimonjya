@@ -10,6 +10,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/face_view.dart';
+import 'rulebook_screen.dart';
 import 'training_report_screen.dart';
 
 /// 🖇 一人特訓（線むすび）。
@@ -70,8 +71,11 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     // ⚠️ generateImagePeople は name が空文字（なまえコールは各自が命名する
     //    仕様のため）。線むすびは名前を表示して結ぶので、名前が入る
     //    generateRecallPeople を使う。
+    // デッキが少ないときは出演人数をデッキに合わせる（基本12人への
+    // フォールバックでOFFにしたキャラが復活するのを防ぐ）
+    final n = min(_count, pool.length);
     _people =
-        generateRecallPeople(_count, ja: ja, random: _rng, charAssets: pool);
+        generateRecallPeople(n, ja: ja, random: _rng, charAssets: pool);
     // 名前が空だと「線でむすぶ相手」が見えなくなる。生成器を取り違えたら
     // その場で気づけるように、デバッグ時は必ず落とす。
     assert(_people.every((p) => p.name.trim().isNotEmpty),
@@ -153,7 +157,17 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(m.lineMatchTitle)),
+      appBar: AppBar(
+        title: Text(m.lineMatchTitle),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(
+                child: RulebookButton(
+                    focus: RuleTopic.lineMatch, onDark: true)),
+          ),
+        ],
+      ),
       bottomNavigationBar: const BannerAdSlot(),
       body: SafeArea(
         child: _phase == _Phase.memorize

@@ -28,6 +28,7 @@ import 'home_shell.dart';
 import 'local_result_screen.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale, CpuLevel;
 import 'online_result_screen.dart';
+import 'rulebook_screen.dart';
 
 /// メインモード「なまえコール」。
 ///
@@ -180,6 +181,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
   int _coinsEarned = 0;
   /// 🤖 CPUに勝ったときの難易度ボーナス（終了画面で内訳を見せる）
   int _cpuBonus = 0;
+  /// 🏆 この試合で新しく参戦した実績キャラのID
+  List<String> _featUnlocked = [];
   List<String> _newAchievements = [];
   bool _rewarded = false;
 
@@ -224,9 +227,14 @@ class _NameCallScreenState extends State<NameCallScreen> {
             ],
             PlayerProfile.instance.deckExcluded,
           );
+    // 🎴 デッキで絞った結果が必要人数より少ないと、生成器は基本12人へ
+    //    フォールバックしてしまい「OFFにしたキャラが出てくる」ことになる。
+    //    デッキの意思を優先し、出演人数のほうをデッキの数に合わせる。
+    final effectiveCount =
+        charAssets == null ? count : min(count, charAssets.length);
     final people = _isCustom
         ? ([...widget.customPeople!]..shuffle(_rng))
-        : generateImagePeople(count,
+        : generateImagePeople(effectiveCount,
             ja: ja, random: _rng, charAssets: charAssets);
     _game = NameCallGame(
       people: people,
@@ -670,10 +678,26 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _rewarded = true;
       final profile = PlayerProfile.instance;
       final reward = await profile.recordGamePlayed(_cardsWon[0]);
-      // 🤖 CPUに勝ったら難易度ぶんのボーナス。むずかしいほど大きく報いる。
-      if (_isCpu && _cardsWon[0] > _cardsWon[1]) {
-        _cpuBonus = _spec[3];
-        await profile.grantBonusCoins(_cpuBonus);
+      // 🤖 CPU戦は勝敗を段位に反映し、勝ったら難易度ぶんのボーナスを出す。
+      if (_isCpu) {
+        final won = _cardsWon[0] > _cardsWon[1];
+        if (won) {
+          _cpuBonus = _spec[3];
+          await profile.grantBonusCoins(_cpuBonus);
+          // 全問正解での勝利は専用キャラの解放条件
+          if (_quizTotal > 0 && _quizCorrect == _quizTotal) {
+            await profile.markPerfectCpuWin();
+          }
+        }
+        await profile.recordCpuGame(
+          level: widget.cpuLevel!.name,
+          won: won,
+          correctQuizzes: _quizCorrect,
+          totalQuizzes: _quizTotal,
+          avgReactionMs: 0,
+        );
+        // 🏆 条件を満たした実績キャラをここで参戦させる
+        _featUnlocked = await profile.refreshFeatCharacters();
       }
       final newly = await profile.refreshAchievements();
       if (mounted) {
@@ -736,6 +760,18 @@ class _NameCallScreenState extends State<NameCallScreen> {
           icon: const Icon(Icons.close),
           onPressed: _confirmQuit,
         ),
+        // 📖 ゲーム中でもルールを見直せるようにする
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Center(
+              child: RulebookButton(
+                focus: _isCpu ? RuleTopic.cpu : RuleTopic.nameCall,
+                onDark: true,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
