@@ -134,6 +134,8 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
       if (ok) correct++;
     }
     setState(() => _phase = _Phase.result);
+    // 📅 今週おぼえた人数に、正しく結べた人数を足す
+    PlayerProfile.instance.addWeeklyLearned(correct);
 
     final avgMs = _count > 0 ? _clock.elapsedMilliseconds ~/ _count : 0;
     // 線むすびはめくり手数の概念がないので、正解数をそのまま成績として渡す

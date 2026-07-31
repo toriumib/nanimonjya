@@ -63,6 +63,18 @@ class PlayerProfile extends ChangeNotifier {
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
 
+  /// 🎁 今日のキャラガチャを引いた日（yyyy-mm-dd）。
+  /// 「1日1回タダで1体引ける」という戻ってくる理由を作るための仕組み。
+  /// コインを貯めないと何も起きない状態だと、買うほど遊んでいない人が
+  /// キャラに触れないまま離脱してしまう。
+  String lastGachaDate = '';
+
+  /// 📅 今週おぼえた人数（社会人向けの実感メーター）。
+  /// 週が変わったら自動で0に戻す。
+  int weeklyLearned = 0;
+  /// 集計中の週の開始日（月曜, yyyy-mm-dd）
+  String weekStartDate = '';
+
   /// 🎴 デッキから外したキャラの画像パス。空なら「全員出る」（既定）。
   /// 除外リスト方式にしているのは、キャラを買い足したり写真を登録したときに
   /// 自動でデッキに加わってほしいため（選択リスト方式だと毎回選び直しになる）。
@@ -155,6 +167,10 @@ class PlayerProfile extends ChangeNotifier {
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
     bgmEnabled = p.getBool('bgmEnabled') ?? true;
+    lastGachaDate = p.getString('lastGachaDate') ?? '';
+    weeklyLearned = p.getInt('weeklyLearned') ?? 0;
+    weekStartDate = p.getString('weekStartDate') ?? '';
+    _refreshWeek();
     adsRemoved = p.getBool('adsRemoved') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
@@ -691,6 +707,70 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ───────── 🎁 今日のキャラガチャ ─────────
+  // 「1日1回タダで1体もらえる」だけで戻ってくる理由になる（ポケポケ型）。
+  // コインを貯めないとキャラに触れない状態だと、買うほど遊んでいない人が
+  // 32体の資産に一度も出会わないまま離脱してしまう。
+
+  bool get canPullGacha => lastGachaDate != _today();
+
+  /// まだ持っていない「コインで買える」キャラのID一覧。
+  /// 実績キャラはガチャからも出さない（腕前でしか手に入らない枠を守る）。
+  List<String> _gachaPool() => [
+        for (final c in kExtraCharacters)
+          if (!c.isFeatCharacter && !unlockedCharacters.contains(c.id)) c.id,
+      ];
+
+  /// 今日のガチャを引く。
+  /// 当たったキャラIDを返す。全部持っているときは null を返し、
+  /// 代わりにコインを渡す（引く動機を残すため）。
+  Future<String?> pullDailyGacha({int consolationCoins = 80}) async {
+    if (!canPullGacha) return null;
+    lastGachaDate = _today();
+    final pool = _gachaPool();
+    if (pool.isEmpty) {
+      coins += consolationCoins;
+      lifetimeCoins += consolationCoins;
+      await _persist();
+      notifyListeners();
+      return null;
+    }
+    final id = pool[DateTime.now().millisecondsSinceEpoch % pool.length];
+    unlockedCharacters.add(id);
+    await _persist();
+    notifyListeners();
+    return id;
+  }
+
+  // ───────── 📅 今週おぼえた人数 ─────────
+  // 社会人向けの「実感」。勝ち負けより、実務で効いている感覚のほうが刺さる。
+
+  /// 今週の月曜日（yyyy-mm-dd）。
+  String _weekStart() {
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    return '${monday.year}-${monday.month.toString().padLeft(2, '0')}-'
+        '${monday.day.toString().padLeft(2, '0')}';
+  }
+
+  /// 週が変わっていたらカウンタを0に戻す。
+  void _refreshWeek() {
+    final ws = _weekStart();
+    if (weekStartDate != ws) {
+      weekStartDate = ws;
+      weeklyLearned = 0;
+    }
+  }
+
+  /// 思い出せた人数を今週の記録に足す。
+  Future<void> addWeeklyLearned(int n) async {
+    if (n <= 0) return;
+    _refreshWeek();
+    weeklyLearned += n;
+    await _persist();
+    notifyListeners();
+  }
+
   /// 全員をデッキに戻す。
   Future<void> resetDeck() async {
     deckExcluded.clear();
@@ -861,6 +941,9 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);
+    await p.setString('lastGachaDate', lastGachaDate);
+    await p.setInt('weeklyLearned', weeklyLearned);
+    await p.setString('weekStartDate', weekStartDate);
     await p.setBool('adsRemoved', adsRemoved);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);

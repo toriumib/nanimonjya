@@ -971,6 +971,25 @@ This tab is where you get stronger on your own.
       : 'Not for sale. Unlock by: $cond 🏆';
   String featJoined(String name) =>
       ja ? '🏆 $name が参戦した！' : '🏆 $name joins the battle!';
+
+  // 🎁 今日のキャラガチャ（1日1回タダで1体）
+  String get gachaTitle => ja ? '🎁 今日のキャラ' : '🎁 Today\'s character';
+  String get gachaReady => ja ? '1日1回 タダで1体！' : 'One free pull a day!';
+  String get gachaDoneToday =>
+      ja ? 'また明日きてね' : 'Come back tomorrow';
+  String gachaGot(String emoji) =>
+      ja ? '$emoji 新しいキャラが仲間になった！' : '$emoji A new character joined!';
+  String gachaAllOwned(int coins) => ja
+      ? 'ぜんぶ持ってる！かわりに🪙$coins もらった'
+      : 'You own them all! Got 🪙$coins instead';
+
+  // 🏆 段位（ホームに常設）
+  String get trophyLabel => ja ? 'だんい' : 'Rank';
+  // 📅 今週おぼえた人数
+  String weeklyLearnedLabel(int n) =>
+      ja ? '📅 今週 $n人 おぼえた' : '📅 $n learned this week';
+  String get weeklyLearnedZero =>
+      ja ? '📅 今週はまだ0人。1回あそぼう！' : '📅 None yet this week — play once!';
   String get storeHint => ja
       ? '買ったキャラは「なまえコール」と「名刺おぼえ」に登場します。'
       : 'Bought characters show up in Name Call and Card Memory.';

@@ -676,6 +676,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _rewarded = true;
       final profile = PlayerProfile.instance;
       final reward = await profile.recordGamePlayed(_cardsWon[0]);
+      // 📅 今週おぼえた人数（実務で効いている実感のメーター）
+      await profile.addWeeklyLearned(_quizCorrect > 0 ? _quizCorrect : _cardsWon[0]);
       // 🤖 CPU戦は勝敗を段位に反映し、勝ったら難易度ぶんのボーナスを出す。
       if (_isCpu) {
         final won = _cardsWon[0] > _cardsWon[1];

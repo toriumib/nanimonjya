@@ -14,6 +14,8 @@ import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
 import '../models/name_call.dart';
+import '../models/character_catalog.dart';
+import '../models/cpu_rank.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
@@ -124,6 +126,151 @@ class _TopScreenState extends State<TopScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// 🏆 段位・📅 今週の記録・🎁 今日のキャラ を1行にまとめたホームの状態表示。
+  Widget _homeStatusRow(BuildContext context) {
+    final m = MetaStrings.of(context);
+    final p = PlayerProfile.instance;
+    final rank = cpuRankForRating(p.cpuRating);
+    return Column(
+      children: [
+        Row(
+          children: [
+            // 🏆 段位（クラロワのトロフィーにあたるもの）
+            Expanded(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE6B54A), width: 2),
+                ),
+                child: Row(
+                  children: [
+                    Text(rank.emoji, style: const TextStyle(fontSize: 20)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(m.ja ? rank.nameJa : rank.nameEn,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF8A6A1E))),
+                          Text('${p.cpuRating}',
+                              style: const TextStyle(
+                                  fontSize: 11, color: Colors.black54)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // 🎁 今日のキャラガチャ
+            Expanded(
+              child: ElevatedButton(
+                onPressed: p.canPullGacha ? _pullGacha : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: p.canPullGacha
+                      ? const Color(0xFFFF4FA3)
+                      : Colors.grey.shade400,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: Colors.white, width: 2),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(m.gachaTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w900)),
+                    Text(p.canPullGacha ? m.gachaReady : m.gachaDoneToday,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        // 📅 今週おぼえた人数（社会人向けの実感）
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            p.weeklyLearned > 0
+                ? m.weeklyLearnedLabel(p.weeklyLearned)
+                : m.weeklyLearnedZero,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF2B5CA5)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 🎁 今日のキャラを1体引く（1日1回）。
+  Future<void> _pullGacha() async {
+    final m = MetaStrings.of(context);
+    final p = PlayerProfile.instance;
+    final id = await p.pullDailyGacha();
+    if (!mounted) return;
+    Sfx.instance.reward();
+    final c = id == null ? null : extraCharacterById(id);
+    if (c == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(m.gachaAllOwned(80))),
+      );
+      return;
+    }
+    // 当たったキャラを顔つきで見せる（何をもらったか分からないと嬉しくない）
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(c.asset,
+                  width: 150, height: 150, fit: BoxFit.cover),
+            ),
+            const SizedBox(height: 12),
+            Text(m.gachaGot(c.emoji),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(m.trainingIntroOk),
+          ),
+        ],
       ),
     );
   }
@@ -657,6 +804,16 @@ class _TopScreenState extends State<TopScreen>
                     ],
                   );
                 },
+              ),
+            ),
+            // 🏆 段位と 📅 今週の記録と 🎁 今日のキャラ。
+            // 段位(cpuRating)は前からあったのにホームに出ておらず、
+            // 伸びている実感が持てなかったのでここに常設する。
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: AnimatedBuilder(
+                animation: PlayerProfile.instance,
+                builder: (context, _) => _homeStatusRow(context),
               ),
             ),
             // フェードインアニメーション付きのボタン

@@ -8,6 +8,7 @@ import 'package:nanimonjya/services/player_profile.dart';
 /// 「コインでは買えない」ことをここで固めておく。
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  _dailyTests();
 
   late PlayerProfile p;
 
@@ -98,6 +99,68 @@ void main() {
       p.unlockedCharacters = {feat.id};
       expect(await p.unlockCharacter(feat.id, feat.cost), isTrue);
       expect(p.unlockedCharacters, contains(feat.id));
+    });
+  });
+}
+
+/// 🎁 デイリーガチャと 📅 週次カウンタ。
+/// 「1日1回」「週で戻る」は時間が絡むので、手動では確かめにくい。
+void _dailyTests() {
+  group('今日のキャラガチャ', () {
+    late PlayerProfile p;
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      p = PlayerProfile.instance;
+      await p.load();
+      p.unlockedCharacters = {};
+      p.lastGachaDate = '';
+      p.coins = 0;
+    });
+
+    test('1日1回しか引けない', () async {
+      expect(p.canPullGacha, isTrue);
+      final got = await p.pullDailyGacha();
+      expect(got, isNotNull);
+      expect(p.canPullGacha, isFalse, reason: '同じ日に2回は引けない');
+      expect(await p.pullDailyGacha(), isNull);
+    });
+
+    test('引いたキャラは所持に加わる', () async {
+      final id = await p.pullDailyGacha();
+      expect(p.unlockedCharacters, contains(id));
+    });
+
+    test('実績キャラはガチャから出ない（腕前の枠を守る）', () async {
+      // 購入枠15体を先に全部持たせる
+      p.unlockedCharacters = {
+        for (final c in kExtraCharacters)
+          if (!c.isFeatCharacter) c.id,
+      };
+      final id = await p.pullDailyGacha();
+      expect(id, isNull, reason: '残りは実績キャラだけなので当たらない');
+      expect(p.coins, greaterThan(0), reason: '代わりにコインがもらえる');
+    });
+  });
+
+  group('今週おぼえた人数', () {
+    late PlayerProfile p;
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      p = PlayerProfile.instance;
+      await p.load();
+      p.weeklyLearned = 0;
+    });
+
+    test('足した数が積み上がる', () async {
+      await p.addWeeklyLearned(3);
+      await p.addWeeklyLearned(2);
+      expect(p.weeklyLearned, 5);
+    });
+
+    test('0以下は無視する', () async {
+      await p.addWeeklyLearned(0);
+      await p.addWeeklyLearned(-5);
+      expect(p.weeklyLearned, 0);
     });
   });
 }
