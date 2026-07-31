@@ -618,6 +618,12 @@ class MetaStrings {
   String get ruleLabel => ja ? '命名ルール' : 'Naming rule';
   /// 「名前をつけた！」で進んだ人の表示。アプリは名前を知らないので伏せる。
   /// （ここに内部の識別子を出すと「言ってない名前」が出て混乱する）
+  /// アプリが名前を決める方式（CPU戦・オンライン）の見出し。
+  /// 「名前をつけてね」ではなく「この人の名前はこれ」だと伝える。
+  String get newComerNamed => ja ? '👤 この人の名前は…' : '👤 This person is…';
+  String get newComerNamedHint => ja
+      ? 'この名前をおぼえてね。もう一度この顔が出てきたら、4つの中からえらぶよ！'
+      : 'Remember this name. When this face returns, pick it from four choices!';
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
   // 🏋️ 名刺おぼえタブの初回説明（小学生でも分かる言い方にする）
   String get trainingIntroTitle =>

@@ -378,6 +378,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
         // 初登場 → その場で名前をつける（無得点）
         setState(() {
           _inlinePerson = card;
+          // 🤖 CPU戦など「アプリが名前を決める」方式では、
+          //    わざわざ命名ボタンを押させる意味がない。相手はCPUで
+          //    相談もしないので、ここで名前を確定して見せるだけにする。
+          //    プレイヤーの仕事は「つける」ことではなく「覚える」こと。
+          if (!_isReferee) _game.roster[card] = _uniqueGachaName();
           _phase = _Phase.inlineNaming;
         });
         return;
@@ -949,7 +954,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              m.newComer,
+              _isReferee ? m.newComer : m.newComerNamed,
               style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
@@ -997,7 +1002,47 @@ class _NameCallScreenState extends State<NameCallScreen> {
           // ⚠️ ただし4択クイズ（CPU戦・オンライン）では、アプリが正解の名前を
           //    知らないと選択肢が作れず出題が成立しない。そのため①は出さず、
           //    かならずアプリが名前を決める（＝おまかせ）方式に一本化する。
-          if (_isReferee) ...[
+          // 🤖 アプリが名前を決める方式（CPU戦・オンライン）は、
+          //    _nextRound で名前を確定済み。相手はCPUで相談もしないので
+          //    「名前をつける」タップは無意味な一手間になる。
+          //    ここでは名前を大きく見せて、覚えたら進むだけにする。
+          if (!_isReferee) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3D6),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE6B54A), width: 2),
+              ),
+              child: Text(
+                _game.roster[_inlinePerson!] ?? '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF7A5A00)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                HapticFeedback.selectionClick();
+                setState(() => _inlinePerson = null);
+                _nextRound();
+              },
+              icon: const Text('🧠', style: TextStyle(fontSize: 20)),
+              label: Text(m.memorizedNext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4ECDC4),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(60),
+                textStyle:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ] else ...[
             ElevatedButton.icon(
               onPressed: () => _submitInlineName(autoNameIfEmpty: true),
               icon: const Text('✨', style: TextStyle(fontSize: 20)),
@@ -1010,19 +1055,19 @@ class _NameCallScreenState extends State<NameCallScreen> {
               ),
             ),
             const SizedBox(height: 10),
-          ],
-          OutlinedButton.icon(
-            onPressed: _nameWithGacha,
-            icon: const Text('🎲', style: TextStyle(fontSize: 18)),
-            label: Text(m.gachaNameIt),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF2B5CA5),
-              side: const BorderSide(color: Color(0xFF3A7BD5), width: 2),
-              minimumSize: const Size.fromHeight(50),
-              textStyle:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+            OutlinedButton.icon(
+              onPressed: _nameWithGacha,
+              icon: const Text('🎲', style: TextStyle(fontSize: 18)),
+              label: Text(m.gachaNameIt),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2B5CA5),
+                side: const BorderSide(color: Color(0xFF3A7BD5), width: 2),
+                minimumSize: const Size.fromHeight(50),
+                textStyle:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(10),
@@ -1031,7 +1076,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              m.asYouGoHint,
+              _isReferee ? m.asYouGoHint : m.newComerNamedHint,
               style: const TextStyle(fontSize: 12, height: 1.5),
             ),
           ),
