@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
+import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cpu_rank.dart';
 import '../models/shop_items.dart';
@@ -34,6 +35,8 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
   String selectedResultBgm = '19_12345.mp3'; // リザルト画面の曲
+  /// 🏠 ホーム/試合前の曲。3場面（ホーム・試合中・リザルト）をそれぞれ選べる。
+  String selectedHomeBgm = kHomeBgmAsset;
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
   String nickname = ''; // ランキング表示名
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
@@ -193,6 +196,11 @@ class PlayerProfile extends ChangeNotifier {
     missionOnline = p.getInt('missionOnline') ?? 0;
     missionClaimed = (p.getStringList('missionClaimed') ?? []).toSet();
     _refreshMissions();
+    selectedHomeBgm = p.getString('selectedHomeBgm') ?? kHomeBgmAsset;
+    if (selectedHomeBgm != kHomeBgmAsset &&
+        !unlockedBgm.contains(selectedHomeBgm)) {
+      selectedHomeBgm = kHomeBgmAsset;
+    }
     selectedResultBgm = p.getString('selectedResultBgm') ?? '19_12345.mp3';
     // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
     if (selectedResultBgm != '19_12345.mp3' &&
@@ -808,8 +816,16 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// リザルト画面の曲を選択（シャイニングスター or アンロック済みクラシック曲）
+  /// 🏠 ホーム/試合前の曲を選ぶ。既定曲は未購入でも選べる。
+  Future<void> selectHomeBgm(String asset) async {
+    if (asset != kHomeBgmAsset && !unlockedBgm.contains(asset)) return;
+    selectedHomeBgm = asset;
+    await _persist();
+    notifyListeners();
+  }
+
   Future<void> selectResultBgm(String asset) async {
-    if (asset != 'shining_star.mp3' && !unlockedBgm.contains(asset)) return;
+    if (asset != '19_12345.mp3' && !unlockedBgm.contains(asset)) return;
     selectedResultBgm = asset;
     await _persist();
     notifyListeners();
@@ -942,6 +958,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);
+    await p.setString('selectedHomeBgm', selectedHomeBgm);
     await p.setString('lastGachaDate', lastGachaDate);
     await p.setInt('weeklyLearned', weeklyLearned);
     await p.setString('weekStartDate', weekStartDate);

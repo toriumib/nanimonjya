@@ -133,6 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _bgmCard(m, profile),
             const SizedBox(height: 16),
+            _homeMusicCard(m, profile),
+            const SizedBox(height: 16),
             _resultMusicCard(m, profile),
             const SizedBox(height: 16),
             _supportCard(m),
@@ -1052,6 +1054,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // リザルト画面の曲を選ぶ（シャイニングスター＋アンロック済みクラシック曲）
+  /// 🏠 ホーム/試合前の曲を選ぶカード。
+  /// 3場面（ホーム・試合中・リザルト）をそれぞれ設定できるようにする。
+  Widget _homeMusicCard(MetaStrings m, PlayerProfile p) {
+    final ja = m.ja;
+    final options = <MapEntry<String, String>>[
+      // 既定曲は買っていなくても常に選べる
+      MapEntry(kHomeBgmAsset, ja ? 'シチリアーノ（既定）' : 'Siciliano (default)'),
+      ...kBgmCatalog
+          .where((b) =>
+              b.asset != kHomeBgmAsset && p.unlockedBgm.contains(b.asset))
+          .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
+    ];
+    return _sectionCard(
+      title: '🏠 ${m.homeMusic}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.homeMusicDesc, style: const TextStyle(fontSize: 13)),
+          const SizedBox(height: 8),
+          ...options.map((o) {
+            final selected = p.selectedHomeBgm == o.key;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                selected ? Icons.music_note : Icons.music_note_outlined,
+                color: selected ? const Color(0xFF4A7A2A) : Colors.grey,
+              ),
+              title: Text(o.value),
+              trailing: selected
+                  ? Chip(
+                      label: Text(m.selected),
+                      backgroundColor: const Color(0xFFD7F5D7),
+                    )
+                  : OutlinedButton(
+                      onPressed: () async {
+                        await p.selectHomeBgm(o.key);
+                        Sfx.instance.pop();
+                        // 選んだ曲をその場で鳴らして確認できるようにする
+                        Bgm.instance.playHome();
+                      },
+                      child: Text(m.select),
+                    ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _resultMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
     // 選択肢: シャイニングスター（常時）＋BGMショップでアンロック済みの曲

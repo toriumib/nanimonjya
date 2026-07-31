@@ -8,6 +8,20 @@ import '../widgets/banner_ad_slot.dart';
 /// 初回起動時だけ自動で開き、一度終えたら二度と出さない。
 const String kTutorialDoneKey = 'tutorialDone';
 
+/// どのページまで見たか。次に開いたとき続きから読めるようにする。
+/// 途中でアプリを閉じた人に、最初からやり直させないための保険。
+const String kTutorialPageKey = 'tutorialPage';
+
+Future<int> savedTutorialPage() async {
+  final p = await SharedPreferences.getInstance();
+  return p.getInt(kTutorialPageKey) ?? 0;
+}
+
+Future<void> saveTutorialPage(int page) async {
+  final p = await SharedPreferences.getInstance();
+  await p.setInt(kTutorialPageKey, page);
+}
+
 /// 初回起動かどうか（= まだチュートリアルを見ていないか）。
 Future<bool> shouldShowTutorial() async {
   final p = await SharedPreferences.getInstance();
@@ -17,6 +31,22 @@ Future<bool> shouldShowTutorial() async {
 Future<void> markTutorialDone() async {
   final p = await SharedPreferences.getInstance();
   await p.setBool(kTutorialDoneKey, true);
+}
+
+/// 途中で閉じた回数。
+///
+/// 最後まで読まずに閉じた人には、次の起動で「続きから」もう一度出す。
+/// ただし何度も出すと、それ自体が嫌われて離脱の原因になるので、
+/// [kMaxTutorialRetries] 回であきらめて二度と出さない。
+const String kTutorialSkipsKey = 'tutorialSkips';
+const int kMaxTutorialRetries = 2;
+
+Future<void> markTutorialSkipped() async {
+  final p = await SharedPreferences.getInstance();
+  final n = (p.getInt(kTutorialSkipsKey) ?? 0) + 1;
+  await p.setInt(kTutorialSkipsKey, n);
+  // あきらめる回数に達したら「見終えた」ことにして、もう出さない
+  if (n >= kMaxTutorialRetries) await p.setBool(kTutorialDoneKey, true);
 }
 
 /// あそびかたチュートリアル。
@@ -132,6 +162,19 @@ class _TutorialScreenState extends State<TutorialScreen> {
   bool _spokeFirstPage = false;
 
   @override
+  void initState() {
+    super.initState();
+    // 途中で閉じた人を最初からやり直させない（離脱の大きな原因）
+    savedTutorialPage().then((saved) {
+      if (!mounted || saved <= 0) return;
+      setState(() => _page = saved);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients) _pageController.jumpToPage(saved);
+      });
+    });
+  }
+
+  @override
   void dispose() {
     Speech.instance.stop();
     _pageController.dispose();
@@ -146,9 +189,44 @@ class _TutorialScreenState extends State<TutorialScreen> {
     await Speech.instance.speak('${page.title}。${page.body}', ja: ja);
   }
 
-  Future<void> _finish() async {
+  /// スキップは1タップで消さず、いつでも読み直せることを伝えてから閉じる。
+  /// 「読まずに閉じた＝ルールが分からないまま遊ぶ」を減らすための一拍。
+  Future<void> _confirmSkip() async {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
     await Speech.instance.stop();
-    await markTutorialDone();
+    if (!mounted) return;
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ja ? 'あそびかたを とじる？' : 'Close the guide?'),
+        content: Text(ja
+            ? 'とちゅうまで 読んだところは おぼえてあるよ。\n'
+                'あとで 📖ルールブック から いつでも 読めます。'
+            : 'Your place is saved. You can read it any time from the 📖 Rulebook.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ja ? 'つづける' : 'Keep reading'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(ja ? 'とじる' : 'Close'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true) await _finish(skipped: true);
+  }
+
+  Future<void> _finish({bool skipped = false}) async {
+    await Speech.instance.stop();
+    if (skipped) {
+      // 途中で閉じた → 次の起動で続きから出す（上限あり）
+      await markTutorialSkipped();
+    } else {
+      await markTutorialDone();
+      await saveTutorialPage(0); // 読み切ったので進捗は畳む
+    }
     if (mounted) Navigator.pop(context);
   }
 
@@ -171,7 +249,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _finish();
+        if (!didPop) _confirmSkip();
       },
       child: _buildScaffold(ja, pages, isLast),
     );
@@ -199,7 +277,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
             },
           ),
           TextButton(
-            onPressed: _finish,
+            onPressed: _confirmSkip,
             // AppBarの地色がピンクなので、既定色のままだとピンク文字になって
             // 事実上見えなかった。白で固定する。
             style: TextButton.styleFrom(foregroundColor: Colors.white),
@@ -217,6 +295,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               itemCount: pages.length,
               onPageChanged: (i) {
                 setState(() => _page = i);
+                saveTutorialPage(i); // 途中で閉じても続きから読める
                 _speak(pages[i], ja);
               },
               itemBuilder: (context, i) => _buildPage(pages[i]),

@@ -72,7 +72,9 @@ class Bgm {
   /// ホームは操作していない時間も長いので、音量は控えめにする。
   Future<void> playHome() {
     _mode = _BgmMode.home;
-    return _play(assetKey(kHomeBgmAsset), volume: 0.22);
+    // 🏠 ホームの曲はマイページで選べる（3場面それぞれ設定できる）
+    return _play(assetKey(PlayerProfile.instance.selectedHomeBgm),
+        volume: 0.22);
   }
 
   /// ホームBGMだけを止める（ゲーム画面が先に鳴らし始めていたら何もしない）。

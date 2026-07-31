@@ -624,6 +624,10 @@ class MetaStrings {
   String get newComerNamedHint => ja
       ? 'この名前をおぼえてね。もう一度この顔が出てきたら、4つの中からえらぶよ！'
       : 'Remember this name. When this face returns, pick it from four choices!';
+  String get homeMusic => ja ? 'ホームの曲' : 'Home music';
+  String get homeMusicDesc => ja
+      ? 'ホーム画面と試合前に流れる曲です。ショップで買った曲から選べます。'
+      : 'Plays on the home screen. Pick from music you own in the shop.';
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
   // 🏋️ 名刺おぼえタブの初回説明（小学生でも分かる言い方にする）
   String get trainingIntroTitle =>
