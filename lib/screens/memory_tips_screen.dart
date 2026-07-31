@@ -170,15 +170,97 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    p.body(ja),
-                    style: const TextStyle(fontSize: 14.5, height: 1.7),
-                  ),
+                  // 📖 読みやすさ: 本文をそのまま流すと、出典や注意書きまで
+                  //    同じ見た目で続いて読みにくい。段落ごとに分け、
+                  //    **強調**・🔬出典・⚠️注意 を書式で区別する。
+                  ..._paragraphs(p.body(ja)),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 本文を段落に割り、役割ごとに見た目を変えて読みやすくする。
+  ///
+  /// - `🔬 出典:` … 小さめ・グレーの引用ブロック（本文と混ざらないように）
+  /// - `⚠️` … 薄い黄色の注意ブロック
+  /// - `**強調**` … 太字（記事内で1〜2箇所だけ使う想定）
+  /// - 箇条書き（・/ ①〜）… 行間を詰めて塊に見せる
+  List<Widget> _paragraphs(String body) {
+    final blocks = body.split('\n\n');
+    return [
+      for (final b in blocks)
+        if (b.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _block(b.trim()),
+          ),
+    ];
+  }
+
+  Widget _block(String text) {
+    final isSource = text.startsWith('🔬');
+    final isWarning = text.startsWith('⚠️');
+    if (isSource || isWarning) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(11),
+        decoration: BoxDecoration(
+          color: isSource ? const Color(0xFFF1F4F8) : const Color(0xFFFFF7E0),
+          borderRadius: BorderRadius.circular(10),
+          border: Border(
+            left: BorderSide(
+              color: isSource
+                  ? const Color(0xFF9DBBD8)
+                  : const Color(0xFFE6B54A),
+              width: 3,
+            ),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: isSource ? 11.5 : 12.5,
+            height: 1.6,
+            color: isSource ? Colors.black54 : const Color(0xFF7A5A00),
+          ),
+        ),
+      );
+    }
+    return _RichBody(text: text);
+  }
+}
+
+/// `**強調**` を太字にして描くだけの本文。
+class _RichBody extends StatelessWidget {
+  final String text;
+  const _RichBody({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <TextSpan>[];
+    final re = RegExp(r'\*\*(.+?)\*\*');
+    var last = 0;
+    for (final m in re.allMatches(text)) {
+      if (m.start > last) {
+        spans.add(TextSpan(text: text.substring(last, m.start)));
+      }
+      spans.add(TextSpan(
+        text: m.group(1),
+        style: const TextStyle(
+            fontWeight: FontWeight.w900, color: Color(0xFF2B5CA5)),
+      ));
+      last = m.end;
+    }
+    if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+            fontSize: 14.5, height: 1.75, color: Color(0xFF222222)),
+        children: spans,
       ),
     );
   }

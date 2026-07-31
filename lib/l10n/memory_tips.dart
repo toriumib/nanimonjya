@@ -743,6 +743,42 @@ const List<MemoryTipPage> kMemoryTipPages = [
         'Young, Hugenberg, Bernstein & Sacco (2012), Personality and Social Psychology Review',
     gradient: [Color(0xFFE3FFF4), Color(0xFFE8ECFF)],
   ),
+  MemoryTipPage(
+    emoji: '🗣',
+    titleJa: '名前を呼ぶと、関係が変わる',
+    titleEn: 'Saying someone’s name changes the relationship',
+    bodyJa: '''名前を覚えるのは、記憶力の問題であると同時に「相手への態度」の問題でもあります。\n\n大学の生物学の授業を対象にした研究では、**教員が自分の名前を知っていると学生が感じていると、授業への参加意欲や「自分はここにいてよい」という感覚が高い**という関連が報告されています。名前を呼ばれること自体が、その場に受け入れられている合図として働くようです。\n\n脳の反応としても、自分の名前は特別に扱われている可能性が示されています。自分の名前を聞いたときには、他人の名前を聞いたときと比べて前頭部や側頭部の活動が強まったという報告があります。\n\nさらに、人は自分の名前に使われている文字を好みやすいという「ネームレター効果」も、くり返し検証されてきました。\n\n💼 仕事なら「〇〇さん、ここどう思いますか？」の一言。\n🏫 学校なら、あいさつのときに名前をつけて呼ぶだけ。\nどちらも、覚えていなければできないことです。\n\n⚠️ ここで挙げたのは関連の報告であり、「名前を呼べば必ず好かれる」と言えるものではありません。\n\n🔬 出典: Cooper ほか (2017), CBE—Life Sciences Education 16(1) ／ Carmody & Lewis (2006), Brain Research 1116(1) ／ Nuttin (1985), European Journal of Social Psychology 15(3)'''
+        ,
+    bodyEn: '''Remembering names is partly a memory skill and partly an attitude toward the other person.\n\nIn a study of university biology courses, students who felt their instructor knew their name reported higher engagement and a stronger sense of belonging. Being called by name seems to act as a signal of acceptance.\n\nBrain responses point the same way: hearing one’s own name has been reported to produce stronger frontal and temporal activity than hearing other names.\n\nThere is also the well-replicated “name-letter effect” — people tend to prefer the letters that appear in their own name.\n\n💼 At work: “What do you think, [name]?”\n🏫 At school: just add their name to your greeting.\nNeither is possible if you have not remembered it.\n\n⚠️ These are reported associations, not a guarantee that using names makes people like you.\n\n🔬 Sources: Cooper et al. (2017), CBE—Life Sciences Education 16(1); Carmody & Lewis (2006), Brain Research 1116(1); Nuttin (1985), European Journal of Social Psychology 15(3)''',
+    gradient: [Color(0xFFFFF0E3), Color(0xFFE3F4FF)],
+  ),
+  MemoryTipPage(
+    emoji: '🌳',
+    titleJa: '苗字の由来をたどると、名前は覚えやすくなる',
+    titleEn: 'Tracing a surname’s origin makes it easier to remember',
+    bodyJa: '''記憶研究でくり返し確かめられているのは、**意味を深く処理したものほど残る**ということです（処理水準）。ただの音として覚えるより、意味の道を1本足したほうが後から取り出しやすくなります。\n\n苗字は、この「意味づけ」の材料が最初から入っています。\n\n・地形から来たもの … 山田＝山あいの田、川上＝川の上流\n・方角や位置 … 東、西村、中島\n・職や役目から来たもの … 服部、犬養\n\n「渡辺さん」に会ったら〈渡し場のほとり〉を思い浮かべる。それだけで、音だけの記憶から意味のある像に変わります。\n\n🔎 由来を調べるなら「苗字由来ネット」などの姓氏データベースが手軽です。諸説あるものも多いので、**正解探しではなく覚えるための手がかり**と割り切るのがコツです。\n\n💡 このアプリの「おまかせで名前をつける」は、実際に多い苗字から選んでいます。由来を想像しながら覚えてみてください。\n\n🔬 出典: Craik & Lockhart (1972), Journal of Verbal Learning and Verbal Behavior 11(6) ／ Craik & Tulving (1975), Journal of Experimental Psychology: General 104(3)'''
+        ,
+    bodyEn: '''Memory research keeps finding the same thing: **the more deeply you process meaning, the better it sticks** (levels of processing). Adding one semantic path beats memorizing a bare sound.\n\nJapanese surnames come with that material built in:\n\n・From landscape — Yamada (mountain rice field), Kawakami (upper river)\n・From direction — Higashi (east), Nishimura (west village)\n・From occupation — Hattori, Inukai\n\nMeet a “Watanabe” and picture a river crossing. The sound becomes an image with meaning.\n\n🔎 Surname databases make origins easy to look up. Many have competing theories, so treat them as **memory hooks, not facts to get right**.\n\n🔬 Sources: Craik & Lockhart (1972), Journal of Verbal Learning and Verbal Behavior 11(6); Craik & Tulving (1975), Journal of Experimental Psychology: General 104(3)''',
+    gradient: [Color(0xFFE8FFE9), Color(0xFFFFF6D8)],
+  ),
+  MemoryTipPage(
+    emoji: '📜',
+    titleJa: 'なぜ日本人はみんな苗字を持っているのか',
+    titleEn: 'Why everyone in Japan has a surname',
+    bodyJa: '''日本人が今のかたちで苗字を名乗るようになったのは、実はそれほど昔ではありません。\n\n・1870年（明治3年）平民苗字許容令 … 平民も苗字を名乗って**よい**とされた\n・1875年（明治8年）平民苗字必称義務令 … 名乗ることが**義務**になった\n・1898年（明治31年）明治民法・戸籍法 … 「家」を単位とする戸籍が整えられた\n\nつまり全国民が苗字を持つ制度は約150年の歴史です。それ以前も屋号や通称は使われていましたが、公式の登録ではありませんでした。\n\n📄 自分のルーツをたどるなら戸籍がいちばん確実です。**除籍謄本・改製原戸籍**をさかのぼると、先祖の氏名・生年月日・続柄・本籍地（住所）・婚姻や死亡の年月日まで記載されています。明治期の戸籍まで届けば、150年ほど前の家族構成が分かることもあります。\n\n⚠️ 戸籍は誰でも取れるわけではありません。戸籍法により、請求できるのは**本人・配偶者・直系の親族（親、祖父母、子、孫など）**が原則です。兄弟姉妹や親戚の戸籍は、正当な理由の説明が必要になります。保存期間の経過で廃棄されている場合もあります。\n\n💡 先祖の名前を知ると、自分の苗字が急に「意味のあるもの」に変わります。それは覚えるための強い手がかりにもなります。\n\n🔬 出典: 平民苗字必称義務令（明治8年太政官布告第22号）／ 戸籍法（昭和22年法律第224号）第10条・第10条の2'''
+        ,
+    bodyEn: '''Universal surnames in Japan are a surprisingly recent institution.\n\n・1870 — commoners were *permitted* to use surnames\n・1875 — using one became *compulsory*\n・1898 — the Meiji Civil Code and Family Register Act built the household register system\n\nSo the system is only about 150 years old.\n\n📄 Japanese family registers (koseki) let you trace ancestors: names, dates of birth, relationships, registered addresses, marriages and deaths — sometimes back to the Meiji era.\n\n⚠️ Access is legally restricted. Under the Family Register Act, requests are limited in principle to the person, their spouse, and direct ascendants/descendants. Older records may also have been discarded after their retention period.\n\n🔬 Sources: Compulsory Surname Edict of 1875; Family Register Act (Act No. 224 of 1947), Articles 10 and 10-2''',
+    gradient: [Color(0xFFFFF3E0), Color(0xFFEFE8FF)],
+  ),
+  MemoryTipPage(
+    emoji: '🧓',
+    titleJa: '脳トレと認知症：わかっていること、いないこと',
+    titleEn: 'Brain training and dementia: what is and isn’t established',
+    bodyJa: '''「脳トレで認知症を予防できるか」は、期待も誤解も多いテーマです。研究で言えるところまでを正直に書きます。\n\n**言えること**\n・高齢者を対象にした大規模な認知トレーニング試験では、訓練した課題そのものの成績は向上し、その効果が数年後まで残ったと報告されています\n・生活習慣（運動・食事・血管リスク管理・認知トレーニング）を組み合わせた介入で、認知機能の低下がゆるやかだったとする試験があります\n・専門家委員会は、難聴・社会的孤立・低教育・高血圧などを**修正可能なリスク要因**として挙げています\n\n**言えないこと**\n・特定のゲームをすれば認知症にならない、とは示されていません\n・訓練した課題以外へ効果が広く波及する（遠転移）かどうかは、今も議論が続いています\n\n💡 このアプリで言えるのはここまでです。ただ、名前を覚えて人と話す行為は「社会的なつながり」に関わります。孤立はリスク要因として挙げられているので、**人と関わり続ける口実として使う**のは理にかなっています。\n\n⚠️ これは診断・治療・予防の助言ではありません。心配なことがあれば医療機関にご相談ください。\n\n🔬 出典: Ball ほか (2002), JAMA 288(18) ／ Rebok ほか (2014), Journal of the American Geriatrics Society 62(1) ／ Ngandu ほか (2015), The Lancet 385(9984) ／ Livingston ほか (2020), The Lancet 396(10248)'''
+        ,
+    bodyEn: '''Can brain training prevent dementia? Here is what the research supports — and what it does not.\n\n**Supported**\n・Large trials in older adults found gains on the trained tasks, with effects detectable years later\n・Multi-domain lifestyle programmes (exercise, diet, vascular risk management, cognitive training) have been associated with slower cognitive decline\n・Expert commissions list hearing loss, social isolation, low education and hypertension among **modifiable risk factors**\n\n**Not supported**\n・No specific game has been shown to prevent dementia\n・Whether benefits transfer beyond the trained task remains debated\n\n💡 What we can say: remembering names and talking with people relates to social connection, and isolation is listed as a risk factor. Using this as a reason to stay socially engaged is reasonable.\n\n⚠️ This is not medical advice. Please consult a healthcare professional with any concerns.\n\n🔬 Sources: Ball et al. (2002), JAMA 288(18); Rebok et al. (2014), JAGS 62(1); Ngandu et al. (2015), The Lancet 385(9984); Livingston et al. (2020), The Lancet 396(10248)''',
+    gradient: [Color(0xFFE3F0FF), Color(0xFFFFE8F0)],
+  ),
 ];
 
 /// 待合室・人数選択画面などに出す一言Tips（タップで読み物全文へ）。
