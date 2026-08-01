@@ -51,7 +51,7 @@ Future<void> markTutorialSkipped() async {
 }
 
 /// あそびかたチュートリアル。
-/// かわいい女の子(ナナちゃん)と男の子(モンくん)が交互に案内してくれる。
+/// ナナちゃんとはなちゃんが交互に案内してくれる。
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
 
@@ -130,9 +130,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
           gradient: const [Color(0xFFFFE3EE), Color(0xFFFFF6D8)],
         ),
         _TutorialPage(
-          guideEmoji: '👦',
+          guideEmoji: '👧',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
-          guideName: ja ? 'モンくん' : 'Mon',
+          guideName: ja ? 'はなちゃん' : 'Hana',
           title: ja ? '① あそびかたを えらぶ' : '1. Choose how to play',
           points: ja
               ? [
@@ -176,9 +176,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
         ),
         _TutorialPage(
-          guideEmoji: '👦',
+          guideEmoji: '👧',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
-          guideName: ja ? 'モンくん' : 'Mon',
+          guideName: ja ? 'はなちゃん' : 'Hana',
           title: ja ? '③ また出てきたら 名前をこたえる' : '3. Answer when they return',
           points: ja
               ? [
@@ -226,9 +226,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
         //    表の中身は models/cpu_difficulty.dart から作るので、
         //    数字を変えてもこのページの説明がズレない。
         _TutorialPage(
-          guideEmoji: '👦',
+          guideEmoji: '👧',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
-          guideName: ja ? 'モンくん' : 'Mon',
+          guideName: ja ? 'はなちゃん' : 'Hana',
           title: ja ? '🤖 むずかしさの しくみ' : '🤖 How difficulty works',
           points: ja
               ? [
@@ -278,9 +278,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
         //    どれを押せばいいのか分からないまま知らない人と当たると、
         //    途中で抜けられて相手にも迷惑がかかるので、先に区別を見せる。
         _TutorialPage(
-          guideEmoji: '👦',
+          guideEmoji: '👧',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
-          guideName: ja ? 'モンくん' : 'Mon',
+          guideName: ja ? 'はなちゃん' : 'Hana',
           title: ja ? '🌐 オンラインで あそぶ' : '🌐 Play online',
           points: ja
               ? [
