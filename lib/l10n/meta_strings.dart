@@ -622,6 +622,10 @@ class MetaStrings {
   String get rankMissed => ja ? '❌ おてつき' : '❌ Wrong';
   String get rankNobody => ja ? 'だれも取れなかった' : 'Nobody got it';
   String get rankWaitingJudge => ja ? '判定中…' : 'Judging…';
+  String get rankReadyWait => ja ? '相手を待っています…' : 'Waiting for your opponent…';
+  String get rankReadyWaitHint => ja
+      ? 'ふたり同時に第1問がはじまります。'
+      : 'The first question starts for both of you at once.';
   String get rankMyCards => ja ? 'あなた' : 'You';
   String rankRatingLine(int rating) =>
       ja ? 'ランクポイント $rating' : 'Rank points $rating';

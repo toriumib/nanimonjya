@@ -300,6 +300,9 @@ class OnlineMatchSession {
   /// 🔁 ターン制: めくった順のカードindex。両端末がこれを再生して盤面を復元する。
   final ValueNotifier<List<int>> moves = ValueNotifier(const []);
 
+  /// 🏆 早押し: おぼえタイムを終えて「準備できた」と宣言した人数。
+  final ValueNotifier<int> readyCount = ValueNotifier(0);
+
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _sub;
 
   OnlineMatchSession({
@@ -338,6 +341,8 @@ class OnlineMatchSession {
         for (final v in (data['moves'] as List<dynamic>? ?? const []))
           (v as num).toInt(),
       ];
+      readyCount.value =
+          Map<String, dynamic>.from(data['ready'] ?? {}).values.length;
     });
   }
 
@@ -374,6 +379,19 @@ class OnlineMatchSession {
   }
 
   // ─────────────── 🏆 早押し（ランクマッチ） ───────────────
+
+  /// おぼえタイムを終えたことを知らせる。
+  ///
+  /// おぼえタイムの締切は端末の時計から計算しているので、時計が数秒ずれて
+  /// いると片方だけ先に第1問を見てしまう。早押しでそれは致命的なので、
+  /// **両方の「準備できた」がそろってから**第1問を開始する。
+  /// 2問目以降はFirestoreの更新（前の問題の決着）が合図になるので、
+  /// 時計のずれの影響を受けるのは第1問だけ。
+  Future<void> markReady() async {
+    try {
+      await service._rooms.doc(roomId).update({'ready.$myUid': true});
+    } catch (_) {}
+  }
 
   /// [index] 問目を先取する。**先にサーバーに届いた方だけ true**。
   ///
@@ -443,5 +461,6 @@ class OnlineMatchSession {
     cardIndex.dispose();
     claims.dispose();
     moves.dispose();
+    readyCount.dispose();
   }
 }

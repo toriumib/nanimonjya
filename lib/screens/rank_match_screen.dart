@@ -43,7 +43,10 @@ class RankMatchScreen extends StatefulWidget {
   State<RankMatchScreen> createState() => _RankMatchScreenState();
 }
 
-enum _Phase { memorize, buzz, finished }
+/// おぼえタイム → **相手待ち** → 早押し → 終了。
+/// 相手待ちを挟むのは、おぼえタイムの締切が端末の時計だよりで、
+/// 数秒ずれると片方だけ先に第1問を見てしまうため。
+enum _Phase { memorize, readyWait, buzz, finished }
 
 /// 1問ぶん（顔・正解・4択）。両端末で完全に同じものが作られる。
 class _Question {
@@ -77,6 +80,8 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
   int _timeLeft = OnlineMatchService.rankAnswerSeconds;
   DateTime? _shownAt;
   bool _reported = false;
+
+  Timer? _readyTimeout;
 
   /// 結果表示（先取・とられた・おてつき）を消すタイマー。
   ///
@@ -121,6 +126,7 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
 
     _index = widget.session.cardIndex.value;
     widget.session.cardIndex.addListener(_onIndexChanged);
+    widget.session.readyCount.addListener(_onReadyChanged);
     widget.session.claims.addListener(_onClaimsChanged);
 
     _tickMemorize();
@@ -143,6 +149,8 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
   void dispose() {
     widget.session.cardIndex.removeListener(_onIndexChanged);
     widget.session.claims.removeListener(_onClaimsChanged);
+    widget.session.readyCount.removeListener(_onReadyChanged);
+    _readyTimeout?.cancel();
     _memorizeTimer?.cancel();
     _buzzTimer?.cancel();
     _flashTimer?.cancel();
@@ -157,9 +165,25 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
     setState(() => _memorizeLeft = left.clamp(0, 9999));
     if (left <= 0 && _phase == _Phase.memorize) {
       _memorizeTimer?.cancel();
-      setState(() => _phase = _Phase.buzz);
-      _startQuestion();
+      setState(() => _phase = _Phase.readyWait);
+      widget.session.markReady();
+      // 相手が落ちている場合に永久に待たないための保険
+      _readyTimeout = Timer(const Duration(seconds: 20), _beginBuzz);
+      _onReadyChanged(); // 相手が先に準備できていた場合
     }
+  }
+
+  /// 両方の「準備できた」がそろったら第1問を出す。
+  void _onReadyChanged() {
+    if (!mounted || _phase != _Phase.readyWait) return;
+    if (widget.session.readyCount.value >= 2) _beginBuzz();
+  }
+
+  void _beginBuzz() {
+    if (!mounted || _phase != _Phase.readyWait) return;
+    _readyTimeout?.cancel();
+    setState(() => _phase = _Phase.buzz);
+    _startQuestion();
   }
 
   // ─────────────── 早押し ───────────────
@@ -334,6 +358,7 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
         body: SafeArea(
           child: switch (_phase) {
             _Phase.memorize => _memorizeView(m),
+            _Phase.readyWait => _readyWaitView(m),
             _Phase.buzz => _buzzView(m),
             _Phase.finished => const Center(child: CircularProgressIndicator()),
           },
@@ -384,6 +409,25 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
         ),
         const SizedBox(height: 10),
       ],
+    );
+  }
+
+  Widget _readyWaitView(MetaStrings m) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 18),
+          Text(m.rankReadyWait,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          Text(m.rankReadyWaitHint,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        ],
+      ),
     );
   }
 
