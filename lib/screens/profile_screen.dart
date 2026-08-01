@@ -6,6 +6,7 @@ import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/cosmetics.dart';
 import '../services/bgm.dart';
+import '../services/daily_reminder.dart';
 import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
 import 'character_shop_screen.dart';
@@ -950,6 +951,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 🔕 ソフトアスクで「あとで切れます」と約束している以上、
+          //    切る場所と、後からONにできる場所がここに要る。
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            value: p.notifyOptIn,
+            title: Text(m.notifyToggleLabel,
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w900)),
+            subtitle: Text(m.notifyOffHint,
+                style: const TextStyle(fontSize: 11.5)),
+            onChanged: (on) async {
+              Sfx.instance.pop();
+              // ONにするときはOSの許可も要る（拒否されたらONにしない）
+              final ok = on
+                  ? await DailyReminder.instance.requestPermission()
+                  : false;
+              await p.setNotifyOptIn(on && ok);
+              if (!mounted) return;
+              if (on && !ok) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(m.notifyDeniedHint)),
+                );
+              }
+            },
+          ),
+          const Divider(height: 18),
           Text(m.reminderDesc, style: const TextStyle(fontSize: 13)),
           const SizedBox(height: 4),
           Text(m.reminderCueHint,

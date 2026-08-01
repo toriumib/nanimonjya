@@ -1204,6 +1204,31 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       : 'People you missed before. Meeting them again after a gap is said to make names last.';
   String get spacedReviewStart => ja ? '復習をはじめる' : 'Start review';
 
+  // 🔔 練習リマインドのソフトアスク（services/notify_prompt.dart）
+  //    OSの許可を求める前に、なぜ必要かをアプリの言葉で説明する。
+  String get notifyAskTitle => ja
+      ? '🧠 明日、もう一度おぼえてみませんか？'
+      : '🧠 Want to try remembering again tomorrow?';
+  String get notifyAskWhy => ja
+      ? '覚えたことは、時間をおいて思い出すと定着します。'
+      : 'What you learn sticks better when you recall it after a gap.';
+  String notifyAskWhen(int hour) => ja
+      ? '毎日$hour時に、ひとことお知らせします。'
+      : "We'll send one short nudge every day at $hour:00.";
+  String get notifyAskEscape => ja
+      ? '（時間は変えられます／あとで切れます）'
+      : '(You can change the time, or turn it off later.)';
+  String get notifyAskLater => ja ? 'あとで' : 'Later';
+  String get notifyAskAccept => ja ? 'お知らせを受け取る' : 'Send me the nudge';
+  String get notifyDeniedHint => ja
+      ? '端末の設定で通知が切れています。マイページからいつでもONにできます。'
+      : 'Notifications are off in your device settings. You can enable them from My Page.';
+  /// 🔕 通知そのもののON/OFF（「あとで切れます」と言った以上、切れる場所が要る）
+  String get notifyToggleLabel => ja ? 'お知らせを受け取る' : 'Send me the nudge';
+  String get notifyOffHint => ja
+      ? 'OFFにすると通知は止まります。いつでも戻せます。'
+      : 'Turning this off stops the reminders. You can turn it back on anytime.';
+
   String get reminderTitle => ja ? '練習のリマインド' : 'Practice reminder';
   String get reminderDesc => ja
       ? '毎日この時刻に「名前トレーニングの時間です」とお知らせします。'

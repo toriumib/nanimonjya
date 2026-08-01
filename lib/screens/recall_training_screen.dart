@@ -12,6 +12,7 @@ import '../models/person.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
+import '../services/notify_prompt.dart';
 import '../services/review_prompt.dart';
 import '../services/review_queue.dart';
 import '../services/sfx.dart';
@@ -310,6 +311,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       Sfx.instance.coin();
     }
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
+    // 🔔 ここは「時間をおいて思い出す」を体験した直後。間隔をあけた復習が
+    //    効くという説明がいちばん通じる場面なので、リマインドを持ちかける。
+    if (mounted) maybeAskNotify(context);
     if (mounted) setState(() => _phase = _Phase.result);
   }
 

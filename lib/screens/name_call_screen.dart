@@ -17,6 +17,7 @@ import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
+import '../services/notify_prompt.dart';
 import '../services/review_prompt.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
@@ -756,6 +757,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
       if (_quizTotal > 0 && _quizCorrect == _quizTotal) {
         maybeAskReview(minGames: 0); // 全問正解の好タイミングでレビュー依頼
       }
+      // 🔔 1ゲーム終えて「覚えられた／忘れていた」を体験した直後に、
+      //    明日また思い出す約束を持ちかける。ここが7日維持率の分かれ目。
+      if (mounted) await maybeAskNotify(context);
     }
   }
 

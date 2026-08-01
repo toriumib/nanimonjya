@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 import 'app_analytics.dart';
+import 'review_queue.dart';
 import 'player_profile.dart';
 
 /// 「今日のデイリーボーナスまだだよ」を毎日夕方にローカル通知する。
@@ -32,12 +33,45 @@ class DailyReminder {
           AppAnalytics.notificationTapped(),
     );
     _initialized = true;
-    // Android 13+ は通知のランタイム許可が必要（拒否されてもゲームは通常動作）
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    await scheduleNext();
+    // ⚠️ ここで OSの許可を求めてはいけない。
+    //    以前は起動直後に何の説明もなく許可ダイアログを出していたが、
+    //    Androidは一度断られると二度と出せない。断られた時点でその人には
+    //    永久に合図を送れなくなり、7日維持率を上げる手立てが1つ消える。
+    //    許可を求めるのは、アプリ内で「受け取る」と言ってもらってから
+    //    （[requestPermission] を呼ぶのは services/notify_prompt.dart）。
+    if (PlayerProfile.instance.notifyOptIn) await scheduleNext();
+  }
+
+  /// OSの通知許可を求める。**アプリ内で同意をもらってからだけ**呼ぶこと。
+  /// 許可されたら true。
+  Future<bool> requestPermission() async {
+    if (kIsWeb) return false;
+    if (!_initialized) await init();
+    try {
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (android != null) {
+        return await android.requestNotificationsPermission() ?? false;
+      }
+      final ios = _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      if (ios != null) {
+        return await ios.requestPermissions(alert: true, badge: true, sound: true) ??
+            false;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('requestPermission error: $e');
+      return false;
+    }
+  }
+
+  /// 予約をすべて取り消す（通知をOFFにしたとき）。
+  Future<void> cancelAll() async {
+    if (kIsWeb || !_initialized) return;
+    try {
+      await _plugin.cancel(_notificationId);
+    } catch (_) {}
   }
 
   /// ボーナス受け取り済みなら今日の分をスキップして翌日から予約し直す。
@@ -46,6 +80,8 @@ class DailyReminder {
   /// 次の指定時刻（受け取り済みなら翌日）に毎日リマインドを予約する。
   Future<void> scheduleNext({bool skipToday = false}) async {
     if (kIsWeb || !_initialized) return;
+    // 同意していない人には予約しない
+    if (!PlayerProfile.instance.notifyOptIn) return;
     try {
       await _plugin.cancel(_notificationId);
       final now = tz.TZDateTime.now(tz.local);
@@ -57,8 +93,8 @@ class DailyReminder {
 
       await _plugin.zonedSchedule(
         _notificationId,
-        '🧠 今日の名前トレーニングの時間です',
-        '3分でOK。昨日おぼえた顔と名前、まだ出てきますか？（ログインボーナスも受け取れます🪙）',
+        _title(),
+        _body(),
         next,
         const NotificationDetails(
           android: AndroidNotificationDetails(
@@ -77,5 +113,23 @@ class DailyReminder {
     } catch (e) {
       debugPrint('DailyReminder schedule error: $e');
     }
+  }
+
+  /// 通知の見出し。
+  ///
+  /// 「アプリを開いてください」ではなく「あの人たち、まだ思い出せますか？」の
+  /// 形にする。忘れかけている具体的な相手がいると分かるほうが戻る理由になる。
+  String _title() {
+    final due = ReviewQueue.instance.dueCount();
+    if (due > 0) return '🧠 きのう覚えた$due人、まだ思い出せますか？';
+    return '🧠 今日の名前トレーニングの時間です';
+  }
+
+  String _body() {
+    final due = ReviewQueue.instance.dueCount();
+    if (due > 0) {
+      return '時間をおいてから思い出すと定着すると言われています。3分でひと回りできます。';
+    }
+    return '3分でOK。昨日おぼえた顔と名前、まだ出てきますか？（ログインボーナスも受け取れます🪙）';
   }
 }

@@ -121,6 +121,22 @@ class AppAnalytics {
 
   static void notificationTapped() => _log('daily_reminder_open');
 
+  /// 🔔 練習リマインドのソフトアスクの通過状況。
+  /// 「出した→受けた→OSも許可した」のどこで落ちているかが分からないと、
+  /// 文言を直すべきなのか出す場所を変えるべきなのか判断できない。
+  static void notifyPrompt({
+    required bool shown,
+    bool? accepted,
+    bool? granted,
+  }) =>
+      _log('notify_prompt', {
+        'stage': shown
+            ? 'shown'
+            : accepted == true
+                ? (granted == true ? 'granted' : 'os_denied')
+                : 'later',
+      });
+
   // ── CPU対戦・認知トレーニング ──
   static void cpuMatchEnd({
     required String level,

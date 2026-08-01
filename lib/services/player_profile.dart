@@ -62,6 +62,23 @@ class PlayerProfile extends ChangeNotifier {
   bool reviewPrompted = false; // ストアレビュー依頼を出したことがあるか
   int reviewPromptCount = 0; // 依頼した回数（Google側の頻度制限で出ないことがあるため複数回試す）
   int reviewPromptedAtGames = 0; // 最後に依頼したときの総プレイ数
+
+  // 🔔 練習リマインドの通知
+  //
+  // 7日維持率が伸びない一番の理由は「思い出すきっかけが無いまま忘れられる」こと。
+  // 通知はその唯一の外からの合図なので、OSの許可を取れるかどうかが効いてくる。
+  //
+  // ⚠️ 以前は起動直後に何の説明もなくOSの許可ダイアログを出していた。
+  //    Androidは一度断られると二度と出せないので、断られた時点で
+  //    その人には永久に声をかけられなくなる。1ゲーム終えて価値が伝わった
+  //    ところで、先にアプリ内で意思を聞いてから（ソフトアスク）
+  //    OSの許可を求める形にした。
+  /// 通知を受け取ることに同意したか（＝OSの許可を求めてよい）。
+  bool notifyOptIn = false;
+  /// アプリ内のお伺いを出した回数。しつこくしないための上限に使う。
+  int notifyPromptCount = 0;
+  /// 最後にお伺いを出したときの総プレイ数。間隔をあけるために使う。
+  int notifyPromptedAtGames = 0;
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
@@ -166,6 +183,9 @@ class PlayerProfile extends ChangeNotifier {
     // 旧バージョンで1回頼み済みの人は、その1回を数えた状態から始める
     reviewPromptCount = p.getInt('reviewPromptCount') ?? (reviewPrompted ? 1 : 0);
     reviewPromptedAtGames = p.getInt('reviewPromptedAtGames') ?? 0;
+    notifyOptIn = p.getBool('notifyOptIn') ?? false;
+    notifyPromptCount = p.getInt('notifyPromptCount') ?? 0;
+    notifyPromptedAtGames = p.getInt('notifyPromptedAtGames') ?? 0;
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
     bgmEnabled = p.getBool('bgmEnabled') ?? true;
@@ -412,6 +432,27 @@ class PlayerProfile extends ChangeNotifier {
     reviewPromptCount += 1;
     reviewPromptedAtGames = totalGames;
     await _persist();
+  }
+
+  /// 🔔 アプリ内のお伺いを出したことを記録する（同意したかは [setNotifyOptIn]）。
+  Future<void> markNotifyPrompted() async {
+    notifyPromptCount += 1;
+    notifyPromptedAtGames = totalGames;
+    await _persist();
+  }
+
+  /// 🔔 通知を受け取るかどうかを切り替える。
+  /// OFFにしたら予約済みの通知も消す（「あとで切れます」と伝えている以上、
+  /// 切ったのに鳴り続けるのは約束違反になる）。
+  Future<void> setNotifyOptIn(bool on) async {
+    notifyOptIn = on;
+    await _persist();
+    if (on) {
+      await DailyReminder.instance.scheduleNext();
+    } else {
+      await DailyReminder.instance.cancelAll();
+    }
+    notifyListeners();
   }
 
   /// ランキング表示名を設定。
@@ -933,6 +974,9 @@ class PlayerProfile extends ChangeNotifier {
     await p.setBool('reviewPrompted', reviewPrompted);
     await p.setInt('reviewPromptCount', reviewPromptCount);
     await p.setInt('reviewPromptedAtGames', reviewPromptedAtGames);
+    await p.setBool('notifyOptIn', notifyOptIn);
+    await p.setInt('notifyPromptCount', notifyPromptCount);
+    await p.setInt('notifyPromptedAtGames', notifyPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
