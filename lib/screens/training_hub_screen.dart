@@ -374,14 +374,8 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                         ),
                         child: Text(m.lineMatchButton),
                       ),
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        onPressed: () => _start(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(46),
-                        ),
-                        child: Text(m.soloTrainingStart),
-                      ),
+                      // 🗑「特訓スタート！」は撤去。同じカードに似たボタンが
+                      //    3つ並んでいて、何が違うのか分からない状態だった。
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () => _start(mnemonic: true),
