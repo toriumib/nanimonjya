@@ -86,11 +86,13 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   int _totalReactionMs = 0;
   int _coinsEarned = 0;
 
-  // 🔁 弱点の即時復習: まちがえた問題を溜めて、本編のあとにもう1周する
-  final List<_Question> _reviewQueue = [];
-  bool _inReview = false; // 復習ラウンド中か（スコアには加算しない）
-  int _reviewRecovered = 0; // 復習で思い出せた数（結果に表示）
-  int _mainTotal = 0; // 本編の出題数（復習で_questionsが差し替わるため別に保持）
+  // 🗑 その場でもう1周する「復習ラウンド」は廃止した。
+  //    本編を終えた直後に、まちがえた人だけがもう一度出てくるので
+  //    「さっき見たばかりの答え」を選ぶだけになりやすく、
+  //    覚えられたかどうかの手応えが薄かった。
+  //    まちがえた人は ReviewQueue に入り**日をあらためて**出てくるので、
+  //    間隔をあけて思い出す機会はそちらで確保されている。
+  int _mainTotal = 0; // 本編の出題数
 
   int get _peopleCount {
     switch (widget.level) {
@@ -223,12 +225,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       reactionMs: reactionMs,
     );
     if (correct) {
-      // 復習ラウンドの正解はスコアに入れず、「思い出せた数」として別に数える
-      if (_inReview) {
-        _reviewRecovered += 1;
-      } else {
-        _correct += 1;
-      }
+      _correct += 1;
       Sfx.instance.correct();
       Speech.instance.praise(ja: _ja); // 🎉 ほめボイス
       // 🔁 日をまたぐ復習: 名前を当てられたら次の間隔へ送る（卒業もここ）
@@ -237,9 +234,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       }
     } else {
       Sfx.instance.wrong();
-      // まちがえた問題は復習キューへ（本編で外したものだけ。復習で外しても無限には続けない）
-      if (!_inReview) _reviewQueue.add(_q);
-      // 🔁 日をまたぐ復習にも登録して、後日もう一度出す
+      // 🔁 まちがえた人は日をあらためて出てくる（その場ではもう1周しない）
       if (_q.field == RecallField.name) {
         ReviewQueue.instance.recordMiss(_q.person);
       }
@@ -264,27 +259,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       });
       return;
     }
-    // 🔁 弱点の即時復習: まちがえた問題だけをもう1周する。
-    // 「思い出せなかったものをもう一度思い出す」のが記憶に効くとされるため、
-    // 苦手を残したまま終わらせない（復習の正解は集計に含めない＝スコアは水増ししない）。
-    if (_reviewQueue.isNotEmpty && !_inReview) {
-      setState(() {
-        _inReview = true;
-        _questions = [..._reviewQueue];
-        _reviewQueue.clear();
-        _qIndex = 0;
-        _prepareChoices();
-      });
-      return;
-    }
     await _finish();
   }
 
   Future<void> _finish() async {
-    // スコアは本編の出題数で数える（復習ラウンドは加点対象外）
     final total = _mainTotal > 0 ? _mainTotal : _questions.length;
-    final answered = total + _reviewRecovered;
-    final avgMs = answered > 0 ? _totalReactionMs ~/ answered : 0;
+    final avgMs = total > 0 ? _totalReactionMs ~/ total : 0;
     await MemoryStats.instance.finishSession(StatMode.businessCard);
     // 記録＆コイン付与（正解数×8＋全問正解ボーナス）
     await PlayerProfile.instance.recordSoloTraining(
@@ -292,10 +272,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       totalQuizzes: total,
       avgReactionMs: avgMs,
     );
-    // 復習で取り返した分も半額で報酬にする（間違いを放置せず直す行動を評価）
-    final coins = _correct * 8 +
-        _reviewRecovered * 4 +
-        (total > 0 && _correct == total ? 20 : 0);
+    final coins = _correct * 8 + (total > 0 && _correct == total ? 20 : 0);
     if (coins > 0) await PlayerProfile.instance.grantBonusCoins(coins);
     _coinsEarned = coins;
     if (total > 0 && _correct == total) {
@@ -685,27 +662,11 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             value: (_qIndex + 1) / _questions.length,
             minHeight: 6,
             backgroundColor: Colors.white,
-            color: _inReview ? const Color(0xFFE8A400) : const Color(0xFF3A7BD5),
+            color: const Color(0xFF3A7BD5),
           ),
           const SizedBox(height: 6),
-          // 🔁 復習ラウンド中はひと目で分かるようにする
-          if (_inReview)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3D6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(m.reviewRoundBadge,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF9A6A00))),
-            )
-          else
-            Text('${_qIndex + 1} / ${_questions.length}',
-                style: const TextStyle(color: Colors.black54, fontSize: 12.5)),
+          Text('${_qIndex + 1} / ${_questions.length}',
+              style: const TextStyle(color: Colors.black54, fontSize: 12.5)),
           const SizedBox(height: 8),
           _personPhoto(p, height: 210),
           const SizedBox(height: 8),
@@ -781,16 +742,6 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
           Text(m.recallCorrectOf(_correct, total),
               style: const TextStyle(
                   fontSize: 24, fontWeight: FontWeight.w900)),
-          // 🔁 復習で取り返せた数（「思い出せなかったものを思い出せた」体験を可視化）
-          if (_reviewRecovered > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(m.reviewRecovered(_reviewRecovered),
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF9A6A00))),
-            ),
           const SizedBox(height: 6),
           Text(encourage,
               textAlign: TextAlign.center,

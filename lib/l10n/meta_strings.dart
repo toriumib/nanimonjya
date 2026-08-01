@@ -740,7 +740,7 @@ class MetaStrings {
       ? '''なまえコールが皆で遊ぶゲームなのに対して、
 ここは一人で腕を上げるための場所です。
 
-🖇 線結び … 顔から名前へ指で線を引いて結びます。全部結んだら答え合わせ。
+🖇 線結び … 顔から名前へ指で線を引いて結びます。全員結んだ時点で答え合わせです。
 
 🧠 思い出し訓練 … 名刺を持った相手が自己紹介をします。少し時間を置いてから「誰だったか」を答えます。
 
@@ -974,11 +974,6 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String recallCorrectOf(int correct, int total) =>
       ja ? '$total人中 $correct人を思い出せました' : 'You recalled $correct of $total!';
   String get recallReview => ja ? '復習（顔・名前・場所）' : 'Review (face・name・place)';
-  // 🔁 弱点の即時復習（テスト効果を活かして、まちがえた人だけもう1周する）
-  String get reviewRoundBadge =>
-      ja ? '🔁 復習ラウンド：間違えた相手だけ' : '🔁 Review round: missed faces only';
-  String reviewRecovered(int n) =>
-      ja ? '🔁 復習で $n 人を思い出せました' : '🔁 Recovered $n in review!';
   String get recallAgain => ja ? 'もう一度' : 'Again';
   String get recallClose => ja ? '閉じる' : 'Close';
   String get recallEncourageHigh => ja
@@ -1052,7 +1047,9 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get lineMatchConnectDesc => ja
       ? '顔から名前へ指でドラッグします。間違えても引き直せます。'
       : 'Drag from a face to a name. You can redo any line.';
-  String get lineMatchJudge => ja ? '✅ 答えあわせ' : '✅ Check answers';
+  /// 全部つないだあとの一言。ここから自動で判定に入る。
+  String get lineMatchAllLinked =>
+      ja ? '✅ 全員つながりました！答え合わせします' : '✅ All linked — checking…';
   String lineMatchProgress(int done, int total) =>
       ja ? '残り${total - done}人（$done/$total）' : '$done/$total connected';
   String get lineMatchButton => ja ? '🖇 線結びで特訓' : '🖇 Line match training';
@@ -1379,7 +1376,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
             : '''Take turns flipping the mnemonic-training board.\n\n1. Study the face-name pairs — try tagging each one\n2. The cards flip over\n3. Players alternate, flipping two cards each turn\n4. Match a face with its name and you go again\n5. Miss, and it is the other player's turn\n\n🏆 Most pairs when the board is cleared wins.\n⏳ Nobody is rushing you, so it is a good place to actually practice tagging. The host goes first.''';
       case 'lineMatch':
         return ja
-            ? '''ひとりで、じっくり練習するモード。運の要素はありません。\n\n① おぼえタイム … 顔と名前をセットでおぼえる\n② 線むすび … 顔から名前へ 指でドラッグして つなぐ\n③ まちがえたら 何回でも 引きなおせる\n④ ぜんぶつないだら「答えあわせ」\n\n💡 顔を見て名前を引き出す形なので、実生活にいちばん近い練習です。'''
+            ? '''一人でじっくり練習するモードです。運の要素はありません。\n\n① 記銘タイム … 顔と名前を組みで覚えます\n② 線結び … 顔から名前へ指でドラッグしてつなぎます\n③ つなぎ直しは何度でもできます（同じ名前を別の人へ引くと、前の線は外れます）\n④ 全員つないだ時点で自動的に答え合わせをして、結果が出ます\n\n💡 顔を見て名前を引き出す形なので、実生活にいちばん近い練習です。'''
             : '''A calm solo drill — no luck involved.\n\n1. Memorize each face with its name\n2. Drag from a face to a name to connect them\n3. Redo any line as often as you like\n4. Connect them all, then check your answers''';
       case 'cardMemory':
         return ja

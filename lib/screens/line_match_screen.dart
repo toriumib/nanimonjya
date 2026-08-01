@@ -26,7 +26,7 @@ class LineMatchScreen extends StatefulWidget {
   State<LineMatchScreen> createState() => _LineMatchScreenState();
 }
 
-enum _Phase { memorize, connect, result }
+enum _Phase { memorize, connect }
 
 class _LineMatchScreenState extends State<LineMatchScreen> {
   final Random _rng = Random();
@@ -42,9 +42,6 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
   /// ドラッグ中の始点（顔index）と現在の指の位置
   int? _dragFrom;
   Offset? _dragPoint;
-
-  /// 判定用に確定した「正解だったか」
-  final Map<int, bool> _judged = {};
 
   final GlobalKey _boardKey = GlobalKey();
   final Map<int, GlobalKey> _faceKeys = {};
@@ -123,6 +120,22 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     return null;
   }
 
+  /// 全員つなぎ終わったら、そのまま判定してレポートへ。
+  ///
+  /// 🗑 以前は「✅ 答えあわせ」ボタンを押させていたが、全部つないだ時点で
+  ///    やることは決まっているのに、もう1タップ挟まるだけだった。
+  ///    最後に引いた線が見えないまま画面が変わらないよう、一拍だけ置く。
+  void _autoFinishIfComplete() {
+    if (_finishing || _links.length < _count) return;
+    _finishing = true;
+    Future.delayed(const Duration(milliseconds: 650), () {
+      if (mounted) _finish();
+    });
+  }
+
+  /// 判定に入ったか（二重に走らせないためのガード）
+  bool _finishing = false;
+
   void _finish() {
     _clock.stop();
     Sfx.instance.pop();
@@ -130,10 +143,8 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     for (var i = 0; i < _count; i++) {
       final linked = _links[i];
       final ok = linked != null && _nameOrder[linked].name == _people[i].name;
-      _judged[i] = ok;
       if (ok) correct++;
     }
-    setState(() => _phase = _Phase.result);
     // 📅 今週おぼえた人数に、正しく結べた人数を足す
     PlayerProfile.instance.addWeeklyLearned(correct);
 
@@ -313,6 +324,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
                 _links.removeWhere((_, v) => v == target);
                 _links[from] = target;
               });
+              _autoFinishIfComplete();
             },
             child: Stack(
               key: _boardKey,
@@ -397,23 +409,19 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
             ),
           ),
         ),
+        // 🗑 「✅ 答えあわせ」ボタンは廃止（全部つないだら自動で判定する）。
+        //    残り人数だけは見えないと、あと何人つなげばいいのか分からない。
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              // 全員つなぐまでは判定させない（消化不良の結果を防ぐ）
-              onPressed: linkedCount == _count ? _finish : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3A7BD5),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w900),
-              ),
-              child: Text(linkedCount == _count
-                  ? m.lineMatchJudge
-                  : m.lineMatchProgress(linkedCount, _count)),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Text(
+            linkedCount == _count
+                ? m.lineMatchAllLinked
+                : m.lineMatchProgress(linkedCount, _count),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF2B5CA5),
             ),
           ),
         ),
