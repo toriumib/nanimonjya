@@ -10,6 +10,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../l10n/meta_strings.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
+import '../models/cpu_difficulty.dart';
 import '../models/person.dart';
 import '../models/surnames.dart';
 import '../models/shop_items.dart';
@@ -169,8 +170,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
   // 回答タイマー（クイズモードのみ）
   Timer? _quizTimer;
   // ⏳「ゆとりの砂時計」を装備していると持ち時間が5秒のびる
+  /// 1問の持ち時間。CPU対戦は難易度で変わる（むずかしいほど短い）。
   int get _answerSeconds =>
-      NameCallGame.answerSeconds +
+      (_isCpu ? _diff.answerSeconds : NameCallGame.answerSeconds) +
       (luckyCharmById(PlayerProfile.instance.selectedCharm).effect ==
               CharmEffect.timeBonus
           ? 5
@@ -187,8 +189,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
 
   // 報酬（一人プレイの終了ビューで表示）
   int _coinsEarned = 0;
-  /// 🤖 CPUに勝ったときの難易度ボーナス（終了画面で内訳を見せる）
+  /// 🤖 CPU戦のボーナスコイン合計（終了画面で内訳を見せる）
   int _cpuBonus = 0;
+  int _cpuCorrectCoins = 0; // 正解ぶん
+  int _cpuPerfectCoins = 0; // 全問正解ぶん
+  int _cpuWinCoins = 0; // 勝利ぶん
   /// 🏆 この試合で新しく参戦した実績キャラのID
   List<String> _featUnlocked = [];
   List<String> _newAchievements = [];
@@ -249,6 +254,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
       rng: _rng,
       // 出たとき命名は必ず1枚ずつ（初登場で命名→再登場で想起の流れのため）
       cardsPerRound: (widget.doubleCard && !widget.nameAsYouGo) ? 2 : 1,
+      // 🤖 CPU対戦は難易度ぶんの人数をまとめて覚えてから思い出す。
+      //    かんたん=1人ずつ、鬼=4人まとめて。カスタム名簿は命名済みなので対象外。
+      groupSize: (_isCpu && widget.nameAsYouGo && !_isCustom)
+          ? _diff.groupSize
+          : 0,
     );
     if (_isCustom) {
       // カスタム名簿は名前つき済み → 命名フェーズをスキップして本編へ
@@ -521,33 +531,21 @@ class _NameCallScreenState extends State<NameCallScreen> {
   }
 
   /// クイズの4択を作る。名簿の名前が4つに満たないとき（出たとき命名の序盤や
-  /// 少人数のカスタム名簿）は、おなまえガチャの偽名で4つまで補充する。
+  /// 少人数のカスタム名簿）は、実在しそうな苗字で4つまで補充する。
   List<String> _buildChoices(Person card) {
-    final choices = _game.choicesFor(card).toList();
-    if (choices.length < 4) {
-      final m = MetaStrings.of(context);
-      var guard = 0;
-      while (choices.length < 4 && guard < 40) {
-        final decoy = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
-        if (!choices.contains(decoy)) choices.add(decoy);
-        guard++;
-      }
-      choices.shuffle(_rng);
-    }
-    return choices;
+    // ⚠️ 以前はおなまえガチャの造語（カタカナ）で埋めていたが、
+    //    「モジャモン」のような選択肢が並ぶと明らかに正解でないと分かり、
+    //    4択が実質2択になってしまう。実在しそうな苗字で埋める。
+    final ja = PlatformDispatcherLocale.isJa;
+    return _game.choicesFor(
+      card,
+      filler: [for (final sn in kCommonSurnames) surnameWithHonorific(sn, ja)],
+    );
   }
 
-  /// 難易度ごとのCPUの手強さ。
-  /// (最短ms, ばらつきms, 見逃す確率%, 勝ったときのボーナスコイン)
-  static const Map<CpuLevel, List<int>> _cpuSpec = {
-    CpuLevel.easy: [4200, 3500, 35, 20],
-    CpuLevel.normal: [3000, 3000, 20, 45],
-    CpuLevel.hard: [2000, 2200, 10, 90],
-    CpuLevel.oni: [1300, 1400, 3, 180],
-  };
-
-  List<int> get _spec =>
-      _cpuSpec[widget.cpuLevel] ?? _cpuSpec[CpuLevel.normal]!;
+  /// 難易度ごとの設定（覚える人数・持ち時間・報酬・CPUの手強さ）。
+  /// 表と実際の挙動がずれないよう models/cpu_difficulty.dart に一本化してある。
+  CpuDifficulty get _diff => cpuDifficultyOf(widget.cpuLevel);
 
   /// 🤖 CPUが「思い出す」までの時間を決める。
   /// 速すぎると理不尽なので、人が選択肢を読んで押せる範囲でばらつかせる。
@@ -556,8 +554,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _cpuTimer?.cancel();
     _cpuTookRound = false;
     if (!_isCpu) return;
-    if (_rng.nextInt(10) < 2) return; // 2割はCPUも分からない
-    final ms = 2500 + _rng.nextInt(4000); // 2.5〜6.5秒
+    // 難易度ごとの見逃し率。かんたんは35%、鬼は3%しか見逃さない
+    if (_rng.nextInt(100) < _diff.cpuMissPct) return;
+    final ms = _diff.cpuMinMs + _rng.nextInt(_diff.cpuVarianceMs);
     _cpuTimer = Timer(Duration(milliseconds: ms), _cpuAnswers);
   }
 
@@ -742,16 +741,22 @@ class _NameCallScreenState extends State<NameCallScreen> {
       _rewarded = true;
       final profile = PlayerProfile.instance;
       final reward = await profile.recordGamePlayed(_cardsWon[0]);
-      // 🤖 CPU戦は勝敗を段位に反映し、勝ったら難易度ぶんのボーナスを出す。
+      // 🤖 CPU戦は勝敗を段位に反映し、難易度に応じたコインを出す。
       if (_isCpu) {
         final won = _cardsWon[0] > _cardsWon[1];
-        if (won) {
-          _cpuBonus = _spec[3];
-          await profile.grantBonusCoins(_cpuBonus);
+        final perfect = _quizTotal > 0 && _quizCorrect == _quizTotal;
+        // ⚠️ 以前は「勝ったときの難易度ボーナス」しか無く、
+        //    ぜんぶ思い出せても負けたら基本の10コインだけだった。
+        //    答えた中身が報われないと、むずかしい難易度を選ぶ理由が無くなる。
+        //    正解1問ごと（難易度で単価が変わる）＋全問正解＋勝利ボーナスの3段にする。
+        _cpuCorrectCoins = _quizCorrect * _diff.coinsPerCorrect;
+        _cpuPerfectCoins = perfect ? _diff.perfectBonus : 0;
+        _cpuWinCoins = won ? _diff.winBonus : 0;
+        _cpuBonus = _cpuCorrectCoins + _cpuPerfectCoins + _cpuWinCoins;
+        if (_cpuBonus > 0) await profile.grantBonusCoins(_cpuBonus);
+        if (won && perfect) {
           // 全問正解での勝利は専用キャラの解放条件
-          if (_quizTotal > 0 && _quizCorrect == _quizTotal) {
-            await profile.markPerfectCpuWin();
-          }
+          await profile.markPerfectCpuWin();
         }
         await profile.recordCpuGame(
           level: widget.cpuLevel!.name,
@@ -1815,16 +1820,24 @@ class _NameCallScreenState extends State<NameCallScreen> {
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF8A6A1E)),
                     ),
-                    // 難易度ボーナスは内訳として見せる（強い相手を選ぶ動機になる）
+                    // 何で稼げたのかを内訳で見せる。
+                    // 「強い相手ほど1問の単価が高い」と分かると難易度を上げる気になる。
                     if (_cpuBonus > 0) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        m.cpuBonusCoins(_cpuBonus),
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFB07A00)),
-                      ),
+                      for (final line in [
+                        if (_cpuCorrectCoins > 0)
+                          m.cpuCorrectCoins(_quizCorrect, _cpuCorrectCoins),
+                        if (_cpuPerfectCoins > 0)
+                          m.cpuPerfectCoins(_cpuPerfectCoins),
+                        if (_cpuWinCoins > 0) m.cpuWinCoins(_cpuWinCoins),
+                      ])
+                        Text(
+                          line,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFB07A00)),
+                        ),
                     ],
                     const SizedBox(height: 6),
                     Text(

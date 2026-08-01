@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../models/cpu_difficulty.dart';
 import '../models/person.dart';
 
 /// 📮 バグ報告・改善要望の宛先。ここ1か所に置いて画面側から参照する。
@@ -762,12 +763,23 @@ This tab is where you get stronger on your own.
   }
 
   String cpuLevelReward(int coins) => ja ? '勝って🪙$coins' : 'Win 🪙$coins';
+  /// 難易度の中身（まとめて覚える人数と、1問の持ち時間）。
+  String cpuLevelDetail(int groupSize, int seconds) => ja
+      ? '$groupSize人まとめて覚える / $seconds秒で答える'
+      : 'Memorize $groupSize at a time / $seconds s to answer';
   String get cpuEntryJoin => ja ? '参戦！' : 'JOINS THE BATTLE!';
   String get cpuEntryTapToSkip => ja ? 'タップでとばす' : 'Tap to skip';
   String get cpuWinTitle => ja ? '🏆 CPUに勝った！' : '🏆 You beat the CPU!';
   String get cpuLoseTitle => ja ? '😢 CPUに負けた…' : '😢 The CPU won…';
   String cpuBonusCoins(int n) =>
       ja ? '難易度ボーナス 🪙+$n' : 'Difficulty bonus 🪙+$n';
+  // 🪙 CPU戦のコイン内訳（何で稼げたのかを分けて見せる）
+  String cpuCorrectCoins(int correct, int coins) =>
+      ja ? '思い出せた $correct問 🪙+$coins' : 'Recalled $correct 🪙+$coins';
+  String cpuPerfectCoins(int coins) =>
+      ja ? '全問正解ボーナス 🪙+$coins' : 'Perfect bonus 🪙+$coins';
+  String cpuWinCoins(int coins) =>
+      ja ? '勝利ボーナス 🪙+$coins' : 'Win bonus 🪙+$coins';
   /// コインを貯める動機づけの謳い文句（結果画面などで出す）
   String get saveCoinsPitch => ja
       ? 'コインを貯めて、キャラや音楽を変えよう！🪙'
@@ -800,6 +812,7 @@ This tab is where you get stronger on your own.
   /// 「6人」だけでは何の人数か伝わらない（プレイ人数と紛らわしい）ので、
   /// 出てくるキャラの数だと分かる書き方にする。
   String peopleCountLabel(int n) => ja ? '$n キャラ' : '$n chars';
+  String peopleCountValue(int n) => ja ? '$n人' : '$n';
   String get peopleCountTitle =>
       ja ? '👥 出てくるキャラの数' : '👥 How many characters appear';
   String peopleCountHint(int n) => ja
@@ -1189,12 +1202,46 @@ This tab is where you get stronger on your own.
     }
   }
 
+  /// 🤖 難易度表の1行ずつ。数字は models/cpu_difficulty.dart が一次情報なので、
+  /// ここに直書きせず必ずそこから作る（ルールブックだけ古い値のまま残るのを防ぐ）。
+  String _cpuTableJa() {
+    const names = {
+      'easy': 'かんたん',
+      'normal': 'ふつう',
+      'hard': 'つよい',
+      'oni': '鬼',
+    };
+    return [
+      for (final k in const ['easy', 'normal', 'hard', 'oni'])
+        '${kCpuDifficulties[k]!.emoji} ${names[k]}'
+            '：${kCpuDifficulties[k]!.groupSize}人ずつ / '
+            '${kCpuDifficulties[k]!.answerSeconds}秒 / '
+            '勝つと🪙${kCpuDifficulties[k]!.winBonus}',
+    ].join('\n');
+  }
+
+  String _cpuTableEn() {
+    const names = {
+      'easy': 'Easy',
+      'normal': 'Normal',
+      'hard': 'Hard',
+      'oni': 'Oni',
+    };
+    return [
+      for (final k in const ['easy', 'normal', 'hard', 'oni'])
+        '${kCpuDifficulties[k]!.emoji} ${names[k]}'
+            ': ${kCpuDifficulties[k]!.groupSize} at once / '
+            '${kCpuDifficulties[k]!.answerSeconds}s / '
+            'win 🪙${kCpuDifficulties[k]!.winBonus}',
+    ].join('\n');
+  }
+
   String ruleBody(dynamic t) {
     switch ('$t'.split('.').last) {
       case 'cpu':
         return ja
-            ? '''ひとりであそぶモード。CPUと カードのとりあいをするよ。\n\n① はじめて出たキャラに 名前がつく（おまかせ）\n② 同じキャラが また出てきたら、4つの中から 正しい名前をえらぶ\n③ CPUが思い出すより 早く正解できたら カードをゲット\n④ おそかったり まちがえたら CPUに とられる\n\n🏆 むずかしい相手ほど 勝ったときのコインが多い。\nかんたん20 / ふつう45 / つよい90 / 鬼180\n\nコインを貯めて、キャラや音楽を変えよう！'''
-            : '''Solo mode. You and the CPU compete for cards.\n\n1. Each new character is given a name (auto)\n2. When they appear again, pick the right name from four\n3. Answer correctly before the CPU to win the card\n4. Too slow or wrong, and the CPU takes it\n\n🏆 Tougher rivals pay more coins:\nEasy 20 / Normal 45 / Hard 90 / Oni 180''';
+            ? '''ひとりであそぶモード。CPUと カードのとりあいをするよ。\n\n① はじめて出たキャラに 名前がつく（おまかせ）\n② 同じキャラが また出てきたら、4つの中から 正しい名前をえらぶ\n③ CPUが思い出すより 早く正解できたら カードをゲット\n④ おそかったり まちがえたら CPUに とられる\n\n🤖 むずかしさで 変わるのは 相手の速さだけじゃない。\n「何人まとめて おぼえてから 答えるか」が いちばん大きい。\n${_cpuTableJa()}\nかんたんは 1人おぼえて すぐ答える。鬼は 4人おぼえてから 4人ぶん答える。\nあいだに ほかの人が はさまるほど むずかしくなる。\n\n🪙 コインは 3つの合計。\n・思い出せた1問ごと（むずかしいほど 単価が高い）\n・全問正解ボーナス\n・勝利ボーナス\nぜんぶ思い出せたら 負けても コインは入るよ。'''
+            : '''Solo mode. You and the CPU compete for cards.\n\n1. Each new character is given a name (auto)\n2. When they appear again, pick the right name from four\n3. Answer correctly before the CPU to win the card\n4. Too slow or wrong, and the CPU takes it\n\n🤖 Difficulty changes how many people you memorize before answering.\n${_cpuTableEn()}\nEasy: memorize 1, answer right away. Oni: memorize 4, then answer all 4.\n\n🪙 Coins = per correct answer + perfect bonus + win bonus.''';
       case 'lineMatch':
         return ja
             ? '''ひとりで、じっくり練習するモード。運の要素はありません。\n\n① おぼえタイム … 顔と名前をセットでおぼえる\n② 線むすび … 顔から名前へ 指でドラッグして つなぐ\n③ まちがえたら 何回でも 引きなおせる\n④ ぜんぶつないだら「答えあわせ」\n\n💡 顔を見て名前を引き出す形なので、実生活にいちばん近い練習です。'''

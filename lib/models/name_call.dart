@@ -24,21 +24,24 @@ class NameCallGame {
   ///
   /// ⚠️ 12人にしていたが、Analyticsで**ゲームを始めた54人のうち20人しか
   /// 終わりまで到達していなかった**（63%が1ゲームも完走せず）。
-  /// 12人＝山札24枚で、出たとき命名なら命名12回＋想起12回。初回には長すぎる。
-  /// まず1ゲーム終わらせて手応えを持ってもらうため6人を既定にし、
-  /// 物足りない人はホームで9人・12人を選べるようにした。
-  static const int peopleCount = 6;
+  /// 6人に下げたあとも完走率が伸びなかったため **4人**を既定にした。
+  /// 4人＝山札8枚で、命名4回＋想起4回。1試合2分弱で終わる。
+  /// 物足りない人はホームのスライダーで16人まで増やせる。
+  static const int peopleCount = 4;
 
-  /// ホームで選べる登場人数。
-  static const List<int> selectableCounts = [6, 9, 12];
+  /// ホームのスライダーで選べる登場人数の範囲。
+  /// 上限は使える顔の枚数（[maxPeople]）と同じ。
+  static const int minSelectableCount = 4;
+  static const int maxSelectableCount = 16;
 
   /// 使える顔の最大数（フリー素材キャラ画像の枚数）。
-  static const int maxPeople = 12;
+  static const int maxPeople = 16;
 
   /// 山札は各人物×2枚。
   static const int copiesPerPerson = 2;
 
-  /// 1カードの回答制限時間（秒）。
+  /// 1カードの回答制限時間（秒）の既定値。
+  /// CPU対戦では難易度ごとの値（`CpuDifficulty.answerSeconds`）で上書きされる。
   static const int answerSeconds = 10;
 
   final List<Person> people;
@@ -46,6 +49,14 @@ class NameCallGame {
 
   /// 1ラウンドに出すカード枚数（1=基本 / 2=りょうどりオプション）。
   final int cardsPerRound;
+
+  /// 何人まとめて覚えてから思い出すか（0＝指定なし＝完全シャッフル）。
+  ///
+  /// CPU対戦の難易度で使う。1なら「1人おぼえて、すぐその人が出る」、
+  /// 4なら「4人おぼえてから、4人ぶん答える」。
+  /// 覚えてから思い出すまでに他の人が何人挟まるかが難しさそのものなので、
+  /// 山札をランダムに切るのではなく、この単位で組み立てる。
+  final int groupSize;
 
   /// 名簿: 人物 → プレイヤーがつけた名前（命名フェーズで埋まる）
   final Map<Person, String> roster = {};
@@ -57,11 +68,31 @@ class NameCallGame {
     required this.people,
     required this.rng,
     this.cardsPerRound = 1,
+    this.groupSize = 0,
   }) {
-    deck = [
-      for (final p in people)
-        for (var i = 0; i < copiesPerPerson; i++) p,
-    ]..shuffle(rng);
+    deck = groupSize > 0 ? _buildGroupedDeck() : _buildShuffledDeck();
+  }
+
+  List<Person> _buildShuffledDeck() => [
+        for (final p in people)
+          for (var i = 0; i < copiesPerPerson; i++) p,
+      ]..shuffle(rng);
+
+  /// [groupSize] 人ずつの「おぼえる → 思い出す」のかたまりで山札を組む。
+  ///
+  /// 例（groupSize=2, A〜D）: A B（命名）→ B A（想起）→ C D（命名）→ D C（想起）
+  /// 想起の順番だけ入れ替えるので、「最後に出た人がすぐ出る」とは限らない。
+  List<Person> _buildGroupedDeck() {
+    final shuffled = [...people]..shuffle(rng);
+    final deck = <Person>[];
+    for (var i = 0; i < shuffled.length; i += groupSize) {
+      final chunk = shuffled.sublist(
+          i, (i + groupSize).clamp(0, shuffled.length));
+      deck.addAll(chunk); // 1周目＝初登場（命名）
+      final recall = [...chunk]..shuffle(rng);
+      deck.addAll(recall); // 2周目＝想起
+    }
+    return deck;
   }
 
   int get totalCards => people.length * copiesPerPerson;
@@ -120,8 +151,18 @@ class NameCallGame {
 
   /// クイズの選択肢: 正解＋名簿のほかの名前から最大3つ（通常4択）。
   /// 名簿の名前だけで作るので「自分がつけたはずの名前」から選ぶことになる。
-  /// 登録人数が少ない（カスタム名簿など）場合は選択肢が4未満になることもある。
-  List<String> choicesFor(Person target, {int total = 4}) {
+  ///
+  /// 名簿の名前が足りないとき（出たとき命名の序盤や、少人数のカスタム名簿）は
+  /// [filler] から補充する。
+  ///
+  /// ⚠️ [filler] には**名簿の名前と見分けがつかない名前**を渡すこと。
+  /// 以前は造語のカタカナ名（「モジャモン」など）で埋めていて、
+  /// 明らかに正解でないと分かる選択肢が並び、4択が実質2択になっていた。
+  List<String> choicesFor(
+    Person target, {
+    int total = 4,
+    List<String> filler = const [],
+  }) {
     final correct = roster[target]!;
     final others = roster.entries
         .where((e) => e.key != target && e.value != correct)
@@ -129,8 +170,14 @@ class NameCallGame {
         .toSet()
         .toList()
       ..shuffle(rng);
-    final choices = <String>{correct, ...others.take(total - 1)}.toList()
-      ..shuffle(rng);
-    return choices;
+    final choices = <String>{correct, ...others.take(total - 1)};
+    if (choices.length < total && filler.isNotEmpty) {
+      final pool = [...filler]..shuffle(rng);
+      for (final f in pool) {
+        if (choices.length >= total) break;
+        choices.add(f);
+      }
+    }
+    return choices.toList()..shuffle(rng);
   }
 }

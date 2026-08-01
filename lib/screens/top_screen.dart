@@ -13,6 +13,7 @@ import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
+import '../models/cpu_difficulty.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
 import '../models/cpu_rank.dart';
@@ -282,11 +283,22 @@ class _TopScreenState extends State<TopScreen>
   void _pickCpuLevel(BuildContext context) {
     Sfx.instance.pop();
     final m = MetaStrings.of(context);
-    const rows = [
-      (CpuLevel.easy, '🐣', 20, Color(0xFF4ECDC4)),
-      (CpuLevel.normal, '🙂', 45, Color(0xFF3A7BD5)),
-      (CpuLevel.hard, '🔥', 90, Color(0xFFE8663C)),
-      (CpuLevel.oni, '👹', 180, Color(0xFF8A5AC2)),
+    // 難易度の中身（覚える人数・持ち時間・コイン）は models/cpu_difficulty.dart が
+    // 一次情報。ここに数字を直書きすると実際の報酬と食い違うので必ず参照する。
+    const colors = [
+      Color(0xFF4ECDC4),
+      Color(0xFF3A7BD5),
+      Color(0xFFE8663C),
+      Color(0xFF8A5AC2),
+    ];
+    final rows = [
+      for (final (i, lv) in [
+        CpuLevel.easy,
+        CpuLevel.normal,
+        CpuLevel.hard,
+        CpuLevel.oni,
+      ].indexed)
+        (lv, cpuDifficultyOf(lv), colors[i]),
     ];
     showModalBottomSheet<void>(
       context: context,
@@ -310,7 +322,7 @@ class _TopScreenState extends State<TopScreen>
                   style: const TextStyle(
                       fontSize: 12, color: Colors.black54)),
               const SizedBox(height: 14),
-              for (final (lv, emoji, coins, color) in rows) ...[
+              for (final (lv, diff, color) in rows) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
@@ -336,15 +348,32 @@ class _TopScreenState extends State<TopScreen>
                     ),
                     child: Row(
                       children: [
-                        Text(emoji, style: const TextStyle(fontSize: 22)),
+                        Text(diff.emoji, style: const TextStyle(fontSize: 22)),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(m.cpuLevelName(lv),
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(m.cpuLevelName(lv),
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900)),
+                              // 何がどう難しくなるのかを選ぶ前に見せる。
+                              // 「強い＝ただ相手が速い」ではなく、
+                              // まとめて覚える人数と持ち時間が変わることを伝える。
+                              Text(
+                                m.cpuLevelDetail(
+                                    diff.groupSize, diff.answerSeconds),
+                                style: const TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white70),
+                              ),
+                            ],
+                          ),
                         ),
-                        Text(m.cpuLevelReward(coins),
+                        Text(m.cpuLevelReward(diff.winBonus),
                             style: const TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w900)),
@@ -975,18 +1004,32 @@ class _TopScreenState extends State<TopScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 6),
+                                // 4〜16人をスライダーで。3択のチップだと
+                                // 「4人で軽く」も「16人でがっつり」も選べなかった。
                                 Row(
                                   children: [
-                                    for (final n
-                                        in NameCallGame.selectableCounts) ...[
-                                      if (n != NameCallGame.selectableCounts.first)
-                                        const SizedBox(width: 8),
-                                      _ruleChip(
-                                        m.peopleCountLabel(n),
-                                        _peopleCount == n,
-                                        () => setState(() => _peopleCount = n),
+                                    Text(
+                                      m.peopleCountValue(_peopleCount),
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF2B5CA5)),
+                                    ),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _peopleCount.toDouble(),
+                                        min: NameCallGame.minSelectableCount
+                                            .toDouble(),
+                                        max: NameCallGame.maxSelectableCount
+                                            .toDouble(),
+                                        divisions:
+                                            NameCallGame.maxSelectableCount -
+                                                NameCallGame.minSelectableCount,
+                                        label: m.peopleCountValue(_peopleCount),
+                                        onChanged: (v) => setState(
+                                            () => _peopleCount = v.round()),
                                       ),
-                                    ],
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
