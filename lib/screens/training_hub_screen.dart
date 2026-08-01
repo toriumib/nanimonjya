@@ -439,6 +439,25 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                         ),
                         child: Text('${m.battleTitle}（${m.betaBadge}）'),
                       ),
+                      const SizedBox(height: 8),
+                      // 👫 1台を回して2人で。神経衰弱を交互にめくって
+                      //    取り合い、そのままふたり同時にバトルする。
+                      OutlinedButton(
+                        onPressed: () {
+                          Sfx.instance.fanfare();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const NameBattleScreen(humanPlayers: 2)),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFE8663C),
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        child: Text(m.battleTwoPlayerButton),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         m.battleDesc,

@@ -1,74 +1,147 @@
-/// ⚔️ ベータ「なまえバトル」の戦闘シミュレーション。
+/// ⚔️ ベータ「なまえバトル」の戦闘シミュレーション（タワーディフェンス）。
 ///
 /// 神経衰弱で取った人が、そのまま戦う仲間になる。取った枚数が多いほど
 /// 手札が厚くなり、戦いを有利に進められる——という繋ぎ方をしている。
 /// 「覚えたことが強さになる」を目に見える形にするためのモード。
 ///
-/// ここはUIから完全に切り離した純粋なロジックにしてある。
+/// **タワーは自分から撃つ**。ただ殴られるだけの的ではないので、
+/// 単騎で突っ込ませても溶ける。前衛で受けながら後ろから削る、という
+/// 組み立てが要る。
+///
+/// ここはUIから完全に切り離した純粋なロジックにしてある。乱数も使わない。
 /// 1タップぶんの結果が見た目に埋もれると、強さの調整が
 /// 「なんとなく強い／弱い」でしか語れなくなるため。
 library;
 
 import 'dart:math';
 
-/// ユニットの役割。3種類だけにして、覚えることを増やさない。
-enum UnitRole {
-  /// 前衛。HPが高く、進みは遅い。壁になる。
-  guard,
+/// 攻撃の当て方。
+enum AttackType {
+  /// 近距離。目の前の相手だけ殴る。
+  melee,
 
-  /// 攻撃役。攻撃力が高く紙。前衛のうしろから効く。
-  striker,
+  /// 遠距離。少し離れた相手を撃てる。前衛のうしろから効く。
+  ranged,
 
-  /// 遊撃。速くて安い。数で押す。
-  runner,
+  /// タワーのみ。ユニットを無視して素通りし、タワーだけを叩く。
+  /// 相手からは殴られるので、単体で出すと着く前に落とされる。
+  siege,
 }
 
-/// ユニット1種類の性能。
+/// ユニット1種類の性能。**キャラごとに違う**（[kUnitCatalog]）。
 class UnitSpec {
-  final UnitRole role;
-  final int hp;
-  final int attack;
+  /// 表示用の肩書き（「重装」「狙撃」など）。
+  final String labelJa;
+  final String labelEn;
+  final String emoji;
 
-  /// 1秒あたりに進む距離（レーンの長さを1.0とした割合）。
+  final AttackType attack;
+  final int hp;
+  final int power;
+
+  /// 攻撃が届く距離（レーンの長さを1.0とした割合）。
+  final double range;
+
+  /// 1秒あたりに進む距離（同上）。
   final double speed;
 
   /// 出すのに必要なコスト。
   final int cost;
 
   const UnitSpec({
-    required this.role,
-    required this.hp,
+    required this.labelJa,
+    required this.labelEn,
+    required this.emoji,
     required this.attack,
+    required this.hp,
+    required this.power,
+    required this.range,
     required this.speed,
     required this.cost,
   });
+
+  bool get towerOnly => attack == AttackType.siege;
 }
 
-const Map<UnitRole, UnitSpec> kUnitSpecs = {
-  UnitRole.guard:
-      UnitSpec(role: UnitRole.guard, hp: 120, attack: 8, speed: 0.055, cost: 4),
-  UnitRole.striker:
-      UnitSpec(role: UnitRole.striker, hp: 45, attack: 22, speed: 0.075, cost: 3),
-  UnitRole.runner:
-      UnitSpec(role: UnitRole.runner, hp: 55, attack: 11, speed: 0.13, cost: 2),
+// ── 元になる7種の型。キャラはこのどれかを持つ ──
+
+const UnitSpec _heavy = UnitSpec(
+  labelJa: '重装', labelEn: 'Heavy', emoji: '🛡️',
+  attack: AttackType.melee, hp: 150, power: 9, range: 0.05, speed: 0.05, cost: 5,
+);
+const UnitSpec _guard = UnitSpec(
+  labelJa: '前衛', labelEn: 'Guard', emoji: '🧱',
+  attack: AttackType.melee, hp: 110, power: 8, range: 0.05, speed: 0.06, cost: 4,
+);
+const UnitSpec _striker = UnitSpec(
+  labelJa: '斬りこみ', labelEn: 'Striker', emoji: '⚔️',
+  attack: AttackType.melee, hp: 55, power: 24, range: 0.05, speed: 0.08, cost: 3,
+);
+const UnitSpec _runner = UnitSpec(
+  labelJa: '遊撃', labelEn: 'Runner', emoji: '🏃',
+  attack: AttackType.melee, hp: 45, power: 11, range: 0.05, speed: 0.14, cost: 2,
+);
+const UnitSpec _archer = UnitSpec(
+  labelJa: '弓', labelEn: 'Archer', emoji: '🏹',
+  attack: AttackType.ranged, hp: 40, power: 13, range: 0.20, speed: 0.07, cost: 3,
+);
+const UnitSpec _sniper = UnitSpec(
+  labelJa: '狙撃', labelEn: 'Sniper', emoji: '🎯',
+  attack: AttackType.ranged, hp: 30, power: 18, range: 0.30, speed: 0.05, cost: 4,
+);
+const UnitSpec _siege = UnitSpec(
+  labelJa: 'タワー狙い', labelEn: 'Siege', emoji: '💣',
+  attack: AttackType.siege, hp: 70, power: 26, range: 0.05, speed: 0.07, cost: 4,
+);
+
+/// 🎭 キャラごとの能力表。
+///
+/// **顔と能力を固定で結びつける**。試合ごとに性能が変わると
+/// 「この人は弓」という覚え方ができず、覚える練習にならない。
+/// 表に無い顔（購入キャラ・自分の写真）は [specForFace] が
+/// パスから決め打ちで割り当てる。
+const Map<String, UnitSpec> kUnitCatalog = {
+  'assets/images/char1.jpg': _guard,
+  'assets/images/char2.jpg': _archer,
+  'assets/images/char3.jpg': _striker,
+  'assets/images/char4.jpg': _runner,
+  'assets/images/char5.jpg': _heavy,
+  'assets/images/char6.jpg': _sniper,
+  'assets/images/char7.jpg': _siege,
+  'assets/images/char8.jpg': _guard,
+  'assets/images/char9.jpg': _striker,
+  'assets/images/char10.jpg': _archer,
+  'assets/images/char11.jpg': _runner,
+  'assets/images/char12.jpg': _heavy,
+  'assets/images/25808650_m.jpg': _sniper,
+  'assets/images/26948510_s.jpg': _siege,
+  'assets/images/4353720_s.jpg': _archer,
 };
 
-/// 顔のアセットパスから役割を決める。
-///
-/// 見た目で役割が決まっていないと、同じ人が試合ごとに別の性能になり
-/// 「あの人は前衛」という覚え方ができない。パスから決め打ちにして、
-/// **同じ人はいつも同じ役割**にする。
-UnitRole roleForFace(String face) {
+/// 表に無い顔にも、いつも同じ能力が付くようにする。
+const List<UnitSpec> _fallbackPool = [
+  _guard,
+  _archer,
+  _striker,
+  _runner,
+  _heavy,
+  _sniper,
+  _siege,
+];
+
+UnitSpec specForFace(String face) {
+  final known = kUnitCatalog[face];
+  if (known != null) return known;
   var h = 0;
   for (final c in face.codeUnits) {
     h = (h * 31 + c) & 0x7fffffff;
   }
-  return UnitRole.values[h % UnitRole.values.length];
+  return _fallbackPool[h % _fallbackPool.length];
 }
 
 /// 場に出ている1体。
 class BattleUnit {
-  final UnitRole role;
+  final UnitSpec spec;
   final bool mine;
 
   /// 自陣(0.0)から敵陣(1.0)へ向かう位置。相手のユニットは1.0側から来る。
@@ -76,57 +149,55 @@ class BattleUnit {
   int hp;
 
   BattleUnit({
-    required this.role,
+    required this.spec,
     required this.mine,
     required this.pos,
     required this.hp,
   });
 
-  UnitSpec get spec => kUnitSpecs[role]!;
   bool get alive => hp > 0;
 }
 
-/// 決着。
 enum BattleOutcome { ongoing, win, lose, draw }
 
 /// 戦況。1試合ぶんの状態をまとめて持つ。
 ///
 /// [tick] を一定間隔で呼ぶだけで進む。乱数を使わないので、同じ操作なら
 /// 必ず同じ結果になる（調整とテストのため）。
+///
+/// `mine == true` が手前側（1人プレイのあなた／2人プレイのP1）、
+/// `false` が奥側（CPU／P2）。2人プレイでも同じ場を共有する。
 class BattleState {
-  /// タワーの体力。0になった方が負け。
   int myTower;
   int foeTower;
 
-  /// 出撃コスト。時間で回復する。
   double myCost;
   double foeCost;
 
-  /// 残り時間(秒)。尽きたらタワーの残量で判定。
   double timeLeft;
 
   final List<BattleUnit> units = [];
 
-  /// 1秒あたりのコスト回復量。
   static const double costPerSecond = 0.9;
   static const double maxCost = 10;
-  static const int towerHp = 200;
-  static const double matchSeconds = 75;
+  static const int towerHp = 240;
+  static const double matchSeconds = 90;
 
-  /// タワーに触れたユニットが1秒あたりに与える damage 倍率。
-  static const double towerDamageRate = 1.0;
+  /// 🏰 タワーの反撃。射程に入った敵を撃つ。
+  /// これが無いと「タワーディフェンス」ではなく、ただの殴り合いになる。
+  static const double towerRange = 0.22;
+  static const int towerPower = 10;
 
   BattleState({
     this.myTower = towerHp,
     this.foeTower = towerHp,
-    this.myCost = 4,
-    this.foeCost = 4,
+    this.myCost = 5,
+    this.foeCost = 5,
     this.timeLeft = matchSeconds,
   });
 
   /// 出撃させる。コストが足りなければ何もせず false。
-  bool deploy(UnitRole role, {required bool mine}) {
-    final spec = kUnitSpecs[role]!;
+  bool deploy(UnitSpec spec, {required bool mine}) {
     if (mine) {
       if (myCost < spec.cost) return false;
       myCost -= spec.cost;
@@ -135,7 +206,7 @@ class BattleState {
       foeCost -= spec.cost;
     }
     units.add(BattleUnit(
-      role: role,
+      spec: spec,
       mine: mine,
       pos: mine ? 0.0 : 1.0,
       hp: spec.hp,
@@ -152,18 +223,19 @@ class BattleState {
 
     for (final u in units) {
       if (!u.alive) continue;
-      final foe = _nearestEnemy(u);
-      if (foe != null) {
-        // 目の前に敵がいる → 進まずに殴り合う
-        u.hp -= (foe.spec.attack * dt).round();
-        continue;
+      // タワー狙いは足を止めずに素通りする（撃ち返されるのが弱点）
+      if (!u.spec.towerOnly) {
+        final target = _targetFor(u);
+        if (target != null) {
+          target.hp -= (u.spec.power * dt).round();
+          continue; // 撃っている間は進まない
+        }
       }
-      // 進む。行き着いたらタワーを削る
       final dir = u.mine ? 1.0 : -1.0;
       u.pos = (u.pos + u.spec.speed * dt * dir).clamp(0.0, 1.0);
       final atTower = u.mine ? u.pos >= 1.0 : u.pos <= 0.0;
       if (atTower) {
-        final dmg = (u.spec.attack * towerDamageRate * dt).round();
+        final dmg = (u.spec.power * dt).round();
         if (u.mine) {
           foeTower = max(0, foeTower - dmg);
         } else {
@@ -171,18 +243,45 @@ class BattleState {
         }
       }
     }
+
+    // 🏰 タワーが撃ち返す（射程内でいちばん近い敵を1体ずつ）
+    _towerFire(dt, defendingMine: true);
+    _towerFire(dt, defendingMine: false);
+
     units.removeWhere((u) => !u.alive);
   }
 
-  /// ぶつかっている敵（十分近い相手側のユニット）。
-  BattleUnit? _nearestEnemy(BattleUnit u) {
-    const reach = 0.06;
+  /// [defendingMine] 側のタワーが、攻めてきている敵を撃つ。
+  void _towerFire(double dt, {required bool defendingMine}) {
+    // 自陣(0.0)を守るのが mine 側。敵は 1.0 側から近づいてくる。
+    final towerPos = defendingMine ? 0.0 : 1.0;
+    BattleUnit? target;
+    var bestDist = double.infinity;
+    for (final u in units) {
+      if (!u.alive) continue;
+      if (u.mine == defendingMine) continue; // 味方は撃たない
+      final d = (u.pos - towerPos).abs();
+      if (d <= towerRange && d < bestDist) {
+        bestDist = d;
+        target = u;
+      }
+    }
+    if (target != null) {
+      target.hp -= (towerPower * dt).round();
+    }
+  }
+
+  /// 射程に入っている敵のうち、いちばん近いもの。
+  BattleUnit? _targetFor(BattleUnit u) {
     BattleUnit? best;
     var bestDist = double.infinity;
     for (final o in units) {
       if (o.mine == u.mine || !o.alive) continue;
+      // 前にいる敵だけを狙う（後ろを向いて撃たない）
+      final ahead = u.mine ? o.pos >= u.pos : o.pos <= u.pos;
+      if (!ahead) continue;
       final d = (o.pos - u.pos).abs();
-      if (d <= reach && d < bestDist) {
+      if (d <= u.spec.range && d < bestDist) {
         bestDist = d;
         best = o;
       }

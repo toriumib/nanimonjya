@@ -1051,7 +1051,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get betaBadge => ja ? 'ベータ' : 'BETA';
   String get battleTitle => ja ? '⚔️ なまえバトル' : '⚔️ Name Battle';
   String get battleDesc => ja
-      ? '神経衰弱で当てた人が味方に、取り逃した人が敵になります。覚えているほど戦いが有利になります。'
+      ? '神経衰弱で当てた人が味方に、取り逃した人が敵になります。キャラごとに近距離・遠距離・タワー狙いの能力があり、覚えているほど戦いが有利になります。'
       : 'Everyone you match joins you; everyone you miss fights against you. The more you remember, the easier the battle.';
   String get battleRosterTitle => ja ? '📖 これから出る人たち' : '📖 Who is coming';
   String get battleRosterHint => ja
@@ -1074,6 +1074,13 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '出せる仲間がいません…（次は1人でも多く当てよう）'
       : 'No one to deploy… try to match more next time.';
   String get battleLose => ja ? '😢 まけ…' : '😢 You lose…';
+  String battleTurnOf(String who) =>
+      ja ? '$who のばん：2まいめくって、同じ人をそろえよう' : "$who's turn — flip two cards";
+  String get battleBrief2p => ja
+      ? 'とった人が、そのまま自分の戦力になります。バトルは同時操作。相手（P2）の手札は上下さかさまに出るので、向かい合って持ってください。'
+      : "Everyone you took fights for you. Both players act at once — P2's hand is upside-down, so face each other.";
+  String get battleTwoPlayerButton =>
+      ja ? '👫 1台で2人であそぶ' : '👫 Two players, one phone';
   String roleLabel(dynamic role) {
     switch ('$role'.split('.').last) {
       case 'guard':
@@ -1453,8 +1460,8 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
             : '''Practice for people you meet at work.\n\n1. Meet — they introduce themselves with a business card (with voice)\n2. Time passes — a deliberate gap helps memory\n3. Recall — look at the face and answer who it was\n\n🎯 Name is required; add company, title, phone, email as you like.''';
       case 'battle':
         return ja
-            ? '''🧪 まだベータ版のモードです。覚えたことが、そのまま戦いの強さになります。\n\n① 📖 名簿 … これから出る6人の顔・名前・役割をひととおり見ます\n② 🃏 神経衰弱 … 顔カードと名前カードを、10回のめくりの中で当てます\n③ ⚔️ バトル … **当てた人が味方**に、**取り逃した人が相手**につきます\n\n⚡ カードを押すと出撃します（⚡が必要。時間で回復します）。\n味方が相手より先に相手のタワーを壊せば勝ちです。75秒たったときは、タワーの残りが多いほうの勝ち。\n\n🛡️ 前衛 … かたくて遅い。壁になります（⚡4）\n⚔️ 攻撃役 … 強いけれど紙。前衛のうしろから効きます（⚡3）\n🏃 遊撃 … 速くて安い。数で押します（⚡2）\n役割は顔ごとに決まっていて、いつも同じです。\n\n🪙 コインは当てた人数が主で、勝敗はおまけです。'''
-            : '''🧪 Beta. What you remember becomes your strength.\n\n1. 📖 Roster — look over the six faces, names and roles\n2. 🃏 Concentration — match face and name cards within 10 tries\n3. ⚔️ Battle — everyone you matched fights for you; everyone you missed fights against you\n\n⚡ Tap a card to deploy. Break their tower, or have more tower HP left after 75 seconds.\n\n🛡️ Guard: tough, slow (⚡4) / ⚔️ Striker: strong, fragile (⚡3) / 🏃 Runner: fast, cheap (⚡2)\nRoles are fixed per face.''';
+            ? '''🧪 まだベータ版のモードです。覚えたことが、そのまま戦いの強さになります。\n\n① 📖 名簿 … これから出る人の顔・名前・能力をひととおり見ます\n② 🃏 神経衰弱 … 同じ人の2まい（顔カードと名前カード）をそろえて取ります\n③ ⚔️ タワーディフェンス … 取った人を出撃させて、相手のタワーを狙います\n\n👤 ひとりのとき … 6人。10回のめくりの中で当て、**取り逃した人が相手**につきます\n👫 1台で2人のとき … 8人。**交互に**めくり、当てた人がその人をもらいます（当てたらもう一度めくれます）。だいたい4人ずつになります\n\n⚡ カードを押すと出撃します（⚡は時間で回復）。相手のタワーを壊せば勝ち。90秒たったときは、タワーの残りが多いほうの勝ちです。\n\n🏰 **タワーは撃ち返します**。うすい色の帯がタワーの射程です。単騎で突っ込ませると着く前に溶けます。\n\n能力は**顔ごとに決まっていて、いつも同じ**です。\n🧱 前衛／🛡️ 重装 … 近距離。かたい。壁になります\n⚔️ 斬りこみ … 近距離。強いけれど紙です\n🏃 遊撃 … 近距離。速くて安い\n🏹 弓／🎯 狙撃 … 遠距離。前衛のうしろから撃てます\n💣 タワー狙い … **相手のユニットを無視して素通りし、タワーだけ**を叩きます。撃ち返されるので、前衛と一緒に出すのがコツ\n\n🪙 コインは当てた人数が主で、勝敗はおまけです。'''
+            : '''🧪 Beta. What you remember becomes your strength.\n\n1. 📖 Roster — look over each face, name and ability\n2. 🃏 Concentration — match each person's face card with their name card\n3. ⚔️ Tower defense — deploy the people you took and go for their tower\n\n👤 Solo: 6 people, 10 tries. Everyone you miss fights against you.\n👫 Two players on one phone: 8 people, taking turns (match and go again) — roughly 4 each.\n\n⚡ Tap a card to deploy. Break their tower, or have more tower HP left after 90 seconds.\n🏰 Towers shoot back — the tinted band is their range.\n\nAbilities are fixed per face:\n🧱🛡️ Melee, tough — a wall\n⚔️ Melee, strong but fragile\n🏃 Melee, fast and cheap\n🏹🎯 Ranged — fires from behind your front line\n💣 Siege — walks past enemy units and only hits the tower''';
       case 'pairs':
         return ja
             ? '''顔と名前の神経衰弱。マイページから あそべます。\n\n① おぼえタイム … 顔と名前の組み合わせを見る\n② カードが裏返る\n③ 顔カードと 名前カードの 正しいペアをさがす\n\nCPU対戦・1台でみんなで対戦も できます。'''

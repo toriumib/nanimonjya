@@ -19,21 +19,27 @@ import 'home_shell.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
 import 'rulebook_screen.dart';
 
-/// ⚔️ ベータ「なまえバトル」。
+/// ⚔️ ベータ「なまえバトル」（タワーディフェンス）。
 ///
 /// **覚えたことが、そのまま強さになる**モード。
 ///
-/// 1. 📖 名簿 … これから出る人の顔と名前をひととおり見る
-/// 2. 🃏 神経衰弱 … 顔カードと名前カードを、決められためくり回数の中で当てる
-/// 3. ⚔️ バトル … **当てた人が味方**になり、**取り逃した人が敵**になる
+/// 1. 📖 名簿 … これから出る人の顔・名前・能力をひととおり見る
+/// 2. 🃏 神経衰弱 … 顔カードと名前カードを当てる。**当てた人が自分の戦力**
+/// 3. ⚔️ タワーディフェンス … 取った人を出撃させ、相手のタワーを狙う
 ///
 /// 神経衰弱を単体で置くと「覚える練習」から遠いのに時間だけ取られるが、
 /// 取った札が次の勝負に効くとなると、1枚1枚を覚える理由ができる。
-/// 逆に取り逃すとそのぶん相手が強くなるので、失敗も筋が通る。
 ///
-/// 戦闘そのものは `models/battle.dart` に切り出してある（乱数なし・テスト済み）。
+/// [humanPlayers] が2なら**1台を回して2人で**遊ぶ。神経衰弱を交互にめくり、
+/// 当てた人がその人を自分の戦力にする（8人ぶんあるので、おおよそ4人ずつ）。
+/// バトルは同じ画面を上下に分けて、ふたり同時に操作する。
+///
+/// 戦闘そのものは `models/battle.dart`（乱数なし・テスト済み）。
 class NameBattleScreen extends StatefulWidget {
-  const NameBattleScreen({super.key});
+  /// 1 = CPU戦 / 2 = 1台で2人
+  final int humanPlayers;
+
+  const NameBattleScreen({super.key, this.humanPlayers = 1});
 
   @override
   State<NameBattleScreen> createState() => _NameBattleScreenState();
@@ -49,9 +55,13 @@ class _Card {
 }
 
 class _NameBattleScreenState extends State<NameBattleScreen> {
-  static const int _pairs = 6;
+  bool get _twoPlayer => widget.humanPlayers >= 2;
 
-  /// めくれる回数（2枚で1回）。全部当てるにはある程度覚えている必要がある。
+  /// 2人なら8人（おおよそ4人ずつ取る）、ひとりなら6人。
+  int get _pairs => _twoPlayer ? 8 : 6;
+
+  /// ひとりのときのめくれる回数（2枚で1回）。
+  /// 2人のときは交互に取り合うので回数制限は置かない。
   static const int _maxAttempts = 10;
 
   final Random _rng = Random();
@@ -59,10 +69,11 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   late final List<_Card> _cards;
 
   _Phase _phase = _Phase.roster;
-  int _rosterLeft = _pairs * 3;
+  late int _rosterLeft = _pairs * 3;
   Timer? _rosterTimer;
 
   int? _firstIndex;
+
   /// 2枚目にめくったカード。**表示のために持つ**。
   /// これが無いと、2枚目が伏せたまま判定だけ進んで
   /// 「何をめくったのか見えない」状態になる。
@@ -70,12 +81,15 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   bool _resolving = false;
   int _attemptsLeft = _maxAttempts;
 
-  final List<Person> _mine = []; // 当てた人＝味方
-  final List<Person> _foes = []; // 取り逃した人＝敵
+  /// 神経衰弱の手番（0=P1 / 1=P2）。ひとりのときは常に0。
+  int _turn = 0;
+
+  /// 陣営ごとの戦力。[0]=手前（あなた／P1）, [1]=奥（CPU／P2）。
+  final List<List<Person>> _squads = [[], []];
 
   late BattleState _battle;
   Timer? _battleTimer;
-  Timer? _foeTimer;
+  Timer? _cpuTimer;
   int _coinsEarned = 0;
   bool _rewarded = false;
 
@@ -95,6 +109,7 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         PlayerProfile.instance.deckExcluded,
       ),
     );
+    // 🃏 1人につき2枚（顔カードと名前カード）。同じ人の2枚をそろえて取る。
     _cards = [
       for (final p in _people) ...[_Card(p, true), _Card(p, false)],
     ]..shuffle(_rng);
@@ -114,7 +129,9 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
       setState(() => _rosterLeft -= 1);
       if (_rosterLeft <= 0) _startMemory();
     });
-    AppAnalytics.gameStart(mode: 'name_battle', players: 1);
+    AppAnalytics.gameStart(
+        mode: _twoPlayer ? 'name_battle_2p' : 'name_battle',
+        players: widget.humanPlayers);
     Bgm.instance.playGame();
   }
 
@@ -122,7 +139,7 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   void dispose() {
     _rosterTimer?.cancel();
     _battleTimer?.cancel();
-    _foeTimer?.cancel();
+    _cpuTimer?.cancel();
     Bgm.instance.stopGame();
     super.dispose();
   }
@@ -149,20 +166,23 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     _resolving = true;
     setState(() {
       _secondIndex = i;
-      _attemptsLeft -= 1;
+      if (!_twoPlayer) _attemptsLeft -= 1;
     });
-    MemoryStats.instance.record(
-      mode: StatMode.cpu,
-      itemKey: MemoryStats.keyOf(face: a.person.face, name: a.person.name),
-      correct: hit,
-      reactionMs: 0,
-    );
+    // 📊 記録するのは自分（P1）の手だけ。相手の手は自分の記憶ではない。
+    if (_turn == 0) {
+      MemoryStats.instance.record(
+        mode: StatMode.cpu,
+        itemKey: MemoryStats.keyOf(face: a.person.face, name: a.person.name),
+        correct: hit,
+        reactionMs: 0,
+      );
+    }
     if (hit) {
       Sfx.instance.correct();
       setState(() {
         a.matched = true;
         c.matched = true;
-        _mine.add(a.person);
+        _squads[_turn].add(a.person);
       });
     } else {
       Sfx.instance.wrong();
@@ -174,17 +194,21 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         _firstIndex = null;
         _secondIndex = null;
         _resolving = false;
+        // 当てたらもう一度めくれる。外したら相手の番（2人プレイのみ）
+        if (_twoPlayer && !hit) _turn = 1 - _turn;
       });
-      // 2枚を見せ終えてから終了判定（見えないまま終わらせない）
-      if (_mine.length >= _pairs || _attemptsLeft <= 0) _endMemory();
+      final taken = _squads[0].length + _squads[1].length;
+      if (taken >= _pairs || (!_twoPlayer && _attemptsLeft <= 0)) _endMemory();
     });
   }
 
   void _endMemory() {
-    // 🃏 取り逃した人がそのまま相手の戦力になる
-    _foes
-      ..clear()
-      ..addAll(_people.where((p) => !_mine.contains(p)));
+    if (!_twoPlayer) {
+      // 🃏 ひとりのときは、取り逃した人がそのまま相手の戦力になる
+      _squads[1]
+        ..clear()
+        ..addAll(_people.where((p) => !_squads[0].contains(p)));
+    }
     _battle = BattleState();
     setState(() => _phase = _Phase.briefing);
   }
@@ -202,26 +226,27 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
       setState(() => _battle.tick(0.1));
       if (_battle.outcome != BattleOutcome.ongoing) {
         t.cancel();
-        _foeTimer?.cancel();
+        _cpuTimer?.cancel();
         _finish();
       }
     });
-    // 相手は一定間隔で、出せるものを勝手に出してくる
-    _foeTimer = Timer.periodic(const Duration(milliseconds: 2200), (t) {
-      if (!mounted) {
-        t.cancel();
-        return;
-      }
-      if (_foes.isEmpty) return;
-      final p = _foes[_rng.nextInt(_foes.length)];
-      _battle.deploy(roleForFace(p.face), mine: false);
-    });
+    // CPU戦のときだけ、相手が勝手に出してくる（2人プレイは人が操作する）
+    if (!_twoPlayer) {
+      _cpuTimer = Timer.periodic(const Duration(milliseconds: 2200), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        if (_squads[1].isEmpty) return;
+        final p = _squads[1][_rng.nextInt(_squads[1].length)];
+        _battle.deploy(specForFace(p.face), mine: false);
+      });
+    }
   }
 
-  void _deploy(Person p) {
+  void _deploy(Person p, {required bool mine}) {
     if (_phase != _Phase.battle) return;
-    final ok = _battle.deploy(roleForFace(p.face), mine: true);
-    if (ok) {
+    if (_battle.deploy(specForFace(p.face), mine: mine)) {
       Sfx.instance.pop();
       setState(() {});
     }
@@ -232,11 +257,13 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     _rewarded = true;
     setState(() => _phase = _Phase.result);
     await MemoryStats.instance.finishSession(StatMode.cpu);
-    await PlayerProfile.instance.addWeeklyLearned(_mine.length);
+    await PlayerProfile.instance.addWeeklyLearned(_squads[0].length);
     final won = _battle.outcome == BattleOutcome.win;
-    AppAnalytics.gameEnd(mode: 'name_battle', topScore: _mine.length);
-    // 覚えた枚数が主、勝敗がおまけ。覚える動機を勝敗より上に置く。
-    final coins = _mine.length * 8 + (won ? 25 : 0);
+    AppAnalytics.gameEnd(
+        mode: _twoPlayer ? 'name_battle_2p' : 'name_battle',
+        topScore: _squads[0].length);
+    // 覚えた人数が主、勝敗がおまけ。覚える動機を勝敗より上に置く。
+    final coins = _squads[0].length * 8 + (won ? 25 : 0);
     if (coins > 0) await PlayerProfile.instance.grantBonusCoins(coins);
     if (!mounted) return;
     setState(() => _coinsEarned = coins);
@@ -250,6 +277,11 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
 
   // ─────────────── UI ───────────────
 
+  String _sideName(MetaStrings m, int side) {
+    if (_twoPlayer) return side == 0 ? 'P1' : 'P2';
+    return side == 0 ? m.you : m.battleFoe;
+  }
+
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
@@ -259,7 +291,8 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Text(m.battleTitle),
+            Flexible(
+                child: Text(m.battleTitle, overflow: TextOverflow.ellipsis)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -296,13 +329,12 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Widget _rosterView(MetaStrings m) {
     return Column(
       children: [
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(m.battleRosterTitle,
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
         Text(m.battleRosterHint,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
-        const SizedBox(height: 4),
         Text('⏳ $_rosterLeft',
             style: const TextStyle(
                 fontSize: 24,
@@ -310,32 +342,18 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
                 color: Color(0xFFE8663C))),
         Expanded(
           child: GridView.count(
-            padding: const EdgeInsets.all(14),
-            crossAxisCount: 3,
-            childAspectRatio: 0.72,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
+            padding: const EdgeInsets.all(12),
+            crossAxisCount: 4,
+            childAspectRatio: 0.58,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
             children: [
-              for (final p in _people)
-                Column(
-                  children: [
-                    Expanded(child: FaceView(person: p, size: 200, radius: 12)),
-                    const SizedBox(height: 3),
-                    Text(p.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w900)),
-                    Text(m.roleLabel(roleForFace(p.face)),
-                        style: const TextStyle(
-                            fontSize: 10.5, color: Colors.black54)),
-                  ],
-                ),
+              for (final p in _people) _rosterTile(m, p),
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -348,28 +366,67 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     );
   }
 
+  Widget _rosterTile(MetaStrings m, Person p) {
+    final spec = specForFace(p.face);
+    return Column(
+      children: [
+        Expanded(child: FaceView(person: p, size: 200, radius: 10)),
+        const SizedBox(height: 2),
+        Text(p.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+        Text('${spec.emoji}${m.ja ? spec.labelJa : spec.labelEn}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 10, color: Colors.black54)),
+        Text('⚡${spec.cost}', style: const TextStyle(fontSize: 9.5)),
+      ],
+    );
+  }
+
   Widget _memoryView(MetaStrings m) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(m.battleAttemptsLeft(_attemptsLeft),
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w900)),
-              Text(m.battleRecruited(_mine.length, _pairs),
-                  style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF3A7BD5))),
-            ],
-          ),
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+          child: _twoPlayer
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (var s = 0; s < 2; s++)
+                      Text(
+                        '${s == _turn ? '▶ ' : ''}P${s + 1}  ${_squads[s].length}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: s == _turn
+                              ? const Color(0xFFE8663C)
+                              : Colors.black38,
+                        ),
+                      ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(m.battleAttemptsLeft(_attemptsLeft),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w900)),
+                    Text(m.battleRecruited(_squads[0].length, _pairs),
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF3A7BD5))),
+                  ],
+                ),
         ),
+        if (_twoPlayer)
+          Text(m.battleTurnOf('P${_turn + 1}'),
+              style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               mainAxisSpacing: 8,
@@ -377,55 +434,49 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
               childAspectRatio: 0.72,
             ),
             itemCount: _cards.length,
-            itemBuilder: (context, i) {
-              final c = _cards[i];
-              final shown =
-                  c.matched || i == _firstIndex || i == _secondIndex;
-              return GestureDetector(
-                onTap: () => _onCardTap(i),
-                child: Opacity(
-                  opacity: c.matched ? 0.35 : 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color:
-                          shown ? Colors.white : const Color(0xFF3A7BD5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: const Color(0xFF2B5CA5), width: 2),
-                    ),
-                    child: shown
-                        ? (c.isFace
-                            ? Padding(
-                                padding: const EdgeInsets.all(6),
-                                child: FaceView(
-                                    person: c.person,
-                                    size: double.infinity,
-                                    radius: 8),
-                              )
-                            : Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(c.person.name,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w900)),
-                                  ),
-                                ),
-                              ))
-                        : const Center(
-                            child: Text('🏷️',
-                                style: TextStyle(fontSize: 26))),
-                  ),
-                ),
-              );
-            },
+            itemBuilder: (context, i) => _cardTile(i),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
       ],
+    );
+  }
+
+  Widget _cardTile(int i) {
+    final c = _cards[i];
+    final shown = c.matched || i == _firstIndex || i == _secondIndex;
+    return GestureDetector(
+      onTap: () => _onCardTap(i),
+      child: Opacity(
+        opacity: c.matched ? 0.35 : 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: shown ? Colors.white : const Color(0xFF3A7BD5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF2B5CA5), width: 2),
+          ),
+          child: shown
+              ? (c.isFace
+                  ? Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: FaceView(
+                          person: c.person, size: double.infinity, radius: 8),
+                    )
+                  : Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(c.person.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w900)),
+                        ),
+                      ),
+                    ))
+              : const Center(child: Text('🏷️', style: TextStyle(fontSize: 26))),
+        ),
+      ),
     );
   }
 
@@ -437,15 +488,16 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         children: [
           Text(m.battleBriefTitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 4),
-          Text(m.battleBriefBody,
+          Text(_twoPlayer ? m.battleBrief2p : m.battleBriefBody,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
           const SizedBox(height: 14),
-          _squadCard(m, m.battleMySquad, _mine, const Color(0xFF3A7BD5)),
+          _squadCard(m, _sideName(m, 0), _squads[0], const Color(0xFF3A7BD5)),
           const SizedBox(height: 12),
-          _squadCard(m, m.battleFoeSquad, _foes, const Color(0xFF8A5AC2)),
+          _squadCard(m, _sideName(m, 1), _squads[1], const Color(0xFF8A5AC2)),
           const SizedBox(height: 18),
           ElevatedButton(
             onPressed: _startBattle,
@@ -486,25 +538,32 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final p in people)
-                  Column(
-                    children: [
-                      FaceView(person: p, size: 52, radius: 10),
-                      SizedBox(
-                        width: 58,
-                        child: Text(p.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.w900)),
-                      ),
-                      Text(m.roleEmoji(roleForFace(p.face)),
-                          style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
+                for (final p in people) _squadChip(m, p),
               ],
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _squadChip(MetaStrings m, Person p) {
+    final spec = specForFace(p.face);
+    return SizedBox(
+      width: 62,
+      child: Column(
+        children: [
+          FaceView(person: p, size: 50, radius: 10),
+          Text(p.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+          Text('${spec.emoji}${m.ja ? spec.labelJa : spec.labelEn}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 9, color: Colors.black54)),
         ],
       ),
     );
@@ -513,9 +572,13 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Widget _battleView(MetaStrings m) {
     return Column(
       children: [
+        // 2人プレイは相手（P2）の手札を上に、180度回して置く。
+        // 向かい合って持てば、そのままふたり同時に操作できる。
+        if (_twoPlayer)
+          RotatedBox(quarterTurns: 2, child: _handRow(m, side: 1)),
         _towerBar(m),
         Expanded(child: _lane()),
-        _handRow(m),
+        _handRow(m, side: 0),
       ],
     );
   }
@@ -525,6 +588,8 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
           child: Column(
             children: [
               Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w900)),
               const SizedBox(height: 2),
@@ -542,21 +607,21 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
           ),
         );
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 2),
       child: Column(
         children: [
           Row(
             children: [
-              tower('🏰 ${m.you}', _battle.myTower, const Color(0xFF3A7BD5)),
+              tower('🏰 ${_sideName(m, 0)}', _battle.myTower,
+                  const Color(0xFF3A7BD5)),
               const SizedBox(width: 14),
-              tower('🏰 ${m.battleFoe}', _battle.foeTower,
+              tower('🏰 ${_sideName(m, 1)}', _battle.foeTower,
                   const Color(0xFF8A5AC2)),
             ],
           ),
-          const SizedBox(height: 4),
           Text('⏱ ${_battle.timeLeft.ceil()}s',
-              style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w900)),
+              style:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -565,31 +630,42 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Widget _lane() {
     return LayoutBuilder(
       builder: (context, c) {
+        final towerBand =
+            (BattleState.towerRange * c.maxWidth).clamp(0.0, c.maxWidth / 2);
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFFE8F0DC),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Stack(
             children: [
+              // 🏰 タワーの射程を色で見せる。どこまで踏み込むと撃たれるのかが
+              //    分からないと、前に出す／出さないの判断ができない。
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: towerBand,
+                child: Container(color: const Color(0x223A7BD5)),
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: towerBand,
+                child: Container(color: const Color(0x228A5AC2)),
+              ),
               for (final u in _battle.units)
                 Positioned(
-                  left: (u.pos * (c.maxWidth - 60)).clamp(0.0, c.maxWidth - 40),
-                  top: u.mine ? c.maxHeight * 0.55 : c.maxHeight * 0.2,
+                  left: (u.pos * (c.maxWidth - 46)).clamp(0.0, c.maxWidth - 40),
+                  top: u.mine ? c.maxHeight * 0.55 : c.maxHeight * 0.15,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        _roleGlyph(u.role),
-                        style: TextStyle(
-                            fontSize: 26,
-                            color: u.mine
-                                ? const Color(0xFF3A7BD5)
-                                : const Color(0xFF8A5AC2)),
-                      ),
+                      Text(u.spec.emoji, style: const TextStyle(fontSize: 24)),
                       SizedBox(
-                        width: 34,
+                        width: 32,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
@@ -612,71 +688,73 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     );
   }
 
-  String _roleGlyph(UnitRole r) => switch (r) {
-        UnitRole.guard => '🛡️',
-        UnitRole.striker => '⚔️',
-        UnitRole.runner => '🏃',
-      };
-
-  Widget _handRow(MetaStrings m) {
+  /// 出撃用の手札。[side] 0=手前(P1) / 1=奥(P2、2人プレイのみ)。
+  Widget _handRow(MetaStrings m, {required int side}) {
+    final mine = side == 0;
+    final cost = mine ? _battle.myCost : _battle.foeCost;
+    final squad = _squads[side];
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
       color: Colors.white,
       child: Column(
         children: [
           Row(
             children: [
-              const Text('⚡', style: TextStyle(fontSize: 16)),
+              Text(_twoPlayer ? 'P${side + 1} ⚡' : '⚡',
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w900)),
               const SizedBox(width: 6),
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
-                    value: _battle.myCost / BattleState.maxCost,
-                    minHeight: 10,
+                    value: cost / BattleState.maxCost,
+                    minHeight: 9,
                     backgroundColor: const Color(0xFFE3E9F2),
-                    valueColor:
-                        const AlwaysStoppedAnimation(Color(0xFFE8A400)),
+                    valueColor: const AlwaysStoppedAnimation(Color(0xFFE8A400)),
                   ),
                 ),
               ),
               const SizedBox(width: 6),
-              Text(_battle.myCost.floor().toString(),
+              Text(cost.floor().toString(),
                   style: const TextStyle(fontWeight: FontWeight.w900)),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           SizedBox(
-            height: 84,
-            child: _mine.isEmpty
+            height: 74,
+            child: squad.isEmpty
                 ? Center(
                     child: Text(m.battleNoHand,
                         style: const TextStyle(
                             fontSize: 12, color: Colors.black54)))
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _mine.length,
+                    itemCount: squad.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 8),
                     itemBuilder: (_, i) {
-                      final p = _mine[i];
-                      final spec = kUnitSpecs[roleForFace(p.face)]!;
-                      final can = _battle.myCost >= spec.cost;
+                      final p = squad[i];
+                      final spec = specForFace(p.face);
+                      final can = cost >= spec.cost;
                       return GestureDetector(
-                        onTap: () => _deploy(p),
+                        onTap: () => _deploy(p, mine: mine),
                         child: Opacity(
                           opacity: can ? 1 : 0.4,
-                          child: Column(
-                            children: [
-                              FaceView(person: p, size: 44, radius: 8),
-                              Text(p.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900)),
-                              Text('${_roleGlyph(spec.role)} ⚡${spec.cost}',
-                                  style: const TextStyle(fontSize: 10.5)),
-                            ],
+                          child: SizedBox(
+                            width: 54,
+                            child: Column(
+                              children: [
+                                FaceView(person: p, size: 38, radius: 8),
+                                Text(p.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w900)),
+                                Text('${spec.emoji}⚡${spec.cost}',
+                                    style: const TextStyle(fontSize: 10)),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -690,30 +768,31 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
 
   Widget _resultView(MetaStrings m) {
     final outcome = _battle.outcome;
+    final title = switch (outcome) {
+      BattleOutcome.win => _twoPlayer ? m.localWinner('P1') : m.matchWin,
+      BattleOutcome.lose => _twoPlayer ? m.localWinner('P2') : m.battleLose,
+      _ => m.matchDraw,
+    };
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            switch (outcome) {
-              BattleOutcome.win => m.matchWin,
-              BattleOutcome.lose => m.battleLose,
-              _ => m.matchDraw,
-            },
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          Text(m.battleRecruited(_mine.length, _pairs),
+          Text(title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+              style:
+                  const TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text(m.battleRecruited(_squads[0].length, _pairs),
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
           if (_coinsEarned > 0) ...[
             const SizedBox(height: 12),
             Text('🪙 ${m.earnedCoins(_coinsEarned)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 17, fontWeight: FontWeight.w900)),
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           ],
           const SizedBox(height: 16),
           // 📇 誰が誰だったか（取り逃した人ほど見ておく意味がある）
@@ -723,7 +802,9 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const NameBattleScreen()),
+                MaterialPageRoute(
+                    builder: (_) =>
+                        NameBattleScreen(humanPlayers: widget.humanPlayers)),
               );
             },
             icon: const Icon(Icons.refresh),

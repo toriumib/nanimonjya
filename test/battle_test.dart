@@ -1,35 +1,47 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nanimonjya/models/battle.dart';
+import 'package:nanimonjya/models/person.dart';
 
 /// ⚔️ なまえバトルの戦闘ロジック。
 ///
 /// 「強い／弱い」を感覚で語らずに済むように、勝ち筋のかたちだけ固定する。
 void main() {
-  group('役割', () {
-    test('同じ顔からは必ず同じ役割になる（あの人は前衛、と覚えられる）', () {
-      const face = 'assets/images/char3.jpg';
-      expect(roleForFace(face), roleForFace(face));
+  group('キャラの能力', () {
+    test('基本の顔には全員ぶん能力が用意されている', () {
+      for (final face in kCharImageAssets) {
+        expect(kUnitCatalog[face], isNotNull,
+            reason: '$face に能力が割り当てられていない');
+      }
     });
 
-    test('顔が違えば役割が偏りすぎない', () {
-      final roles = {
-        for (var i = 1; i <= 15; i++) roleForFace('assets/images/char$i.jpg'),
-      };
-      expect(roles.length, greaterThan(1), reason: '全員同じ役割では戦術が生まれない');
+    test('同じ顔からは必ず同じ能力になる（この人は弓、と覚えられる）', () {
+      const face = 'assets/images/char2.jpg';
+      expect(specForFace(face), same(specForFace(face)));
+    });
+
+    test('表に無い顔（購入キャラ・自分の写真）にも決まった能力が付く', () {
+      const face = 'assets/images/char27.webp';
+      expect(specForFace(face), isNotNull);
+      expect(specForFace(face), same(specForFace(face)));
+    });
+
+    test('近距離・遠距離・タワー狙いが全部そろっている', () {
+      final types = kCharImageAssets.map((f) => specForFace(f).attack).toSet();
+      expect(types, containsAll(AttackType.values),
+          reason: '1種類でも欠けると戦い方の幅が無くなる');
+    });
+
+    test('遠距離は近距離より射程が長い', () {
+      expect(_spec(AttackType.ranged).range,
+          greaterThan(_spec(AttackType.melee).range));
     });
   });
 
   group('出撃コスト', () {
     test('コストが足りなければ出せない', () {
       final s = BattleState(myCost: 1);
-      expect(s.deploy(UnitRole.guard, mine: true), isFalse);
+      expect(s.deploy(_spec(AttackType.melee), mine: true), isFalse);
       expect(s.units, isEmpty);
-    });
-
-    test('出したぶんコストが減る', () {
-      final s = BattleState(myCost: 10);
-      expect(s.deploy(UnitRole.runner, mine: true), isTrue);
-      expect(s.myCost, 10 - kUnitSpecs[UnitRole.runner]!.cost);
     });
 
     test('コストは時間で回復し、上限を超えない', () {
@@ -41,70 +53,115 @@ void main() {
     });
   });
 
-  group('進軍とタワー', () {
-    test('邪魔が無ければ進んで敵タワーを削る', () {
-      final s = BattleState(myCost: 10);
-      s.deploy(UnitRole.runner, mine: true);
-      for (var i = 0; i < 200; i++) {
-        s.tick(0.1);
-      }
-      expect(s.foeTower, lessThan(BattleState.towerHp));
+  group('🏰 タワーは撃ち返す', () {
+    test('射程に入った敵はタワーに削られる', () {
+      final s = BattleState();
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.05, hp: 100);
+      s.units.add(foe);
+      s.tick(1.0);
+      expect(foe.hp, lessThan(100), reason: 'ただ殴られるだけの的ではない');
     });
 
-    test('タワーを0にしたら勝ち', () {
-      final s = BattleState(foeTower: 1, myCost: 10);
-      s.deploy(UnitRole.striker, mine: true);
-      for (var i = 0; i < 400 && s.outcome == BattleOutcome.ongoing; i++) {
-        s.tick(0.1);
-      }
-      expect(s.outcome, BattleOutcome.win);
+    test('射程の外なら撃たれない', () {
+      final s = BattleState();
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.9, hp: 100);
+      s.units.add(foe);
+      s.tick(1.0);
+      expect(foe.hp, 100);
+    });
+
+    test('味方は撃たない', () {
+      final s = BattleState();
+      final ally = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.02, hp: 100);
+      s.units.add(ally);
+      s.tick(1.0);
+      expect(ally.hp, 100);
     });
   });
 
-  group('ぶつかり合い', () {
-    test('前衛は攻撃役より長く生き残る（壁として機能する）', () {
-      int survive(UnitRole role) {
-        final s = BattleState(myCost: 10, foeCost: 10);
-        s.deploy(role, mine: true);
-        // 同じ位置に敵をぶつける
-        s.units.add(BattleUnit(
-          role: UnitRole.striker,
-          mine: false,
-          pos: 0.0,
-          hp: 999,
-        ));
-        var t = 0;
-        while (s.units.any((u) => u.mine) && t < 1000) {
-          s.tick(0.1);
-          t++;
-        }
-        return t;
-      }
-
-      expect(survive(UnitRole.guard), greaterThan(survive(UnitRole.striker)));
+  group('💣 タワー狙い', () {
+    test('目の前に敵がいても足を止めずに素通りする', () {
+      final s = BattleState();
+      final siege =
+          BattleUnit(spec: _siegeSpec(), mine: true, pos: 0.5, hp: 500);
+      s.units
+        ..add(siege)
+        ..add(BattleUnit(
+            spec: _spec(AttackType.melee), mine: false, pos: 0.52, hp: 999));
+      final before = siege.pos;
+      s.tick(0.5);
+      expect(siege.pos, greaterThan(before));
     });
 
-    test('殴り合っている間は前に進まない', () {
-      final s = BattleState(myCost: 10);
-      s.deploy(UnitRole.guard, mine: true);
-      final mine = s.units.first;
-      s.units.add(BattleUnit(
-          role: UnitRole.guard, mine: false, pos: 0.0, hp: 9999));
+    test('素通りされた敵は削られない（ユニットを攻撃しない）', () {
+      final s = BattleState();
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.52, hp: 999);
+      s.units
+        ..add(BattleUnit(spec: _siegeSpec(), mine: true, pos: 0.5, hp: 500))
+        ..add(foe);
+      s.tick(0.5);
+      // 相手の近距離ユニット側からは殴られるので、こちらのHPは減ってよい。
+      // ここで見るのは「タワー狙いが相手を削っていない」こと。
+      expect(foe.hp, 999);
+    });
+  });
+
+  group('射程と向き', () {
+    test('遠距離は離れていても前の敵を撃てる', () {
+      final s = BattleState();
+      final archer =
+          BattleUnit(spec: _spec(AttackType.ranged), mine: true, pos: 0.5, hp: 99);
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.62, hp: 100);
+      s.units..add(archer)..add(foe);
+      s.tick(1.0);
+      expect(foe.hp, lessThan(100));
+    });
+
+    test('後ろにいる敵は撃たない（振り向かない）', () {
+      final s = BattleState();
+      final archer =
+          BattleUnit(spec: _spec(AttackType.ranged), mine: true, pos: 0.5, hp: 99);
+      final behind = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.42, hp: 100);
+      s.units..add(archer)..add(behind);
+      s.tick(1.0);
+      expect(behind.hp, 100);
+    });
+
+    test('撃っている間は前に進まない', () {
+      final s = BattleState();
+      final mine =
+          BattleUnit(spec: _spec(AttackType.melee), mine: true, pos: 0.5, hp: 99);
+      s.units
+        ..add(mine)
+        ..add(BattleUnit(
+            spec: _spec(AttackType.melee), mine: false, pos: 0.52, hp: 999));
       final before = mine.pos;
       s.tick(0.5);
       expect(mine.pos, before);
     });
   });
 
-  group('時間切れの判定', () {
-    test('タワーの残りが多いほうが勝ち', () {
-      final s = BattleState(myTower: 200, foeTower: 50, timeLeft: 0);
+  group('決着', () {
+    test('タワーを0にしたら勝ち', () {
+      final s = BattleState(foeTower: 1, myCost: 10);
+      s.deploy(_spec(AttackType.melee), mine: true);
+      for (var i = 0; i < 600 && s.outcome == BattleOutcome.ongoing; i++) {
+        s.tick(0.1);
+      }
       expect(s.outcome, BattleOutcome.win);
     });
 
-    test('同じならひきわけ', () {
-      final s = BattleState(myTower: 120, foeTower: 120, timeLeft: 0);
-      expect(s.outcome, BattleOutcome.draw);
+    test('時間切れならタワーの残りが多いほうが勝ち', () {
+      expect(BattleState(myTower: 200, foeTower: 50, timeLeft: 0).outcome,
+          BattleOutcome.win);
+      expect(BattleState(myTower: 120, foeTower: 120, timeLeft: 0).outcome,
+          BattleOutcome.draw);
     });
 
     test('決着後はいくらtickしても状態が動かない', () {
@@ -116,3 +173,9 @@ void main() {
     });
   });
 }
+
+/// テスト用: 指定した攻撃タイプの基本の型を1つ取り出す。
+UnitSpec _spec(AttackType t) =>
+    kUnitCatalog.values.firstWhere((s) => s.attack == t);
+
+UnitSpec _siegeSpec() => _spec(AttackType.siege);
