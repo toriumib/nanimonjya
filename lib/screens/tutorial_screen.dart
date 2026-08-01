@@ -271,6 +271,31 @@ class _TutorialScreenState extends State<TutorialScreen> {
           screenshot: 'assets/images/tutorial/hook_office.png',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFE8E3FF)],
         ),
+        // 🌐 オンラインは3つあって、それぞれ「誰と」「どう進むか」が違う。
+        //    どれを押せばいいのか分からないまま知らない人と当たると、
+        //    途中で抜けられて相手にも迷惑がかかるので、先に区別を見せる。
+        _TutorialPage(
+          guideEmoji: '👦',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
+          guideName: ja ? 'モンくん' : 'Mon',
+          title: ja ? '🌐 オンラインで あそぶ' : '🌐 Play online',
+          points: ja
+              ? [
+                  '🤝フレンド … 合言葉で 友だちと。1台のときと 同じルール',
+                  '🏆ランク … 知らない人と 早押し。通話は いらない',
+                  '🔁ターン制 … 交互にめくる。急かされずに あそべる',
+                ]
+              : [
+                  '🤝 Friend — a room code; same rules as one phone',
+                  '🏆 Ranked — buzz against a stranger, no voice chat',
+                  '🔁 Turn-based — take turns flipping, no rush',
+                ],
+          note: ja
+              ? 'フレンドは 部屋をつくった人が 人数をきめて、相手にも おなじ人数が 出るよ。くわしくは 📖ルール を見てね。'
+              : 'In Friend match the host picks how many faces, and the guest gets the same. See 📖 Rules for details.',
+          illustration: '🌐',
+          gradient: const [Color(0xFFD8F0FF), Color(0xFFFFF6D8)],
+        ),
       ];
 
   /// 難易度の比較表。値は models/cpu_difficulty.dart が一次情報。

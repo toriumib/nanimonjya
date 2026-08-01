@@ -987,12 +987,45 @@ class _TopScreenState extends State<TopScreen>
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            const OnlineLobbyScreen(
-                                                game: 'namecall'),
+                                        // 👥 1台で遊ぶときの人数設定を
+                                        //    そのままオンラインへ持っていく
+                                        builder: (_) => OnlineLobbyScreen(
+                                          game: 'namecall',
+                                          initialPeople: _peopleCount,
+                                        ),
                                       ),
                                     );
                                   },
+                                ),
+                                const SizedBox(height: 10),
+                                // 🏆 知らない人と、通話なしで遊べる早押し。
+                                //    フレンドマッチは相手を探すところから
+                                //    自分でやる必要があり、遊べる人が限られていた。
+                                _gradientButton(
+                                  label: m.rankMatchTitle,
+                                  colors: const [
+                                    Color(0xFFFFD46B),
+                                    Color(0xFFE8A400)
+                                  ],
+                                  height: 48,
+                                  fontSize: 14,
+                                  onTap: () {
+                                    Sfx.instance.fanfare();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const OnlineLobbyScreen(
+                                            game: 'rank'),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  m.rankMatchHomeHint,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
                                 ),
                                 const SizedBox(height: 10),
                                 // 🤖 ひとりでも勝ち負けのある遊びができるように。

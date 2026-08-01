@@ -10,11 +10,13 @@ import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
+import '../services/ranking_service.dart';
 import '../services/sfx.dart';
 import '../services/review_prompt.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import 'online_lobby_screen.dart';
+import 'ranking_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
 
@@ -30,6 +32,10 @@ class OnlineResultScreen extends StatefulWidget {
   /// true（なまえコール）: 獲得枚数が多い方が勝ち（同数ならタイム）。
   final bool higherPairsWins;
 
+  /// 🏆 ランクマッチか。true のときは Firestore のランキング
+  /// （`rankings/{uid}`）にも勝敗を反映する。
+  final bool ranked;
+
   const OnlineResultScreen({
     super.key,
     required this.session,
@@ -37,6 +43,7 @@ class OnlineResultScreen extends StatefulWidget {
     required this.myMs,
     required this.myPairs,
     this.higherPairsWins = false,
+    this.ranked = false,
   });
 
   @override
@@ -135,6 +142,12 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
       _ratingAfter = result.ratingAfter;
       _newAchievements = result.newlyUnlockedAchievements;
       if (win) coins += 30; // recordOnlineMatch内で加算済みの表示分
+      // 🏆 ランクマッチだけは全体ランキング（Firestore）にも反映する。
+      //    フレンドマッチで身内と回してポイントを稼げてしまうと
+      //    ランキングの意味が無くなるので、ここは ranked のときだけ。
+      if (widget.ranked) {
+        await RankingService.instance.recordResult(won: win);
+      }
     }
     if (!mounted) return;
     setState(() => _coinsEarned = coins);
@@ -198,7 +211,8 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
         ValueListenableBuilder<int>(
           valueListenable: widget.session.opponentProgress,
           builder: (context, value, _) => Text(
-            '🌐 $value/${OnlineMatchService.levelPairs} ${m.pairsUnit}',
+            // なまえコールは部屋ごとに出演人数が違うので、部屋の設定を使う
+            '🌐 $value/${widget.session.game == 'namecall' ? widget.session.peopleCount : OnlineMatchService.levelPairs} ${m.pairsUnit}',
             style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
         ),
@@ -242,6 +256,18 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
             .slideY(begin: 0.15, end: 0),
         const SizedBox(height: 12),
         if (_outcome != _Outcome.draw) _ratingCard(m, rank),
+        // 🏅 ランクマッチのあとは、順位を確かめに行けるようにする
+        if (widget.ranked)
+          TextButton(
+            onPressed: () {
+              Sfx.instance.pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RankingScreen()),
+              );
+            },
+            child: Text(m.rankSeeRanking),
+          ),
         if (_coinsEarned > 0) ...[
           const SizedBox(height: 12),
           Container(

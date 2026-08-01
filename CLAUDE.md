@@ -89,7 +89,25 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - CPU対戦: 交互めくり・ペア成立で連続手番・獲得ペア数勝負。難易度4段階（easy/normal/hard/oni、oniはレート1500で解禁）
 - みんなで対戦（ローカル）: 1台を回して2〜4人の交互手番（`MatchGameScreen(humanPlayers: N)`）
 - オンライン対戦（v2.1.0で復活）: **同時レース方式**。同じseedを配布して両者が同一盤面を同時に解き、手数（同数ならタイム）で勝敗。Firestore `rooms` を再利用し、書き込みは進捗と最終結果のみ（ターン同期なし）。旧Functionsトリガーは `readyPlayerIds`/`imageUrls` が無いので発火しない。ロビーはランダムマッチ＋合言葉6文字
-- 珍名アルバム・旧ランキング画面は撤去のまま
+- 珍名アルバムは撤去のまま。**ランキング画面（`ranking_screen.dart`）はランクマッチの導線として復活**
+
+### 🌐 オンライン4モード（services/online_match_service.dart）
+
+`rooms` ドキュメント1つで4つの遊び方を扱う。`mode` の接頭辞が game を表す（`nc`=namecall / `race`=pairs / `rk`=rank / `tp`=turnpairs）。**盤面は共有seedから両端末が同じものを生成する**ので、Firestoreに載せるのは進行だけ。
+
+| game | 方式 | Firestoreに書くもの | 勝敗 | 画面 |
+|---|---|---|---|---|
+| `namecall` | 同時レース | 進捗・最終結果 | 獲得枚数→タイム | `name_call_screen` |
+| `pairs` | 同時レース | 進捗・最終結果 | 手数→タイム | `match_game_screen` |
+| `rank` | ロックステップ早押し | `cardIndex` / `claims` | 先取した枚数 | `rank_match_screen` |
+| `turnpairs` | ターン制 | `moves`（めくった順） | 獲得ペア数 | `turn_pairs_screen` |
+
+- **フレンドマッチ＝1台で遊ぶときと同じルール**: 部屋に `people`（出てくる人数）を載せ、ホストの設定をゲストにも配る。ランダムマッチは**同じ人数の部屋どうし**だけをマッチさせる（`findRandomMatch` が `people` で絞る）。人数の正規化は `OnlineMatchService.resolvePeople`（rankは8固定・pairs系はペア数固定）
+- **🏆 ランクマッチ**: 8人・苗字100（`kCommonSurnames`）から配布・4択・早い者勝ち。同じ問題を両者に同時に出し、正解したら `claimCard(index)` のトランザクションで先取を宣言する（**先にサーバーへ届いた方だけ true**）。誰も取れなければ8秒で `passCard`。勝敗は `RankingService`（`rankings/{uid}`、勝ち+25/負け-15）にも反映＝`OnlineResultScreen(ranked: true)` のときだけ。合言葉での身内対戦は用意しない（ポイント稼ぎ防止）
+- **🔁 ターン制対戦**: 記憶術トレーニングの盤面を交互にめくる。部屋には `moves`（カード番号の並び）だけを積み、`models/turn_pairs.dart` の `replayTurnPairs()` で再生して「取れた札・手番・得点」を復元する。**得点や手番を端末ごとに持たない**ので通信が1回抜けても食い違わない。画面側は `_settled`（判定済み）と `_flipping`（表示中の1〜2枚）に分けて、そろわなかった2枚を見せる間をとる
+- ⚠️ `OnlineMatchSession` のスナップショット反映は **claims → cardIndex の順**（逆にすると最後の1問の先取が得点に入らない）
+- ⚠️ オンラインは購入キャラ・デッキ編集を混ぜない（両端末で顔ぶれが一致しなくなる）。必ず `kCharImageAssets` を渡す
+- テストは `test/online_modes_test.dart`（game判別・人数の正規化・ターン制の再生）
 
 ## ビルド・リリース
 - **Android**: `scripts/bump_and_build.ps1`（versionCode自動+1してAABビルド）。出力: `build/app/outputs/bundle/release/app-release.aab`

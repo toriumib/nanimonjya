@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
 import 'line_match_screen.dart';
 import 'match_game_screen.dart';
+import 'online_lobby_screen.dart';
 import 'recall_training_screen.dart';
 import 'rulebook_screen.dart';
 import '../widgets/themed_background.dart';
@@ -388,6 +389,34 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                       const SizedBox(height: 4),
                       Text(
                         m.mnemonicTrainingDesc,
+                        style: const TextStyle(
+                            fontSize: 11.5, color: Colors.black45),
+                        textAlign: TextAlign.center,
+                      ),
+                      // 🔁 同じ盤面をオンラインの相手と交互にめくる。
+                      //    同時レースだと急かされて記憶術を試す間がないので、
+                      //    記憶術トレーニングにはターン制のほうを用意する。
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          Sfx.instance.fanfare();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const OnlineLobbyScreen(
+                                  game: 'turnpairs'),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8A5AC2),
+                          minimumSize: const Size.fromHeight(46),
+                        ),
+                        child: Text(m.turnPairsButton),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        m.turnPairsDesc,
                         style: const TextStyle(
                             fontSize: 11.5, color: Colors.black45),
                         textAlign: TextAlign.center,

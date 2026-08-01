@@ -581,6 +581,64 @@ class MetaStrings {
   String get opponentForfeited => ja ? 'とちゅう離脱' : 'Forfeited';
   String get gameStartLabel => ja ? 'ゲームスタート！' : 'Start Game!';
 
+  // ─────────── 🌐 オンラインの遊び方えらび（ロビー） ───────────
+  /// フレンドマッチ＝1台で遊ぶときと同じルールを、部屋ごしに相手へ配る。
+  String get friendMatchDesc => ja
+      ? '1台で遊ぶときと同じルールで対戦できます。人数はあなたが決めて、相手にもそのまま配られます。'
+      : 'Same rules as playing on one phone. You pick how many faces; your friend gets the same setup.';
+  String get onlinePeopleLabel => ja ? '👥 出てくる人数' : '👥 How many faces';
+  String get onlinePeopleHint => ja
+      ? 'ここで決めた人数が、そのまま相手の画面にも出ます。'
+      : 'Your friend plays with exactly this many faces.';
+  String onlineRoomRule(int people) => ja
+      ? 'この部屋のルール：出たとき命名／$people人／4択'
+      : 'Room rules: name-as-you-go / $people faces / 4 choices';
+  String get randomMatchPeopleNote => ja
+      ? '※ランダムマッチは、同じ人数を選んだ人どうしが当たります。'
+      : 'Random match pairs you with someone who picked the same number.';
+
+  // 🏆 ランクマッチ
+  String get rankMatchTitle => ja ? '🏆 ランクマッチ' : '🏆 Ranked Match';
+  String get rankMatchDesc => ja
+      ? '知らない人と、通話なしで遊べる早押し勝負。8人の名前をおぼえて、同じ問題に先に正解した方がカードを取ります。勝つとランクが上がります。'
+      : 'A buzzer duel with a stranger — no voice chat needed. Memorize 8 people, then race to answer the same question first. Winning raises your rank.';
+  String get rankMatchButton => ja ? 'ランクマッチをはじめる' : 'Start ranked match';
+  String get rankMatchTitleShort => ja ? 'ランク' : 'Ranked';
+  String get rankMatchHomeHint => ja
+      ? '知らない人と 8人ぶんの早押し。通話はいりません。'
+      : 'Buzz against a stranger over 8 faces. No voice chat.';
+  String get rankSeeRanking => ja ? '🏅 ランキングを見る' : '🏅 View ranking';
+  String rankMemorizeHeader(int people) => ja
+      ? '$people人の名前をおぼえよう'
+      : 'Memorize these $people people';
+  String get rankMemorizeHint => ja
+      ? '声に出して読むと残りやすいと言われています。'
+      : 'Saying each name out loud is said to help.';
+  String get rankBuzzTitle => ja ? '⚡ 早押し' : '⚡ Buzz in';
+  String rankQuestionOf(int i, int n) =>
+      ja ? '第$i問 / $n問' : 'Q$i of $n';
+  String get rankTook => ja ? '⚡ 先取！' : '⚡ You got it!';
+  String get rankTaken => ja ? '😢 とられた…' : '😢 Too slow…';
+  String get rankMissed => ja ? '❌ おてつき' : '❌ Wrong';
+  String get rankNobody => ja ? 'だれも取れなかった' : 'Nobody got it';
+  String get rankWaitingJudge => ja ? '判定中…' : 'Judging…';
+  String get rankMyCards => ja ? 'あなた' : 'You';
+  String rankRatingLine(int rating) =>
+      ja ? 'ランクポイント $rating' : 'Rank points $rating';
+
+  // 🔁 ターン制対戦（記憶術トレーニング）
+  String get turnPairsTitle => ja ? '🔁 ターン制対戦' : '🔁 Turn-based Match';
+  String get turnPairsDesc => ja
+      ? '記憶術トレーニングの盤面を、オンラインの相手と交互にめくる対戦。ペアが当たればもう一度めくれます。同時に急がされないので、タグ付けをじっくり試せます。'
+      : 'Take turns flipping the mnemonic-training board against someone online. Match a pair and you go again — no rush, so you can actually practice tagging.';
+  String get turnPairsButton => ja ? 'ターン制で対戦する' : 'Play turn-based';
+  String get turnYours => ja ? '🟢 あなたの番' : '🟢 Your turn';
+  String turnTheirs(String name) => ja ? '⏳ $name の番' : '⏳ $name\'s turn';
+  String get turnWaitOpponent => ja ? '相手がめくっています…' : 'They are flipping…';
+  String get turnGoAgain => ja ? 'ペア成立！もう一度めくれます' : 'Pair! Flip again';
+  String get turnOpponentLeft =>
+      ja ? '相手がいなくなりました' : 'Your opponent left';
+
   // 📣 メインモード「なまえコール」
   String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
   String get namingDecide => ja ? 'これにする！' : 'Name it!';
@@ -1178,6 +1236,12 @@ This tab is where you get stronger on your own.
     switch ('$t'.split('.').last) {
       case 'cpu':
         return '🤖';
+      case 'onlineFriend':
+        return '🤝';
+      case 'rank':
+        return '🏆';
+      case 'turnPairs':
+        return '🔁';
       case 'lineMatch':
         return '🖇';
       case 'cardMemory':
@@ -1193,6 +1257,12 @@ This tab is where you get stronger on your own.
     switch ('$t'.split('.').last) {
       case 'cpu':
         return ja ? 'CPUとたいせん' : 'Play vs CPU';
+      case 'onlineFriend':
+        return ja ? 'オンライン・フレンドマッチ' : 'Online: Friend Match';
+      case 'rank':
+        return ja ? 'オンライン・ランクマッチ' : 'Online: Ranked Match';
+      case 'turnPairs':
+        return ja ? 'オンライン・ターン制対戦' : 'Online: Turn-based Match';
       case 'lineMatch':
         return ja ? '線むすび特訓' : 'Line Match';
       case 'cardMemory':
@@ -1244,6 +1314,18 @@ This tab is where you get stronger on your own.
         return ja
             ? '''ひとりであそぶモード。CPUと カードのとりあいをするよ。\n\n① はじめて出たキャラに 名前がつく（おまかせ）\n② 同じキャラが また出てきたら、4つの中から 正しい名前をえらぶ\n③ CPUが思い出すより 早く正解できたら カードをゲット\n④ おそかったり まちがえたら CPUに とられる\n\n🤖 むずかしさで 変わるのは 相手の速さだけじゃない。\n「何人まとめて おぼえてから 答えるか」が いちばん大きい。\n${_cpuTableJa()}\nかんたんは 1人おぼえて すぐ答える。鬼は 4人おぼえてから 4人ぶん答える。\nあいだに ほかの人が はさまるほど むずかしくなる。\n\n🪙 コインは 3つの合計。\n・思い出せた1問ごと（むずかしいほど 単価が高い）\n・全問正解ボーナス\n・勝利ボーナス\nぜんぶ思い出せたら 負けても コインは入るよ。'''
             : '''Solo mode. You and the CPU compete for cards.\n\n1. Each new character is given a name (auto)\n2. When they appear again, pick the right name from four\n3. Answer correctly before the CPU to win the card\n4. Too slow or wrong, and the CPU takes it\n\n🤖 Difficulty changes how many people you memorize before answering.\n${_cpuTableEn()}\nEasy: memorize 1, answer right away. Oni: memorize 4, then answer all 4.\n\n🪙 Coins = per correct answer + perfect bonus + win bonus.''';
+      case 'onlineFriend':
+        return ja
+            ? '''友だちと オンラインで あそぶ なまえコール。\n1台で あそぶときと **同じルール**です。\n\n① 合言葉（6文字）を つくって 友だちに おくる\n② 友だちが 合言葉を いれると スタート\n\n👥 出てくる人数は **部屋をつくった人**が きめる。\n　 その人数が そのまま 相手の画面にも 出るので、\n　 ふたりとも 同じ顔ぶれ・同じ順番で あそべます。\n\n③ カードが 1まいずつ 出てくる（出たとき命名）\n④ はじめて出た人には アプリが 名前をつける\n⑤ また出てきたら 4つの中から えらぶ\n\n🏆 かくとく枚数が 多い方の勝ち（同じなら タイム）。\n通話は いりません。それぞれの スマホで 同時に すすみます。\n\n🎲 ランダムマッチは、**同じ人数を えらんだ人**と当たります。'''
+            : '''Name Call with a friend online — the same rules as one-phone play.\n\n1. Create a 6-character room code and send it\n2. They enter it and the match starts\n\n👥 The host picks how many faces, and the guest gets exactly the same setup, so you both see the same people in the same order.\n\n3. Cards appear one at a time (name-as-you-go)\n4. New faces are named automatically\n5. When they return, pick from four choices\n\n🏆 Most cards wins (time breaks ties). No voice chat needed.\n🎲 Random match pairs you with someone who picked the same number.''';
+      case 'rank':
+        return ja
+            ? '''知らない人と、通話なしで あそべる 早押し勝負。\n\n① おぼえタイム … 8人の顔と名前を まとめて おぼえる\n　 名前は 実際に多い苗字100から アプリが 配ります\n② 早押し … 顔が 1人ずつ 出るので 4つの中から えらぶ\n③ **先に 正解した方が そのカードを 取る**（早い者勝ち）\n④ どちらも 取れないまま 8秒たったら 次の問題へ\n\n⚡ 相手と まったく同じ問題が 同時に 出ます。\n　 まちがえると その問題は もう答えられません。\n\n🏆 8問おわった時点で 取った枚数が 多い方の勝ち。\n🏅 勝つと ランクポイントが +25、負けると -15。\n　 ポイントは ランキングに 反映されます。'''
+            : '''A buzzer duel with a stranger — no voice chat needed.\n\n1. Memorize 8 faces and names (names come from the 100 most common surnames)\n2. One face appears at a time; pick from four choices\n3. Whoever answers correctly FIRST takes the card\n4. If nobody takes it within 8 seconds, it moves on\n\n⚡ You both see the identical question at the same moment. A wrong answer locks you out of that question.\n\n🏆 Most cards after 8 questions wins.\n🏅 Win +25 rank points, lose -15.''';
+      case 'turnPairs':
+        return ja
+            ? '''記憶術トレーニングの盤面で、交互に めくる 対戦。\n\n① おぼえタイム … 顔と名前の 組み合わせを 見る\n　 「この人は 〇〇だから 〇〇さん」と タグをつけるのがコツ\n② カードが 裏返る\n③ **交互に** 2まいずつ めくる\n④ 顔と名前が そろったら ペア成立 → **もう一度 めくれる**\n⑤ ちがったら 相手の番\n\n🏆 カードが なくなった時点で、多く取った方の勝ち。\n\n⏳ 同時に 急かされないので、記憶術を ためすのに 向いています。\n部屋をつくった人が 先手です。'''
+            : '''Take turns flipping the mnemonic-training board.\n\n1. Study the face-name pairs — try tagging each one\n2. The cards flip over\n3. Players alternate, flipping two cards each turn\n4. Match a face with its name and you go again\n5. Miss, and it is the other player's turn\n\n🏆 Most pairs when the board is cleared wins.\n⏳ Nobody is rushing you, so it is a good place to actually practice tagging. The host goes first.''';
       case 'lineMatch':
         return ja
             ? '''ひとりで、じっくり練習するモード。運の要素はありません。\n\n① おぼえタイム … 顔と名前をセットでおぼえる\n② 線むすび … 顔から名前へ 指でドラッグして つなぐ\n③ まちがえたら 何回でも 引きなおせる\n④ ぜんぶつないだら「答えあわせ」\n\n💡 顔を見て名前を引き出す形なので、実生活にいちばん近い練習です。'''

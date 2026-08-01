@@ -20,7 +20,12 @@ service cloud.firestore {
           && (!('deck' in data) || data.deck.size() <= 80)        // 12種×5枚=60 + 余裕
           && (!('fieldCards' in data) || data.fieldCards.size() <= 80)
           && (!('seenImages' in data) || data.seenImages.size() <= 40)
-          && (!('imageUrls' in data) || data.imageUrls.size() <= 20);
+          && (!('imageUrls' in data) || data.imageUrls.size() <= 20)
+          // 🔁 ターン制対戦: めくった順のカード番号だけを積む。
+          //    12枚の盤面なので、どれだけ長引いても200手には届かない。
+          && (!('moves' in data) || data.moves.size() <= 200)
+          // 🏆 ランクマッチ: 問題番号 → 先取した uid。8問ぶん。
+          && (!('claims' in data) || data.claims.size() <= 16);
       }
 
       allow read: if request.auth != null;

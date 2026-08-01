@@ -19,7 +19,7 @@ class RulebookScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
-    final topics = RuleTopic.values;
+    const topics = RuleTopic.values;
     return Scaffold(
       appBar: AppBar(
         title: Text(m.rulebookTitle),
@@ -73,7 +73,20 @@ class RulebookScreen extends StatelessWidget {
 }
 
 /// ルールブックで扱うモード。
-enum RuleTopic { nameCall, cpu, lineMatch, cardMemory, pairs }
+///
+/// 🌐 オンラインは「フレンド」「ランク」「ターン制」で勝ち方も進み方も違う。
+/// 1つの「オンライン対戦」にまとめると、どれの説明なのか分からなくなるので
+/// 別々の項目にしてある。
+enum RuleTopic {
+  nameCall,
+  cpu,
+  onlineFriend,
+  rank,
+  turnPairs,
+  lineMatch,
+  cardMemory,
+  pairs,
+}
 
 /// 📖 どこからでも押せるルールボタン。
 /// ゲーム中のAppBarにも置けるよう小さめにしてある。

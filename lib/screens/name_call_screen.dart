@@ -81,8 +81,10 @@ class NameCallScreen extends StatefulWidget {
     this.cpuLevel,
   });
 
-  /// オンライン対戦は両者で同じ人数にそろえる必要があるため固定。
-  static const int onlinePeopleCount = 9;
+  /// オンライン対戦の人数は**部屋が持っている**（`session.peopleCount`）。
+  /// 両者で同じ人数にそろっていないと盤面がずれるので、
+  /// フレンドマッチはホストの設定を部屋ごしにゲストへ配り、
+  /// ランダムマッチは同じ人数の部屋どうしだけをマッチさせている。
 
   @override
   State<NameCallScreen> createState() => _NameCallScreenState();
@@ -220,9 +222,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
     super.initState();
     final ja = PlatformDispatcherLocale.isJa;
     final count = _isOnline
-        ? NameCallScreen.onlinePeopleCount
+        ? widget.online!.peopleCount.clamp(2, NameCallGame.maxPeople)
         : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
-    // オンラインは両プレイヤーで顔が一致する必要があるため基本12のまま。
+    // オンラインは両プレイヤーで顔が一致する必要があるため基本16人プールのまま。
     // オフライン/ひとりは購入済みキャラも出演プールに加える。
     final charAssets = _isOnline
         ? null
@@ -827,7 +829,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: Center(
               child: RulebookButton(
-                focus: _isCpu ? RuleTopic.cpu : RuleTopic.nameCall,
+                focus: _isOnline
+                    ? RuleTopic.onlineFriend
+                    : _isCpu
+                        ? RuleTopic.cpu
+                        : RuleTopic.nameCall,
                 onDark: true,
               ),
             ),
