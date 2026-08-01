@@ -111,6 +111,58 @@ const List<PraiseVoice> kPraiseVoices = [
     finaleJa: '今日のあなたは、静かで確かでした。おつかれさまです。',
     finaleEn: 'Today you were calm and certain. Rest well.',
   ),
+  // 🙏 いろいろな立場の「ほめ方」を選べるようにする。
+  // それぞれの言葉づかいの雰囲気を借りるだけで、
+  // 教義や儀礼をまねたり、からかったりはしない（ほめる言葉だけを扱う）。
+  PraiseVoice(
+    id: 'miko',
+    nameJa: '巫女さん',
+    nameEn: 'Shrine maiden',
+    emoji: '⛩️',
+    cost: 400,
+    linesJa: ['お見事です', 'よき心がけです', '清らかな集中ですね', '実を結んでいます'],
+    linesEn: [
+      'Beautifully done',
+      'A fine effort',
+      'Such clear focus',
+      'It is bearing fruit',
+    ],
+    finaleJa: '今日の努力が、よい実りとなりますように。おつかれさまでした。',
+    finaleEn: 'May today\'s effort bear good fruit. Well done.',
+  ),
+  PraiseVoice(
+    id: 'pastor',
+    nameJa: '牧師さん',
+    nameEn: 'Pastor',
+    emoji: '⛪',
+    cost: 400,
+    linesJa: ['すばらしい', 'よくやりましたね', 'その努力は実ります', '心強いかぎりです'],
+    linesEn: [
+      'Wonderful',
+      'You have done well',
+      'That effort will bear fruit',
+      'Truly heartening',
+    ],
+    finaleJa: 'よく歩みましたね。今日の努力は、きっと報われます。',
+    finaleEn: 'You walked well today. Your effort will not be wasted.',
+  ),
+  PraiseVoice(
+    id: 'imam',
+    nameJa: 'イマームさん',
+    nameEn: 'Imam',
+    emoji: '🕌',
+    cost: 400,
+    // 「マーシャーアッラー」は日常的に使われる称賛の言葉。
+    linesJa: ['マーシャーアッラー', 'すばらしい集中です', 'よく努められました', '着実に進んでいます'],
+    linesEn: [
+      'Masha Allah',
+      'Excellent focus',
+      'You have striven well',
+      'Steady progress',
+    ],
+    finaleJa: 'よく努められました。積み重ねは、かならず力になります。',
+    finaleEn: 'You strove well. What you build up will become strength.',
+  ),
 ];
 
 PraiseVoice praiseVoiceById(String id) => kPraiseVoices.firstWhere(

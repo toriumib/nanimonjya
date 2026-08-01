@@ -137,13 +137,17 @@ class MemoryStats extends ChangeNotifier {
     int reactionMs = 0,
     DateTime? now,
   }) {
-    final day = _dayNumber(now ?? DateTime.now());
     final prev = _items[itemKey];
     // 「2回目以降の遭遇」の定義。定着率はここだけを数える。
-    //   ① すでに一度出題されて答えたことがある人（復習ラウンド・取りこぼしの再出題）
-    //   ② 別の日に会った人（日をまたいで思い出せたかは長期記憶の証拠になる）
-    // 初対面の直後に1回答えただけでは定着率に入らない。当てずっぽうが混ざるため。
-    final isRepeat = prev != null && (prev.seen > 0 || prev.lastDay < day);
+    //
+    // ⚠️ 最初は「すでに1回答えたことがある」「別の日に会った」に限っていたが、
+    //    それだと定着率がほぼ永久に「—」のままになった。
+    //    なまえコールは1人につき命名1回＋想起1回なので、想起が
+    //    毎回「1回目の回答」に数えられ、分母が増えなかったため。
+    //    命名・おぼえタイム・名刺交換で「会った」ことを記録している以上、
+    //    そのあとの想起は立派な2回目の遭遇なので、これを数える。
+    final isRepeat = prev != null;
+    final day = _dayNumber(now ?? DateTime.now());
 
     _items[itemKey] = (prev ?? const ItemStat()).addAnswer(
       correct: correct,

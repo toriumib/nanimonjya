@@ -39,11 +39,8 @@ class TopScreen extends StatefulWidget {
 
 class _TopScreenState extends State<TopScreen>
     with TickerProviderStateMixin {
-  bool _doubleCard = false; // なまえコールの「2枚同時」オプション
   // true=出たとき命名（初登場でその場命名→再登場で想起）。こちらを既定にする
-  bool _nameAsYouGo = true;
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
-  bool _autoNames = false;
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
 
@@ -72,64 +69,6 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
-  /// なまえコールのオプション行（絵文字＋説明＋スイッチ）。
-  Widget _optionSwitch({
-    required String emoji,
-    required String label,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.only(left: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF7E0),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 12.5, fontWeight: FontWeight.w900)),
-          ),
-          Switch(
-            value: value,
-            activeColor: const Color(0xFF4ECDC4),
-            onChanged: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 命名ルールの選択チップ
-  Widget _ruleChip(String label, bool selected, VoidCallback onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF3A7BD5) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF3A7BD5), width: 2),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w900,
-              color: selected ? Colors.white : const Color(0xFF2B5CA5),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   /// 🏆 段位・📅 今週の記録・🎁 今日のキャラ を1行にまとめたホームの状態表示。
   Widget _homeStatusRow(BuildContext context) {
@@ -334,8 +273,6 @@ class _TopScreenState extends State<TopScreen>
                         MaterialPageRoute(
                           builder: (_) => CpuEntryScreen(
                             level: lv,
-                            nameAsYouGo: _nameAsYouGo,
-                            autoNames: _autoNames,
                             peopleCount: _peopleCount,
                           ),
                         ),
@@ -413,9 +350,6 @@ class _TopScreenState extends State<TopScreen>
                         MaterialPageRoute(
                           builder: (_) => NameCallScreen(
                             humanPlayers: n,
-                            doubleCard: _doubleCard,
-                            nameAsYouGo: _nameAsYouGo,
-                            autoNames: _autoNames,
                             peopleCount: _peopleCount,
                           ),
                         ),
@@ -954,39 +888,10 @@ class _TopScreenState extends State<TopScreen>
                             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                             child: Column(
                               children: [
-                                // 命名ルール（まとめて命名／出たとき命名）
-                                Row(
-                                  children: [
-                                    _ruleChip(m.rulePreName, !_nameAsYouGo,
-                                        () => setState(
-                                            () => _nameAsYouGo = false)),
-                                    const SizedBox(width: 8),
-                                    _ruleChip(m.ruleAsYouGo, _nameAsYouGo,
-                                        () => setState(
-                                            () => _nameAsYouGo = true)),
-                                  ],
-                                ),
-                                // 2枚同時・名前おまかせ: まとめて命名のときだけ
-                                if (!_nameAsYouGo) ...[
-                                  const SizedBox(height: 10),
-                                  _optionSwitch(
-                                    emoji: '🎴',
-                                    label: m.doubleCardLabel,
-                                    value: _doubleCard,
-                                    onChanged: (v) =>
-                                        setState(() => _doubleCard = v),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // 名簿に1人ずつ入力するのが面倒な人向けのスキップ設定
-                                  _optionSwitch(
-                                    emoji: '🎲',
-                                    label: m.autoNamesLabel,
-                                    value: _autoNames,
-                                    onChanged: (v) =>
-                                        setState(() => _autoNames = v),
-                                  ),
-                                ],
-                                const SizedBox(height: 10),
+                                // 🗑 「まとめて命名」と「2枚同時に出す」は撤去した。
+                                // 遊ぶ前に3つも設定を選ばせていて、どれを選べば
+                                // いいか分からないまま離脱する原因になっていた。
+                                // ルールは「出たとき命名」1本にする。
                                 // 登場人数。既定は6人（まず1ゲーム終わらせてもらう）。
                                 // 選択UIが無く常に12人だったため、初回が長すぎて
                                 // 完走できない人が多かった。

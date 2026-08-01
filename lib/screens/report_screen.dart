@@ -122,7 +122,7 @@ class _ReportScreenState extends State<ReportScreen> {
           const SizedBox(height: 10),
           Text(
             '🧠 おぼえた人：${_stats.retainedPeople}人'
-            '（2回目以降に名前を当てられた人）',
+            '（会ったあとに名前を当てられた人）',
             style: const TextStyle(fontSize: 12, color: Colors.black87),
           ),
         ],
@@ -165,7 +165,7 @@ class _ReportScreenState extends State<ReportScreen> {
           if (answers > 0 && _stats.retentionPct(mode) == null) ...[
             const SizedBox(height: 8),
             const Text(
-              '定着率は、同じ人がもう一度出題されると出ます。',
+              '定着率は、おぼえた人が出題されると出ます。',
               style: TextStyle(fontSize: 11, color: Colors.black54),
             ),
           ],
@@ -191,9 +191,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 '出題に正解できた割合です。初対面の当てずっぽうも含みます。'),
             SizedBox(height: 8),
             _ExplainRow('🧠', '定着率',
-                '一度会った人が、もう一度出題されたときに答えられた割合です。'
-                    'まちがえた人の出し直しや、日をまたいだ復習が対象になります。'
-                    '初対面の1回目は数えないので、当てずっぽうでは上がりません。'),
+                '名前をつけた人・おぼえタイムで見た人・名刺を受け取った人に、'
+                    'あとで出題されて答えられた割合です。'
+                    '一度も会っていない人への当てずっぽうは数えません。'),
           ],
         ),
       );
@@ -236,7 +236,7 @@ class _ReportScreenState extends State<ReportScreen> {
         const SizedBox(height: 6),
         Text(
           pct == null
-              ? '同じ人がもう一度出題されると、定着率が出ます。'
+              ? 'おぼえた人が出題されると、定着率が出ます。'
               : pct >= 80
                   ? 'よく定着しています。間をあけて会うともっと強くなります。'
                   : pct >= 50

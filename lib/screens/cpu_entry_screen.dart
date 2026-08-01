@@ -19,15 +19,11 @@ import 'name_call_screen.dart';
 /// タップでいつでも飛ばせる（毎回見せられると邪魔になるため）。
 class CpuEntryScreen extends StatefulWidget {
   final CpuLevel level;
-  final bool nameAsYouGo;
-  final bool autoNames;
   final int peopleCount;
 
   const CpuEntryScreen({
     super.key,
     required this.level,
-    required this.nameAsYouGo,
-    required this.autoNames,
     required this.peopleCount,
   });
 
@@ -73,8 +69,6 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
         builder: (_) => NameCallScreen(
           cpuLevel: widget.level,
           quizMode: true,
-          nameAsYouGo: widget.nameAsYouGo,
-          autoNames: widget.autoNames,
           peopleCount: widget.peopleCount,
         ),
       ),

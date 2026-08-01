@@ -48,12 +48,10 @@ import 'rulebook_screen.dart';
 class NameCallScreen extends StatefulWidget {
   final int humanPlayers; // 1=ひとりで, 2..4=1台でみんなで
   final OnlineMatchSession? online;
-  final bool doubleCard; // true=2枚同時出現オプション（まとめて命名のみ）
   final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
   final int peopleCount; // 登場人数（6〜12）。カスタム/オンライン時は無視
   final bool nameAsYouGo; // true=出たとき命名（1枚ずつ・初登場でその場命名）
   /// まとめて命名のとき、名前を自分で入力せず自動でつける（入力が面倒な人向け）。
-  final bool autoNames;
 
   /// 回答方式。
   ///
@@ -75,11 +73,11 @@ class NameCallScreen extends StatefulWidget {
     super.key,
     this.humanPlayers = 1,
     this.online,
-    this.doubleCard = false,
     this.customPeople,
     this.peopleCount = NameCallGame.peopleCount,
-    this.nameAsYouGo = false,
-    this.autoNames = false,
+    // 🗑 命名ルールの切り替えと「2枚同時に出す」は廃止した（設定が多すぎて
+    //    遊ぶ前に迷わせていた）。常に「出たとき命名」で動く。
+    this.nameAsYouGo = true,
     this.quizMode = false,
     this.cpuLevel,
   });
@@ -253,10 +251,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
       people: people,
       rng: _rng,
       // 出たとき命名は必ず1枚ずつ（初登場で命名→再登場で想起の流れのため）
-      cardsPerRound: (widget.doubleCard && !widget.nameAsYouGo) ? 2 : 1,
+      cardsPerRound: 1,
       // 🤖 CPU対戦は難易度ぶんの人数をまとめて覚えてから思い出す。
       //    かんたん=1人ずつ、鬼=4人まとめて。カスタム名簿は命名済みなので対象外。
-      groupSize: (_isCpu && widget.nameAsYouGo && !_isCustom)
+      groupSize: (_isCpu && !_isCustom)
           ? _diff.groupSize
           : 0,
     );
@@ -277,27 +275,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _nextRound();
       });
-    } else if (widget.autoNames) {
-      // 🎲 名前おまかせ: 入力の手間を省き、おなまえガチャで全員に命名して本編へ。
-      // 同じ名前が2人に付くと4択の正解が定まらないので、重複しないようにする。
-      final m = MetaStrings(ja);
-      final used = <String>{};
-      for (final p in people) {
-        var name = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
-        var guard = 0;
-        while (used.contains(name) && guard < 60) {
-          name = m.gachaName(_rng.nextInt(9999), _rng.nextInt(9999));
-          guard += 1;
-        }
-        // それでも重複するなら末尾に番号を足して必ず一意にする
-        if (used.contains(name)) name = '$name${used.length + 1}';
-        used.add(name);
-        _game.roster[p] = name;
-        _noteMet(p, name);
-      }
-      // 自動でつけた名前は、ここで見せないと誰が誰だか分からないまま本編に入って
-      // しまう。必ず名簿一覧を挟み、自分のタイミングで開始してもらう。
-      _phase = _Phase.rosterReview;
     }
     AppAnalytics.gameStart(
       mode: _isCustom
@@ -816,12 +793,6 @@ class _NameCallScreenState extends State<NameCallScreen> {
             pairsWon: _cardsWon,
             level: 1,
             nameCall: true,
-            // ⚠️ ここを渡し忘れると、結果画面の「もう一度あそぶ」が
-            //    既定値（まとめて命名）で作り直され、出たとき命名で
-            //    遊んでいた人が急にテキスト入力を求められる。
-            nameAsYouGo: widget.nameAsYouGo,
-            autoNames: widget.autoNames,
-            doubleCard: widget.doubleCard,
             peopleCount: _game.people.length,
           ),
         ),
@@ -1879,11 +1850,8 @@ class _NameCallScreenState extends State<NameCallScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => NameCallScreen(
-                      doubleCard: widget.doubleCard,
                       customPeople: widget.customPeople,
                       peopleCount: widget.peopleCount,
-                      nameAsYouGo: widget.nameAsYouGo,
-                      autoNames: widget.autoNames,
                       quizMode: widget.quizMode,
                       // CPU戦の再戦で難易度が消えないように引き継ぐ
                       cpuLevel: widget.cpuLevel,
