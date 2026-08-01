@@ -76,8 +76,6 @@ void main() {
       p.selectedVoice = 'none';
       p.unlockedCharms = {'none'};
       p.selectedCharm = 'none';
-      p.unlockedSkins = {'plain'};
-      p.selectedSkin = 'plain';
     });
 
     test('コインが足りないと買えない', () async {
@@ -111,32 +109,35 @@ void main() {
       p.coins = 1000;
       await p.unlockCharm('koban', 380);
       await p.selectCharm('koban');
-      expect(p.coinMultiplier, closeTo(1.20, 0.001));
+      expect(p.coinMultiplier, closeTo(2.0, 0.001)); // コイン2倍
     });
 
-    test('覚醒とお守りの倍率は足し合わされる', () async {
+    test('覚醒の倍率にアイテムの2倍が掛かる', () async {
       final p = PlayerProfile.instance;
       p.awakenings = 2; // +10%
       p.coins = 1000;
       await p.unlockCharm('koban', 380);
-      await p.selectCharm('koban'); // +20%
-      expect(p.coinMultiplier, closeTo(1.30, 0.001));
+      await p.selectCharm('koban'); // コイン2倍
+      expect(p.coinMultiplier, closeTo(2.2, 0.001)); // 1.1 × 2
     });
 
-    test('お守りの効果が正しく引ける', () {
+    test('アイテムはコイン2倍の1つだけ', () {
       expect(luckyCharmById('koban').effect, CharmEffect.coinBoost);
-      expect(luckyCharmById('shield').effect, CharmEffect.oneMistakeShield);
-      expect(luckyCharmById('compass').effect, CharmEffect.fewerChoices);
       // 未知のIDは「なし」に落ちる
       expect(luckyCharmById('unknown').effect, CharmEffect.none);
+      // 廃止したお守りは、装備していても効果を持たない
+      expect(luckyCharmById('shield').effect, CharmEffect.none);
+      expect(luckyCharmById('compass').effect, CharmEffect.none);
+      expect(kLuckyCharms.length, 2); // なし＋招福こばん
     });
 
-    test('ほめボイスと名刺スキンのカタログが引ける', () {
+    test('ほめボイスのカタログが引ける', () {
       expect(praiseVoiceById('butler').linesJa, isNotEmpty);
       expect(praiseVoiceById('none').linesJa, isEmpty);
-      expect(cardSkinById('gold').cost, greaterThan(0));
-      expect(cardSkinById('plain').cost, 0);
-      expect(cardSkinById('unknown').id, 'plain'); // 未知IDは既定へ
+      // 🙏 いろいろな立場のほめ方
+      expect(praiseVoiceById('miko').linesJa, isNotEmpty);
+      expect(praiseVoiceById('pastor').linesJa, isNotEmpty);
+      expect(praiseVoiceById('imam').linesJa, isNotEmpty);
     });
   });
 }

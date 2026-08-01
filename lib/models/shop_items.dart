@@ -175,23 +175,8 @@ enum CharmEffect {
   /// 効果なし（未装備）
   none,
 
-  /// ビジネス特訓の「であう」で、出会った場所のヒントが思い出すときにも濃く出る
-  extraHint,
-
-  /// 獲得コインが+20%
+  /// もらえるコインが2倍になる
   coinBoost,
-
-  /// クイズの選択肢を4→3に減らす（当てやすくなる）
-  fewerChoices,
-
-  /// 1ゲームに1回だけ、まちがえても没収されない（お守りが守ってくれる）
-  oneMistakeShield,
-
-  /// なまえコールの制限時間が5秒のびる（あせらず思い出せる）
-  timeBonus,
-
-  /// 無料コインギフトの待ち時間が半分になる
-  fastGift,
 }
 
 class LuckyCharm {
@@ -227,19 +212,13 @@ const List<LuckyCharm> kLuckyCharms = [
     emoji: '➖',
     cost: 0,
     effect: CharmEffect.none,
-    descJa: 'お守りなしで挑みます。',
-    descEn: 'Play without a charm.',
+    descJa: 'アイテムなしで挑みます。',
+    descEn: 'Play without an item.',
   ),
-  LuckyCharm(
-    id: 'memo',
-    nameJa: '思い出しのお守り',
-    nameEn: 'Charm of Recall',
-    emoji: '🍀',
-    cost: 260,
-    effect: CharmEffect.extraHint,
-    descJa: '思い出すときのヒントが、はっきり表示されるようになります。',
-    descEn: 'Hints during recall are shown more clearly.',
-  ),
+  // 🗑 ヒント強調・選択肢を減らす・誤答を1回救済・持ち時間+5秒・ギフト短縮は廃止。
+  //    種類が多いわりに効いているのか分からず、ゲームの難しさもぼやけていた。
+  //    残すのは「コインが2倍になる」1つだけ。効果がはっきりしていて、
+  //    何のために買うのかが一目で分かる。
   LuckyCharm(
     id: 'koban',
     nameJa: '招福こばん',
@@ -247,143 +226,16 @@ const List<LuckyCharm> kLuckyCharms = [
     emoji: '🪙',
     cost: 380,
     effect: CharmEffect.coinBoost,
-    descJa: '手に入るコインが20%増えます。',
-    descEn: 'Earn 20% more coins.',
-  ),
-  LuckyCharm(
-    id: 'compass',
-    nameJa: '絞りこみコンパス',
-    nameEn: 'Narrowing Compass',
-    emoji: '🧭',
-    cost: 440,
-    effect: CharmEffect.fewerChoices,
-    descJa: 'クイズの選択肢が1つ減って、当てやすくなります。',
-    descEn: 'One wrong option is removed from each quiz.',
-  ),
-  LuckyCharm(
-    id: 'shield',
-    nameJa: 'まちがえ守り',
-    nameEn: 'Mistake Shield',
-    emoji: '🛡️',
-    cost: 520,
-    effect: CharmEffect.oneMistakeShield,
-    descJa: '1ゲームに1回だけ、まちがえても正解あつかいになります。',
-    descEn: 'Once per game, a wrong answer counts as correct.',
-  ),
-  LuckyCharm(
-    id: 'hourglass',
-    nameJa: 'ゆとりの砂時計',
-    nameEn: 'Hourglass of Ease',
-    emoji: '⏳',
-    cost: 300,
-    effect: CharmEffect.timeBonus,
-    descJa: 'なまえコールの制限時間が5秒のびて、あせらず思い出せます。',
-    descEn: 'Name Call gives you 5 more seconds to answer.',
-  ),
-  LuckyCharm(
-    id: 'bell',
-    nameJa: 'ふくびきの鈴',
-    nameEn: 'Fortune Bell',
-    emoji: '🔔',
-    cost: 340,
-    effect: CharmEffect.fastGift,
-    descJa: '無料コインギフトの待ち時間が半分になります。',
-    descEn: 'Halves the wait for the free coin gift.',
+    descJa: '手に入るコインが2倍になります。',
+    descEn: 'Doubles the coins you earn.',
   ),
 ];
+
 
 LuckyCharm luckyCharmById(String id) => kLuckyCharms.firstWhere(
       (c) => c.id == id,
       orElse: () => kLuckyCharms.first,
     );
 
-/// 💳 名刺スキン。ビジネス特訓で差し出される名刺の見た目が変わる。
-class CardSkin {
-  final String id;
-  final String nameJa;
-  final String nameEn;
-  final String emoji;
-  final int cost;
-  /// 名刺の地の色（グラデーションの2色）と、文字・アクセントの色。
-  final int bgTop;
-  final int bgBottom;
-  final int accent;
-  final int textColor;
-
-  const CardSkin({
-    required this.id,
-    required this.nameJa,
-    required this.nameEn,
-    required this.emoji,
-    required this.cost,
-    required this.bgTop,
-    required this.bgBottom,
-    required this.accent,
-    required this.textColor,
-  });
-
-  String name(bool ja) => ja ? nameJa : nameEn;
-}
-
-const List<CardSkin> kCardSkins = [
-  CardSkin(
-    id: 'plain',
-    nameJa: 'スタンダード',
-    nameEn: 'Standard',
-    emoji: '🪪',
-    cost: 0,
-    bgTop: 0xFFFFFFFF,
-    bgBottom: 0xFFF3F8FF,
-    accent: 0xFF3A7BD5,
-    textColor: 0xFF223A5E,
-  ),
-  CardSkin(
-    id: 'gold',
-    nameJa: 'ゴールド',
-    nameEn: 'Gold',
-    emoji: '🥇',
-    cost: 420,
-    bgTop: 0xFFFFF6DC,
-    bgBottom: 0xFFFFE7B0,
-    accent: 0xFFB5810E,
-    textColor: 0xFF6B4A00,
-  ),
-  CardSkin(
-    id: 'midnight',
-    nameJa: 'ミッドナイト',
-    nameEn: 'Midnight',
-    emoji: '🌃',
-    cost: 460,
-    bgTop: 0xFF2B2D64,
-    bgBottom: 0xFF1B1B3A,
-    accent: 0xFF8C7BFF,
-    textColor: 0xFFFFFFFF,
-  ),
-  CardSkin(
-    id: 'sakura',
-    nameJa: 'サクラ',
-    nameEn: 'Sakura',
-    emoji: '🌸',
-    cost: 380,
-    bgTop: 0xFFFFF5F7,
-    bgBottom: 0xFFFFE3EE,
-    accent: 0xFFE0447C,
-    textColor: 0xFF7A2846,
-  ),
-  CardSkin(
-    id: 'mint',
-    nameJa: 'ミント',
-    nameEn: 'Mint',
-    emoji: '🌿',
-    cost: 380,
-    bgTop: 0xFFF0FFF8,
-    bgBottom: 0xFFD6F5E6,
-    accent: 0xFF1E9C8E,
-    textColor: 0xFF12513F,
-  ),
-];
-
-CardSkin cardSkinById(String id) => kCardSkins.firstWhere(
-      (s) => s.id == id,
-      orElse: () => kCardSkins.first,
-    );
+// 🗑 名刺スキン（CardSkin）は廃止した。名刺の配色が変わるだけで、
+//    覚える練習には効かず、ショップの項目数だけを増やしていた。

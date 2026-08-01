@@ -13,7 +13,6 @@ import '../models/character_catalog.dart';
 import '../models/cpu_difficulty.dart';
 import '../models/person.dart';
 import '../models/surnames.dart';
-import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
@@ -170,11 +169,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
   // ⏳「ゆとりの砂時計」を装備していると持ち時間が5秒のびる
   /// 1問の持ち時間。CPU対戦は難易度で変わる（むずかしいほど短い）。
   int get _answerSeconds =>
-      (_isCpu ? _diff.answerSeconds : NameCallGame.answerSeconds) +
-      (luckyCharmById(PlayerProfile.instance.selectedCharm).effect ==
-              CharmEffect.timeBonus
-          ? 5
-          : 0);
+      _isCpu ? _diff.answerSeconds : NameCallGame.answerSeconds;
   int _timeLeft = NameCallGame.answerSeconds;
 
   // 記録

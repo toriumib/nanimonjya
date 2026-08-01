@@ -97,8 +97,6 @@ class PlayerProfile extends ChangeNotifier {
   String selectedVoice = 'none';
   Set<String> unlockedCharms = {'none'}; // お守り（1つだけ装備）
   String selectedCharm = 'none';
-  Set<String> unlockedSkins = {'plain'}; // 名刺スキン
-  String selectedSkin = 'plain';
 
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
@@ -186,10 +184,6 @@ class PlayerProfile extends ChangeNotifier {
     unlockedCharms.add('none');
     selectedCharm = p.getString('selectedCharm') ?? 'none';
     if (!unlockedCharms.contains(selectedCharm)) selectedCharm = 'none';
-    unlockedSkins = (p.getStringList('unlockedSkins') ?? ['plain']).toSet();
-    unlockedSkins.add('plain');
-    selectedSkin = p.getString('selectedSkin') ?? 'plain';
-    if (!unlockedSkins.contains(selectedSkin)) selectedSkin = 'plain';
     missionDate = p.getString('missionDate') ?? '';
     missionPlays = p.getInt('missionPlays') ?? 0;
     missionCoinsEarned = p.getInt('missionCoinsEarned') ?? 0;
@@ -470,11 +464,7 @@ class PlayerProfile extends ChangeNotifier {
   static const int giftCooldownMinutes = 0;
   int _lastGiftMillis = 0;
 
-  /// 実際の待ち時間。「ふくびきの鈴」を装備していると半分になる。
-  int get effectiveGiftCooldownMinutes =>
-      luckyCharmById(selectedCharm).effect == CharmEffect.fastGift
-          ? (giftCooldownMinutes / 2).ceil()
-          : giftCooldownMinutes;
+  int get effectiveGiftCooldownMinutes => giftCooldownMinutes;
 
   bool get canClaimGift {
     if (giftCooldownMinutes == 0) return true;
@@ -525,13 +515,12 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// 獲得コインにかかる倍率。
-  /// 覚醒（1回につき+5%、上限なし）＋「招福こばん」のお守り（+20%）。
+  /// 覚醒（1回につき+5%、上限なし）＋「招福こばん」を装備していると2倍。
   double get coinMultiplier {
-    var m = 1.0 + awakenings * 0.05;
-    if (luckyCharmById(selectedCharm).effect == CharmEffect.coinBoost) {
-      m += 0.20;
-    }
-    return m;
+    final m = 1.0 + awakenings * 0.05;
+    return luckyCharmById(selectedCharm).effect == CharmEffect.coinBoost
+        ? m * 2
+        : m;
   }
 
   // ---- 🛍 ショップ拡張アイテム ----
@@ -558,16 +547,6 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 名刺スキンを購入。
-  Future<bool> unlockSkin(String id, int cost) =>
-      _buyInto(unlockedSkins, id, cost);
-
-  Future<void> selectSkin(String id) async {
-    if (!unlockedSkins.contains(id)) return;
-    selectedSkin = id;
-    await _persist();
-    notifyListeners();
-  }
 
 
   /// 💳 広告除去の購入状態を反映する（購入時・復元時に呼ばれる）。
@@ -969,8 +948,6 @@ class PlayerProfile extends ChangeNotifier {
     await p.setString('selectedVoice', selectedVoice);
     await p.setStringList('unlockedCharms', unlockedCharms.toList());
     await p.setString('selectedCharm', selectedCharm);
-    await p.setStringList('unlockedSkins', unlockedSkins.toList());
-    await p.setString('selectedSkin', selectedSkin);
     await p.setString('missionDate', missionDate);
     await p.setInt('missionPlays', missionPlays);
     await p.setInt('missionCoinsEarned', missionCoinsEarned);

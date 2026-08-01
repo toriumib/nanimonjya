@@ -9,7 +9,6 @@ import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
-import '../models/shop_items.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
@@ -85,17 +84,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   DateTime _questionShownAt = DateTime.now();
   int _totalReactionMs = 0;
   int _coinsEarned = 0;
-  bool _shieldUsed = false; // 🛡️まちがえ守りを今ゲームで使ったか
 
   // 🔁 弱点の即時復習: まちがえた問題を溜めて、本編のあとにもう1周する
   final List<_Question> _reviewQueue = [];
   bool _inReview = false; // 復習ラウンド中か（スコアには加算しない）
   int _reviewRecovered = 0; // 復習で思い出せた数（結果に表示）
   int _mainTotal = 0; // 本編の出題数（復習で_questionsが差し替わるため別に保持）
-
-  /// 装備中のお守り（ゲーム開始時に固定して、途中で変わらないようにする）
-  late final LuckyCharm _charm =
-      luckyCharmById(PlayerProfile.instance.selectedCharm);
 
   int get _peopleCount {
     switch (widget.level) {
@@ -207,10 +201,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
         if (!identical(p, _q.person)) recallFieldValue(p, _q.field),
     }..removeWhere((v) => v.trim().isEmpty || v == answer);
     final pool = others.toList()..shuffle(_rng);
-    // 🧭「絞りこみコンパス」のお守りを装備していると、まちがいの選択肢が1つ減る
-    final wrongCount =
-        _charm.effect == CharmEffect.fewerChoices ? 2 : 3;
-    _choices = [answer, ...pool.take(wrongCount)]..shuffle(_rng);
+    _choices = [answer, ...pool.take(3)]..shuffle(_rng);
     _answered = false;
     _picked = null;
     _questionShownAt = DateTime.now();
@@ -221,15 +212,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     final reactionMs =
         DateTime.now().difference(_questionShownAt).inMilliseconds;
     _totalReactionMs += reactionMs;
-    var correct = choice == _answerText;
-    // 🛡️「まちがえ守り」は1ゲーム1回だけ、まちがいを正解あつかいにする
-    if (!correct &&
-        _charm.effect == CharmEffect.oneMistakeShield &&
-        !_shieldUsed) {
-      _shieldUsed = true;
-      correct = true;
-      _shieldJustUsed = true;
-    }
+    final correct = choice == _answerText;
     // 📊 成績レポート用。項目ごと（名前・会社名…）に別の記憶として数える。
     MemoryStats.instance.record(
       mode: StatMode.businessCard,
@@ -265,12 +248,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       _picked = choice;
     });
     Future.delayed(const Duration(milliseconds: 950), () {
-      _shieldJustUsed = false;
       _recallNext();
     });
   }
 
-  bool _shieldJustUsed = false; // 直前の1問がお守りで救われたか（表示用）
 
   Future<void> _recallNext() async {
     // 回答直後に「戻る」で離脱した場合、破棄済みStateへのsetStateになるのでガードする
@@ -514,8 +495,6 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   // 差し出される名刺。少し傾けて手渡し感を出す。
   // アップロードした実物の名刺があればそれを表示、なければ項目からレイアウト。
   Widget _businessCard(Person p, MetaStrings m) {
-    // 💳 購入した名刺スキンの配色を反映
-    final skin = cardSkinById(PlayerProfile.instance.selectedSkin);
     return Transform.rotate(
       angle: -0.04,
       child: Container(
@@ -524,10 +503,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(skin.bgTop), Color(skin.bgBottom)],
+            colors: [Color(0xFFFFFFFF), Color(0xFFEFF4FB)],
           ),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Color(skin.accent).withValues(alpha: 0.45), width: 1.5),
+          border: Border.all(
+              color: const Color(0xFF2B5CA5).withValues(alpha: 0.45),
+              width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.16),
@@ -561,11 +542,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   }
 
   // 項目から名刺レイアウトを組む（会社名・氏名・肩書・電話・メール）。
-  // 色は購入した名刺スキンに合わせる。
   Widget _cardFields(Person p, MetaStrings m) {
-    final skin = cardSkinById(PlayerProfile.instance.selectedSkin);
-    final accent = Color(skin.accent);
-    final text = Color(skin.textColor);
+    const accent = Color(0xFF2B5CA5);
+    const text = Color(0xFF1A1A1A);
     final sub = text.withValues(alpha: 0.65);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +593,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
             ],
           ),
         ),
-        Text(skin.emoji, style: const TextStyle(fontSize: 28)),
+        const Text('💳', style: TextStyle(fontSize: 28)),
       ],
     );
   }
@@ -732,23 +711,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF2B5CA5))),
-          // 🍀「思い出しのお守り」を装備しているとヒントがはっきり出る
           if (p.where.isNotEmpty)
             Text('💡 ${m.hintMetAt(p.where)}',
                 textAlign: TextAlign.center,
-                style: _charm.effect == CharmEffect.extraHint
-                    ? const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1E9C8E))
-                    : const TextStyle(fontSize: 12, color: Colors.black45)),
-          if (_shieldJustUsed)
-            Text(m.charmSaved,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF2E9E52))),
+                style: const TextStyle(fontSize: 12, color: Colors.black45)),
           const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
@@ -915,7 +881,6 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       _correct = 0;
                       _totalReactionMs = 0;
                       _coinsEarned = 0;
-                      _shieldUsed = false; // お守りの回数も再挑戦でリセット
                     });
                     _announceMeet();
                   },

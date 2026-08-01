@@ -3,10 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
@@ -16,6 +16,7 @@ import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/dog_squad.dart';
+import '../widgets/face_view.dart';
 import 'local_result_screen.dart';
 import 'match_result_screen.dart';
 import 'online_result_screen.dart';
@@ -125,7 +126,25 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     super.initState();
     _startedAt = DateTime.now();
     final ja = PlatformDispatcherLocale.isJa;
-    _people = generatePeople(_pairCount, ja: ja, random: _rng);
+    // 🖼 顔はフリー素材の実写にする（SVGのイラスト顔だと、実生活で
+    //    人の顔を覚える練習にならないため）。
+    //    オンラインは両者の盤面が一致しないと成立しないので、
+    //    購入キャラやデッキ編集を混ぜず、誰でも持っている基本の顔だけを使う。
+    _people = generatePeople(
+      _pairCount,
+      ja: ja,
+      random: _rng,
+      charAssets: _isOnline
+          ? kCharImageAssets
+          : applyDeckFilter(
+              [
+                ...kCharImageAssets,
+                ...unlockedExtraAssets(
+                    PlayerProfile.instance.unlockedCharacters),
+              ],
+              PlayerProfile.instance.deckExcluded,
+            ),
+    );
     _cards = [
       for (final p in _people) ...[_CardData(p, true), _CardData(p, false)],
     ]..shuffle(_rng);
@@ -639,7 +658,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
                   ),
                   child: Row(
                     children: [
-                      SvgPicture.asset(p.faceAsset, width: 44, height: 44),
+                      FaceView(person: p, size: 44, radius: 8),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -941,7 +960,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           ? (card.isFace
               ? Padding(
                   padding: const EdgeInsets.all(6),
-                  child: SvgPicture.asset(card.person.faceAsset),
+                  child: FaceView(
+                      person: card.person, size: double.infinity, radius: 8),
                 )
               : Center(
                   child: Padding(
@@ -975,7 +995,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),
-          SvgPicture.asset(target.faceAsset, width: 110, height: 110),
+          FaceView(person: target, size: 110, radius: 14),
           const SizedBox(height: 8),
           Text(
             m.hobbyQuizQuestion(target.name),

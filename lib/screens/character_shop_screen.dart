@@ -262,10 +262,6 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     for (final c in kLuckyCharms)
                       _charmRow(m, p, c),
                     const SizedBox(height: 20),
-                    // 💳 名刺のデザイン
-                    _sectionHeader(m.shopSkinsTitle, m.shopSkinsDesc),
-                    _skinRow(m, p),
-                    const SizedBox(height: 20),
                     // 🎨 着せ替えテーマ（アプリ全体の色あいが変わる）
                     _sectionHeader(m.shopThemesTitle, m.shopThemesDesc),
                     for (final t in kHomeThemes) _themeRow(m, p, t),
@@ -511,29 +507,6 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
-  Widget _skinRow(MetaStrings m, PlayerProfile p) {
-    return Column(
-      children: [
-        for (final s in kCardSkins)
-          _itemRow(
-            emoji: s.emoji,
-            name: s.name(m.ja),
-            cost: s.cost,
-            owned: p.unlockedSkins.contains(s.id),
-            equipped: p.selectedSkin == s.id,
-            tint: Color(s.bgBottom).withValues(alpha: 0.55),
-            onBuy: () => _buyGeneric(() => p.unlockSkin(s.id, s.cost), s.cost,
-                () => p.selectSkin(s.id)),
-            onEquip: () {
-              Sfx.instance.pop();
-              p.selectSkin(s.id);
-            },
-          ),
-      ],
-    );
-  }
-
-  /// 着せ替えテーマ。買うとホームだけでなくアプリ全体の地の色が変わる。
   Widget _themeRow(MetaStrings m, PlayerProfile p, HomeTheme t) {
     return _itemRow(
       emoji: t.emoji,

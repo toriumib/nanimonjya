@@ -1167,6 +1167,8 @@ This tab is where you get stronger on your own.
   String get tabRead => ja ? 'よみもの' : 'Read';
   // 📖 ルールブック（いつでも見直せるルール一覧）
   String get rulebookTitle => ja ? '📖 ルールブック' : '📖 Rulebook';
+  /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。
+  String get rulebookShort => ja ? 'ルール' : 'Rules';
   String get rulebookRead => ja ? '読み上げる' : 'Read aloud';
   String get rulebookLead => ja
       ? 'あそび方をわすれたら、ここを見てね。ゲーム中でも 📖 ボタンから開けます。'

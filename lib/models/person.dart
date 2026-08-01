@@ -119,12 +119,26 @@ const List<String> _hobbyPoolEn = [
   'Photography', 'Hiking', 'Gaming', 'Movies', 'Gardening', 'Running',
 ];
 
-/// ゲーム1回分の人物リストを生成する（SVG顔。ペアさがし用）。
+/// ゲーム1回分の人物リストを生成する（ペアさがし・記憶術トレーニング用）。
 /// 顔・名前・趣味それぞれをシャッフルして組み合わせるので、毎回別人になる。
-List<Person> generatePeople(int count, {required bool ja, Random? random}) {
+///
+/// [charAssets] を渡すとフリー素材の実写顔を使う（既定）。
+/// 渡さなければ自前生成のSVG顔になる。
+///
+/// ⚠️ オンライン対戦では**両者に同じ顔ぶれ**が出る必要がある。
+/// 購入済みキャラを混ぜたプールを渡すと端末ごとに盤面が変わってしまうので、
+/// オンラインでは誰でも持っている [kCharImageAssets] をそのまま渡すこと。
+List<Person> generatePeople(
+  int count, {
+  required bool ja,
+  Random? random,
+  List<String>? charAssets,
+}) {
   final rng = random ?? Random();
-  assert(count <= kFaceAssets.length);
-  final faces = [...kFaceAssets]..shuffle(rng);
+  final useReal = charAssets == null || charAssets.length >= count;
+  final pool = useReal ? (charAssets ?? kCharImageAssets) : kFaceAssets;
+  assert(count <= pool.length);
+  final faces = [...pool]..shuffle(rng);
   final namePool = ja ? _namePoolJa : _namePoolEn;
   final names = [...namePool]..shuffle(rng);
   final hobbyPool = ja ? _hobbyPoolJa : _hobbyPoolEn;
@@ -132,7 +146,7 @@ List<Person> generatePeople(int count, {required bool ja, Random? random}) {
   return List.generate(count, (i) {
     return Person(
       face: faces[i],
-      kind: FaceKind.svg,
+      kind: useReal ? FaceKind.asset : FaceKind.svg,
       name: ja ? '${names[i]}さん' : names[i],
       hobby: hobbies[i % hobbies.length],
     );

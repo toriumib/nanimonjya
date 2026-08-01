@@ -50,7 +50,8 @@ void main() {
       expect(people.map((p) => p.name).toSet(), hasLength(8));
       for (final p in people) {
         expect(p.name, endsWith('さん'));
-        expect(p.faceAsset, startsWith('assets/images/faces/'));
+        // 顔はフリー素材の実写になった（SVGのイラスト顔から変更）
+        expect(p.faceAsset, startsWith('assets/images/'));
       }
     });
 

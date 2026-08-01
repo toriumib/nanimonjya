@@ -75,8 +75,11 @@ class RulebookScreen extends StatelessWidget {
 /// ルールブックで扱うモード。
 enum RuleTopic { nameCall, cpu, lineMatch, cardMemory, pairs }
 
-/// 📖 どこからでも押せる丸いルールボタン。
+/// 📖 どこからでも押せるルールボタン。
 /// ゲーム中のAppBarにも置けるよう小さめにしてある。
+///
+/// ⚠️ 以前は本のアイコンだけの丸ボタンだった。何のボタンか分からず、
+/// ゲーム中にルールを見直したい人が気づけなかったので「ルール」の文字を添える。
 class RulebookButton extends StatelessWidget {
   final RuleTopic? focus;
   /// AppBar に置くときは白抜きにする
@@ -90,19 +93,32 @@ class RulebookButton extends StatelessWidget {
       message: m.rulebookTitle,
       child: Material(
         color: onDark ? Colors.white24 : const Color(0xFF3A7BD5),
-        shape: const CircleBorder(),
+        shape: const StadiumBorder(),
         child: InkWell(
-          customBorder: const CircleBorder(),
+          customBorder: const StadiumBorder(),
           onTap: () {
             Sfx.instance.pop();
             Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => RulebookScreen(focus: focus)));
           },
-          child: const SizedBox(
-            width: 40,
-            height: 40,
-            child: Icon(Icons.menu_book_rounded,
-                color: Colors.white, size: 22),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.menu_book_rounded,
+                    color: Colors.white, size: 20),
+                const SizedBox(width: 5),
+                Text(
+                  m.rulebookShort,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
