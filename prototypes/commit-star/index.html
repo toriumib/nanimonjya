@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMMIT STAR — 時渡りの遺跡</title>
+<meta name="description" content="Gitの仕組みを冒険で学ぶ、近未来SF知育ゲームのプロトタイプ">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="boot" class="boot">
+  <div class="boot-inner">
+    <div class="logo">
+      <span class="logo-sub">TIME-DIVE ARCHIVE</span>
+      <h1>COMMIT<span class="star">★</span>STAR</h1>
+      <p class="tag">歴史を記録する者だけが、財宝にたどりつく。</p>
+    </div>
+    <button id="bootStart" class="btn-primary">ダイブ開始</button>
+    <p class="boot-note">Gitの仕組みを学ぶ知育ゲーム・プロトタイプ / 本物のgitは動きません（内部モデルの再現です）</p>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand">COMMIT<span class="star">★</span>STAR</div>
+  <div class="stagebar">
+    <span class="chapter" id="chapterNo">CH.0</span>
+    <span class="stagename" id="stageName">—</span>
+  </div>
+  <div class="counters">
+    <span class="coin" title="回収した財宝"><b id="treasureCount">0</b> ✦</span>
+    <button id="btnRestart" class="btn-ghost" title="この章を最初から">↺ やりなおし</button>
+    <button id="btnMap" class="btn-ghost" title="章セレクト">☰ 章</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- 左: 状態パネル -->
+  <section class="panel state">
+    <h2 class="panel-title">現在地 <span class="dim">/ HEAD</span></h2>
+    <div id="headBox" class="headbox"></div>
+
+    <h2 class="panel-title">作業ツリー <span class="dim">/ working tree</span></h2>
+    <div id="workBox" class="itemlist"></div>
+
+    <h2 class="panel-title">転送ゲートの荷台 <span class="dim">/ staging</span></h2>
+    <div id="indexBox" class="itemlist"></div>
+
+    <div id="conflictBox" class="conflict hidden"></div>
+  </section>
+
+  <!-- 中央: グラフ -->
+  <section class="panel graph">
+    <h2 class="panel-title">時空記録グラフ <span class="dim">/ commit graph</span></h2>
+    <div class="graph-scroll"><svg id="graph" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  </section>
+
+  <!-- 右: ミッション -->
+  <section class="panel mission">
+    <h2 class="panel-title">ミッション</h2>
+    <div id="missionBox" class="missionbox"></div>
+    <div class="partner">
+      <div class="avatar" id="avatar">◈</div>
+      <div class="bubble" id="bubble">…</div>
+    </div>
+    <button id="btnHint" class="btn-ghost wide">💡 ヒントをもらう</button>
+  </section>
+
+  <!-- 下: ターミナル -->
+  <section class="panel console">
+    <div id="term" class="term"></div>
+    <div class="cards" id="cards"></div>
+    <form id="cmdForm" class="cmdline" autocomplete="off">
+      <span class="prompt">▸</span>
+      <input id="cmdInput" type="text" spellcheck="false" placeholder="コマンドを入力（例: commit -m &quot;はじまりの記録&quot;）">
+      <button class="btn-primary" type="submit">実行</button>
+    </form>
+  </section>
+</main>
+
+<div id="clearOverlay" class="overlay hidden">
+  <div class="clear-card">
+    <div class="clear-title">CHAPTER CLEAR</div>
+    <div class="clear-sub" id="clearSub"></div>
+    <div class="clear-loot" id="clearLoot"></div>
+    <button id="btnNext" class="btn-primary">次の章へ</button>
+  </div>
+</div>
+
+<div id="mapOverlay" class="overlay hidden">
+  <div class="map-card">
+    <div class="clear-title">章セレクト</div>
+    <div id="mapList" class="maplist"></div>
+    <button id="btnMapClose" class="btn-ghost">閉じる</button>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="stages.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
