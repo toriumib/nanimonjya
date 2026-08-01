@@ -817,7 +817,11 @@ This tab is where you get stronger on your own.
   String get customTitle => ja ? '📸 自分の名簿' : '📸 My Roster';
   String get customDesc => ja
       ? '職場や学校の人の写真と名前を登録して、覚える練習や対戦ができるよ。'
-      : 'Add photos & names of people you meet, then study or play with them.';
+          '名刺の項目や誕生日・出身・自分との関係・SNS・自由メモも残せます。'
+          '登録した人をタップすると、あとから見返したり書き足したりできます。'
+      : 'Add photos & names of people you meet, then study or play with them. '
+          'You can also keep company, birthday, hometown, socials and free notes. '
+          'Tap a person to view or edit later.';
   String get customMobileOnly => ja
       ? '写真のアップロードはスマホアプリ版でご利用いただけます。'
       : 'Photo upload is available on the mobile app.';

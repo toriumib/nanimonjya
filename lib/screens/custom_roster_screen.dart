@@ -35,21 +35,20 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   }
 
   Future<void> _addPhoto(ImageSource source) async {
-    final m = MetaStrings.of(context);
     try {
       final picked =
           await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 80);
       if (picked == null || !mounted) return;
-      final details = await _askDetails(m);
-      if (details == null || details.name.trim().isEmpty) return;
+      final result = await Navigator.push<_FormResult>(
+        context,
+        MaterialPageRoute(
+            builder: (_) => const _EntryFormScreen(facePath: null)),
+      );
+      if (result == null || result.entry.name.trim().isEmpty) return;
       await CustomRosterService.instance.add(
         sourcePath: picked.path,
-        name: details.name.trim(),
-        company: details.company.trim(),
-        title: details.title.trim(),
-        phone: details.phone.trim(),
-        email: details.email.trim(),
-        cardSourcePath: details.cardPath,
+        draft: result.entry,
+        cardSourcePath: result.cardPath,
       );
       Sfx.instance.coin();
     } catch (e) {
@@ -60,163 +59,25 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     }
   }
 
-  /// 名前（必須）＋会社/肩書/電話/メール（任意）＋名刺画像（任意）を入力するフォーム。
-  Future<_CardDetails?> _askDetails(MetaStrings m) async {
-    final nameC = TextEditingController();
-    final companyC = TextEditingController();
-    final titleC = TextEditingController();
-    final phoneC = TextEditingController();
-    final emailC = TextEditingController();
-    final controllers = [nameC, companyC, titleC, phoneC, emailC];
-    String? cardPath;
-    // 📇 OCRの状態（読み取り中／自動入力できた／読めなかった）
-    bool ocrBusy = false;
-    bool ocrDone = false;
-    bool ocrFailed = false;
-
-    Widget field(TextEditingController c, String label,
-        {TextInputType? keyboard, int? maxLen}) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: TextField(
-          controller: c,
-          keyboardType: keyboard,
-          maxLength: maxLen,
-          decoration: InputDecoration(
-            labelText: label,
-            isDense: true,
-            counterText: '',
-          ),
-        ),
-      );
-    }
-
-    final result = await showDialog<_CardDetails>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setSt) => AlertDialog(
-          title: Text(m.customDetailsTitle),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                field(nameC, m.customNameField, maxLen: 12),
-                field(companyC, m.customCompanyField, maxLen: 24),
-                field(titleC, m.customTitleField, maxLen: 24),
-                field(phoneC, m.customPhoneField,
-                    keyboard: TextInputType.phone, maxLen: 20),
-                field(emailC, m.customEmailField,
-                    keyboard: TextInputType.emailAddress, maxLen: 40),
-                const SizedBox(height: 4),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.badge_outlined, size: 18),
-                  label: Text(
-                    cardPath == null
-                        ? m.customPickCardImage
-                        : m.customCardSelected,
-                    style: const TextStyle(fontSize: 12.5),
-                  ),
-                  onPressed: () async {
-                    final c = await _picker.pickImage(
-                        source: ImageSource.gallery,
-                        // OCRにかけるので、解像度は落としすぎない
-                        maxWidth: 1600,
-                        imageQuality: 92);
-                    if (c == null) return;
-                    setSt(() {
-                      cardPath = c.path;
-                      ocrBusy = CardOcrService.available;
-                    });
-                    if (!CardOcrService.available) return;
-                    // 📇 名刺を読み取って空欄だけ自動で埋める。
-                    // 端末内で処理されるので、名刺の内容は外部に送られない。
-                    final r = await CardOcrService.instance.scan(c.path);
-                    if (!mounted) return;
-                    setSt(() {
-                      ocrBusy = false;
-                      // すでに手で入れた項目は上書きしない
-                      if (nameC.text.isEmpty) nameC.text = r.name;
-                      if (companyC.text.isEmpty) companyC.text = r.company;
-                      if (titleC.text.isEmpty) titleC.text = r.title;
-                      if (phoneC.text.isEmpty) phoneC.text = r.phone;
-                      if (emailC.text.isEmpty) emailC.text = r.email;
-                      ocrDone = !r.isEmpty;
-                      ocrFailed = r.isEmpty;
-                    });
-                  },
-                ),
-                // OCRの状態表示（読み取り中／自動入力した／読めなかった）
-                if (ocrBusy)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2)),
-                        const SizedBox(width: 8),
-                        Text(m.ocrReading,
-                            style: const TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  )
-                else if (ocrDone)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(m.ocrFilled,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Color(0xFF1E7BA6))),
-                  )
-                else if (ocrFailed)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(m.ocrFailed,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black54)),
-                  ),
-                if (cardPath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(File(cardPath!),
-                          height: 90, fit: BoxFit.cover),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(m.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(
-                dialogContext,
-                _CardDetails(
-                  name: nameC.text,
-                  company: companyC.text,
-                  title: titleC.text,
-                  phone: phoneC.text,
-                  email: emailC.text,
-                  cardPath: cardPath,
-                ),
-              ),
-              child: Text(m.customSave),
-            ),
-          ],
-        ),
+  /// 登録済みの人を開いて、項目を見る／直す。
+  Future<void> _openEntry(CustomEntry e) async {
+    final result = await Navigator.push<_FormResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _EntryFormScreen(initial: e, facePath: e.imagePath),
       ),
     );
-    for (final c in controllers) {
-      c.dispose(); // ダイアログを閉じたら破棄（開くたびに増えるのを防ぐ）
+    if (result == null) return;
+    if (result.deleted) {
+      await CustomRosterService.instance.remove(e.id);
+      return;
     }
-    return result;
+    if (result.entry.name.trim().isEmpty) return;
+    await CustomRosterService.instance.update(
+      result.entry,
+      newCardSourcePath: result.cardPath,
+    );
+    Sfx.instance.pop();
   }
 
   void _showAddSheet() {
@@ -507,6 +368,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
 
   Widget _entryCard(CustomEntry e) {
     return GestureDetector(
+      onTap: () => _openEntry(e),
       onLongPress: () => _confirmDelete(e),
       child: Container(
         padding: const EdgeInsets.all(6),
@@ -534,6 +396,11 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
+            // 何項目メモしてあるかを出す。タップで開いて足せることの合図にもなる。
+            Text(
+              '📝 ${e.filledFieldsJa().length}項目',
+              style: const TextStyle(fontSize: 9, color: Colors.black38),
+            ),
           ],
         ),
       ),
@@ -541,20 +408,339 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   }
 }
 
-/// 名刺の入力フォームの結果。
-class _CardDetails {
-  final String name;
-  final String company;
-  final String title;
-  final String phone;
-  final String email;
-  final String? cardPath;
-  const _CardDetails({
-    required this.name,
-    required this.company,
-    required this.title,
-    required this.phone,
-    required this.email,
-    required this.cardPath,
-  });
+
+/// フォームの結果。[deleted] が true なら「この人を削除」を選んだということ。
+class _FormResult {
+  final CustomEntry entry;
+  final String? cardPath; // 新しく選んだ名刺画像（変更していなければ null）
+  final bool deleted;
+  const _FormResult({required this.entry, this.cardPath, this.deleted = false});
+}
+
+/// 📇 人物1人の入力フォーム（新規登録／編集の共用）。
+///
+/// 項目が18個あるのでダイアログには入りきらない。1画面にして、
+/// 「基本 / 仕事 / プロフィール / 連絡先 / メモ」に分けて折りたたむ。
+/// 全部埋める必要はなく、**名前だけで登録できる**（他は任意）。
+class _EntryFormScreen extends StatefulWidget {
+  final CustomEntry? initial;
+  final String? facePath; // 顔写真のプレビュー（新規のときは null）
+  const _EntryFormScreen({this.initial, required this.facePath});
+
+  @override
+  State<_EntryFormScreen> createState() => _EntryFormScreenState();
+}
+
+class _EntryFormScreenState extends State<_EntryFormScreen> {
+  final _picker = ImagePicker();
+
+  static const List<String> _keys = [
+    'name', 'reading', 'nickname', 'gender', 'birthday',
+    'company', 'title', 'occupation',
+    'origin', 'address', 'relation',
+    'phone', 'email', 'x', 'instagram', 'line', 'facebook',
+    'memo',
+  ];
+
+  late final Map<String, TextEditingController> _c = {
+    for (final k in _keys) k: TextEditingController(text: _initialValue(k)),
+  };
+
+  String? _cardPath;
+  bool _ocrBusy = false;
+  bool _ocrDone = false;
+  bool _ocrFailed = false;
+
+  String _initialValue(String key) {
+    final e = widget.initial;
+    if (e == null) return '';
+    return switch (key) {
+      'name' => e.name,
+      'reading' => e.reading,
+      'nickname' => e.nickname,
+      'gender' => e.gender,
+      'birthday' => e.birthday,
+      'company' => e.company,
+      'title' => e.title,
+      'occupation' => e.occupation,
+      'origin' => e.origin,
+      'address' => e.address,
+      'relation' => e.relation,
+      'phone' => e.phone,
+      'email' => e.email,
+      'x' => e.x,
+      'instagram' => e.instagram,
+      'line' => e.line,
+      'facebook' => e.facebook,
+      'memo' => e.memo,
+      _ => '',
+    };
+  }
+
+  @override
+  void dispose() {
+    for (final c in _c.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  String _t(String key) => _c[key]!.text.trim();
+
+  CustomEntry _build() => CustomEntry(
+        id: widget.initial?.id ?? '',
+        imagePath: widget.initial?.imagePath ?? '',
+        cardImagePath: widget.initial?.cardImagePath ?? '',
+        name: _t('name'),
+        reading: _t('reading'),
+        nickname: _t('nickname'),
+        gender: _t('gender'),
+        birthday: _t('birthday'),
+        company: _t('company'),
+        title: _t('title'),
+        occupation: _t('occupation'),
+        origin: _t('origin'),
+        address: _t('address'),
+        relation: _t('relation'),
+        phone: _t('phone'),
+        email: _t('email'),
+        x: _t('x'),
+        instagram: _t('instagram'),
+        line: _t('line'),
+        facebook: _t('facebook'),
+        memo: _t('memo'),
+      );
+
+  Future<void> _pickCard() async {
+    final c = await _picker.pickImage(
+        source: ImageSource.gallery,
+        // OCRにかけるので、解像度は落としすぎない
+        maxWidth: 1600,
+        imageQuality: 92);
+    if (c == null) return;
+    setState(() {
+      _cardPath = c.path;
+      _ocrBusy = CardOcrService.available;
+      _ocrDone = false;
+      _ocrFailed = false;
+    });
+    if (!CardOcrService.available) return;
+    // 📇 名刺を読み取って空欄だけ自動で埋める。
+    // 端末内で処理されるので、名刺の内容は外部に送られない。
+    final r = await CardOcrService.instance.scan(c.path);
+    if (!mounted) return;
+    setState(() {
+      _ocrBusy = false;
+      // すでに手で入れた項目は上書きしない
+      void fill(String key, String v) {
+        if (_c[key]!.text.isEmpty) _c[key]!.text = v;
+      }
+
+      fill('name', r.name);
+      fill('company', r.company);
+      fill('title', r.title);
+      fill('phone', r.phone);
+      fill('email', r.email);
+      _ocrDone = !r.isEmpty;
+      _ocrFailed = r.isEmpty;
+    });
+  }
+
+  Future<void> _confirmDeleteFromForm(MetaStrings m) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        content: Text(m.customDeleteConfirm(widget.initial!.name)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c, false), child: Text(m.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(m.customDelete)),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      Navigator.pop(context, _FormResult(entry: _build(), deleted: true));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = MetaStrings.of(context);
+    final isEdit = widget.initial != null;
+    final hasCard =
+        _cardPath != null || (widget.initial?.cardImagePath ?? '').isNotEmpty;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEdit ? '編集' : m.customDetailsTitle),
+        actions: [
+          if (isEdit)
+            IconButton(
+              tooltip: m.customDelete,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _confirmDeleteFromForm(m),
+            ),
+        ],
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            if (widget.facePath != null)
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.file(File(widget.facePath!),
+                      width: 110, height: 110, fit: BoxFit.cover),
+                ),
+              ),
+            const SizedBox(height: 12),
+            // 名前だけ必須。ほかは覚えるための手がかりなので、
+            // 書きたい人だけ開いて書けばいい形にしている。
+            _field('name', '名前 *', maxLen: 24),
+            _field('reading', '読み方', maxLen: 24),
+            _field('nickname', 'ニックネーム', maxLen: 24),
+            const SizedBox(height: 8),
+            _section('🏢 仕事', [
+              _field('company', '会社名', maxLen: 40),
+              _field('title', '役職', maxLen: 24),
+              _field('occupation', '職業', maxLen: 24),
+            ]),
+            _section('🧑 プロフィール', [
+              _field('gender', '性別', maxLen: 12),
+              _field('birthday', '誕生日', maxLen: 20),
+              _field('origin', '出身', maxLen: 30),
+              _field('address', '住所', maxLen: 60),
+              _field('relation', '自分との関係', maxLen: 30),
+            ]),
+            _section('📞 連絡先', [
+              _field('phone', '電話番号',
+                  keyboard: TextInputType.phone, maxLen: 20),
+              _field('email', 'メール',
+                  keyboard: TextInputType.emailAddress, maxLen: 60),
+              _field('x', 'X', maxLen: 30),
+              _field('instagram', 'Instagram', maxLen: 30),
+              _field('line', 'LINE ID', maxLen: 30),
+              _field('facebook', 'Facebook', maxLen: 40),
+            ]),
+            _section('📝 メモ', [
+              _field('memo', '自由記入メモ', maxLen: 300, lines: 4),
+            ]),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.badge_outlined, size: 18),
+              label: Text(
+                hasCard ? m.customCardSelected : m.customPickCardImage,
+                style: const TextStyle(fontSize: 12.5),
+              ),
+              onPressed: _pickCard,
+            ),
+            if (_ocrBusy)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                    const SizedBox(width: 8),
+                    Text(m.ocrReading, style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              )
+            else if (_ocrDone)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(m.ocrFilled,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 11.5, color: Color(0xFF1E7BA6))),
+              )
+            else if (_ocrFailed)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(m.ocrFailed,
+                    textAlign: TextAlign.center,
+                    style:
+                        const TextStyle(fontSize: 11.5, color: Colors.black54)),
+              ),
+            if (_cardPath != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(File(_cardPath!),
+                      height: 90, fit: BoxFit.cover),
+                ),
+              )
+            else if ((widget.initial?.cardImagePath ?? '').isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(File(widget.initial!.cardImagePath),
+                      height: 90, fit: BoxFit.cover),
+                ),
+              ),
+            const SizedBox(height: 20),
+            const Text(
+              'ここに入れた情報はこの端末の中だけに保存され、外部へは送信されません。',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11.5, color: Colors.black54),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _t('name').isEmpty
+                  ? null
+                  : () => Navigator.pop(
+                        context,
+                        _FormResult(entry: _build(), cardPath: _cardPath),
+                      ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                backgroundColor: const Color(0xFF3A7BD5),
+                foregroundColor: Colors.white,
+              ),
+              child: Text(m.customSave),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _section(String title, List<Widget> children) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: ExpansionTile(
+          title: Text(title,
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: 8),
+          children: children,
+        ),
+      );
+
+  Widget _field(String key, String label,
+      {TextInputType? keyboard, int? maxLen, int lines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: TextField(
+        controller: _c[key],
+        keyboardType: lines > 1 ? TextInputType.multiline : keyboard,
+        maxLines: lines,
+        maxLength: maxLen,
+        // 「名前」が空だと保存できないので、入力に合わせて保存ボタンを出し直す
+        onChanged: key == 'name' ? (_) => setState(() {}) : null,
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          counterText: '',
+        ),
+      ),
+    );
+  }
 }

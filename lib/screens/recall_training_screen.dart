@@ -11,6 +11,7 @@ import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/interstitial_ad_helper.dart';
+import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
 import '../services/review_prompt.dart';
 import '../services/review_queue.dart';
@@ -150,6 +151,15 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   // ---- であうフェーズ ----
   void _meetNext() {
     Sfx.instance.pop();
+    // 📊 名刺を受け取った＝この人に会った。あとの想起が定着率の対象になる。
+    final met = _people[_meetIndex];
+    for (final f in _fields) {
+      if (recallFieldValue(met, f).trim().isEmpty) continue;
+      MemoryStats.instance.recordMeeting(
+        itemKey: MemoryStats.keyOf(
+            face: met.face, name: met.name, field: f.name),
+      );
+    }
     if (_meetIndex + 1 < _people.length) {
       setState(() => _meetIndex += 1);
       _announceMeet();
@@ -208,7 +218,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
 
   void _answer(String choice) {
     if (_answered) return;
-    _totalReactionMs += DateTime.now().difference(_questionShownAt).inMilliseconds;
+    final reactionMs =
+        DateTime.now().difference(_questionShownAt).inMilliseconds;
+    _totalReactionMs += reactionMs;
     var correct = choice == _answerText;
     // 🛡️「まちがえ守り」は1ゲーム1回だけ、まちがいを正解あつかいにする
     if (!correct &&
@@ -218,6 +230,14 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       correct = true;
       _shieldJustUsed = true;
     }
+    // 📊 成績レポート用。項目ごと（名前・会社名…）に別の記憶として数える。
+    MemoryStats.instance.record(
+      mode: StatMode.businessCard,
+      itemKey: MemoryStats.keyOf(
+          face: _q.person.face, name: _q.person.name, field: _q.field.name),
+      correct: correct,
+      reactionMs: reactionMs,
+    );
     if (correct) {
       // 復習ラウンドの正解はスコアに入れず、「思い出せた数」として別に数える
       if (_inReview) {
@@ -283,6 +303,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     final total = _mainTotal > 0 ? _mainTotal : _questions.length;
     final answered = total + _reviewRecovered;
     final avgMs = answered > 0 ? _totalReactionMs ~/ answered : 0;
+    await MemoryStats.instance.finishSession(StatMode.businessCard);
     // 記録＆コイン付与（正解数×8＋全問正解ボーナス）
     await PlayerProfile.instance.recordSoloTraining(
       correctQuizzes: _correct,

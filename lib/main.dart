@@ -15,6 +15,7 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
+import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
 import 'services/interstitial_ad_helper.dart'; // 3プレイに1回のリザルト全画面広告
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
@@ -38,6 +39,9 @@ Future<void> main() async {
     PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
+  await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
+  // ※ゲーム中に recordMeeting/record を呼ぶので、遊び始める前に必ず読んでおく
+  //   （読む前に書くと、あとから load() が上書きして記録が消える）
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
   DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）

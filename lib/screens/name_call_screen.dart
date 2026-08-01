@@ -16,6 +16,7 @@ import '../models/shop_items.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
+import '../services/memory_stats.dart';
 import '../services/review_prompt.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
@@ -179,6 +180,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
   // 記録
   int _quizCorrect = 0;
   int _quizTotal = 0;
+  /// カードが出てから回答するまでの時間（ms）。速さの指標に使う。
+  DateTime? _quizShownAt;
+  final List<int> _reactionTimes = [];
   int _ryoudoriCount = 0;
 
   // 報酬（一人プレイの終了ビューで表示）
@@ -250,6 +254,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       // カスタム名簿は名前つき済み → 命名フェーズをスキップして本編へ
       for (final p in people) {
         _game.roster[p] = p.name;
+        _noteMet(p, p.name);
       }
       _phase = _Phase.sealed;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -278,6 +283,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
         if (used.contains(name)) name = '$name${used.length + 1}';
         used.add(name);
         _game.roster[p] = name;
+        _noteMet(p, name);
       }
       // 自動でつけた名前は、ここで見せないと誰が誰だか分からないまま本編に入って
       // しまう。必ず名簿一覧を挟み、自分のタイミングで開始してもらう。
@@ -350,6 +356,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     Sfx.instance.pop();
     HapticFeedback.selectionClick();
     _game.roster[_namingPerson] = name;
+    _noteMet(_namingPerson, name);
     _nameController.clear();
     if (_namingIndex + 1 < _game.people.length) {
       setState(() => _namingIndex += 1);
@@ -386,7 +393,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
           //    わざわざ命名ボタンを押させる意味がない。相手はCPUで
           //    相談もしないので、ここで名前を確定して見せるだけにする。
           //    プレイヤーの仕事は「つける」ことではなく「覚える」こと。
-          if (!_isReferee) _game.roster[card] = _uniqueGachaName();
+          if (!_isReferee) {
+            final gachaName = _uniqueGachaName();
+            _game.roster[card] = gachaName;
+            _noteMet(card, gachaName);
+          }
           _phase = _Phase.inlineNaming;
         });
         return;
@@ -441,6 +452,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     Sfx.instance.pop();
     HapticFeedback.selectionClick();
     _game.roster[_inlinePerson!] = name;
+    _noteMet(_inlinePerson!, name);
     _nameController.clear();
     _inlinePerson = null;
     _nextRound();
@@ -555,8 +567,16 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _answer(null, takenByCpu: true);
   }
 
+  /// 📊 「この人に会った」ことを成績レポートに記録する。
+  /// 命名した時点が出会い。次にその顔が出て名前を答えるのが「2回目以降」になる。
+  void _noteMet(Person p, String name) {
+    MemoryStats.instance
+        .recordMeeting(itemKey: MemoryStats.keyOf(face: p.face, name: name));
+  }
+
   void _startQuizTimer() {
     _quizTimer?.cancel();
+    _quizShownAt = DateTime.now();
     _timeLeft = _answerSeconds;
     _startCpuTimer();
     _quizTimer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -585,6 +605,21 @@ class _NameCallScreenState extends State<NameCallScreen> {
     final target = _round[_answering];
     final correct = choice != null && choice == _game.roster[target];
     _quizTotal += 1;
+    // 📊 成績レポート用。カードが出てから答えるまでの時間と、
+    //    命名済みの人を思い出せたかを記録する。
+    final shownAt = _quizShownAt;
+    final reactionMs = shownAt == null
+        ? 0
+        : DateTime.now().difference(shownAt).inMilliseconds;
+    if (reactionMs > 0) _reactionTimes.add(reactionMs);
+    MemoryStats.instance.record(
+      mode: StatMode.nameCall,
+      itemKey: MemoryStats.keyOf(
+          face: target.face, name: _game.roster[target] ?? target.name),
+      correct: correct,
+      reactionMs: reactionMs,
+    );
+    _quizShownAt = null;
     if (correct) {
       _quizCorrect += 1;
       Sfx.instance.correct();
@@ -672,6 +707,10 @@ class _NameCallScreenState extends State<NameCallScreen> {
   Future<void> _finishGame() async {
     setState(() => _phase = _Phase.reveal);
     _finished = true;
+    // 📊 成績レポートに1回ぶんとして保存する（審判方式は個人の記録が取れないので除く）
+    if (!_isReferee) {
+      await MemoryStats.instance.finishSession(StatMode.nameCall);
+    }
     AppAnalytics.gameEnd(mode: _modeName, topScore: _cardsWon.reduce(max));
     AppAnalytics.gameExit(
       mode: _modeName,
@@ -719,7 +758,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
           won: won,
           correctQuizzes: _quizCorrect,
           totalQuizzes: _quizTotal,
-          avgReactionMs: 0,
+          avgReactionMs: _avgReactionMs,
         );
         // 🏆 条件を満たした実績キャラをここで参戦させる
         _featUnlocked = await profile.refreshFeatCharacters();
@@ -740,6 +779,11 @@ class _NameCallScreenState extends State<NameCallScreen> {
       }
     }
   }
+
+  /// 計測できた回答の平均反応時間（ms）。計測ゼロなら0。
+  int get _avgReactionMs => _reactionTimes.isEmpty
+      ? 0
+      : _reactionTimes.reduce((a, b) => a + b) ~/ _reactionTimes.length;
 
   void _goToResult() {
     if (_isOnline) {

@@ -11,6 +11,7 @@ import '../models/person.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/app_analytics.dart';
+import '../services/memory_stats.dart';
 import '../services/online_match_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
@@ -128,6 +129,16 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     _cards = [
       for (final p in _people) ...[_CardData(p, true), _CardData(p, false)],
     ]..shuffle(_rng);
+    // 📊 おぼえタイムで顔と名前を見せる＝「会った」。ここを記録しておくと、
+    // このあとのペア当てが「2回目」として定着率の対象になる。
+    if (_vsCpu) {
+      MemoryStats.instance.load().then((_) {
+        for (final p in _people) {
+          MemoryStats.instance
+              .recordMeeting(itemKey: MemoryStats.keyOf(face: p.face, name: p.name));
+        }
+      });
+    }
     if (_isOnline) {
       // 両端末で共通の締切（サーバー時刻基準）からおぼえタイムを計算
       _tickOnlineMemorize();
@@ -243,6 +254,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     if (_phase == _Phase.finished) return;
     _phase = _Phase.finished;
     _cpuTimer?.cancel();
+    if (_vsCpu) MemoryStats.instance.finishSession(StatMode.cpu);
     final avgMs = _decisionTimes.isEmpty
         ? 0
         : _decisionTimes.reduce((a, b) => a + b) ~/ _decisionTimes.length;
@@ -355,6 +367,15 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     _firstIndex = null;
     _firstFlipAt = null;
     final isMatch = a.person == b.person && a.isFace != b.isFace;
+    // 📊 自分がめくった1手＝「1枚目の人の相方を当てられたか」。CPU対戦だけ記録する。
+    if (_vsCpu && !byCpu) {
+      MemoryStats.instance.record(
+        mode: StatMode.cpu,
+        itemKey: MemoryStats.keyOf(face: a.person.face, name: a.person.name),
+        correct: isMatch,
+        reactionMs: _decisionTimes.isEmpty ? 0 : _decisionTimes.last,
+      );
+    }
     if (isMatch) {
       _resolving = true;
       Future.delayed(const Duration(milliseconds: 450), () {
