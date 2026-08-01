@@ -67,7 +67,20 @@ flutter:
     # チュートリアルで使う実際のゲーム画面のスクショ
     - assets/images/tutorial/
     - assets/audio/
-  # ... (他のflutter設定) ...
+  # 🈶 日本語フォントは**同梱**する。
+  #    google_fonts の実行時ダウンロードだけに頼っていたため、フォントが
+  #    届くまでの間（Webでは常時）CJKのフォールバック書体が使われ、
+  #    日本語の「、」「。」が行の中央に浮いて表示されていた。
+  #    句読点の位置は中国語系の書体だと中央、日本語書体だと左下になる。
+  #    同梱すれば初回表示から必ず日本語書体で出る。
+  #    ライセンスは SIL Open Font License 1.1（assets/fonts/OFL.txt）。
+  fonts:
+    - family: ZenMaruGothic
+      fonts:
+        - asset: assets/fonts/ZenMaruGothic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ZenMaruGothic-Bold.ttf
+          weight: 700
 
 flutter_icons:
   ios: true

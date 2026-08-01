@@ -55,6 +55,13 @@ class MyApp extends StatelessWidget {
   // 選択中のきせかえテーマの accent 色でアプリ全体のテーマを組み立てる
   ThemeData _buildTheme(Color accent) {
     // 丸みのあるポップな書体をアプリ全体のデフォルトに（fontFamily未指定のTextへ自動継承される）
+    //
+    // ⚠️ ここは以前 GoogleFonts.zenMaruGothicTextTheme() で**実行時に
+    //    ダウンロード**していた。届くまでの間（Webでは届いても効かないことが
+    //    あり、実質ずっと）CJKのフォールバック書体で描かれ、日本語の
+    //    「、」「。」が行の中央に浮いて出ていた（報告されたバグ）。
+    //    句読点は中国語系の書体だと中央、日本語書体だと左下に置かれる。
+    //    フォントを同梱して、最初の1フレームから日本語書体で出るようにする。
     final baseTextTheme = ThemeData(useMaterial3: true).textTheme;
     return ThemeData(
       useMaterial3: true,
@@ -69,7 +76,16 @@ class MyApp extends StatelessWidget {
           TargetPlatform.windows: PopSlideFadeTransitionsBuilder(),
         },
       ),
-      textTheme: GoogleFonts.zenMaruGothicTextTheme(baseTextTheme),
+      fontFamily: 'ZenMaruGothic',
+      // 同梱フォントに無い文字（絵文字など）は端末の書体に回すが、
+      // その順番でも日本語書体を先に見るようにしておく。
+      fontFamilyFallback: const [
+        'ZenMaruGothic',
+        'Noto Sans JP',
+        'Hiragino Sans',
+        'Yu Gothic',
+      ],
+      textTheme: baseTextTheme.apply(fontFamily: 'ZenMaruGothic'),
       colorScheme: ColorScheme.fromSeed(
         seedColor: accent,
         primary: accent,
