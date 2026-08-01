@@ -45,9 +45,9 @@ void main() {
     });
 
     test('コストは時間で回復し、上限を超えない', () {
-      final s = BattleState(myCost: 0);
+      final s = BattleState(myCost: 0, myCostRate: 0.8);
       s.tick(5);
-      expect(s.myCost, closeTo(BattleState.costPerSecond * 5, 0.001));
+      expect(s.myCost, closeTo(0.8 * 5, 0.001));
       s.tick(60);
       expect(s.myCost, BattleState.maxCost);
     });
@@ -133,7 +133,23 @@ void main() {
       expect(behind.hp, 100);
     });
 
-    test('撃っている間は前に進まない', () {
+    test('遠距離は撃ちながら進む（最大射程で列をせき止めない）', () {
+      // ⚠️ ここで足を止めると、両軍が射程ぎりぎりで撃ち合ったまま
+      //    90秒たっても誰もタワーに届かない。しかも列の先頭に弓がいると
+      //    うしろの味方まで進めなくなる（実際にそうなっていた）。
+      final s = BattleState();
+      final archer = BattleUnit(
+          spec: _spec(AttackType.ranged), mine: true, pos: 0.5, hp: 99);
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.65, hp: 999);
+      s.units..add(archer)..add(foe);
+      final before = archer.pos;
+      s.tick(0.5);
+      expect(archer.pos, greaterThan(before));
+      expect(foe.hp, lessThan(999), reason: '進みながらも撃っている');
+    });
+
+    test('近距離は撃っている間は前に進まない', () {
       final s = BattleState();
       final mine =
           BattleUnit(spec: _spec(AttackType.melee), mine: true, pos: 0.5, hp: 99);
@@ -222,6 +238,67 @@ void main() {
         expect(spec.range, greaterThan(BattleState.bodySize),
             reason: '${spec.labelJa} の射程が体の幅より狭い');
       }
+    });
+  });
+
+  group('⚖️ 覚えたほど有利になる（このモードの背骨）', () {
+    /// 出せるようになったら順に出し続ける、という単純な打ち方で1試合まわす。
+    BattleOutcome play(List<UnitSpec> mine, List<UnitSpec> foe) {
+      final s = BattleState(
+        myCostRate: BattleState.rateFor(mine.length),
+        foeCostRate: BattleState.rateFor(foe.length),
+      );
+      var mi = 0, fi = 0;
+      while (s.outcome == BattleOutcome.ongoing) {
+        s.tick(0.1);
+        if (mine.isNotEmpty && s.deploy(mine[mi % mine.length], mine: true)) {
+          mi++;
+        }
+        if (foe.isNotEmpty && s.deploy(foe[fi % foe.length], mine: false)) fi++;
+      }
+      return s.outcome;
+    }
+
+    UnitSpec of(String label) =>
+        kUnitCatalog.values.firstWhere((s) => s.labelJa == label);
+
+    test('多く取った側が勝つ', () {
+      // ⚠️ ここが通らないなら、神経衰弱をがんばる意味が無い。
+      //    以前は両者の⚡が同じで、4人取っても2人取っても引き分けだった。
+      expect(
+        play([of('前衛'), of('弓'), of('斬りこみ'), of('遊撃')],
+            [of('前衛'), of('弓')]),
+        BattleOutcome.win,
+      );
+    });
+
+    test('同じ人数・同じ構成なら引き分け', () {
+      expect(play([of('前衛'), of('弓')], [of('前衛'), of('弓')]),
+          BattleOutcome.draw);
+    });
+
+    test('全部当てて相手が0人なら、時間内に押し切れる', () {
+      final r = play(
+          [of('前衛'), of('弓'), of('斬りこみ'), of('遊撃'), of('重装'), of('狙撃')],
+          const []);
+      expect(r, BattleOutcome.win);
+    });
+
+    test('1人も取れなければ負ける', () {
+      expect(
+        play(const [], [of('前衛'), of('弓'), of('斬りこみ'), of('遊撃')]),
+        BattleOutcome.lose,
+      );
+    });
+
+    test('⚡の回復は取った人数で増える', () {
+      expect(BattleState.rateFor(6), greaterThan(BattleState.rateFor(2)));
+    });
+
+    test('終盤は⚡が2倍になる（にらみ合いのまま終わらせない）', () {
+      final s = BattleState(timeLeft: BattleState.rushSeconds - 1);
+      expect(s.costMultiplier, 2.0);
+      expect(BattleState(timeLeft: BattleState.matchSeconds).costMultiplier, 1.0);
     });
   });
 

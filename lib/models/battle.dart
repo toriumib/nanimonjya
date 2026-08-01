@@ -67,31 +67,31 @@ class UnitSpec {
 
 const UnitSpec _heavy = UnitSpec(
   labelJa: '重装', labelEn: 'Heavy', emoji: '🛡️',
-  attack: AttackType.melee, hp: 150, power: 9, range: 0.07, speed: 0.05, cost: 5,
+  attack: AttackType.melee, hp: 150, power: 20, range: 0.07, speed: 0.05, cost: 5,
 );
 const UnitSpec _guard = UnitSpec(
   labelJa: '前衛', labelEn: 'Guard', emoji: '🧱',
-  attack: AttackType.melee, hp: 110, power: 8, range: 0.07, speed: 0.06, cost: 4,
+  attack: AttackType.melee, hp: 110, power: 18, range: 0.07, speed: 0.06, cost: 4,
 );
 const UnitSpec _striker = UnitSpec(
   labelJa: '斬りこみ', labelEn: 'Striker', emoji: '⚔️',
-  attack: AttackType.melee, hp: 55, power: 24, range: 0.07, speed: 0.08, cost: 3,
+  attack: AttackType.melee, hp: 55, power: 46, range: 0.07, speed: 0.08, cost: 3,
 );
 const UnitSpec _runner = UnitSpec(
   labelJa: '遊撃', labelEn: 'Runner', emoji: '🏃',
-  attack: AttackType.melee, hp: 45, power: 11, range: 0.07, speed: 0.14, cost: 2,
+  attack: AttackType.melee, hp: 45, power: 22, range: 0.07, speed: 0.14, cost: 2,
 );
 const UnitSpec _archer = UnitSpec(
   labelJa: '弓', labelEn: 'Archer', emoji: '🏹',
-  attack: AttackType.ranged, hp: 40, power: 13, range: 0.20, speed: 0.07, cost: 3,
+  attack: AttackType.ranged, hp: 40, power: 25, range: 0.20, speed: 0.07, cost: 3,
 );
 const UnitSpec _sniper = UnitSpec(
   labelJa: '狙撃', labelEn: 'Sniper', emoji: '🎯',
-  attack: AttackType.ranged, hp: 30, power: 18, range: 0.30, speed: 0.05, cost: 4,
+  attack: AttackType.ranged, hp: 30, power: 34, range: 0.30, speed: 0.05, cost: 4,
 );
 const UnitSpec _siege = UnitSpec(
   labelJa: 'タワー狙い', labelEn: 'Siege', emoji: '💣',
-  attack: AttackType.siege, hp: 85, power: 26, range: 0.07, speed: 0.07, cost: 4,
+  attack: AttackType.siege, hp: 85, power: 48, range: 0.07, speed: 0.07, cost: 4,
 );
 
 /// 🎭 キャラごとの能力表。
@@ -178,15 +178,35 @@ class BattleState {
 
   final List<BattleUnit> units = [];
 
-  static const double costPerSecond = 0.75;
+  /// ⚡の基本の回復量。ここに「取った人数ぶん」が乗る（[rateFor]）。
+  static const double baseCostPerSecond = 0.45;
+
+  /// 取った人ひとりあたりの上乗せ。
+  ///
+  /// ⚠️ ここが**このモードの背骨**。以前は両者とも同じ回復量だったので、
+  /// 神経衰弱で多く取っても「出せる種類が増える」だけで強くならず、
+  /// 4人 vs 2人でも引き分けていた（＝覚えても勝てない）。
+  /// 覚えた人数がそのまま手数の差になるようにする。
+  static const double costPerPerson = 0.11;
+
+  /// 取った人数から⚡の回復量を出す。
+  static double rateFor(int squadSize) =>
+      baseCostPerSecond + costPerPerson * squadSize;
+
   static const double maxCost = 10;
-  static const int towerHp = 240;
+  static const int towerHp = 190;
   static const double matchSeconds = 90;
+
+  /// 🔥 残りこれ以下になったら⚡の回復が2倍。
+  ///
+  /// 中央でにらみ合ったまま時間切れ、が続くと勝負が動かない。
+  /// 終盤に出せる量を増やして、どちらかの列が押し切れるようにする。
+  static const double rushSeconds = 30;
 
   /// 🏰 タワーの反撃。射程に入った敵を撃つ。
   /// これが無いと「タワーディフェンス」ではなく、ただの殴り合いになる。
   static const double towerRange = 0.22;
-  static const int towerPower = 10;
+  static const int towerPower = 17;
 
   /// ユニット1体ぶんの幅。
   ///
@@ -195,13 +215,23 @@ class BattleState {
   /// 列を作って待つ。前に出した壁が本当に壁として働くようになる。
   static const double bodySize = 0.045;
 
+  /// ⚡の回復量（陣営ごと）。取った人数で決まる。
+  final double myCostRate;
+  final double foeCostRate;
+
   BattleState({
     this.myTower = towerHp,
     this.foeTower = towerHp,
     this.myCost = 5,
     this.foeCost = 5,
     this.timeLeft = matchSeconds,
-  });
+    double? myCostRate,
+    double? foeCostRate,
+  })  : myCostRate = myCostRate ?? rateFor(3),
+        foeCostRate = foeCostRate ?? rateFor(3);
+
+  /// いま⚡が何倍で回復しているか（終盤は2倍）。
+  double get costMultiplier => timeLeft <= rushSeconds ? 2.0 : 1.0;
 
   /// 出撃させる。コストが足りなければ何もせず false。
   bool deploy(UnitSpec spec, {required bool mine}) {
@@ -225,8 +255,9 @@ class BattleState {
   void tick(double dt) {
     if (outcome != BattleOutcome.ongoing) return;
     timeLeft -= dt;
-    myCost = min(maxCost, myCost + costPerSecond * dt);
-    foeCost = min(maxCost, foeCost + costPerSecond * dt);
+    final mult = costMultiplier;
+    myCost = min(maxCost, myCost + myCostRate * mult * dt);
+    foeCost = min(maxCost, foeCost + foeCostRate * mult * dt);
 
     for (var i = 0; i < units.length; i++) {
       final u = units[i];
@@ -236,7 +267,14 @@ class BattleState {
         final target = _targetFor(u);
         if (target != null) {
           target.hp -= (u.spec.power * dt).round();
-          continue; // 撃っている間は進まない
+          // 近距離は足を止めて殴り合う。
+          //
+          // ⚠️ 遠距離まで足を止めると、**最大射程で立ち止まったまま
+          //    撃ち合うにらみ合い**になる。しかも列の先頭に弓がいると
+          //    うしろの味方まで進めなくなり、両軍が0.2ほど離れたまま
+          //    90秒たっても誰もタワーに届かない（実際にそうなっていた）。
+          //    遠距離は**撃ちながら進む**。前に壁を置けば列に守られる。
+          if (u.spec.attack == AttackType.melee) continue;
         }
       }
       // 前の味方につかえていたら進まない（列に並ぶ）

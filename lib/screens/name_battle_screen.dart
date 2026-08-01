@@ -252,7 +252,11 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         ..clear()
         ..addAll(_people.where((p) => !_squads[0].contains(p)));
     }
-    _battle = BattleState();
+    // ⚡ 取った人数がそのまま出せる手数になる＝覚えたほど有利。
+    _battle = BattleState(
+      myCostRate: BattleState.rateFor(_squads[0].length),
+      foeCostRate: BattleState.rateFor(_squads[1].length),
+    );
     setState(() => _phase = _Phase.briefing);
   }
 
@@ -574,6 +578,13 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
           const SizedBox(height: 14),
+          Text(m.battleCostHint,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFE8663C))),
+          const SizedBox(height: 10),
           _squadCard(m, _sideName(m, 0), _squads[0], const Color(0xFF3A7BD5)),
           const SizedBox(height: 12),
           _squadCard(m, _sideName(m, 1), _squads[1], const Color(0xFF8A5AC2)),
@@ -845,9 +856,15 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         children: [
           Row(
             children: [
-              Text(_twoPlayer ? 'P${side + 1} ⚡' : '⚡',
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w900)),
+              Text(
+                  '${_twoPlayer ? 'P${side + 1} ' : ''}⚡'
+                  '${_battle.costMultiplier > 1 ? '×2' : ''}',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: _battle.costMultiplier > 1
+                          ? const Color(0xFFE8663C)
+                          : Colors.black)),
               const SizedBox(width: 6),
               Expanded(
                 child: ClipRRect(
