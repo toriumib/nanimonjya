@@ -19,6 +19,18 @@ import 'home_shell.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
 import 'rulebook_screen.dart';
 
+/// 🃏 神経衰弱のカードの作り。
+///
+/// どちらも「同じ人の2枚をそろえる」点は同じで、1枚に何が書いてあるかが違う。
+enum BattleCardStyle {
+  /// 顔だけの札と、名前だけの札。**顔と名前を結びつけて**覚えていないと取れない。
+  faceAndName,
+
+  /// トランプのように、1枚に顔と名前がいっしょに書いてある札を2枚そろえる。
+  /// 見た目でそろえられるぶんやさしく、名前は取るたびに目に入る。
+  combined,
+}
+
 /// ⚔️ ベータ「なまえバトル」（タワーディフェンス）。
 ///
 /// **覚えたことが、そのまま強さになる**モード。
@@ -39,7 +51,14 @@ class NameBattleScreen extends StatefulWidget {
   /// 1 = CPU戦 / 2 = 1台で2人
   final int humanPlayers;
 
-  const NameBattleScreen({super.key, this.humanPlayers = 1});
+  /// カードの作り。今までのは [BattleCardStyle.faceAndName]。
+  final BattleCardStyle cardStyle;
+
+  const NameBattleScreen({
+    super.key,
+    this.humanPlayers = 1,
+    this.cardStyle = BattleCardStyle.faceAndName,
+  });
 
   @override
   State<NameBattleScreen> createState() => _NameBattleScreenState();
@@ -56,6 +75,7 @@ class _Card {
 
 class _NameBattleScreenState extends State<NameBattleScreen> {
   bool get _twoPlayer => widget.humanPlayers >= 2;
+  bool get _combined => widget.cardStyle == BattleCardStyle.combined;
 
   /// 2人なら8人（おおよそ4人ずつ取る）、ひとりなら6人。
   int get _pairs => _twoPlayer ? 8 : 6;
@@ -109,9 +129,18 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         PlayerProfile.instance.deckExcluded,
       ),
     );
-    // 🃏 1人につき2枚（顔カードと名前カード）。同じ人の2枚をそろえて取る。
+    // 🃏 1人につき2枚。どちらの作りでも「同じ人の2枚」をそろえて取る。
     _cards = [
-      for (final p in _people) ...[_Card(p, true), _Card(p, false)],
+      for (final p in _people)
+        if (_combined) ...[
+          // トランプ式: 同じ札が2枚（どちらにも顔と名前が載っている）
+          _Card(p, true),
+          _Card(p, true),
+        ] else ...[
+          // 顔札と名札。顔と名前を結びつけていないと取れない
+          _Card(p, true),
+          _Card(p, false),
+        ],
     ]..shuffle(_rng);
     // 📊 名簿で顔と名前を見せる＝「会った」。このあとのペア当てが
     //    「2回目」として定着率の対象になる。
@@ -162,7 +191,11 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
       return;
     }
     final a = _cards[_firstIndex!];
-    final hit = a.person == c.person && a.isFace != c.isFace;
+    // トランプ式は同じ人なら成立。顔札×名札のときは、
+    // 顔と名前という**別の面**がそろって初めて成立する。
+    final hit = _combined
+        ? a.person == c.person
+        : (a.person == c.person && a.isFace != c.isFace);
     _resolving = true;
     setState(() {
       _secondIndex = i;
@@ -455,30 +488,60 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFF2B5CA5), width: 2),
           ),
-          child: shown
-              ? (c.isFace
-                  ? Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: FaceView(
-                          person: c.person, size: double.infinity, radius: 8),
-                    )
-                  : Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(c.person.name,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w900)),
-                        ),
-                      ),
-                    ))
-              : const Center(child: Text('🏷️', style: TextStyle(fontSize: 26))),
+          child: shown ? _cardFront(c) : _cardBack(),
         ),
       ),
     );
   }
+
+  /// カードの表。
+  ///
+  /// トランプ式は**1枚に顔と名前がいっしょに**載る（同じ札を2枚そろえる）。
+  /// 顔札×名札のときは、札ごとに顔だけ／名前だけを見せる。
+  Widget _cardFront(_Card c) {
+    if (_combined) {
+      return Padding(
+        padding: const EdgeInsets.all(4),
+        child: Column(
+          children: [
+            Expanded(
+              child: FaceView(
+                  person: c.person, size: double.infinity, radius: 6),
+            ),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(c.person.name,
+                  maxLines: 1,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
+      );
+    }
+    if (c.isFace) {
+      return Padding(
+        padding: const EdgeInsets.all(6),
+        child: FaceView(person: c.person, size: double.infinity, radius: 8),
+      );
+    }
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(c.person.name,
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+        ),
+      ),
+    );
+  }
+
+  Widget _cardBack() =>
+      const Center(child: Text('🏷️', style: TextStyle(fontSize: 26)));
 
   Widget _briefingView(MetaStrings m) {
     return SingleChildScrollView(
@@ -838,8 +901,10 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (_) =>
-                        NameBattleScreen(humanPlayers: widget.humanPlayers)),
+                    builder: (_) => NameBattleScreen(
+                          humanPlayers: widget.humanPlayers,
+                          cardStyle: widget.cardStyle,
+                        )),
               );
             },
             icon: const Icon(Icons.refresh),

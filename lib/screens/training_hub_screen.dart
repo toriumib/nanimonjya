@@ -111,6 +111,94 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
     );
   }
 
+  /// 🃏 1台で2人で遊ぶとき、カードの作りをえらんでから始める。
+  ///
+  /// 「顔札×名札」は顔と名前を結びつけていないと取れず、練習として効くが
+  /// 難しい。「トランプ式」は同じ札を2枚そろえるだけなので、
+  /// 小さい子や初めての人とでも成立する。どちらも残す。
+  void _pickBattleStyle() {
+    final m = MetaStrings.of(context);
+    Sfx.instance.pop();
+    void start(BattleCardStyle style) {
+      Navigator.pop(context);
+      Sfx.instance.fanfare();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => NameBattleScreen(humanPlayers: 2, cardStyle: style),
+        ),
+      );
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(m.battleStylePickTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 14),
+              _styleTile(
+                label: m.battleStyleSplit,
+                desc: m.battleStyleSplitDesc,
+                color: const Color(0xFF3A7BD5),
+                onTap: () => start(BattleCardStyle.faceAndName),
+              ),
+              const SizedBox(height: 10),
+              _styleTile(
+                label: m.battleStyleCombined,
+                desc: m.battleStyleCombinedDesc,
+                color: const Color(0xFFE8663C),
+                onTap: () => start(BattleCardStyle.combined),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _styleTile({
+    required String label,
+    required String desc,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color, width: 1.6),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w900,
+                    color: color)),
+            const SizedBox(height: 4),
+            Text(desc,
+                style: const TextStyle(fontSize: 12, height: 1.5)),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// 🖇 線むすび特訓。めくる運に左右されず、顔から名前を引き出す形で判定する。
   void _startLineMatch() {
     Sfx.instance.pop();
@@ -443,15 +531,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                       // 👫 1台を回して2人で。神経衰弱を交互にめくって
                       //    取り合い、そのままふたり同時にバトルする。
                       OutlinedButton(
-                        onPressed: () {
-                          Sfx.instance.fanfare();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    const NameBattleScreen(humanPlayers: 2)),
-                          );
-                        },
+                        onPressed: _pickBattleStyle,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFE8663C),
                           minimumSize: const Size.fromHeight(44),
