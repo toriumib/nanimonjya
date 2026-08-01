@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/person.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
@@ -15,6 +16,7 @@ import 'name_call_screen.dart';
 import 'home_shell.dart';
 import '../services/review_prompt.dart';
 import '../widgets/double_coins_button.dart';
+import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
 import '../widgets/banner_ad_slot.dart';
 
@@ -29,12 +31,18 @@ class LocalResultScreen extends StatefulWidget {
   // 出たとき命名で遊んでいた人が急にテキスト入力を求められる。
   final int peopleCount;
 
+  /// 📇 この試合に出てきた人たち。結果で「誰が誰だったか」を見せる。
+  /// なまえコールは各自が名前をつけるので、[Person.name] ではなく
+  /// つけられた名前を入れたコピーを渡すこと。
+  final List<Person> people;
+
   const LocalResultScreen({
     super.key,
     required this.pairsWon,
     required this.level,
     this.nameCall = false,
     this.peopleCount = 6,
+    this.people = const [],
   });
 
   @override
@@ -211,6 +219,8 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                     DoubleCoinsButton(coinsEarned: _coinsEarned),
                   ],
                   const SizedBox(height: 20),
+                  RosterRevealCard(people: widget.people),
+                  const SizedBox(height: 12),
                   const StoreCtaCard(),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(

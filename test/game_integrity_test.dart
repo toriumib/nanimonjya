@@ -142,9 +142,11 @@ void main() {
   });
 
   group('基本デッキ', () {
-    test('16キャラある（重複なし）', () {
-      expect(kCharImageAssets, hasLength(16));
-      expect(kCharImageAssets.toSet(), hasLength(16));
+    test('15キャラある（重複なし・c13は欠番）', () {
+      expect(kCharImageAssets, hasLength(15));
+      expect(kCharImageAssets.toSet(), hasLength(15));
+      expect(kCharImageAssets.any((a) => a.contains('char13')), isFalse,
+          reason: 'c13は欠番。IDを使い回すと購入済みの人の記録が別のキャラを指す');
     });
 
     test('12キャラ選んでも足りる', () {

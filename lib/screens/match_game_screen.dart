@@ -336,6 +336,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           builder: (_) => MatchResultScreen(
             cpuLevel: widget.cpuLevel!,
             level: widget.level,
+            people: _people, // 📇 誰が誰だったかを結果でもう一度見せる
+
             myPairs: _pairsWon[0],
             cpuPairs: _pairsWon[1],
             attempts: _attempts,
@@ -351,6 +353,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           builder: (_) => LocalResultScreen(
             pairsWon: List<int>.from(_pairsWon.take(widget.humanPlayers)),
             level: widget.level,
+            people: _people, // 📇 誰が誰だったかを結果でもう一度見せる
           ),
         ),
       );
@@ -367,6 +370,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
             level: widget.level,
             mnemonicGuide: widget.mnemonicGuide,
             score: _soloScore(avgMs),
+            people: _people, // 📇 誰が誰だったかを結果でもう一度見せる
           ),
         ),
       );

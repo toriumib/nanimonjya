@@ -116,10 +116,10 @@ void main() {
   });
 
   group('登場人数', () {
-    test('既定は4人、スライダーは4〜16', () {
+    test('既定は4人、スライダーは4〜15', () {
       expect(NameCallGame.peopleCount, 4);
       expect(NameCallGame.minSelectableCount, 4);
-      expect(NameCallGame.maxSelectableCount, 16);
+      expect(NameCallGame.maxSelectableCount, 15);
     });
 
     test('最大人数ぶんの顔が用意されている', () {
@@ -129,10 +129,13 @@ void main() {
       expect(NameCallGame.maxPeople, NameCallGame.maxSelectableCount);
     });
 
-    test('16人でも顔と名前が重複せず生成できる', () {
-      final list = generateImagePeople(16, ja: true, random: Random(7));
-      expect(list.length, 16);
-      expect(list.map((p) => p.face).toSet().length, 16);
+    test('上限人数でも顔が重複せず生成できる', () {
+      // c13を欠番にしたので15枚。ここと maxPeople がずれると
+      // 生成器が足りない顔を要求してassertで落ちる。
+      const n = NameCallGame.maxPeople;
+      final list = generateImagePeople(n, ja: true, random: Random(7));
+      expect(list.length, n);
+      expect(list.map((p) => p.face).toSet().length, n);
     });
   });
 

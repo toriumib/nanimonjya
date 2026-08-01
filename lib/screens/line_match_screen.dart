@@ -161,6 +161,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
           bestStreak: correct,
           level: widget.level,
           score: correct * 100,
+          people: _people, // 📇 誰が誰だったかを結果でもう一度見せる
         ),
       ),
     );

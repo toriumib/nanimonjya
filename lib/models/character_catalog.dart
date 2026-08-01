@@ -1,6 +1,6 @@
 /// コインで購入して仲間にできる「追加キャラ」カタログ。
 ///
-/// 画像は assets/images/char13.webp 〜 char32.webp（pubspec の assets/images/ で
+/// 画像は assets/images/char14.webp 〜 char32.webp（pubspec の assets/images/ で
 /// ディレクトリごとバンドルされるため、ファイルを置くだけで有効化される）。
 /// 未配置のうちは購入時にシルエット表示となる（クラッシュはしない）。
 ///
@@ -44,7 +44,8 @@ class GameCharacter {
 }
 
 /// 追加キャラ19種（購入14＋実績解放5）。価格ラダー。
-/// c13 は基本16人の無料枠へ昇格したのでここには無い。
+/// ⚠️ c13 は**欠番**。無料枠へ昇格させたあと取り下げたので、どこにも無い。
+/// IDを使い回すと、以前買った人の unlockedCharacters が別のキャラを指す。
 const List<GameCharacter> kExtraCharacters = [
   GameCharacter(id: 'c14', asset: 'assets/images/char14.webp', emoji: '💇‍♀️', cost: 120),
   GameCharacter(id: 'c15', asset: 'assets/images/char15.webp', emoji: '💻', cost: 150),

@@ -1047,6 +1047,13 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get lineMatchConnectDesc => ja
       ? '顔から名前へ指でドラッグします。間違えても引き直せます。'
       : 'Drag from a face to a name. You can redo any line.';
+  // 📇 結果画面の「誰が誰だったか」
+  String get reportRosterTitle =>
+      ja ? '📇 今回の顔ぶれ' : '📇 Who was who';
+  String get reportRosterHint => ja
+      ? '取り違えた人がいたら、ここでもう一度そろえて見ておきましょう。'
+      : 'Mixed someone up? Take one more look at them together.';
+
   /// 全部つないだあとの一言。ここから自動で判定に入る。
   String get lineMatchAllLinked =>
       ja ? '✅ 全員つながりました！答え合わせします' : '✅ All linked — checking…';

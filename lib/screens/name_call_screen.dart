@@ -795,11 +795,28 @@ class _NameCallScreenState extends State<NameCallScreen> {
             level: 1,
             nameCall: true,
             peopleCount: _game.people.length,
+            // 📇 誰が誰だったかを結果でも出す。ただしアプリが本当の名前を
+            //    知らない人（「名前をつけた！」で進んだ人）は伏せたまま。
+            //    内部のガチャ名を出すと「言ってない名前」が並ぶ。
+            people: _revealPeople(),
           ),
         ),
       );
     }
   }
+
+  /// 結果画面に出す「誰が誰だったか」。
+  /// 名簿の名前を Person に載せ替えて返す（アプリが知らない名前は除く）。
+  List<Person> _revealPeople() => [
+        for (final p in _game.people)
+          if (!_secretNames.contains(p) && (_game.roster[p] ?? '').isNotEmpty)
+            Person(
+              face: p.face,
+              kind: p.kind,
+              name: _game.roster[p]!,
+              hobby: p.hobby,
+            ),
+      ];
 
   // ─────────────── UI ───────────────
 

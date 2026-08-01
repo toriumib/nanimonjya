@@ -62,7 +62,8 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 表示先: **よみものタブ**（メイン）＋ワンポイントticker（memory_tip_ticker）＋ビジネス特訓の待ち時間/おさらい（`_tipCard`）
 
 ### 🛍 キャラクターショップ（character_shop_screen.dart / models/character_catalog.dart）
-- 追加キャラ20種（`kExtraCharacters`、id: c13〜c32）をコインで購入できるショップ。画像は `assets/images/char13.webp`〜`char32.webp`（ユーザー提供の実写、価格帯120〜340コイン）
+- 追加キャラ19種（`kExtraCharacters`、id: c14〜c32）をコインで購入できるショップ。画像は `assets/images/char14.webp`〜`char32.webp`（ユーザー提供の実写、価格帯120〜340コイン）
+- ⚠️ **c13 は欠番**。一度 `kCharImageAssets` の無料枠へ昇格させたあと取り下げた。IDを使い回すと、以前 c13 を買った人の `unlockedCharacters` が別のキャラを指すので、二度と使わないこと。基本の顔は **15枚**（`NameCallGame.maxPeople` と必ずそろえる）
 - 購入状態は `PlayerProfile.unlockedCharacters`（Set\<String\>、SharedPreferences永続化）、購入APIは `PlayerProfile.unlockCharacter(id, cost)`
 - 購入したキャラは「なまえコール」（オフライン/ひとりのみ。オンライン対戦は両者の顔一致が必要なため基本12人のまま）と「思い出しトレーニング」の出演プールに追加（`generateImagePeople`/`generateRecallPeople` の `charAssets` 引数、`unlockedExtraAssets()`で解決）
 - ショップ画面には: コイン残高／🎁動画でコイン+60（RewardAdHelper）／⭐アプリ評価（in_app_review, `services/review_prompt.dart`と共通ロジック）／購入グリッド／基本12人の一覧

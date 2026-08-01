@@ -5,12 +5,14 @@ import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
+import '../models/person.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/count_up.dart';
 import '../widgets/double_coins_button.dart';
+import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
@@ -27,6 +29,9 @@ class MatchResultScreen extends StatefulWidget {
   final int matches;
   final int avgDecisionMs;
 
+  /// 📇 この試合に出てきた人たち。結果で「誰が誰だったか」を見せる。
+  final List<Person> people;
+
   const MatchResultScreen({
     super.key,
     required this.cpuLevel,
@@ -36,6 +41,7 @@ class MatchResultScreen extends StatefulWidget {
     required this.attempts,
     required this.matches,
     required this.avgDecisionMs,
+    this.people = const [],
   });
 
   @override
@@ -185,6 +191,8 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                         ),
                   ],
                   const SizedBox(height: 20),
+                  RosterRevealCard(people: widget.people),
+                  const SizedBox(height: 12),
                   const StoreCtaCard(),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(

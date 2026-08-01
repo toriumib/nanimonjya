@@ -26,16 +26,19 @@ class NameCallGame {
   /// 終わりまで到達していなかった**（63%が1ゲームも完走せず）。
   /// 6人に下げたあとも完走率が伸びなかったため **4人**を既定にした。
   /// 4人＝山札8枚で、命名4回＋想起4回。1試合2分弱で終わる。
-  /// 物足りない人はホームのスライダーで16人まで増やせる。
+  /// 物足りない人はホームのスライダーで15人まで増やせる。
   static const int peopleCount = 4;
 
   /// ホームのスライダーで選べる登場人数の範囲。
   /// 上限は使える顔の枚数（[maxPeople]）と同じ。
   static const int minSelectableCount = 4;
-  static const int maxSelectableCount = 16;
+  static const int maxSelectableCount = 15;
 
   /// 使える顔の最大数（フリー素材キャラ画像の枚数）。
-  static const int maxPeople = 16;
+  /// ⚠️ [kCharImageAssets] の枚数と必ずそろえること。ここが多いと
+  ///    生成器が足りない顔を要求してassertで落ちる。
+  ///    （c13を欠番にしたので16→15）
+  static const int maxPeople = 15;
 
   /// 山札は各人物×2枚。
   static const int copiesPerPerson = 2;

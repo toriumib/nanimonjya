@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/meta_strings.dart';
+import '../models/person.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import 'cognitive_info_screen.dart';
@@ -7,6 +8,7 @@ import 'match_game_screen.dart';
 import 'memory_tips_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/roster_reveal.dart';
 
 /// 一人特訓モード（顔と名前の神経衰弱）終了後のトレーニングレポート。
 /// 勝敗ではなく、一致成功率・手数効率・判断時間などの自己記録をフィードバックする。
@@ -20,6 +22,13 @@ class TrainingReportScreen extends StatefulWidget {
   final bool mnemonicGuide;
   final int score;
 
+  /// この回に出てきた人たち。結果画面で「誰が誰だったか」を見せるために使う。
+  ///
+  /// 数字だけ返されても、どの顔を取り違えたのかが分からないと直しようがない。
+  /// 名前が空のPerson（なまえコール用の生成器）を渡しても意味がないので、
+  /// 名前が入っているものだけを渡すこと。空リストなら一覧を出さない。
+  final List<Person> people;
+
   const TrainingReportScreen({
     super.key,
     required this.cardsNamed,
@@ -30,6 +39,7 @@ class TrainingReportScreen extends StatefulWidget {
     this.level = 1,
     this.mnemonicGuide = false,
     this.score = 0,
+    this.people = const [],
   });
 
   @override
@@ -102,6 +112,10 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
               ],
               const SizedBox(height: 20),
               _tendencyCard(m),
+              if (widget.people.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                RosterRevealCard(people: widget.people),
+              ],
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () {
