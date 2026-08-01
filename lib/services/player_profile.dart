@@ -113,6 +113,16 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedVoices = {'none'}; // ほめボイス
   String selectedVoice = 'none';
   Set<String> unlockedCharms = {'none'}; // お守り（1つだけ装備）
+
+  /// 📚 コインで開いた読み物のID。
+  Set<String> unlockedArticles = {};
+
+  /// 🛠 開発者モード。全部のアイテムを開けた状態にする（動作確認・撮影用）。
+  ///
+  /// ⚠️ 入れると持ち物が増えるだけで、**戻しても持ち物は元に戻らない**。
+  ///    アイテムを取り上げるのは、間違って有効にした人のデータを
+  ///    壊すことになるため、あえてやらない。
+  bool devMode = false;
   String selectedCharm = 'none';
 
   // 📋 デイリーミッション（日付が変わるとリセット）
@@ -202,6 +212,8 @@ class PlayerProfile extends ChangeNotifier {
     if (!unlockedVoices.contains(selectedVoice)) selectedVoice = 'none';
     unlockedCharms = (p.getStringList('unlockedCharms') ?? ['none']).toSet();
     unlockedCharms.add('none');
+    unlockedArticles = (p.getStringList('unlockedArticles') ?? []).toSet();
+    devMode = p.getBool('devMode') ?? false;
     selectedCharm = p.getString('selectedCharm') ?? 'none';
     if (!unlockedCharms.contains(selectedCharm)) selectedCharm = 'none';
     missionDate = p.getString('missionDate') ?? '';
@@ -717,6 +729,51 @@ class PlayerProfile extends ChangeNotifier {
     return true;
   }
 
+  /// 📚 読み物をコインで開く。足りなければ false。
+  Future<bool> unlockArticle(String id, int cost) async {
+    if (unlockedArticles.contains(id)) return true;
+    if (coins < cost) return false;
+    coins -= cost;
+    unlockedArticles.add(id);
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
+  bool hasArticle(String id) => unlockedArticles.contains(id);
+
+  /// 🛠 開発者モードを入れる。全アイテムを開けた状態にする。
+  ///
+  /// 合言葉の確認は呼び出し側（マイページ）で済ませてから呼ぶこと。
+  Future<void> enableDevMode({
+    required Iterable<String> allThemes,
+    required Iterable<String> allBgm,
+    required Iterable<String> allCostumes,
+    required Iterable<String> allCharacters,
+    required Iterable<String> allVoices,
+    required Iterable<String> allCharms,
+    required Iterable<String> allArticles,
+  }) async {
+    devMode = true;
+    unlockedThemes.addAll(allThemes);
+    unlockedBgm.addAll(allBgm);
+    unlockedCostumes.addAll(allCostumes);
+    unlockedCharacters.addAll(allCharacters);
+    unlockedVoices.addAll(allVoices);
+    unlockedCharms.addAll(allCharms);
+    unlockedArticles.addAll(allArticles);
+    adsRemoved = true; // 撮影中に広告が挟まらないように
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 🛠 開発者モードの表示だけを戻す（持ち物は取り上げない）。
+  Future<void> disableDevMode() async {
+    devMode = false;
+    await _persist();
+    notifyListeners();
+  }
+
   /// 🎴 デッキの出演ON/OFFを切り替える。[assetPath] は画像パス
   /// （バンドルキャラは 'assets/images/...'、自分の写真は保存先ファイルパス）。
   Future<void> setDeckIncluded(String assetPath, bool included) async {
@@ -978,6 +1035,8 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('notifyPromptCount', notifyPromptCount);
     await p.setInt('notifyPromptedAtGames', notifyPromptedAtGames);
     await p.setStringList('unlockedCharacters', unlockedCharacters.toList());
+    await p.setStringList('unlockedArticles', unlockedArticles.toList());
+    await p.setBool('devMode', devMode);
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);

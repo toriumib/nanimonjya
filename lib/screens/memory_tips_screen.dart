@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../l10n/memory_tips.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../l10n/meta_strings.dart';
+import 'article_library_screen.dart';
 import '../services/app_analytics.dart';
+import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 
 /// 「名前の覚え方」記憶術の読み物画面。
@@ -103,6 +105,33 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
+                // 📚 最後のページに、コインで読める記事の一覧を置く。
+                //    ここまで読んだ人がいちばん「もっと読みたい」状態にある。
+                if (isLast) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Sfx.instance.pop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ArticleLibraryScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.menu_book_rounded),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE8A400),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textStyle: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w900),
+                      ),
+                      label: Text(m.articleMoreButton),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

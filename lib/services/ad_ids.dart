@@ -50,6 +50,26 @@ class AdIds {
     return _realInterstitialAndroid;
   }
 
+  // --- リワードインタースティシャル ---
+  //  全画面で出て、最後まで見ると報酬がもらえる形式。
+  //  ⚠️ 本番IDは**AdMobコンソールで新規作成が必要**（リワードとは別枠）。
+  //     空のままだとリリースでは出ない（テストIDを本番で使うのは規約違反）。
+  static const String _testRewardedInterAndroid =
+      'ca-app-pub-3940256099942544/5354046379';
+  static const String _testRewardedInterIOS =
+      'ca-app-pub-3940256099942544/6978759866';
+  static const String _realRewardedInterAndroid = '';
+
+  static String get rewardedInterstitial {
+    if (kDebugMode) {
+      return _isIOS ? _testRewardedInterIOS : _testRewardedInterAndroid;
+    }
+    return _realRewardedInterAndroid;
+  }
+
+  static bool get rewardedInterstitialAvailable =>
+      !kIsWeb && (kDebugMode || _realRewardedInterAndroid.isNotEmpty);
+
   /// インタースティシャル広告を出せる状態か。
   /// 本番IDが未設定の間はリリースでは無効（テストIDを本番で使うのは規約違反のため）。
   static bool get interstitialAvailable =>

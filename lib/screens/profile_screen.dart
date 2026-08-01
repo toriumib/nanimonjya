@@ -4,7 +4,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
+import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
+import '../models/shop_items.dart';
+import '../l10n/premium_articles.dart';
 import '../services/bgm.dart';
 import '../services/daily_reminder.dart';
 import '../services/player_profile.dart';
@@ -15,6 +18,9 @@ import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+
+/// 🛠 開発者モードの合言葉。動作確認と画面撮影のためのもの。
+const String _kDevPassphrase = 'Toriumi';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -132,6 +138,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _achievementsCard(m, profile),
             const SizedBox(height: 16),
             _reminderCard(m, profile),
+            const SizedBox(height: 16),
+            _devModeCard(m, profile),
             const SizedBox(height: 16),
             _bgmCard(m, profile),
             const SizedBox(height: 16),
@@ -1007,6 +1015,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// 🛠 開発者モード。合言葉を入れると全アイテムが開く（撮影・動作確認用）。
+  Widget _devModeCard(MetaStrings m, PlayerProfile p) {
+    return _sectionCard(
+      title: m.devModeTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(m.devModeDesc, style: const TextStyle(fontSize: 12.5)),
+          const SizedBox(height: 4),
+          Text(m.devModeNote,
+              style: const TextStyle(fontSize: 11, color: Colors.black54)),
+          const SizedBox(height: 12),
+          if (p.devMode)
+            Row(
+              children: [
+                const Text('🛠', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(m.devModeOn,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF2E9E5B))),
+                ),
+                TextButton(
+                  onPressed: () => p.disableDevMode(),
+                  child: Text(m.devModeOff),
+                ),
+              ],
+            )
+          else
+            ElevatedButton(
+              onPressed: () => _askDevPassword(m, p),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6A7A8A),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              child: Text(m.devModeEnable),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _askDevPassword(MetaStrings m, PlayerProfile p) async {
+    final ctrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(m.devModeTitle),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          obscureText: true,
+          decoration: InputDecoration(labelText: m.devModePrompt),
+          onSubmitted: (_) => Navigator.pop(c, true),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c, false), child: Text(m.cancel)),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(m.devModeEnable)),
+        ],
+      ),
+    );
+    final input = ctrl.text.trim();
+    ctrl.dispose();
+    if (ok != true || !mounted) return;
+    if (input != _kDevPassphrase) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(m.devModeWrong)));
+      return;
+    }
+    await p.enableDevMode(
+      allThemes: kHomeThemes.map((t) => t.id),
+      allBgm: kBgmCatalog.map((b) => b.asset),
+      allCostumes: kCheerCostumes.map((c) => c.id),
+      allCharacters: kExtraCharacters.map((c) => c.id),
+      allVoices: kPraiseVoices.map((v) => v.id),
+      allCharms: kLuckyCharms.map((c) => c.id),
+      allArticles: kPremiumArticles.map((a) => a.id),
+    );
+    if (!mounted) return;
+    Sfx.instance.reward();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(m.devModeOn)));
   }
 
   Widget _bgmCard(MetaStrings m, PlayerProfile p) {

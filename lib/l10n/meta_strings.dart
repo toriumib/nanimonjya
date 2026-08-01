@@ -1103,6 +1103,47 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
 
   String get battleTwoPlayerButton =>
       ja ? '👫 1台で2人であそぶ' : '👫 Two players, one phone';
+  // 📚 コインで読める読み物
+  String get articleLibraryTitle => ja ? '📚 もっと読む' : '📚 Read more';
+  String get articleLibraryLead => ja
+      ? 'コインで開ける読み物です。タイトルと「何の話か」は開く前から読めます。'
+          '記憶の仕組み・名前の覚え方・忘れないための組み立て方を、研究や公的機関の資料をもとにまとめました。'
+      : 'Articles you can open with coins. Titles and summaries are free to read.';
+  String articleBuyConfirm(int cost, int coins) => ja
+      ? 'この記事を 🪙$cost で開きますか？（持っているコイン: $coins）\n一度開けば、ずっと読めます。'
+      : 'Open this article for 🪙$cost? (You have $coins.) Once opened, it stays open.';
+  String get articleBuy => ja ? '開く' : 'Open';
+  String get articleOwned => ja ? '読める' : 'Open';
+  String get articleNotEnough => ja ? 'コインが足りません' : 'Not enough coins';
+  String articleWatchToEarn(int coins) => ja
+      ? '動画を最後まで見ると 🪙$coins もらえます。見ますか？'
+      : 'Watch a video to the end and get 🪙$coins. Watch now?';
+  String get articleWatchButton => ja ? '動画を見る' : 'Watch';
+  String get articleSources => ja ? '🔬 出典' : '🔬 Sources';
+  String get articleDisclaimer => ja
+      ? '※ ここに書いたのは日常の工夫であって、診断や治療ではありません。'
+          '効果には個人差があります。物忘れが以前より明らかに増えた、'
+          '日常生活に支障が出ているといった場合は医療機関にご相談ください。'
+      : 'This is everyday practice, not diagnosis or treatment. Effects vary. If forgetfulness affects daily life, please consult a medical professional.';
+  String get articleMoreButton =>
+      ja ? '📚 コインで読める記事をみる' : '📚 More articles (coins)';
+
+  // 🛠 開発者モード
+  String get devModeTitle => ja ? '🛠 開発者モード' : '🛠 Developer mode';
+  String get devModeDesc => ja
+      ? '動作確認と画面撮影のための機能です。合言葉を入れると、ショップのアイテム・キャラ・テーマ・読み物がすべて開きます。'
+      : 'For testing and screenshots. Enter the passphrase to unlock every shop item, character, theme and article.';
+  String get devModePrompt => ja ? '合言葉' : 'Passphrase';
+  String get devModeEnable => ja ? '有効にする' : 'Enable';
+  String get devModeWrong => ja ? '合言葉がちがいます' : 'Wrong passphrase';
+  String get devModeOn => ja
+      ? '🛠 開発者モード：すべて開放しました'
+      : '🛠 Developer mode: everything unlocked';
+  String get devModeOff => ja ? '表示を戻す' : 'Hide badge';
+  String get devModeNote => ja
+      ? '※ 戻しても、開いた持ち物は取り上げません。'
+      : 'Turning it off does not take items back.';
+
   // 📇 結果画面の「誰が誰だったか」
   String get reportRosterTitle =>
       ja ? '📇 今回の顔ぶれ' : '📇 Who was who';
