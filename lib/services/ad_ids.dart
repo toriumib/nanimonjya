@@ -13,8 +13,13 @@ class AdIds {
   // --- リワード ---
   static const String _testRewardedAndroid = 'ca-app-pub-3940256099942544/5224354917';
   static const String _testRewardedIOS = 'ca-app-pub-3940256099942544/1712485313';
-  // AdMobコンソールで新規作成したリワード枠（アプリID ~9444754212 配下）
-  static const String _realRewardedAndroid = 'ca-app-pub-6744940157577324/2619409531';
+  // ⚠️ ここは**取り違えていた**。AdMobコンソール上では
+  //    /2619409531 は「リワード インタースティシャル」枠で、
+  //    「リワード」枠は /9009716197 のほう。
+  //    形式の違う枠IDを RewardedAd.load に渡していたので、
+  //    本番で広告が返ってこない（＝コインを配る導線が丸ごと死ぬ）。
+  static const String _realRewardedAndroid =
+      'ca-app-pub-6744940157577324/9009716197';
 
   // --- インタースティシャル（3プレイごとの全画面広告） ---
   static const String _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
@@ -58,7 +63,9 @@ class AdIds {
       'ca-app-pub-3940256099942544/5354046379';
   static const String _testRewardedInterIOS =
       'ca-app-pub-3940256099942544/6978759866';
-  static const String _realRewardedInterAndroid = '';
+  //  AdMobコンソールの「リワード インタースティシャル広告」枠。
+  static const String _realRewardedInterAndroid =
+      'ca-app-pub-6744940157577324/2619409531';
 
   static String get rewardedInterstitial {
     if (kDebugMode) {
@@ -66,6 +73,12 @@ class AdIds {
     }
     return _realRewardedInterAndroid;
   }
+
+  // --- まだ使っていない枠（AdMobでは作成済み） ---
+  //  ⚠️ 作ってあるのに実装が無いと「出ないのはなぜ？」で迷うので残しておく。
+  //  ・アプリ起動（App Open）: ca-app-pub-6744940157577324/9282156275
+  //  ・ネイティブ アドバンス : ca-app-pub-6744940157577324/9170475636
+  //  どちらも SDK 側の実装が別途必要。
 
   static bool get rewardedInterstitialAvailable =>
       !kIsWeb && (kDebugMode || _realRewardedInterAndroid.isNotEmpty);

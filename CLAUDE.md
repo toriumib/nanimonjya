@@ -135,7 +135,13 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 
 ## 重要な決まりごと
 - versionCode は必ずbumpスクリプトを使う（Play Consoleで重複拒否）
-- AdMob本番ID: App `ca-app-pub-6744940157577324~9444754212`, Banner `/4880687935`, Rewarded `/2619409531`（`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）
+- AdMob本番ID（**AdMobコンソールの実際の枠**。`lib/services/ad_ids.dart`で管理。デバッグ時は自動でテストID）
+  - バナー `/4880687935` / インタースティシャル `/8670804845`
+  - **リワード `/9009716197`** / **リワードインタースティシャル `/2619409531`**
+  - ⚠️ 以前このファイルは Rewarded を `/2619409531` と書いていたが**間違い**。
+    それはリワードインタースティシャルの枠で、実際にコードもその誤りを写して
+    いた（形式違いのIDを `RewardedAd.load` に渡していて本番で配信されない）
+  - 未実装だが作成済みの枠: アプリ起動 `/9282156275` / ネイティブ `/9170475636`
 - `dart:io` の `Platform` は使用禁止（Webでクラッシュ）。`kIsWeb`/`defaultTargetPlatform` を使う
 - 広告関連は全て `kIsWeb` ガード必須（google_mobile_adsはWeb非対応）
 - 医療・認知機能への効果は断定表現禁止。「〜と言われている」「〜が期待される」等のヘッジ表現＋免責を守る（`meta_strings.dart` の `cognitiveDisclaimer` 参照）
