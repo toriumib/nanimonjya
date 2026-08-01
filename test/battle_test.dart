@@ -147,6 +147,84 @@ void main() {
     });
   });
 
+  group('🛣 1本の線に並ぶ', () {
+    test('足を止めた味方を追い越さない（壁のうしろに隠れられる）', () {
+      final s = BattleState();
+      // 前の味方は敵と交戦中で動けない
+      final front = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.50, hp: 999);
+      final back = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.47, hp: 999);
+      s.units
+        ..add(front)
+        ..add(back)
+        ..add(BattleUnit(
+            spec: _spec(AttackType.melee), mine: false, pos: 0.53, hp: 9999));
+      final beforeFront = front.pos;
+      final beforeBack = back.pos;
+      s.tick(1.0);
+      expect(front.pos, beforeFront, reason: '交戦中は動かない');
+      expect(back.pos, beforeBack, reason: '前がつかえているので進めない');
+      expect(back.pos, lessThan(front.pos), reason: 'すり抜けて前に出ない');
+    });
+
+    test('同時に出した2体は重なったままにならない', () {
+      // 同じ位置から始まるので、位置だけで前後を決めると永久に重なる。
+      final s = BattleState(myCost: 10);
+      s.deploy(_spec(AttackType.melee), mine: true);
+      s.deploy(_spec(AttackType.melee), mine: true);
+      expect(s.units[0].pos, s.units[1].pos, reason: '出た瞬間は同じ位置');
+      for (var i = 0; i < 20; i++) {
+        s.tick(0.1);
+      }
+      expect((s.units[0].pos - s.units[1].pos).abs(), greaterThan(0.0),
+          reason: '重なったままでは1体にしか見えない');
+    });
+
+    test('前があいていれば進む', () {
+      final s = BattleState();
+      final u = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.5, hp: 99);
+      s.units.add(u);
+      final before = u.pos;
+      s.tick(0.5);
+      expect(u.pos, greaterThan(before));
+    });
+
+    test('うしろの味方はせき止めない（前だけを見る）', () {
+      final s = BattleState();
+      final front = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.5, hp: 99);
+      s.units
+        ..add(front)
+        ..add(BattleUnit(
+            spec: _spec(AttackType.melee), mine: true, pos: 0.47, hp: 99));
+      final before = front.pos;
+      s.tick(0.5);
+      expect(front.pos, greaterThan(before));
+    });
+
+    test('相手の列はせき止めない（ぶつかったら戦う）', () {
+      final s = BattleState();
+      final u = BattleUnit(
+          spec: _spec(AttackType.melee), mine: true, pos: 0.5, hp: 99);
+      final foe = BattleUnit(
+          spec: _spec(AttackType.melee), mine: false, pos: 0.52, hp: 100);
+      s.units..add(u)..add(foe);
+      s.tick(0.5);
+      expect(foe.hp, lessThan(100), reason: '止まるだけで殴らないのでは列が固まる');
+    });
+
+    test('近距離の射程は体の幅より広い（止まったのに届かない、が起きない）', () {
+      // ここが逆転すると、味方の後ろで足を止めたまま永久に何もしなくなる。
+      for (final spec in kUnitCatalog.values) {
+        if (spec.attack != AttackType.melee) continue;
+        expect(spec.range, greaterThan(BattleState.bodySize),
+            reason: '${spec.labelJa} の射程が体の幅より狭い');
+      }
+    });
+  });
+
   group('決着', () {
     test('タワーを0にしたら勝ち', () {
       final s = BattleState(foeTower: 1, myCost: 10);

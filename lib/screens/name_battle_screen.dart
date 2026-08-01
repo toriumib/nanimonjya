@@ -764,41 +764,72 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
                       style: const TextStyle(
                           fontSize: 12.5, fontWeight: FontWeight.w900)),
                 ),
+                // 🛣 進む道すじ。全員がこの1本の線の上に並ぶ。
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: c.maxWidth / 2 - 1,
+                  child: Container(width: 2, color: const Color(0x22000000)),
+                ),
                 // ⚔️ ユニット。pos 0.0=手前(下) → 1.0=奥(上)。
                 //    味方は上へ、相手は下へ進む。
+                //
+                //    ⚠️ 以前は味方と相手を左右2列に分けて描いていた。
+                //    中身は1次元なので、ぶつかって殴り合っているのに
+                //    画面では別々の列を歩いてすれ違うように見えていた。
+                //    **全員を同じ線の上**に置いて、見た目と中身をそろえる。
                 for (final u in _battle.units)
                   Positioned(
                     top: ((1 - u.pos) * (c.maxHeight - unitH))
                         .clamp(0.0, c.maxHeight - unitH),
-                    // 味方と相手を左右に少しずらして、重なっても見分けられるように
-                    left: u.mine ? c.maxWidth * 0.28 : c.maxWidth * 0.58,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(u.spec.emoji,
-                            style: const TextStyle(fontSize: 24)),
-                        SizedBox(
-                          width: 32,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: u.hp / u.spec.hp,
-                              minHeight: 4,
-                              backgroundColor: Colors.white,
-                              valueColor: AlwaysStoppedAnimation(u.mine
-                                  ? const Color(0xFF3A7BD5)
-                                  : const Color(0xFF8A5AC2)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    left: c.maxWidth / 2 - 20,
+                    child: _unitChip(u),
                   ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// 場に出ている1体の見た目。
+  ///
+  /// 全員が同じ線の上に並ぶので、**どちら側のユニットか**が色だけで
+  /// すぐ分かる必要がある。丸い下地の色と、向きの矢印で示す。
+  Widget _unitChip(BattleUnit u) {
+    final color =
+        u.mine ? const Color(0xFF3A7BD5) : const Color(0xFF8A5AC2);
+    return SizedBox(
+      width: 40,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+            ),
+            child: Text(u.spec.emoji, style: const TextStyle(fontSize: 18)),
+          ),
+          SizedBox(
+            width: 30,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: u.hp / u.spec.hp,
+                minHeight: 4,
+                backgroundColor: Colors.white,
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

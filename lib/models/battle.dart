@@ -67,19 +67,19 @@ class UnitSpec {
 
 const UnitSpec _heavy = UnitSpec(
   labelJa: '重装', labelEn: 'Heavy', emoji: '🛡️',
-  attack: AttackType.melee, hp: 150, power: 9, range: 0.05, speed: 0.05, cost: 5,
+  attack: AttackType.melee, hp: 150, power: 9, range: 0.07, speed: 0.05, cost: 5,
 );
 const UnitSpec _guard = UnitSpec(
   labelJa: '前衛', labelEn: 'Guard', emoji: '🧱',
-  attack: AttackType.melee, hp: 110, power: 8, range: 0.05, speed: 0.06, cost: 4,
+  attack: AttackType.melee, hp: 110, power: 8, range: 0.07, speed: 0.06, cost: 4,
 );
 const UnitSpec _striker = UnitSpec(
   labelJa: '斬りこみ', labelEn: 'Striker', emoji: '⚔️',
-  attack: AttackType.melee, hp: 55, power: 24, range: 0.05, speed: 0.08, cost: 3,
+  attack: AttackType.melee, hp: 55, power: 24, range: 0.07, speed: 0.08, cost: 3,
 );
 const UnitSpec _runner = UnitSpec(
   labelJa: '遊撃', labelEn: 'Runner', emoji: '🏃',
-  attack: AttackType.melee, hp: 45, power: 11, range: 0.05, speed: 0.14, cost: 2,
+  attack: AttackType.melee, hp: 45, power: 11, range: 0.07, speed: 0.14, cost: 2,
 );
 const UnitSpec _archer = UnitSpec(
   labelJa: '弓', labelEn: 'Archer', emoji: '🏹',
@@ -91,7 +91,7 @@ const UnitSpec _sniper = UnitSpec(
 );
 const UnitSpec _siege = UnitSpec(
   labelJa: 'タワー狙い', labelEn: 'Siege', emoji: '💣',
-  attack: AttackType.siege, hp: 70, power: 26, range: 0.05, speed: 0.07, cost: 4,
+  attack: AttackType.siege, hp: 85, power: 26, range: 0.07, speed: 0.07, cost: 4,
 );
 
 /// 🎭 キャラごとの能力表。
@@ -178,7 +178,7 @@ class BattleState {
 
   final List<BattleUnit> units = [];
 
-  static const double costPerSecond = 0.9;
+  static const double costPerSecond = 0.75;
   static const double maxCost = 10;
   static const int towerHp = 240;
   static const double matchSeconds = 90;
@@ -187,6 +187,13 @@ class BattleState {
   /// これが無いと「タワーディフェンス」ではなく、ただの殴り合いになる。
   static const double towerRange = 0.22;
   static const int towerPower = 10;
+
+  /// ユニット1体ぶんの幅。
+  ///
+  /// **全員が1本の線の上に並ぶ**ので、味方どうしがすり抜けると
+  /// 同じ場所に重なってしまう。前の味方がここまで近づいたら足を止め、
+  /// 列を作って待つ。前に出した壁が本当に壁として働くようになる。
+  static const double bodySize = 0.045;
 
   BattleState({
     this.myTower = towerHp,
@@ -221,7 +228,8 @@ class BattleState {
     myCost = min(maxCost, myCost + costPerSecond * dt);
     foeCost = min(maxCost, foeCost + costPerSecond * dt);
 
-    for (final u in units) {
+    for (var i = 0; i < units.length; i++) {
+      final u = units[i];
       if (!u.alive) continue;
       // タワー狙いは足を止めずに素通りする（撃ち返されるのが弱点）
       if (!u.spec.towerOnly) {
@@ -231,6 +239,8 @@ class BattleState {
           continue; // 撃っている間は進まない
         }
       }
+      // 前の味方につかえていたら進まない（列に並ぶ）
+      if (_blockedByAlly(i)) continue;
       final dir = u.mine ? 1.0 : -1.0;
       u.pos = (u.pos + u.spec.speed * dt * dir).clamp(0.0, 1.0);
       final atTower = u.mine ? u.pos >= 1.0 : u.pos <= 0.0;
@@ -257,7 +267,8 @@ class BattleState {
     final towerPos = defendingMine ? 0.0 : 1.0;
     BattleUnit? target;
     var bestDist = double.infinity;
-    for (final u in units) {
+    for (var i = 0; i < units.length; i++) {
+      final u = units[i];
       if (!u.alive) continue;
       if (u.mine == defendingMine) continue; // 味方は撃たない
       final d = (u.pos - towerPos).abs();
@@ -269,6 +280,28 @@ class BattleState {
     if (target != null) {
       target.hp -= (towerPower * dt).round();
     }
+  }
+
+  /// すぐ前に味方がいて進めないか。
+  ///
+  /// 1本の線に全員が並ぶので、これが無いと味方が重なって
+  /// 「壁のうしろに隠れる」が成立しない。
+  ///
+  /// ⚠️ 同時に2体出すと**まったく同じ位置**から始まる。位置だけで
+  /// 前後を決めると、どちらも「前に味方はいない」と判断して重なったまま
+  /// 進み続けてしまう。重なったときは**先に出したほうを前**とみなして、
+  /// あとから出したほうに一歩ゆずらせる（すぐ列にほどける）。
+  bool _blockedByAlly(int index) {
+    final u = units[index];
+    for (var j = 0; j < units.length; j++) {
+      if (j == index) continue;
+      final o = units[j];
+      if (!o.alive || o.mine != u.mine) continue;
+      if ((o.pos - u.pos).abs() >= bodySize) continue;
+      final ahead = u.mine ? o.pos > u.pos : o.pos < u.pos;
+      if (ahead || (o.pos == u.pos && j < index)) return true;
+    }
+    return false;
   }
 
   /// 射程に入っている敵のうち、いちばん近いもの。
