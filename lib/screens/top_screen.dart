@@ -27,6 +27,7 @@ import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物�
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 
 // 多言語対応のために追加
 
@@ -720,6 +721,13 @@ class _TopScreenState extends State<TopScreen>
               },
             ),
             const SizedBox(height: 8),
+            // 🗣 ナナちゃん・はなちゃんの声かけ。
+            //    いまのその人（復習どきの人数・連続日数・時間帯）に
+            //    合わせた一言を出す。ロゴの直下＝いちばん最初に目が行く場所。
+            AnimatedBuilder(
+              animation: PlayerProfile.instance,
+              builder: (context, _) => const GuideTalk(),
+            ),
             // 称号バッジ と 🎁無料コイン を横1行に（以前は縦に積んでいた）
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
