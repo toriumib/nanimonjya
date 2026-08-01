@@ -29,6 +29,11 @@ enum BattleCardStyle {
   /// トランプのように、1枚に顔と名前がいっしょに書いてある札を2枚そろえる。
   /// 見た目でそろえられるぶんやさしく、名前は取るたびに目に入る。
   combined,
+
+  /// 顔だけの札を2枚そろえる。いちばん素朴な神経衰弱。
+  /// 名前は出ないので**顔の見分け**に専念できる。
+  /// 顔をおぼえるのが先、という人向け（名前を覚える練習にはならない）。
+  faceOnly,
 }
 
 /// ⚔️ ベータ「なまえバトル」（タワーディフェンス）。
@@ -76,6 +81,11 @@ class _Card {
 class _NameBattleScreenState extends State<NameBattleScreen> {
   bool get _twoPlayer => widget.humanPlayers >= 2;
   bool get _combined => widget.cardStyle == BattleCardStyle.combined;
+  bool get _faceOnly => widget.cardStyle == BattleCardStyle.faceOnly;
+
+  /// 「同じ札を2枚そろえる」作りか（トランプ式・顔だけ）。
+  /// 顔札×名札だけが「別の面をそろえる」ので、判定と札の組み立てが違う。
+  bool get _samePair => _combined || _faceOnly;
 
   /// 2人なら8人（おおよそ4人ずつ取る）、ひとりなら6人。
   int get _pairs => _twoPlayer ? 8 : 6;
@@ -132,8 +142,8 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     // 🃏 1人につき2枚。どちらの作りでも「同じ人の2枚」をそろえて取る。
     _cards = [
       for (final p in _people)
-        if (_combined) ...[
-          // トランプ式: 同じ札が2枚（どちらにも顔と名前が載っている）
+        if (_samePair) ...[
+          // トランプ式・顔だけ: まったく同じ札が2枚
           _Card(p, true),
           _Card(p, true),
         ] else ...[
@@ -191,9 +201,9 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
       return;
     }
     final a = _cards[_firstIndex!];
-    // トランプ式は同じ人なら成立。顔札×名札のときは、
-    // 顔と名前という**別の面**がそろって初めて成立する。
-    final hit = _combined
+    // 同じ札を2枚そろえる作りは、同じ人なら成立。
+    // 顔札×名札のときは、顔と名前という**別の面**がそろって初めて成立する。
+    final hit = _samePair
         ? a.person == c.person
         : (a.person == c.person && a.isFace != c.isFace);
     _resolving = true;
@@ -499,6 +509,12 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   /// トランプ式は**1枚に顔と名前がいっしょに**載る（同じ札を2枚そろえる）。
   /// 顔札×名札のときは、札ごとに顔だけ／名前だけを見せる。
   Widget _cardFront(_Card c) {
+    if (_faceOnly) {
+      return Padding(
+        padding: const EdgeInsets.all(6),
+        child: FaceView(person: c.person, size: double.infinity, radius: 8),
+      );
+    }
     if (_combined) {
       return Padding(
         padding: const EdgeInsets.all(4),

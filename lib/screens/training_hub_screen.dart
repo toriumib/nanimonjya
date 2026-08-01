@@ -160,6 +160,13 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                 color: const Color(0xFFE8663C),
                 onTap: () => start(BattleCardStyle.combined),
               ),
+              const SizedBox(height: 10),
+              _styleTile(
+                label: m.battleStyleFaceOnly,
+                desc: m.battleStyleFaceOnlyDesc,
+                color: const Color(0xFF2E9E5B),
+                onTap: () => start(BattleCardStyle.faceOnly),
+              ),
             ],
           ),
         ),
