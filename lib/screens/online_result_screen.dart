@@ -229,7 +229,8 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
         Text(
           switch (_outcome) {
             _Outcome.win => m.matchWin,
-            _Outcome.lose => m.matchLose,
+            // 対戦相手は人。CPU戦の文言を流用しない
+            _Outcome.lose => m.matchLoseBy(widget.session.opponentName),
             _ => m.matchDraw,
           },
           textAlign: TextAlign.center,

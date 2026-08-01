@@ -44,7 +44,10 @@ class TurnPairsScreen extends StatefulWidget {
   State<TurnPairsScreen> createState() => _TurnPairsScreenState();
 }
 
-enum _Phase { memorize, playing, finished }
+/// おぼえタイム → **相手待ち** → 対戦 → 終了。
+/// 相手待ちを挟むのは、先手がおぼえ終わってすぐめくり始めると、
+/// まだおぼえタイム中の後手が相手の手を見逃してしまうため。
+enum _Phase { memorize, readyWait, playing, finished }
 
 class _Card {
   final Person person;
@@ -72,6 +75,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
   final List<int> _flipping = [];
 
   Timer? _catchUp;
+  Timer? _readyTimeout;
   bool _sending = false;
   bool _reported = false;
 
@@ -115,10 +119,12 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
 
     widget.session.moves.addListener(_onMoves);
     widget.session.opponentResult.addListener(_onOpponentResult);
+    widget.session.readyCount.addListener(_onReadyChanged);
 
-    _tickMemorize();
-    _memorizeTimer = Timer.periodic(
-        const Duration(milliseconds: 400), (_) => _tickMemorize());
+    _memorizeLeft = OnlineMatchService.memorizeSecondsFor(
+        'turnpairs', OnlineMatchService.levelPairs);
+    _memorizeTimer =
+        Timer.periodic(const Duration(seconds: 1), (_) => _tickMemorize());
 
     AppAnalytics.gameStart(mode: 'turn_pairs', players: 2);
     Bgm.instance.playGame();
@@ -128,22 +134,44 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
   void dispose() {
     widget.session.moves.removeListener(_onMoves);
     widget.session.opponentResult.removeListener(_onOpponentResult);
+    widget.session.readyCount.removeListener(_onReadyChanged);
     _memorizeTimer?.cancel();
+    _readyTimeout?.cancel();
     _catchUp?.cancel();
     Bgm.instance.stopGame();
     super.dispose();
   }
 
+  /// おぼえタイムを進める。
+  ///
+  /// ⚠️ 残り秒を「サーバー時刻 − 端末の時計」で出すと、時計がずれている端末で
+  /// おぼえタイムが丸ごと飛ぶ（ランクマッチで実際に起きた）。
+  /// 時計は見ず、この画面を開いてからの経過だけで数える。
+  /// ふたりの足並みは [OnlineMatchSession.markReady] の待ち合わせでそろえる。
   void _tickMemorize() {
-    if (!mounted) return;
-    final left =
-        widget.session.playStartAt.difference(DateTime.now()).inSeconds;
-    setState(() => _memorizeLeft = left.clamp(0, 9999));
-    if (left <= 0 && _phase == _Phase.memorize) {
+    if (!mounted || _phase != _Phase.memorize) return;
+    setState(() => _memorizeLeft -= 1);
+    if (_memorizeLeft <= 0) {
       _memorizeTimer?.cancel();
-      setState(() => _phase = _Phase.playing);
-      _onMoves(); // 待っているあいだに相手が動いていた場合に備える
+      setState(() => _phase = _Phase.readyWait);
+      widget.session.markReady();
+      _readyTimeout = Timer(const Duration(seconds: 20), _beginPlaying);
+      _onReadyChanged();
     }
+  }
+
+  /// 両方おぼえ終わってから盤面を開く。
+  /// 先手が先にめくり始めると、後手はおぼえタイム中に相手の手を見逃す。
+  void _onReadyChanged() {
+    if (!mounted || _phase != _Phase.readyWait) return;
+    if (widget.session.readyCount.value >= 2) _beginPlaying();
+  }
+
+  void _beginPlaying() {
+    if (!mounted || _phase != _Phase.readyWait) return;
+    _readyTimeout?.cancel();
+    setState(() => _phase = _Phase.playing);
+    _onMoves(); // 待っているあいだに相手が動いていた場合に備える
   }
 
   // ─────────────── 手の再生 ───────────────
@@ -289,6 +317,18 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
         body: SafeArea(
           child: switch (_phase) {
             _Phase.memorize => _memorizeView(m),
+            _Phase.readyWait => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 18),
+                    Text(m.rankReadyWait,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w900)),
+                  ],
+                ),
+              ),
             _Phase.playing => _boardView(m),
             _Phase.finished => const Center(child: CircularProgressIndicator()),
           },

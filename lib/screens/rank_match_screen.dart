@@ -129,9 +129,10 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
     widget.session.readyCount.addListener(_onReadyChanged);
     widget.session.claims.addListener(_onClaimsChanged);
 
-    _tickMemorize();
-    _memorizeTimer = Timer.periodic(
-        const Duration(milliseconds: 400), (_) => _tickMemorize());
+    _memorizeLeft = OnlineMatchService.memorizeSecondsFor(
+        'rank', OnlineMatchService.rankPeopleCount);
+    _memorizeTimer =
+        Timer.periodic(const Duration(seconds: 1), (_) => _tickMemorize());
 
     AppAnalytics.gameStart(mode: 'rank_match', players: 2);
     Bgm.instance.playGame();
@@ -158,12 +159,21 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
     super.dispose();
   }
 
+  /// おぼえタイムを進める。
+  ///
+  /// ⚠️ ここは以前「サーバー時刻(startedAt)＋おぼえ秒数 − 端末の時計」で
+  /// 残り秒を計算していた。端末の時計がサーバーより進んでいると
+  /// 残り秒が最初からマイナスになり、**名簿が一度も表示されないまま
+  /// 早押しが始まる**（報告されたバグ）。時計のずれは端末ごとに違うので、
+  /// 片方だけ名簿を見られないという不公平にもなっていた。
+  ///
+  /// 時計の比較はやめて、**この画面を開いてからの経過**だけで数える。
+  /// ふたりのスタートをそろえるのは時計ではなく
+  /// [OnlineMatchSession.markReady] の待ち合わせの役目にする。
   void _tickMemorize() {
-    if (!mounted) return;
-    final left =
-        widget.session.playStartAt.difference(DateTime.now()).inSeconds;
-    setState(() => _memorizeLeft = left.clamp(0, 9999));
-    if (left <= 0 && _phase == _Phase.memorize) {
+    if (!mounted || _phase != _Phase.memorize) return;
+    setState(() => _memorizeLeft -= 1);
+    if (_memorizeLeft <= 0) {
       _memorizeTimer?.cancel();
       setState(() => _phase = _Phase.readyWait);
       widget.session.markReady();

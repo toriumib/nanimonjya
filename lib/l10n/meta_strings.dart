@@ -449,7 +449,7 @@ class MetaStrings {
 
   String get soloTrainingTitle => ja ? '🧠 一人特訓モード' : '🧠 Solo Training';
   String get soloTrainingDesc => ja
-      ? '対戦相手なし。顔と名前のペア当てで、自分のペースで記憶力をきたえよう！'
+      ? '対戦相手なし。顔と名前のペア当てで、自分のペースで記憶力を鍛えます。'
       : 'No opponent — match faces to names and train your memory at your own pace!';
   String get soloTrainingStart => ja ? '特訓スタート！' : 'Start Training!';
   String get cognitiveInfoButton => ja ? '？ 認知トレーニングについて' : '？ About Cognitive Training';
@@ -512,7 +512,15 @@ class MetaStrings {
   String hobbyQuizQuestion(String name) =>
       ja ? '$nameの趣味は？' : "What is $name's hobby?";
   String get matchWin => ja ? '🏆 あなたの勝ち！' : '🏆 You win!';
+  /// 🤖 CPU戦の負け。**CPU戦の結果画面でしか使わないこと**。
+  /// オンライン対戦は相手が人間なので [matchLoseBy] を使う。
   String get matchLose => ja ? '🤖 CPUの勝ち…' : '🤖 CPU wins…';
+  /// 対人戦の負け。相手の名前で表示する。
+  ///
+  /// ⚠️ 以前はオンライン対戦の負けにも [matchLose] を流用していて、
+  /// 人と対戦したのに「🤖 CPUの勝ち…」と出ていた。
+  String matchLoseBy(String name) =>
+      ja ? '😢 $name の勝ち…' : '😢 $name wins…';
   String get matchDraw => ja ? '🤝 ひきわけ！' : '🤝 Draw!';
   String get pairsUnit => ja ? 'ペア' : 'pairs';
   String get resultTitle => ja ? 'けっか' : 'Result';
@@ -531,13 +539,13 @@ class MetaStrings {
   String get mnemonicTrainingButton =>
       ja ? '📚 記憶術トレーニング' : '📚 Mnemonic Training';
   String get mnemonicTrainingDesc => ja
-      ? 'タグ付け法をガイド付きで練習しながら神経衰弱！'
+      ? 'タグ付け法を案内付きで練習しながらペアを探します。'
       : 'Guided tagging practice built into the matching game!';
   String get mnemonicGuideStep1 => ja
-      ? '💡 ① 顔の特徴を一言タグに（例：まゆげが太い）'
+      ? '💡 ① 顔の特徴を一言のタグにする（例：眉が太い）'
       : '💡 ① Tag each face with one feature (e.g. "thick brows")';
   String get mnemonicGuideStep2 => ja
-      ? '💡 ② タグと名前を連想でつなごう（太まゆ→強そう→高橋さん）'
+      ? '💡 ② タグと名前を連想でつなぐ（太い眉→強そう→高橋さん）'
       : '💡 ② Link tag → name with a mini story';
   String get modeSelectTitle => ja ? 'あそぶモードをえらぶ' : 'Choose a Mode';
   String get playButton => ja ? 'トレーニングする' : 'Start Training';
@@ -723,18 +731,20 @@ class MetaStrings {
       ? 'メールアプリを開けませんでした。お手数ですが、こちらの宛先へ送ってください。'
       : 'Could not open a mail app. Please write to this address instead.';
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
-  // 🏋️ 名刺おぼえタブの初回説明（小学生でも分かる言い方にする）
+  // 🏋️ 名刺覚えタブの初回説明。
+  //    ここは仕事で人の名前を覚えたい大人が使う場所なので、
+  //    なまえコール側のひらがな中心の文体ではなく漢字混じりの文にする。
   String get trainingIntroTitle =>
-      ja ? 'ここは「ひとりで練習」する場所だよ！' : 'This is your solo practice room!';
+      ja ? 'ここは一人で練習する場所です' : 'This is your solo practice room!';
   String get trainingIntroBody => ja
-      ? '''なまえコールは みんなであそぶゲーム。
-ここは ひとりで つよくなる ばしょだよ。
+      ? '''なまえコールが皆で遊ぶゲームなのに対して、
+ここは一人で腕を上げるための場所です。
 
-🖇 線むすび … 顔と名前を ゆびで線をひいて むすぶ。ぜんぶむすんだら 答えあわせ！
+🖇 線結び … 顔から名前へ指で線を引いて結びます。全部結んだら答え合わせ。
 
-🧠 思い出しトレーニング … 名刺をもった人が じこしょうかいしてくれる。少し時間がたってから「だれだっけ？」を当てるよ。
+🧠 思い出し訓練 … 名刺を持った相手が自己紹介をします。少し時間を置いてから「誰だったか」を答えます。
 
-🔁 きのう まちがえた人は 次の日にまた出てくる。くりかえすほど おぼえられるよ！'''
+🔁 間違えた相手は翌日また登場します。間隔を空けて繰り返すほど定着します。'''
       : '''Name Call is the game you play with friends.
 This tab is where you get stronger on your own.
 
@@ -743,7 +753,7 @@ This tab is where you get stronger on your own.
 🧠 Recall Training — people introduce themselves with a business card. After a short break, you try to remember who was who.
 
 🔁 Anyone you got wrong comes back the next day. Repetition is what makes it stick!''';
-  String get trainingIntroOk => ja ? 'わかった！' : 'Got it!';
+  String get trainingIntroOk => ja ? '始める' : 'Got it!';
   // 🔇 BGMのON/OFF
   String get bgmEnabledLabel => ja ? '🎵 音楽を鳴らす' : '🎵 Play music';
   String get bgmEnabledHint => ja
@@ -760,7 +770,7 @@ This tab is where you get stronger on your own.
       ja ? '名刺・顔写真を登録する' : 'Register cards & faces';
   String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
-  String get tabTraining => ja ? '名刺おぼえ' : 'Card Memory';
+  String get tabTraining => ja ? '名刺覚え' : 'Card Memory';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
   String get nameCallCatch => ja
       ? 'みんなに名前をつけて、あとで思い出す。顔と名前をむすびつけて覚えよう！'
@@ -887,19 +897,31 @@ This tab is where you get stronger on your own.
       ? 'ONにすると2枚同時に出現。両方言えたら2枚ゲット！'
       : 'Two cards appear at once. Recall both for a double take!';
 
-  // 📸 おぼえるモード（自分の写真）
-  String get tabMemorize => ja ? 'おぼえる' : 'Memorize';
-  String get customTitle => ja ? '📸 自分の名簿' : '📸 My Roster';
+  // 📸 自分の名簿（もらった名刺・人物メモ）
+  String get tabMemorize => ja ? '自分の名簿' : 'Memorize';
+  String get customTitle => ja ? '📇 自分の名簿・人物メモ' : '📸 My Roster';
   String get customDesc => ja
-      ? '職場や学校の人の写真と名前を登録して、覚える練習や対戦ができるよ。'
-          '名刺の項目や誕生日・出身・自分との関係・SNS・自由メモも残せます。'
-          '登録した人をタップすると、あとから見返したり書き足したりできます。'
+      ? 'もらった名刺と顔写真を登録して、そのまま覚える練習や対戦に使えます。'
+          '名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・'
+          '自分との関係・電話番号・メール・X・Instagram・LINE ID・Facebook・自由記入メモの18項目。'
+          '名前だけでも登録でき、登録した人をタップすればいつでも見返して書き足せます。'
+          '入力した内容は端末内にのみ保存され、外部へは送信されません。'
       : 'Add photos & names of people you meet, then study or play with them. '
           'You can also keep company, birthday, hometown, socials and free notes. '
           'Tap a person to view or edit later.';
   String get customMobileOnly => ja
-      ? '写真のアップロードはスマホアプリ版でご利用いただけます。'
-      : 'Photo upload is available on the mobile app.';
+      ? '''📇 この「自分の名簿・人物メモ」は、Google Play版でご利用いただけます。
+
+もらった名刺と顔写真を登録して、名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・自分との関係・電話番号・メール・X・Instagram・LINE ID・Facebook・自由記入メモの18項目を残せます。名刺を撮ると会社名や氏名を自動で読み取り、空欄だけ埋めます。
+
+登録した名簿は、そのまま思い出し訓練やなまえコールの出題に使えます。
+
+写真の保存を端末内で行う機能のため、ブラウザ版では動きません。入力した内容が外部へ送信されることはありません。'''
+      : '''📇 My Roster is available on the Google Play version.
+
+Register the business cards you receive along with a face photo, and keep 18 fields — name, reading, nickname, gender, birthday, company, title, occupation, hometown, address, relationship, phone, email, X, Instagram, LINE ID, Facebook and free notes.
+
+It needs on-device photo storage, so it does not run in the browser. Nothing you enter is ever sent anywhere.''';
   String get customAddButton => ja ? '＋ 写真と名前を追加' : '+ Add photo & name';
   String get customEmpty => ja
       ? 'まだ登録がありません。「＋」から追加してみよう！'
@@ -928,45 +950,45 @@ This tab is where you get stronger on your own.
 
   // 🧠 思い出しトレーニング（実際に出会って、時間をおいて思い出す）
   String get recallTitle =>
-      ja ? '💼 名刺おぼえ' : '💼 Card Memory';
+      ja ? '💼 名刺覚え' : '💼 Card Memory';
   String get recallHubDesc => ja
       ? '実際に人と出会うように顔・名前・出会った場所を覚えて、少し時間をおいてから「この人だれだっけ？」を思い出す特訓。現実で名前が出てこない、をなくそう。'
       : 'Meet people like in real life — link face, name and where you met — then recall "who was that again?" after a pause. Beat the moment names slip your mind.';
   String get recallStart => ja ? '出会いに行く →' : 'Go meet them →';
-  String get recallMeetTitle => ja ? 'であう' : 'Meet';
+  String get recallMeetTitle => ja ? '出会う' : 'Meet';
   String get recallMeetHint => ja
-      ? '出会った人たちです。顔・名前・出会った場所をむすびつけて覚えよう。'
+      ? '出会った相手です。顔・名前・出会った場所を結び付けて覚えてください。'
       : 'People you just met. Link each face to a name and where you met.';
   String metAt(String where) => ja ? '$where知り合った' : 'You met them $where.';
-  String get recallHobbyLabel => ja ? 'しゅみ' : 'Hobby';
-  String get recallRemembered => ja ? 'おぼえた →' : 'Got it →';
-  String get recallMeetNext => ja ? 'つぎの人 →' : 'Next person →';
-  String get recallGapTitle => ja ? 'しばらく時間がたった…' : 'Some time has passed…';
+  String get recallHobbyLabel => ja ? '趣味' : 'Hobby';
+  String get recallRemembered => ja ? '覚えた →' : 'Got it →';
+  String get recallMeetNext => ja ? '次の人 →' : 'Next person →';
+  String get recallGapTitle => ja ? 'しばらく時間が経った…' : 'Some time has passed…';
   String get recallGapSub => ja
-      ? 'あの人たち、名前を思い出せるかな？'
+      ? 'あの人たちの名前を思い出せますか？'
       : 'Can you recall their names now?';
   String get recallGapButton => ja ? '思い出す →' : 'Try to recall →';
-  String get recallWhoTitle => ja ? 'この人だれだっけ？' : 'Who is this again?';
-  String hintMetAt(String where) => ja ? 'ヒント: $where会った人' : 'Hint: you met them $where';
+  String get recallWhoTitle => ja ? 'この人は誰でしたか？' : 'Who is this again?';
+  String hintMetAt(String where) => ja ? 'ヒント：$where会った相手' : 'Hint: you met them $where';
   String get recallResultTitle => ja ? '思い出しレポート' : 'Recall Report';
   String recallCorrectOf(int correct, int total) =>
-      ja ? '$total人中 $correct人 思い出せた！' : 'You recalled $correct of $total!';
-  String get recallReview => ja ? 'おさらい（顔・名前・場所）' : 'Review (face・name・place)';
+      ja ? '$total人中 $correct人を思い出せました' : 'You recalled $correct of $total!';
+  String get recallReview => ja ? '復習（顔・名前・場所）' : 'Review (face・name・place)';
   // 🔁 弱点の即時復習（テスト効果を活かして、まちがえた人だけもう1周する）
   String get reviewRoundBadge =>
-      ja ? '🔁 復習ラウンド：まちがえた人だけ' : '🔁 Review round: missed faces only';
+      ja ? '🔁 復習ラウンド：間違えた相手だけ' : '🔁 Review round: missed faces only';
   String reviewRecovered(int n) =>
-      ja ? '🔁 復習で $n 人 思い出せた！' : '🔁 Recovered $n in review!';
+      ja ? '🔁 復習で $n 人を思い出せました' : '🔁 Recovered $n in review!';
   String get recallAgain => ja ? 'もう一度' : 'Again';
-  String get recallClose => ja ? 'とじる' : 'Close';
+  String get recallClose => ja ? '閉じる' : 'Close';
   String get recallEncourageHigh => ja
-      ? 'かんぺき！実際に会っても、すぐ名前が出てきますね。'
+      ? '完璧です。実際に会っても、すぐ名前が出てくるはずです。'
       : 'Perfect! You’d recall their names in real life, too.';
   String get recallEncourageMid => ja
-      ? 'いい調子！出会った場所と結びつけると、もっと思い出しやすくなるよ。'
+      ? '良い調子です。出会った場所と結び付けると、さらに思い出しやすくなります。'
       : 'Nice! Tie each face to where you met — it makes recall easier.';
   String get recallEncourageLow => ja
-      ? '思い出せなくても大丈夫。くり返すほど、名前は出てくるようになります。'
+      ? '思い出せなくても問題ありません。繰り返すほど名前は出てくるようになります。'
       : 'It’s OK to forget. The more you repeat, the easier names come back.';
   String get businessCardHello => ja ? 'はじめまして' : 'Nice to meet you';
   String fieldLabel(RecallField f) {
@@ -997,7 +1019,7 @@ This tab is where you get stronger on your own.
   String get deckHeadline =>
       ja ? 'ゲームに出てくる顔ぶれを決めよう' : 'Choose who shows up in your games';
   String get deckDesc => ja
-      ? 'タップでON／OFF。OFFにしたキャラはなまえコールと名刺おぼえに出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
+      ? 'タップでON／OFF。OFFにしたキャラはなまえコールと名刺覚えに出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
       : 'Tap to toggle. Characters turned off will not appear in Name Call or Business Training. Purchased characters and your own photos join automatically.';
   String deckActiveCount(int n) => ja ? '✅ 出演中 $n人' : '✅ $n in the deck';
   String get deckTooFew =>
@@ -1018,22 +1040,22 @@ This tab is where you get stronger on your own.
   String get tabShop => ja ? 'ショップ' : 'Shop';
 
   // 🖇 一人特訓（線むすび）
-  String get lineMatchTitle => ja ? '🖇 線むすび特訓' : '🖇 Line Match';
+  String get lineMatchTitle => ja ? '🖇 線結び特訓' : '🖇 Line Match';
   String get lineMatchMemorizeTitle =>
-      ja ? 'おぼえタイム！' : 'Memorize time!';
+      ja ? '記銘タイム' : 'Memorize time!';
   String get lineMatchMemorizeDesc => ja
-      ? '顔と名前をセットでおぼえよう。準備ができたらボタンを押してね。'
+      ? '顔と名前を組みで覚えます。準備ができたらボタンを押してください。'
       : 'Learn each face with its name. Tap the button when you are ready.';
-  String get lineMatchStart => ja ? 'おぼえた！線むすびへ' : 'Got it! Start matching';
+  String get lineMatchStart => ja ? '覚えた！線結びへ' : 'Got it! Start matching';
   String get lineMatchConnectTitle =>
-      ja ? '顔と名前を線でむすぼう' : 'Connect faces to names';
+      ja ? '顔と名前を線で結ぶ' : 'Connect faces to names';
   String get lineMatchConnectDesc => ja
-      ? '顔から名前へ指でドラッグ。まちがえたら引きなおせます。'
+      ? '顔から名前へ指でドラッグします。間違えても引き直せます。'
       : 'Drag from a face to a name. You can redo any line.';
   String get lineMatchJudge => ja ? '✅ 答えあわせ' : '✅ Check answers';
   String lineMatchProgress(int done, int total) =>
-      ja ? 'あと${total - done}人（$done/$total）' : '$done/$total connected';
-  String get lineMatchButton => ja ? '🖇 線むすびで特訓' : '🖇 Line match training';
+      ja ? '残り${total - done}人（$done/$total）' : '$done/$total connected';
+  String get lineMatchButton => ja ? '🖇 線結びで特訓' : '🖇 Line match training';
   // 実物の名刺＋顔写真アップロード（カスタム名簿）
   String get customCompanyField => ja ? '会社名（任意）' : 'Company (optional)';
   String get customTitleField => ja ? '肩書（任意）' : 'Title (optional)';
@@ -1111,7 +1133,7 @@ This tab is where you get stronger on your own.
   String get weeklyLearnedZero =>
       ja ? '📅 今週はまだ0人。1回あそぼう！' : '📅 None yet this week — play once!';
   String get storeHint => ja
-      ? '買ったキャラは「なまえコール」と「名刺おぼえ」に登場します。'
+      ? '買ったキャラは「なまえコール」と「名刺覚え」に登場します。'
       : 'Bought characters show up in Name Call and Card Memory.';
   String get storeBuyConfirm => ja ? 'このキャラを仲間にする？' : 'Add this character?';
   // 試合・特訓のあとのショップ誘導
@@ -1161,7 +1183,7 @@ This tab is where you get stronger on your own.
       : 'Equip one. Makes play a little kinder, or your coins a little more.';
   String get shopSkinsTitle => ja ? '💳 名刺のデザイン' : '💳 Card Designs';
   String get shopSkinsDesc => ja
-      ? '名刺おぼえで差し出される名刺の見た目が変わります。'
+      ? '名刺覚えで差し出される名刺の見た目が変わります。'
       : 'Changes how the business card looks in Card Memory.';
   String shortByCoins(int short, int reward) => ja
       ? 'あと $short コインで手に入ります。動画を1本見ると $reward コインもらえます。'
@@ -1171,7 +1193,7 @@ This tab is where you get stronger on your own.
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
   String get storeCharsDesc => ja
-      ? 'なまえコールと名刺おぼえに登場する人が増えます。'
+      ? 'なまえコールと名刺覚えに登場する人が増えます。'
       : 'Adds more people to Name Call and Card Memory.';
   // 🔔 練習リマインド
   // 🔁 日をまたいだ復習（間隔をあけた再テスト）
@@ -1270,7 +1292,7 @@ This tab is where you get stronger on your own.
       case 'lineMatch':
         return ja ? '線むすび特訓' : 'Line Match';
       case 'cardMemory':
-        return ja ? '名刺おぼえ（思い出しトレーニング）' : 'Card Memory';
+        return ja ? '名刺覚え（思い出し訓練）' : 'Card Memory';
       case 'pairs':
         return ja ? 'ペアさがし' : 'Pair Hunt';
       default:
@@ -1336,7 +1358,16 @@ This tab is where you get stronger on your own.
             : '''A calm solo drill — no luck involved.\n\n1. Memorize each face with its name\n2. Drag from a face to a name to connect them\n3. Redo any line as often as you like\n4. Connect them all, then check your answers''';
       case 'cardMemory':
         return ja
-            ? '''仕事で会う人をおぼえる練習。\n\n① であう … 名刺をもった人が じこしょうかいしてくれる（声つき）\n② 時間がたつ … わざと間をあける（この「間」が記憶に効きます）\n③ 思い出す … 顔を見て「だれだっけ？」を答える\n\n🎯 おぼえる項目は 名前が必須。会社名・肩書・電話・メールを 自由に足せます。\n🔁 まちがえた人は 次の日にまた出てきます。'''
+            ? '''仕事で会う人を覚えるための訓練です。
+
+① 出会う … 名刺を持った相手が自己紹介をします（音声付き）
+② 時間を置く … あえて間隔を空けます。この「間」が定着に効きます
+③ 思い出す … 顔を見て「この人は誰だったか」を答えます
+
+🎯 出題項目は名前が必須。会社名・役職・電話番号・メールアドレスを任意で追加できます。
+🔁 間違えた相手は翌日また登場します。
+
+📇 実際にもらった名刺と顔写真を登録して、そのまま出題できます（スマートフォン版のみ）。名前・読み方・誕生日・出身・自分との関係・SNS・自由記入メモまで残せるので、名簿としても使えます。入力した内容は端末内にのみ保存され、外部へは送信されません。'''
             : '''Practice for people you meet at work.\n\n1. Meet — they introduce themselves with a business card (with voice)\n2. Time passes — a deliberate gap helps memory\n3. Recall — look at the face and answer who it was\n\n🎯 Name is required; add company, title, phone, email as you like.''';
       case 'pairs':
         return ja

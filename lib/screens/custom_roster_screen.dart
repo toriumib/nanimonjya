@@ -41,8 +41,11 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
       if (picked == null || !mounted) return;
       final result = await Navigator.push<_FormResult>(
         context,
+        // ⚠️ ここに null を渡していたため、顔写真を選んだ直後の入力画面に
+        //    その写真が出ていなかった。誰の情報を入れているのか分からない
+        //    まま18項目を埋めることになるので、選んだ写真をそのまま見せる。
         MaterialPageRoute(
-            builder: (_) => const _EntryFormScreen(facePath: null)),
+            builder: (_) => _EntryFormScreen(facePath: picked.path)),
       );
       if (result == null || result.entry.name.trim().isEmpty) return;
       await CustomRosterService.instance.add(
@@ -147,13 +150,13 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     if (kIsWeb) {
       return Scaffold(
         appBar: AppBar(title: Text(m.tabMemorize)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(30),
+        // 説明が長いので、はみ出さないようスクロールできるようにする
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
             child: Text(
               m.customMobileOnly,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15),
+              style: const TextStyle(fontSize: 14, height: 1.7),
             ),
           ),
         ),

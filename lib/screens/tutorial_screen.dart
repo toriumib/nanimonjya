@@ -252,12 +252,15 @@ class _TutorialScreenState extends State<TutorialScreen> {
           guideEmoji: '👧',
           guideAsset: 'assets/images/supporters/cheer_girl.svg',
           guideName: ja ? 'ナナちゃん' : 'Nana',
-          title: ja ? '🖇 ひとりのときは「名刺おぼえ」' : '🖇 Alone? Card Memory',
+          // 💼 ここだけは仕事で使う人向けなので、漢字混じりの大人の文章にする。
+          //    ほかのページは子どもも一緒に遊ぶ「なまえコール」の説明なので
+          //    ひらがな中心のまま。
+          title: ja ? '💼 一人のときは「名刺覚え」' : '🖇 Alone? Card Memory',
           points: ja
               ? [
-                  '🖇線むすび … 顔と名前を ゆびでつなぐ',
-                  '🧠思い出し … 名刺の人を おぼえて 当てる',
-                  '📷じぶんの しゃしんも とうろくできる',
+                  '🖇 線結び … 顔から名前へ指で線を引く',
+                  '🧠 思い出し訓練 … 名刺の相手を覚えて、時間を置いて答える',
+                  '📷 自分の写真と名簿を登録できる（スマートフォン版）',
                 ]
               : [
                   '🖇 Line Match — connect faces to names',
@@ -265,7 +268,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   '📷 Add your own photos too',
                 ],
           note: ja
-              ? '📊マイページの 成績レポートで「おぼえられているか」が 見られるよ。'
+              ? '📇 もらった名刺と顔写真を登録すれば、そのまま出題できます。誕生日・出身・自分との関係・自由記入メモまで残せるので名簿としても使えます（端末内にのみ保存）。📊 定着の度合いはマイページの成績レポートで確認できます。'
               : 'Check the report on My Page to see how much you retain.',
           illustration: '🖇️',
           screenshot: 'assets/images/tutorial/hook_office.png',

@@ -184,13 +184,40 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
     Bgm.instance.playGame(); // 🎵 Android/Web どちらでも鳴る
   }
 
+  /// オンライン同時レースのおぼえタイム。
+  ///
+  /// 締切はサーバー時刻(startedAt)基準だが、残り秒の計算に使う「いま」は
+  /// 端末の時計なので、時計がずれているとおぼえタイムが飛ぶ。
+  /// （ランクマッチで「名簿が一度も出ない」として実際に報告された）
+  /// 残りがありえない値のときは時計を信用せず、その場から自前で数える。
   void _tickOnlineMemorize() {
     if (!mounted) return;
+    final full = OnlineMatchService.memorizeSecondsFor(
+        widget.online!.game, widget.online!.peopleCount);
     final left =
         widget.online!.playStartAt.difference(DateTime.now()).inSeconds;
+    if (left > full || (left <= 0 && _memorizeLeft == 0 && !_clockChecked)) {
+      // 時計がずれている端末。共通締切をあきらめ、ローカルで数え直す。
+      _clockChecked = true;
+      _memorizeTimer?.cancel();
+      setState(() => _memorizeLeft = full);
+      _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        setState(() => _memorizeLeft -= 1);
+        if (_memorizeLeft <= 0) _startPlaying();
+      });
+      return;
+    }
+    _clockChecked = true;
     setState(() => _memorizeLeft = left.clamp(0, 9999));
     if (left <= 0) _startPlaying();
   }
+
+  /// 端末の時計が信用できるか、最初の1回で判定したか。
+  bool _clockChecked = false;
 
   void _loadBanner() {
     if (kIsWeb) return;
