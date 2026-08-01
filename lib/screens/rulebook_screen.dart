@@ -86,6 +86,7 @@ enum RuleTopic {
   lineMatch,
   cardMemory,
   pairs,
+  battle,
 }
 
 /// 📖 どこからでも押せるルールボタン。

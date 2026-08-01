@@ -1047,6 +1047,55 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get lineMatchConnectDesc => ja
       ? '顔から名前へ指でドラッグします。間違えても引き直せます。'
       : 'Drag from a face to a name. You can redo any line.';
+  // ⚔️ ベータ「なまえバトル」
+  String get betaBadge => ja ? 'ベータ' : 'BETA';
+  String get battleTitle => ja ? '⚔️ なまえバトル' : '⚔️ Name Battle';
+  String get battleDesc => ja
+      ? '神経衰弱で当てた人が味方に、取り逃した人が敵になります。覚えているほど戦いが有利になります。'
+      : 'Everyone you match joins you; everyone you miss fights against you. The more you remember, the easier the battle.';
+  String get battleRosterTitle => ja ? '📖 これから出る人たち' : '📖 Who is coming';
+  String get battleRosterHint => ja
+      ? '顔・名前・役割をひととおり見ておきましょう。'
+      : 'Take a look at each face, name and role.';
+  String battleAttemptsLeft(int n) =>
+      ja ? '🃏 のこり $n 回' : '🃏 $n tries left';
+  String battleRecruited(int n, int total) =>
+      ja ? '🤝 仲間 $n / $total 人' : '🤝 $n / $total recruited';
+  String get battleBriefTitle => ja ? '⚔️ 出陣まえ' : '⚔️ Before the battle';
+  String get battleBriefBody => ja
+      ? '当てた人が味方、取り逃した人が相手につきます。カードを押すと出撃します（⚡が必要）。'
+      : 'Those you matched fight for you; the rest fight against you. Tap a card to deploy (costs ⚡).';
+  String get battleMySquad => ja ? '🤝 味方' : '🤝 Your squad';
+  String get battleFoeSquad => ja ? '👹 相手' : '👹 Their squad';
+  String get battleNobody => ja ? 'いません' : 'Nobody';
+  String get battleStart => ja ? '出陣する！' : 'Charge!';
+  String get battleFoe => ja ? 'あいて' : 'Foe';
+  String get battleNoHand => ja
+      ? '出せる仲間がいません…（次は1人でも多く当てよう）'
+      : 'No one to deploy… try to match more next time.';
+  String get battleLose => ja ? '😢 まけ…' : '😢 You lose…';
+  String roleLabel(dynamic role) {
+    switch ('$role'.split('.').last) {
+      case 'guard':
+        return ja ? '🛡️ 前衛（かたい）' : '🛡️ Guard';
+      case 'striker':
+        return ja ? '⚔️ 攻撃役（つよい）' : '⚔️ Striker';
+      default:
+        return ja ? '🏃 遊撃（はやい）' : '🏃 Runner';
+    }
+  }
+
+  String roleEmoji(dynamic role) {
+    switch ('$role'.split('.').last) {
+      case 'guard':
+        return '🛡️';
+      case 'striker':
+        return '⚔️';
+      default:
+        return '🏃';
+    }
+  }
+
   // 📇 結果画面の「誰が誰だったか」
   String get reportRosterTitle =>
       ja ? '📇 今回の顔ぶれ' : '📇 Who was who';
@@ -1297,6 +1346,8 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
         return '🏆';
       case 'turnPairs':
         return '🔁';
+      case 'battle':
+        return '⚔️';
       case 'lineMatch':
         return '🖇';
       case 'cardMemory':
@@ -1318,6 +1369,8 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
         return ja ? 'オンライン・ランクマッチ' : 'Online: Ranked Match';
       case 'turnPairs':
         return ja ? 'オンライン・ターン制対戦' : 'Online: Turn-based Match';
+      case 'battle':
+        return ja ? 'なまえバトル（ベータ）' : 'Name Battle (beta)';
       case 'lineMatch':
         return ja ? '線むすび特訓' : 'Line Match';
       case 'cardMemory':
@@ -1398,6 +1451,10 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
 
 📇 実際にもらった名刺と顔写真を登録して、そのまま出題できます（スマートフォン版のみ）。名前・読み方・誕生日・出身・自分との関係・SNS・自由記入メモまで残せるので、名簿としても使えます。入力した内容は端末内にのみ保存され、外部へは送信されません。'''
             : '''Practice for people you meet at work.\n\n1. Meet — they introduce themselves with a business card (with voice)\n2. Time passes — a deliberate gap helps memory\n3. Recall — look at the face and answer who it was\n\n🎯 Name is required; add company, title, phone, email as you like.''';
+      case 'battle':
+        return ja
+            ? '''🧪 まだベータ版のモードです。覚えたことが、そのまま戦いの強さになります。\n\n① 📖 名簿 … これから出る6人の顔・名前・役割をひととおり見ます\n② 🃏 神経衰弱 … 顔カードと名前カードを、10回のめくりの中で当てます\n③ ⚔️ バトル … **当てた人が味方**に、**取り逃した人が相手**につきます\n\n⚡ カードを押すと出撃します（⚡が必要。時間で回復します）。\n味方が相手より先に相手のタワーを壊せば勝ちです。75秒たったときは、タワーの残りが多いほうの勝ち。\n\n🛡️ 前衛 … かたくて遅い。壁になります（⚡4）\n⚔️ 攻撃役 … 強いけれど紙。前衛のうしろから効きます（⚡3）\n🏃 遊撃 … 速くて安い。数で押します（⚡2）\n役割は顔ごとに決まっていて、いつも同じです。\n\n🪙 コインは当てた人数が主で、勝敗はおまけです。'''
+            : '''🧪 Beta. What you remember becomes your strength.\n\n1. 📖 Roster — look over the six faces, names and roles\n2. 🃏 Concentration — match face and name cards within 10 tries\n3. ⚔️ Battle — everyone you matched fights for you; everyone you missed fights against you\n\n⚡ Tap a card to deploy. Break their tower, or have more tower HP left after 75 seconds.\n\n🛡️ Guard: tough, slow (⚡4) / ⚔️ Striker: strong, fragile (⚡3) / 🏃 Runner: fast, cheap (⚡2)\nRoles are fixed per face.''';
       case 'pairs':
         return ja
             ? '''顔と名前の神経衰弱。マイページから あそべます。\n\n① おぼえタイム … 顔と名前の組み合わせを見る\n② カードが裏返る\n③ 顔カードと 名前カードの 正しいペアをさがす\n\nCPU対戦・1台でみんなで対戦も できます。'''

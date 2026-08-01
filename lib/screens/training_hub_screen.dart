@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
 import 'line_match_screen.dart';
 import 'match_game_screen.dart';
+import 'name_battle_screen.dart';
 import 'online_lobby_screen.dart';
 import 'recall_training_screen.dart';
 import 'rulebook_screen.dart';
@@ -417,6 +418,30 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                       const SizedBox(height: 4),
                       Text(
                         m.turnPairsDesc,
+                        style: const TextStyle(
+                            fontSize: 11.5, color: Colors.black45),
+                        textAlign: TextAlign.center,
+                      ),
+                      // ⚔️ ベータ: 覚えたことがそのまま強さになるモード
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          Sfx.instance.fanfare();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const NameBattleScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE8663C),
+                          minimumSize: const Size.fromHeight(46),
+                        ),
+                        child: Text('${m.battleTitle}（${m.betaBadge}）'),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        m.battleDesc,
                         style: const TextStyle(
                             fontSize: 11.5, color: Colors.black45),
                         textAlign: TextAlign.center,
