@@ -569,59 +569,69 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
     );
   }
 
+  /// ⚔️ 戦場は**縦**。手前（下）が自分の陣、奥（上）が相手の陣。
+  ///
+  /// 1台を挟んで向かい合うので、**スマホの両端がそれぞれの持ち場**になる。
+  /// 相手側（上）はタワーも手札もまるごと180度回してあり、
+  /// 向かいから見れば自分の陣が手前にある。横向きの盤面だと、
+  /// どちらかが必ず横から覗きこむ形になって成立しない。
   Widget _battleView(MetaStrings m) {
     return Column(
       children: [
-        // 2人プレイは相手（P2）の手札を上に、180度回して置く。
-        // 向かい合って持てば、そのままふたり同時に操作できる。
+        // 奥（相手／P2）の陣。2人プレイでは手札ごと引っくり返す。
         if (_twoPlayer)
-          RotatedBox(quarterTurns: 2, child: _handRow(m, side: 1)),
-        _towerBar(m),
+          RotatedBox(quarterTurns: 2, child: _sideBar(m, side: 1))
+        else
+          _towerStrip(m, side: 1),
         Expanded(child: _lane()),
-        _handRow(m, side: 0),
+        // 手前（あなた／P1）の陣
+        _sideBar(m, side: 0),
       ],
     );
   }
 
-  Widget _towerBar(MetaStrings m) {
-    Widget tower(String label, int hp, Color color) => Expanded(
-          child: Column(
-            children: [
-              Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 2),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: hp / BattleState.towerHp,
-                  minHeight: 9,
-                  backgroundColor: const Color(0xFFE3E9F2),
-                  valueColor: AlwaysStoppedAnimation(color),
-                ),
-              ),
-              Text('$hp', style: const TextStyle(fontSize: 11)),
-            ],
-          ),
-        );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 2),
+  /// 陣ひとつぶん（タワーの体力＋⚡＋手札）。
+  Widget _sideBar(MetaStrings m, {required int side}) {
+    return Container(
+      color: Colors.white,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              tower('🏰 ${_sideName(m, 0)}', _battle.myTower,
-                  const Color(0xFF3A7BD5)),
-              const SizedBox(width: 14),
-              tower('🏰 ${_sideName(m, 1)}', _battle.foeTower,
-                  const Color(0xFF8A5AC2)),
-            ],
-          ),
-          Text('⏱ ${_battle.timeLeft.ceil()}s',
+          _towerStrip(m, side: side),
+          _handRow(m, side: side),
+        ],
+      ),
+    );
+  }
+
+  /// タワーの体力バー1本ぶん。
+  Widget _towerStrip(MetaStrings m, {required int side}) {
+    final hp = side == 0 ? _battle.myTower : _battle.foeTower;
+    final color =
+        side == 0 ? const Color(0xFF3A7BD5) : const Color(0xFF8A5AC2);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 2),
+      child: Row(
+        children: [
+          Text('🏰 ${_sideName(m, side)}',
               style:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: hp / BattleState.towerHp,
+                minHeight: 10,
+                backgroundColor: const Color(0xFFE3E9F2),
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text('$hp',
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -630,58 +640,83 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Widget _lane() {
     return LayoutBuilder(
       builder: (context, c) {
-        final towerBand =
-            (BattleState.towerRange * c.maxWidth).clamp(0.0, c.maxWidth / 2);
+        // 🏰 タワーの射程を帯で見せる。どこまで踏み込むと撃たれるのかが
+        //    分からないと、前に出す／出さないの判断ができない。
+        final band =
+            (BattleState.towerRange * c.maxHeight).clamp(0.0, c.maxHeight / 2);
+        const unitH = 46.0;
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFFE8F0DC),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Stack(
-            children: [
-              // 🏰 タワーの射程を色で見せる。どこまで踏み込むと撃たれるのかが
-              //    分からないと、前に出す／出さないの判断ができない。
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: towerBand,
-                child: Container(color: const Color(0x223A7BD5)),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: towerBand,
-                child: Container(color: const Color(0x228A5AC2)),
-              ),
-              for (final u in _battle.units)
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                // 手前（下）＝自分のタワーの射程
                 Positioned(
-                  left: (u.pos * (c.maxWidth - 46)).clamp(0.0, c.maxWidth - 40),
-                  top: u.mine ? c.maxHeight * 0.55 : c.maxHeight * 0.15,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(u.spec.emoji, style: const TextStyle(fontSize: 24)),
-                      SizedBox(
-                        width: 32,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: u.hp / u.spec.hp,
-                            minHeight: 4,
-                            backgroundColor: Colors.white,
-                            valueColor: AlwaysStoppedAnimation(u.mine
-                                ? const Color(0xFF3A7BD5)
-                                : const Color(0xFF8A5AC2)),
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: band,
+                  child: Container(color: const Color(0x223A7BD5)),
+                ),
+                // 奥（上）＝相手のタワーの射程
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: band,
+                  child: Container(color: const Color(0x228A5AC2)),
+                ),
+                // 中央線（自陣・敵陣の境目）
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: c.maxHeight / 2,
+                  child: Container(height: 1.5, color: const Color(0x33000000)),
+                ),
+                Positioned(
+                  top: c.maxHeight / 2 - 9,
+                  right: 8,
+                  child: Text('⏱ ${_battle.timeLeft.ceil()}',
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w900)),
+                ),
+                // ⚔️ ユニット。pos 0.0=手前(下) → 1.0=奥(上)。
+                //    味方は上へ、相手は下へ進む。
+                for (final u in _battle.units)
+                  Positioned(
+                    top: ((1 - u.pos) * (c.maxHeight - unitH))
+                        .clamp(0.0, c.maxHeight - unitH),
+                    // 味方と相手を左右に少しずらして、重なっても見分けられるように
+                    left: u.mine ? c.maxWidth * 0.28 : c.maxWidth * 0.58,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(u.spec.emoji,
+                            style: const TextStyle(fontSize: 24)),
+                        SizedBox(
+                          width: 32,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: u.hp / u.spec.hp,
+                              minHeight: 4,
+                              backgroundColor: Colors.white,
+                              valueColor: AlwaysStoppedAnimation(u.mine
+                                  ? const Color(0xFF3A7BD5)
+                                  : const Color(0xFF8A5AC2)),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },
