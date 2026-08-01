@@ -14,6 +14,15 @@ class InterstitialAdHelper {
   static const int playsPerAd = 3; // 何プレイごとに全画面広告を出すか
   static const String _prefsKey = 'playsSinceInterstitial';
 
+  /// 🚦 前に出してから、最低これだけ間をあける（秒）。
+  ///
+  /// 「3プレイに1回」だけだと、短い試合を続けざまに終えたときに
+  /// 全画面広告が立て続けに出る。全画面はいちばん嫌われやすい形なので、
+  /// **回数**と**時間**の両方で止める（フリークエンシーキャップ）。
+  /// 出しすぎて遊ぶのをやめられたら、その先の広告収入ごと失う。
+  static const int minIntervalSeconds = 90;
+  static const String _lastShownKey = 'interstitialLastShownMs';
+
   InterstitialAd? _ad;
   bool _loading = false;
   int _retryCount = 0;
@@ -56,8 +65,11 @@ class InterstitialAdHelper {
     if (PlayerProfile.instance.adsRemoved) return;
     final prefs = await SharedPreferences.getInstance();
     int plays = (prefs.getInt(_prefsKey) ?? 0) + 1;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final last = prefs.getInt(_lastShownKey) ?? 0;
+    final tooSoon = now - last < minIntervalSeconds * 1000;
 
-    if (plays >= playsPerAd && _ad != null) {
+    if (plays >= playsPerAd && _ad != null && !tooSoon) {
       plays = 0; // 表示するのでカウンタをリセット
       final ad = _ad!;
       _ad = null;
@@ -71,6 +83,7 @@ class InterstitialAdHelper {
           load();
         },
       );
+      await prefs.setInt(_lastShownKey, now);
       await ad.show();
     } else {
       // まだ回数前 or 広告未準備（未準備なら読み込んでおき、次の機会に出す）
