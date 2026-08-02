@@ -885,6 +885,13 @@ This tab is where you get stronger on your own.
   /// 出てくるキャラの数だと分かる書き方にする。
   String peopleCountLabel(int n) => ja ? '$n キャラ' : '$n chars';
   String peopleCountValue(int n) => ja ? '$n人' : '$n';
+  // 🎴 1人あたりの札の枚数
+  String get copiesTitle =>
+      ja ? '🎴 1人あたりの枚数' : '🎴 Cards per character';
+  String copiesValue(int n) => ja ? '$n枚' : '$n';
+  String copiesHint(int total, int recalls) => ja
+      ? '全部で$total枚。1人につき$recalls回 名前を答えます（多いほど覚えやすい）'
+      : '$total cards total — you answer each person $recalls time(s)';
   String get peopleCountTitle =>
       ja ? '👥 出てくるキャラの数' : '👥 How many characters appear';
   String peopleCountHint(int n) => ja

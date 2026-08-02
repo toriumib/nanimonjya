@@ -189,4 +189,57 @@ void main() {
       expect(surnameWithHonorific('佐藤', false), '佐藤');
     });
   });
+
+  group('1人あたりの枚数', () {
+    List<Person> people(int n) => [
+          for (var i = 0; i < n; i++)
+            Person(face: 'f$i', kind: FaceKind.asset, name: 'p$i', hobby: ''),
+        ];
+
+    test('既定は2枚（命名1回＋想起1回）', () {
+      final g = NameCallGame(people: people(4), rng: Random(21));
+      expect(g.copiesPerPerson, 2);
+      expect(g.totalCards, 8);
+      expect(g.deck.length, 8);
+    });
+
+    test('枚数を増やすと山札もその倍になる', () {
+      final g = NameCallGame(
+          people: people(4), rng: Random(22), copiesPerPerson: 5);
+      expect(g.totalCards, 20);
+      final counts = <Person, int>{};
+      for (final p in g.deck) {
+        counts[p] = (counts[p] ?? 0) + 1;
+      }
+      expect(counts.length, 4);
+      expect(counts.values.every((c) => c == 5), isTrue);
+    });
+
+    test('範囲外の指定は丸める（ゲームが壊れないように）', () {
+      expect(
+          NameCallGame(people: people(4), rng: Random(23), copiesPerPerson: 99)
+              .copiesPerPerson,
+          NameCallGame.maxCopiesPerPerson);
+      expect(
+          NameCallGame(people: people(4), rng: Random(24), copiesPerPerson: 0)
+              .copiesPerPerson,
+          NameCallGame.minCopiesPerPerson);
+    });
+
+    test('CPU戦の組分けでも、1周目が命名・残りが想起になる', () {
+      // groupSize=2, copies=3 → A B（命名）→ 2周ぶん想起
+      final g = NameCallGame(
+        people: people(4),
+        rng: Random(25),
+        groupSize: 2,
+        copiesPerPerson: 3,
+      );
+      expect(g.deck.length, 12);
+      final first = g.deck.sublist(0, 2).toSet();
+      expect(g.deck.sublist(2, 4).toSet(), first); // 想起1周目
+      expect(g.deck.sublist(4, 6).toSet(), first); // 想起2周目
+      // 組をまたいで混ざらない
+      expect(first.intersection(g.deck.sublist(6, 12).toSet()), isEmpty);
+    });
+  });
 }

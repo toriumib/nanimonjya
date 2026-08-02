@@ -44,6 +44,8 @@ class _TopScreenState extends State<TopScreen>
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
+  /// 1人あたりの札の枚数。2枚＝1往復、増やすほど同じ顔に何度も会う。
+  int _copies = NameCallGame.defaultCopiesPerPerson;
 
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
@@ -275,6 +277,7 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => CpuEntryScreen(
                             level: lv,
                             peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
                           ),
                         ),
                       );
@@ -352,6 +355,7 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => NameCallScreen(
                             humanPlayers: n,
                             peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
                           ),
                         ),
                       );
@@ -905,6 +909,53 @@ class _TopScreenState extends State<TopScreen>
                                 const SizedBox(height: 4),
                                 Text(
                                   m.peopleCountHint(_peopleCount),
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
+                                ),
+                                const SizedBox(height: 8),
+                                // 🎴 1人あたりの枚数。
+                                //    2枚＝命名1回＋想起1回で終わり。
+                                //    増やすと同じ顔に何度も会うので、
+                                //    間隔をあけた復習に近づいて定着しやすい。
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    m.copiesTitle,
+                                    style: const TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF2B5CA5)),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      m.copiesValue(_copies),
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF2B5CA5)),
+                                    ),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _copies.toDouble(),
+                                        min: NameCallGame.minCopiesPerPerson
+                                            .toDouble(),
+                                        max: NameCallGame.maxCopiesPerPerson
+                                            .toDouble(),
+                                        divisions:
+                                            NameCallGame.maxCopiesPerPerson -
+                                                NameCallGame.minCopiesPerPerson,
+                                        label: m.copiesValue(_copies),
+                                        onChanged: (v) => setState(
+                                            () => _copies = v.round()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  m.copiesHint(
+                                      _peopleCount * _copies, _copies - 1),
                                   style: const TextStyle(
                                       fontSize: 11, color: Colors.black54),
                                 ),

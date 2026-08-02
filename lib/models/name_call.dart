@@ -40,8 +40,15 @@ class NameCallGame {
   ///    （c13を欠番にしたので16→15）
   static const int maxPeople = 15;
 
-  /// 山札は各人物×2枚。
-  static const int copiesPerPerson = 2;
+  /// 1人あたりの札の枚数の既定値。
+  ///
+  /// 2枚なら「初登場で名前をつける → もう一度出たら答える」の1往復で終わる。
+  /// 枚数を増やすと同じ顔に何度も出会うことになり、間隔をあけた復習に近づく。
+  static const int defaultCopiesPerPerson = 2;
+
+  /// ホームで選べる1人あたりの枚数。
+  static const int minCopiesPerPerson = 2;
+  static const int maxCopiesPerPerson = 5;
 
   /// 1カードの回答制限時間（秒）の既定値。
   /// CPU対戦では難易度ごとの値（`CpuDifficulty.answerSeconds`）で上書きされる。
@@ -52,6 +59,12 @@ class NameCallGame {
 
   /// 1ラウンドに出すカード枚数（1=基本 / 2=りょうどりオプション）。
   final int cardsPerRound;
+
+  /// 1人あたり何枚の札を山札に入れるか。
+  ///
+  /// 1枚目は初登場（命名）、2枚目以降が想起になる。
+  /// 多いほど1試合は長くなるが、同じ顔に何度も会うので定着しやすい。
+  final int copiesPerPerson;
 
   /// 何人まとめて覚えてから思い出すか（0＝指定なし＝完全シャッフル）。
   ///
@@ -72,7 +85,9 @@ class NameCallGame {
     required this.rng,
     this.cardsPerRound = 1,
     this.groupSize = 0,
-  }) {
+    int? copiesPerPerson,
+  }) : copiesPerPerson = (copiesPerPerson ?? defaultCopiesPerPerson)
+            .clamp(minCopiesPerPerson, maxCopiesPerPerson) {
     deck = groupSize > 0 ? _buildGroupedDeck() : _buildShuffledDeck();
   }
 
@@ -85,6 +100,8 @@ class NameCallGame {
   ///
   /// 例（groupSize=2, A〜D）: A B（命名）→ B A（想起）→ C D（命名）→ D C（想起）
   /// 想起の順番だけ入れ替えるので、「最後に出た人がすぐ出る」とは限らない。
+  ///
+  /// [copiesPerPerson] を増やしたときは、想起の周を枚数ぶん繰り返す。
   List<Person> _buildGroupedDeck() {
     final shuffled = [...people]..shuffle(rng);
     final deck = <Person>[];
@@ -92,8 +109,9 @@ class NameCallGame {
       final chunk = shuffled.sublist(
           i, (i + groupSize).clamp(0, shuffled.length));
       deck.addAll(chunk); // 1周目＝初登場（命名）
-      final recall = [...chunk]..shuffle(rng);
-      deck.addAll(recall); // 2周目＝想起
+      for (var r = 1; r < copiesPerPerson; r++) {
+        deck.addAll([...chunk]..shuffle(rng)); // 2周目以降＝想起
+      }
     }
     return deck;
   }

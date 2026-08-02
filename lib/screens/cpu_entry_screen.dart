@@ -20,11 +20,13 @@ import 'name_call_screen.dart';
 class CpuEntryScreen extends StatefulWidget {
   final CpuLevel level;
   final int peopleCount;
+  final int? copiesPerPerson;
 
   const CpuEntryScreen({
     super.key,
     required this.level,
     required this.peopleCount,
+    this.copiesPerPerson,
   });
 
   @override
@@ -70,6 +72,7 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
           cpuLevel: widget.level,
           quizMode: true,
           peopleCount: widget.peopleCount,
+          copiesPerPerson: widget.copiesPerPerson,
         ),
       ),
     );
