@@ -558,17 +558,14 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               ],
             ),
           ),
-          // 試聴（持っている曲だけ）
-          if (owned)
-            IconButton(
-              onPressed: () async {
-                await p.selectBgm(b.asset);
-                Bgm.instance.restartGameBgm();
-              },
-              icon: const Icon(Icons.play_arrow_rounded, size: 22),
-              tooltip: m.shopTry,
-              color: const Color(0xFF3A7BD5),
-            ),
+          // ▶️ 試聴は持っていない曲でもできる。
+          //    買う前に聴けないと、どれを選べばいいか分からない。
+          IconButton(
+            onPressed: () => Bgm.instance.preview(b.asset),
+            icon: const Icon(Icons.play_arrow_rounded, size: 22),
+            tooltip: m.shopTry,
+            color: const Color(0xFF3A7BD5),
+          ),
           if (selected)
             Text(m.shopEquipped,
                 style: const TextStyle(
@@ -580,7 +577,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () async {
                 Sfx.instance.pop();
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartGameBgm();
+                Bgm.instance.restartCurrent();
               },
               child: Text(m.shopEquip,
                   style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -602,7 +599,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () => _buyGeneric(
                   () => p.unlockBgm(b.asset, b.cost), b.cost, () async {
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartGameBgm();
+                Bgm.instance.restartCurrent();
               }),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFC93C),

@@ -1020,7 +1020,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get deckTooFew =>
       ja ? '⚠️ 4人以上えらんでね' : '⚠️ Pick at least 4';
   String get deckSelectAll => ja ? 'ぜんいん出す' : 'Select all';
-  String get deckSectionBase => ja ? '基本の12人' : 'The original 12';
+  String get deckSectionBase => ja ? '基本の15人' : 'The original 15';
   String get deckSectionBought => ja ? '🛍 買ったキャラ' : '🛍 Purchased';
   String get deckSectionMine => ja ? '📷 自分で登録した人' : '📷 Your own photos';
   String get deckEmptyBought => ja
@@ -1224,7 +1224,8 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get storeAdLoading => ja ? '動画をじゅんび中…' : 'Loading video…';
   String get storeRate => ja ? '⭐ アプリを評価する' : '⭐ Rate the app';
   String get storeOwned => ja ? '所持ずみ' : 'Owned';
-  String get storeStarter => ja ? '基本キャラ（12人・最初から）' : 'Starter cast (12, free)';
+  String get storeStarter =>
+      ja ? '基本キャラ（15人・最初から）' : 'Starter cast (15, free)';
   String get storeMore => ja ? '➕ 追加キャラ（コインで仲間に）' : '➕ More characters (buy with coins)';
   String get storeBought => ja ? '新しいキャラを仲間にした！🎉' : 'New character unlocked! 🎉';
   /// 買った直後の案内。買っただけでは変化が見えないので、
