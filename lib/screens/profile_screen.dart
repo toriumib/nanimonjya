@@ -14,6 +14,7 @@ import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
 import 'character_shop_screen.dart';
 import 'report_screen.dart';
+import 'story_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
@@ -320,6 +321,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ],
+          const SizedBox(height: 10),
+          // 📖 ストーリーモード。読むと「覚えるコツ」が物語として入るので、
+          // 遊ばない日でも開く理由になる。
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoryListScreen()),
+                );
+              },
+              icon: const Icon(Icons.auto_stories_rounded),
+              label: const Text('📖 ストーリー'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7A5AC2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           // 📊 速さ・正確性・定着率の3指標で、モード別の成績を見る画面。
           // 「どれだけ覚えられているか」は戦績カードの数字だけでは分からない。

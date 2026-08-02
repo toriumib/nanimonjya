@@ -621,6 +621,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       }
       final gained = _roundHits.where((h) => h).length;
       _cardsWon[0] += gained;
+      if (gained > 0) Sfx.instance.get(); // 🎴 カードが手に入った音
       // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
       //    プレイヤーのおてつきは没収せず、誰の点にもならない。
       if (_isCpu && _cpuTookRound) _cardsWon[1] += 1;
@@ -635,7 +636,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (_phase != _Phase.round) return;
     if (player >= 0) {
       _cardsWon[player] += 1;
-      Sfx.instance.correct();
+      Sfx.instance.get(); // 🎴 カードが手に入った音
       HapticFeedback.lightImpact();
     } else {
       Sfx.instance.wrong();
