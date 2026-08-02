@@ -439,49 +439,6 @@ class _TopScreenState extends State<TopScreen>
     }
   }
 
-  /// 📮 バグ報告・改善要望をメールで送ってもらう。
-  ///
-  /// 件名と本文の書き出しを入れておく（白紙だと何を書けばいいか分からず
-  /// そのまま閉じられてしまう）。アプリの版も入れて、どのビルドの話か
-  /// こちらで分かるようにする。
-  Future<void> _sendFeedback() async {
-    Sfx.instance.pop();
-    final m = MetaStrings.of(context);
-    final uri = Uri(
-      scheme: 'mailto',
-      path: kFeedbackEmail,
-      queryParameters: {
-        'subject': m.feedbackSubject,
-        'body': m.feedbackBody,
-      },
-    );
-    var launched = false;
-    try {
-      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      launched = false;
-    }
-    if (!launched && mounted) {
-      // メールアプリが無い端末やWebでは開けないので、宛先をコピーできる形で見せる
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(m.feedbackButton),
-          content: SelectableText(
-            '${m.feedbackNoMailApp}\n\n$kFeedbackEmail',
-            style: const TextStyle(fontSize: 14),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(m.trainingIntroOk),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
   // Buy Me a Coffee のページを外部ブラウザで開く
   Future<void> _launchBuyMeACoffee() async {
     final localizations = AppLocalizations.of(context)!;
@@ -1169,20 +1126,9 @@ class _TopScreenState extends State<TopScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // 📮 フィードバック（バグ報告・改善要望）
-                  TextButton.icon(
-                    onPressed: _sendFeedback,
-                    icon: const Text('📮', style: TextStyle(fontSize: 18)),
-                    label: Text(MetaStrings.of(context).feedbackButton),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF2E7D5B),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  // 📮 ご意見・不具合の窓口はマイページへ移した。
+                  //    ホームが縦に長く、遊ぶボタンがスクロールの下に
+                  //    隠れていたため。困ったときに探す場所はマイページで足りる。
                   const SizedBox(height: 8),
                   // Buy Me a Coffee ボタン
                   TextButton.icon(

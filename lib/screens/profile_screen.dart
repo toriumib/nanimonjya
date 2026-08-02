@@ -119,6 +119,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  /// 📮 バグ報告・改善要望をメールで送ってもらう。
+  ///
+  /// ホームに置いていたが、ホームが縦に長くなって遊ぶボタンが
+  /// スクロールの下に隠れていたのでこちらへ移した。
+  /// 件名と本文の書き出しを入れておく（白紙だと何を書けばいいか分からず、
+  /// そのまま閉じられてしまう）。
+  Future<void> _sendFeedback() async {
+    Sfx.instance.pop();
+    final m = MetaStrings.of(context);
+    final uri = Uri(
+      scheme: 'mailto',
+      path: kFeedbackEmail,
+      queryParameters: {
+        'subject': m.feedbackSubject,
+        'body': m.feedbackBody,
+      },
+    );
+    var launched = false;
+    try {
+      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      launched = false;
+    }
+    if (!launched && mounted) {
+      // メールアプリが無い端末やWebでは開けないので、宛先をコピーできる形で見せる
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(m.feedbackButton),
+          content: SelectableText(
+            '${m.feedbackNoMailApp}\n\n$kFeedbackEmail',
+            style: const TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(m.trainingIntroOk),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
@@ -321,6 +365,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ],
+          const SizedBox(height: 10),
+          // 📮 ご意見・不具合の窓口（ホームから移設）
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _sendFeedback,
+              icon: const Text('📮', style: TextStyle(fontSize: 18)),
+              label: Text(MetaStrings.of(context).feedbackButton),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2E7D5B),
+                side: const BorderSide(color: Color(0xFF2E7D5B), width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                textStyle: const TextStyle(
+                    fontSize: 14.5, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           // 📖 ストーリーモード。読むと「覚えるコツ」が物語として入るので、
           // 遊ばない日でも開く理由になる。
