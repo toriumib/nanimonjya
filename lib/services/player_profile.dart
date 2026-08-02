@@ -29,6 +29,14 @@ class PlayerProfile extends ChangeNotifier {
   int bestSessionStreak = 0;
   String lastLoginDate = ''; // yyyy-mm-dd
   bool dailyClaimedToday = false;
+
+  /// 📅 ハンコカレンダー: ボーナスを受け取った日（yyyy-mm-dd）。
+  ///
+  /// 『脳を鍛える大人のDSトレーニング』のハンコと同じ役目。
+  /// 数字の「連続◯日」よりも、**空いたマスが目に見える**ほうが
+  /// 通い続ける理由になる。増え続けると重いので直近90日だけ持つ。
+  Set<String> stampDates = {};
+  static const int _maxStamps = 90;
   Set<String> unlockedAchievements = {};
   Set<String> unlockedBgm = {'op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3'}; // デフォルトBGMは最初から解放
   String selectedBgm = '08_burning_heart.mp3';
@@ -149,6 +157,7 @@ class PlayerProfile extends ChangeNotifier {
     onlineWins = p.getInt('onlineWins') ?? 0;
     randomMatches = p.getInt('randomMatches') ?? 0;
     dailyStreak = p.getInt('dailyStreak') ?? 0;
+    stampDates = (p.getStringList('stampDates') ?? []).toSet();
     bestDailyStreak = p.getInt('bestDailyStreak') ?? 0;
     bestSessionStreak = p.getInt('bestSessionStreak') ?? 0;
     lastLoginDate = p.getString('lastLoginDate') ?? '';
@@ -268,15 +277,26 @@ class PlayerProfile extends ChangeNotifier {
     final reward = (10 + dailyStreak * 10).clamp(20, 100);
     lastLoginDate = today;
     dailyClaimedToday = true;
+    // 📅 今日のマスにハンコを押す
+    stampDates.add(today);
+    if (stampDates.length > _maxStamps) {
+      final sorted = stampDates.toList()..sort();
+      stampDates = sorted.sublist(sorted.length - _maxStamps).toSet();
+    }
     await _addCoins(reward);
     await _saveDaily();
     _checkAchievements();
     await _persist();
     notifyListeners();
+    // 📅 通い続けて解放されるキャラをここで受け取らせる
+    await refreshFeatCharacters();
     AppAnalytics.dailyBonusClaimed(dailyStreak);
     DailyReminder.instance.onBonusClaimed(); // 今日のリマインド通知をスキップ
     return reward;
   }
+
+  /// その日にハンコが押してあるか。
+  bool hasStamp(DateTime d) => stampDates.contains(_dateString(d));
 
   String _dateString(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -693,6 +713,16 @@ class PlayerProfile extends ChangeNotifier {
         return totalGames >= 50;
       case UnlockFeat.perfectWin:
         return hadPerfectCpuWin;
+      // 📅 通い続けた日数で解放される枠。
+      //    連続でなくても、これまでの最高記録で判定する
+      //    （1日抜けたせいで永久に届かなくなると、続ける気が折れる）。
+      case UnlockFeat.login3:
+      case UnlockFeat.login7:
+      case UnlockFeat.login14:
+      case UnlockFeat.login30:
+        final need = loginDaysFor(f);
+        final best = dailyStreak > bestDailyStreak ? dailyStreak : bestDailyStreak;
+        return best >= need;
     }
   }
 
@@ -720,7 +750,9 @@ class PlayerProfile extends ChangeNotifier {
   /// 実績キャラはコインでは買えない（腕前でしか手に入らない枠）。
   Future<bool> unlockCharacter(String id, int cost) async {
     if (unlockedCharacters.contains(id)) return true;
-    if (extraCharacterById(id)?.isFeatCharacter ?? false) return false;
+    // 🏆 実績・📅 ログイン枠も**買える**。本筋は条件を満たすことだが、
+    //    一生手に入らない枠があると、コインを貯める理由がそのぶん減る。
+    //    値段を通常キャラよりかなり高くして差をつけてある。
     if (coins < cost) return false;
     coins -= cost;
     unlockedCharacters.add(id);
@@ -985,6 +1017,7 @@ class PlayerProfile extends ChangeNotifier {
     final p = _prefs;
     if (p == null) return;
     await p.setInt('dailyStreak', dailyStreak);
+    await p.setStringList('stampDates', stampDates.toList());
     await p.setInt('bestDailyStreak', bestDailyStreak);
     await p.setString('lastLoginDate', lastLoginDate);
   }

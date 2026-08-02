@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ad_ids.dart';
+import 'app_open_ad_helper.dart';
 import 'player_profile.dart';
 
 /// インタースティシャル（全画面）広告のヘルパー。
@@ -75,15 +76,18 @@ class InterstitialAdHelper {
       _ad = null;
       ad.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
+          AppOpenAdHelper.instance.suspended = false;
           ad.dispose();
           load(); // 次回に備えて先読み
         },
         onAdFailedToShowFullScreenContent: (ad, err) {
+          AppOpenAdHelper.instance.suspended = false;
           ad.dispose();
           load();
         },
       );
       await prefs.setInt(_lastShownKey, now);
+      AppOpenAdHelper.instance.suspended = true;
       await ad.show();
     } else {
       // まだ回数前 or 広告未準備（未準備なら読み込んでおき、次の機会に出す）

@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_ids.dart';
+import 'app_open_ad_helper.dart';
 import 'app_analytics.dart';
 import 'app_toast.dart';
 
@@ -45,6 +47,34 @@ class RewardedInterstitialHelper {
     );
   }
 
+  /// 見てもらう前の確認ダイアログ。
+  ///
+  /// リワードインタースティシャルは**出す前に了解をとる**のが決まり。
+  /// 「広告は挟まるけれど、そのぶんコインがもらえる」と正直に言う。
+  /// 隠して出すと、見た人の信用と枠の価値を同時に落とす。
+  static Future<bool> confirm(BuildContext context,
+      {required int coins}) async {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(ja ? '🎬 動画を見てコインをもらう' : '🎬 Watch for coins'),
+        content: Text(ja
+            ? '広告が1本はさまりますが、最後まで見ると 🪙$coins もらえます。'
+            : 'One ad will play. Watch it through and get 🪙$coins.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: Text(ja ? 'やめておく' : 'No thanks')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(ja ? '見る' : 'Watch')),
+        ],
+      ),
+    );
+    return ok == true;
+  }
+
   /// 表示する。最後まで見られたら [onReward] を呼ぶ。
   /// 表示できなければ false（呼び出し側は何も起きなかった扱いにすること）。
   Future<bool> show({
@@ -61,15 +91,18 @@ class RewardedInterstitialHelper {
     var earned = false;
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (a) {
+        AppOpenAdHelper.instance.suspended = false;
         a.dispose();
         load(); // 次に備えて読み込んでおく
         if (earned) AppToast.show('🎁 ありがとうございます！');
       },
       onAdFailedToShowFullScreenContent: (a, e) {
+        AppOpenAdHelper.instance.suspended = false;
         a.dispose();
         load();
       },
     );
+    AppOpenAdHelper.instance.suspended = true;
     await ad.show(onUserEarnedReward: (_, __) {
       earned = true;
       AppAnalytics.adRewardEarned(placement);

@@ -3,6 +3,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'ad_ids.dart';
+import 'app_open_ad_helper.dart';
 import 'app_toast.dart';
 import 'app_analytics.dart';
 
@@ -94,6 +95,7 @@ class RewardAdHelper extends ChangeNotifier {
     AppAnalytics.adRewardPrompt(placement); // 表示成功数（視聴率の分母）
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
+        AppOpenAdHelper.instance.suspended = false;
         ad.dispose();
         _ad = null;
         _safeNotify();
@@ -106,6 +108,7 @@ class RewardAdHelper extends ChangeNotifier {
         load();
       },
     );
+    AppOpenAdHelper.instance.suspended = true;
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         rewarded = true;

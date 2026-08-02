@@ -16,11 +16,17 @@ import 'character_shop_screen.dart';
 import 'report_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
+import '../services/rewarded_interstitial_helper.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/stamp_calendar.dart';
 
 /// 🛠 開発者モードの合言葉。動作確認と画面撮影のためのもの。
 const String _kDevPassphrase = 'Toriumi';
+
+/// 🎬 リワードインタースティシャルの報酬。通常のリワード(60)より
+/// 多くして、「広告が挟まるぶん、たくさんもらえる」を分かりやすくする。
+const int _kRewardedInterCoins = 90;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -72,6 +78,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(m.earnedCoins(reward))),
     );
+  }
+
+  /// 🎬 広告は挟まるが、そのぶんコインがもらえる枠。
+  Future<void> _watchRewardedInterstitial() async {
+    if (!await RewardedInterstitialHelper.confirm(context,
+        coins: _kRewardedInterCoins)) {
+      return;
+    }
+    final shown = await RewardedInterstitialHelper.instance.show(
+      placement: 'profile_daily',
+      onReward: () {
+        PlayerProfile.instance.grantBonusCoins(_kRewardedInterCoins);
+        Sfx.instance.reward();
+      },
+    );
+    if (!shown && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(MetaStrings.of(context).adQueued)));
+    }
   }
 
   Future<void> _watchAdForCoins() async {
@@ -204,6 +229,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(p.dailyStreak > 0 ? m.streakDays(p.dailyStreak) : m.comeBackTomorrow),
           const SizedBox(height: 12),
+          // 📅 ハンコカレンダー。数字の「連続◯日」より、空いたマスが
+          //    見えるほうが「明日は埋めよう」につながる。
+          const StampCalendar(),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -218,6 +247,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
+          // 🎬 リワードインタースティシャル。広告は挟まるがコインが増える。
+          //    デイリーを受け取った直後は「もう一声ほしい」気持ちが
+          //    いちばん強いので、ここに置く。
+          if (RewardedInterstitialHelper.available) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _watchRewardedInterstitial,
+                icon: const Icon(Icons.play_circle_outline),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFE8663C),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                label: Text(m.ja
+                    ? '🎬 動画を見て 🪙$_kRewardedInterCoins'
+                    : '🎬 Watch a video for 🪙$_kRewardedInterCoins'),
+              ),
+            ),
+          ],
           if (RewardAdHelper.available) ...[
             const SizedBox(height: 10),
             // ★大きくド派手な「動画で+50コイン」ボタン（状態表示付き）★

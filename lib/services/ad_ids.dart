@@ -74,11 +74,43 @@ class AdIds {
     return _realRewardedInterAndroid;
   }
 
-  // --- まだ使っていない枠（AdMobでは作成済み） ---
-  //  ⚠️ 作ってあるのに実装が無いと「出ないのはなぜ？」で迷うので残しておく。
-  //  ・アプリ起動（App Open）: ca-app-pub-6744940157577324/9282156275
-  //  ・ネイティブ アドバンス : ca-app-pub-6744940157577324/9170475636
-  //  どちらも SDK 側の実装が別途必要。
+  // --- 🚪 アプリ起動（App Open） ---
+  //  開き直すたびに1インプレッション取れる枠。
+  static const String _testAppOpenAndroid =
+      'ca-app-pub-3940256099942544/9257395921';
+  static const String _testAppOpenIOS =
+      'ca-app-pub-3940256099942544/5575463023';
+  static const String _realAppOpenAndroid =
+      'ca-app-pub-6744940157577324/9282156275';
+
+  static String get appOpen {
+    if (kDebugMode) {
+      return _isIOS ? _testAppOpenIOS : _testAppOpenAndroid;
+    }
+    return _realAppOpenAndroid;
+  }
+
+  static bool get appOpenAvailable =>
+      !kIsWeb && (kDebugMode || _realAppOpenAndroid.isNotEmpty);
+
+  // --- 🧩 ネイティブ アドバンス ---
+  //  一覧の中に溶けこませる枠。読み物の一覧に差しこむ。
+  static const String _testNativeAndroid =
+      'ca-app-pub-3940256099942544/2247696110';
+  static const String _testNativeIOS =
+      'ca-app-pub-3940256099942544/3986624511';
+  static const String _realNativeAndroid =
+      'ca-app-pub-6744940157577324/9170475636';
+
+  static String get nativeAdvanced {
+    if (kDebugMode) {
+      return _isIOS ? _testNativeIOS : _testNativeAndroid;
+    }
+    return _realNativeAndroid;
+  }
+
+  static bool get nativeAvailable =>
+      !kIsWeb && (kDebugMode || _realNativeAndroid.isNotEmpty);
 
   static bool get rewardedInterstitialAvailable =>
       !kIsWeb && (kDebugMode || _realRewardedInterAndroid.isNotEmpty);

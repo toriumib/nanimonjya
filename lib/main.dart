@@ -14,6 +14,8 @@ import 'services/push_service.dart'; // 既存ユーザーへのお知らせプ�
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
+import 'services/app_open_ad_helper.dart';
+import 'services/rewarded_interstitial_helper.dart';
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
@@ -36,6 +38,13 @@ Future<void> main() async {
     };
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
     InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
+    // 🚪 アプリ起動広告は**いったん止めている**。
+    //    枠（/9282156275）も実装（services/app_open_ad_helper.dart）も
+    //    あるので、再開したくなったら次の1行を戻すだけでよい。
+    //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
+    //    ほかの手を整えてから判断する。
+    // AppOpenAdHelper.instance.start();
+    RewardedInterstitialHelper.instance.load();
     PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み

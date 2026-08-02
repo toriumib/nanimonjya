@@ -18,7 +18,30 @@ enum UnlockFeat {
   play50,
   /// 全問正解でCPUに勝つ
   perfectWin,
+
+  /// 📅 ログインボーナスで手に入る（続けた日数で解放）。
+  /// 買うのではなく**通い続けた人だけ**が受け取れる枠。
+  login3,
+  login7,
+  login14,
+  login30,
 }
+
+/// ログインボーナスで解放される条件か。
+bool isLoginFeat(UnlockFeat f) =>
+    f == UnlockFeat.login3 ||
+    f == UnlockFeat.login7 ||
+    f == UnlockFeat.login14 ||
+    f == UnlockFeat.login30;
+
+/// その条件に必要な連続ログイン日数（ログイン枠でなければ0）。
+int loginDaysFor(UnlockFeat f) => switch (f) {
+      UnlockFeat.login3 => 3,
+      UnlockFeat.login7 => 7,
+      UnlockFeat.login14 => 14,
+      UnlockFeat.login30 => 30,
+      _ => 0,
+    };
 
 class GameCharacter {
   final String id; // 保存キー（例: 'c13'）
@@ -27,9 +50,14 @@ class GameCharacter {
   final int cost; // 購入に必要なコイン
 
   /// null ならコインで買える通常キャラ。
-  /// 値が入っているキャラは**コインでは買えず**、条件を満たすと参戦する。
-  /// 「勝てば無料で手に入る」枠を少しだけ作ることで、
-  /// 腕前の目標を用意しつつ、購入枠（14体）は残す。
+  ///
+  /// 値が入っているキャラは、条件（試合の腕前・通い続けた日数）を
+  /// 満たせば**タダで**参戦する。
+  ///
+  /// ⚠️ 以前はコインでは**一切買えなかった**。条件に届かない人には
+  ///    一生手に入らず、コインを貯める理由がそのぶん減っていた。
+  ///    いまは買えるが、[cost] を通常キャラよりかなり高くしてある。
+  ///    「条件を満たすのが本筋、どうしても欲しければ高く払う」形。
   final UnlockFeat? feat;
 
   const GameCharacter({
@@ -41,6 +69,9 @@ class GameCharacter {
   });
 
   bool get isFeatCharacter => feat != null;
+
+  /// 📅 ログインを続けると手に入る枠か。
+  bool get isLoginCharacter => feat != null && isLoginFeat(feat!);
 }
 
 /// 追加キャラ19種（購入14＋実績解放5）。価格ラダー。
@@ -52,20 +83,39 @@ const List<GameCharacter> kExtraCharacters = [
   GameCharacter(id: 'c16', asset: 'assets/images/char16.webp', emoji: '🍠', cost: 150),
   GameCharacter(id: 'c17', asset: 'assets/images/char17.webp', emoji: '👗', cost: 180),
   GameCharacter(id: 'c18', asset: 'assets/images/char18.webp', emoji: '🍣', cost: 180),
-  GameCharacter(id: 'c19', asset: 'assets/images/char19.webp', emoji: '🦅', cost: 260, feat: UnlockFeat.hardWins3),
+  GameCharacter(id: 'c19', asset: 'assets/images/char19.webp', emoji: '🦅', cost: 650, feat: UnlockFeat.hardWins3),
   GameCharacter(id: 'c20', asset: 'assets/images/char20.webp', emoji: '🐎', cost: 260),
   GameCharacter(id: 'c21', asset: 'assets/images/char21.webp', emoji: '🕴️', cost: 200),
   GameCharacter(id: 'c22', asset: 'assets/images/char22.webp', emoji: '✊', cost: 200),
   GameCharacter(id: 'c23', asset: 'assets/images/char23.webp', emoji: '😤', cost: 220),
   GameCharacter(id: 'c24', asset: 'assets/images/char24.webp', emoji: '😊', cost: 180),
   GameCharacter(id: 'c25', asset: 'assets/images/char25.webp', emoji: '😷', cost: 180),
-  GameCharacter(id: 'c26', asset: 'assets/images/char26.webp', emoji: '🎮', cost: 260, feat: UnlockFeat.oniWin1),
-  GameCharacter(id: 'c27', asset: 'assets/images/char27.webp', emoji: '🕹️', cost: 300, feat: UnlockFeat.play50),
+  GameCharacter(id: 'c26', asset: 'assets/images/char26.webp', emoji: '🎮', cost: 650, feat: UnlockFeat.oniWin1),
+  GameCharacter(id: 'c27', asset: 'assets/images/char27.webp', emoji: '🕹️', cost: 700, feat: UnlockFeat.play50),
   GameCharacter(id: 'c28', asset: 'assets/images/char28.webp', emoji: '🤵', cost: 220),
-  GameCharacter(id: 'c29', asset: 'assets/images/char29.webp', emoji: '🧪', cost: 340, feat: UnlockFeat.oniWins3),
+  GameCharacter(id: 'c29', asset: 'assets/images/char29.webp', emoji: '🧪', cost: 800, feat: UnlockFeat.oniWins3),
   GameCharacter(id: 'c30', asset: 'assets/images/char30.webp', emoji: '🧘‍♀️', cost: 260),
-  GameCharacter(id: 'c31', asset: 'assets/images/char31.webp', emoji: '👩‍🔬', cost: 340, feat: UnlockFeat.perfectWin),
+  GameCharacter(id: 'c31', asset: 'assets/images/char31.webp', emoji: '👩‍🔬', cost: 800, feat: UnlockFeat.perfectWin),
   GameCharacter(id: 'c32', asset: 'assets/images/char32.webp', emoji: '☂️', cost: 200),
+  // ── 🆕 追加キャラ（ユーザー提供の実写フリー素材） ──
+  // 通常枠は120〜340コイン。実績・ログイン枠は「本来タダで取れる」ので
+  // コインで買うなら高い（600〜900）。
+  GameCharacter(id: 'c33', asset: 'assets/images/161007-128_TP_V4.webp', emoji: '🧑‍💼', cost: 160),
+  GameCharacter(id: 'c34', asset: 'assets/images/24191780_m.jpg', emoji: '🙋', cost: 160),
+  GameCharacter(id: 'c35', asset: 'assets/images/25437893_s.jpg', emoji: '😌', cost: 180),
+  GameCharacter(id: 'c36', asset: 'assets/images/ELFAyukata0704DSC01201_TP_V4.webp', emoji: '🎐', cost: 240),
+  GameCharacter(id: 'c37', asset: 'assets/images/TSURU1891A014_TP_V4.webp', emoji: '🍶', cost: 200),
+  GameCharacter(id: 'c38', asset: 'assets/images/datumouFTHG7300_TP_V4.webp', emoji: '💈', cost: 180),
+  GameCharacter(id: 'c39', asset: 'assets/images/maxeIMGL8767_TP_V.jpg', emoji: '📷', cost: 200),
+  GameCharacter(id: 'c40', asset: 'assets/images/model10211001_TP_V4.webp', emoji: '👠', cost: 220),
+  GameCharacter(id: 'c41', asset: 'assets/images/nikumanFTHG2263_TP_V4.webp', emoji: '🥟', cost: 180),
+  GameCharacter(id: 'c42', asset: 'assets/images/nissinIMGL0808_TP_V4.webp', emoji: '🍜', cost: 200),
+  GameCharacter(id: 'c43', asset: 'assets/images/tuchimoto07100I9A6655_TP_V4.webp', emoji: '🧑‍🏫', cost: 220),
+  // 📅 ログインを続けると手に入る4体（コインでも買えるが高い）
+  GameCharacter(id: 'c44', asset: 'assets/images/mikoFTHG2083_TP_V4.webp', emoji: '⛩️', cost: 600, feat: UnlockFeat.login3),
+  GameCharacter(id: 'c45', asset: 'assets/images/miuFTHG2011_TP_V4.webp', emoji: '🌸', cost: 700, feat: UnlockFeat.login7),
+  GameCharacter(id: 'c46', asset: 'assets/images/yotakasanFTHG0883_TP_V4.webp', emoji: '🏮', cost: 800, feat: UnlockFeat.login14),
+  GameCharacter(id: 'c47', asset: 'assets/images/yuka522032_TP_V.jpg', emoji: '👑', cost: 900, feat: UnlockFeat.login30),
 ];
 
 GameCharacter? extraCharacterById(String id) {

@@ -26,10 +26,11 @@ void main() {
   });
 
   group('実績キャラのカタログ', () {
-    test('実績キャラはちょうど5体、購入キャラは14体', () {
+    test('腕前で解放する枠が5体、通い続けて解放する枠が4体ある', () {
       final feats = kExtraCharacters.where((c) => c.isFeatCharacter).toList();
-      expect(feats, hasLength(5));
-      expect(kExtraCharacters.length - feats.length, 14);
+      final logins = kExtraCharacters.where((c) => c.isLoginCharacter).toList();
+      expect(feats.length - logins.length, 5, reason: '腕前で取る枠');
+      expect(logins, hasLength(4), reason: '通い続けて取る枠');
     });
 
     test('解放条件は重複していない（同じ条件で複数解放されない）', () {
@@ -76,14 +77,27 @@ void main() {
     });
   });
 
-  group('実績キャラはコインで買えない', () {
-    test('コインが有り余っていても購入は失敗する', () async {
+  group('実績・ログイン枠は買えるが高い', () {
+    test('コインでも買える（一生手に入らない枠を作らない）', () async {
+      // ⚠️ 以前は買えなかった。条件に届かない人には永久に手が届かず、
+      //    コインを貯める理由がそのぶん減っていた。
       final feat = kExtraCharacters.firstWhere((c) => c.isFeatCharacter);
-      final before = p.coins;
+      p.coins = 99999;
       final ok = await p.unlockCharacter(feat.id, feat.cost);
-      expect(ok, isFalse);
-      expect(p.unlockedCharacters, isEmpty);
-      expect(p.coins, before, reason: 'コインが減ってはいけない');
+      expect(ok, isTrue);
+      expect(p.unlockedCharacters, contains(feat.id));
+    });
+
+    test('通常キャラよりはっきり高い（条件を満たすのが本筋）', () {
+      final normalMax = kExtraCharacters
+          .where((c) => !c.isFeatCharacter)
+          .map((c) => c.cost)
+          .reduce((a, b) => a > b ? a : b);
+      final featMin = kExtraCharacters
+          .where((c) => c.isFeatCharacter)
+          .map((c) => c.cost)
+          .reduce((a, b) => a < b ? a : b);
+      expect(featMin, greaterThan(normalMax));
     });
 
     test('通常キャラはこれまでどおり購入できる', () async {

@@ -6,12 +6,16 @@ import 'package:nanimonjya/models/person.dart';
 
 void main() {
   group('character_catalog', () {
-    test('追加キャラは19種類・IDと画像パスが一意（c13は無料枠へ昇格）', () {
-      expect(kExtraCharacters, hasLength(19));
-      expect(kExtraCharacters.map((c) => c.id).toSet(), hasLength(19));
-      expect(kExtraCharacters.map((c) => c.asset).toSet(), hasLength(19));
+    test('追加キャラのIDと画像パスが一意（c13は欠番）', () {
+      expect(kExtraCharacters.length, greaterThanOrEqualTo(19));
+      expect(kExtraCharacters.map((c) => c.id).toSet(), hasLength(kExtraCharacters.length));
+      expect(kExtraCharacters.map((c) => c.asset).toSet(), hasLength(kExtraCharacters.length));
       for (final c in kExtraCharacters) {
-        expect(c.asset, endsWith('.webp'));
+        // 追加素材は webp / jpg どちらもある
+        expect(c.asset, startsWith('assets/images/'));
+        expect(
+            c.asset.endsWith('.webp') || c.asset.endsWith('.jpg'), isTrue,
+            reason: '${c.id}: 画像として読めない拡張子');
         expect(c.cost, greaterThan(0));
       }
     });
