@@ -1103,6 +1103,48 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
 
   String get battleTwoPlayerButton =>
       ja ? '👫 1台で2人であそぶ' : '👫 Two players, one phone';
+  // 🎮 やってみるチュートリアル（読ませずに、やらせて覚えてもらう）
+  String get tutPlayTitle => ja ? '🎮 やってみよう' : '🎮 Try it';
+  String get tutPlaySkip => ja ? 'とばす' : 'Skip';
+  String get tutPlayIntro => ja
+      ? 'ルールはひとつだけです。\n\n'
+          '**はじめて出た人には、名前をつける。\nその人がまた出てきたら、名前を呼ぶ。**\n\n'
+          '早く正しく呼べた人が、そのカードをもらえます。\nさっそくやってみましょう。'
+      : 'One rule: name each newcomer, then call their name when they come back. '
+          'Whoever calls it first wins the card. Let us try it.';
+  String get tutPlayStart => ja ? 'はじめる' : 'Start';
+  String get tutPlayName1 => ja
+      ? 'はじめての人が出てきました。名前をつけてあげましょう。\n'
+          'ここでは点は入りません。**覚えるための時間**です。'
+      : 'A new face. Give them a name. No points yet — this is the memorising step.';
+  String get tutPlayName2 => ja
+      ? 'もうひとり出てきました。この人にも名前をつけます。\n'
+          '（顔と名前を、いま結びつけておいてください）'
+      : 'One more. Name them too — link the face and the name now.';
+  String tutPlayNamed(String name) =>
+      ja ? '「$name」とおぼえた！' : 'Got it: $name';
+  String get tutPlayRecall => ja
+      ? 'さっきの人が、また出てきました。\n**名前を呼んであげてください。**'
+      : 'They are back. Call their name.';
+  String get tutPlayRetry => ja
+      ? 'おしい！もう一度どうぞ。\n'
+          '（本番でも、まちがえたら取られるだけです。終わりにはなりません）'
+      : 'Close! Try again — a miss is never the end.';
+  String get tutPlayFaster => ja
+      ? '⚡ みんなで遊ぶときは、早く呼べた人がカードをもらえます'
+      : '⚡ In a real game, whoever calls it first takes the card';
+  String tutPlayWon(String name) => ja
+      ? '正解！「$name」のカードをもらえました。\n\n'
+          'これが、このゲームのすべてです。\n**つけて、呼ぶ。早いほうが勝ち。**'
+      : 'Correct — you won the card. That is the whole game: name them, call them, fastest wins.';
+  String tutPlayGetCoins(int coins) =>
+      ja ? '🪙 $coins コインを受け取る' : 'Get 🪙 $coins';
+  String get tutPlayDone => ja
+      ? 'これでルールはぜんぶです。\n'
+          'もらったコインは、キャラや読み物と交換できます。'
+      : 'That is all the rules. Spend your coins on characters and articles.';
+  String get tutPlayToGame => ja ? 'ゲームをはじめる' : 'Start playing';
+
   // 📚 コインで読める読み物
   String get articleLibraryTitle => ja ? '📚 もっと読む' : '📚 Read more';
   String get articleLibraryLead => ja

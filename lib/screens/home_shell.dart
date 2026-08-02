@@ -10,6 +10,7 @@ import 'profile_screen.dart';
 import 'top_screen.dart';
 import 'training_hub_screen.dart';
 import 'tutorial_screen.dart';
+import 'tutorial_play_screen.dart';
 
 /// アプリのルート: 下部タブでモードを切り替えるシェル。
 /// 1. なまえコール（メイン） 2. ビジネス特訓 3. ショップ 4. よみもの 5. マイページ
@@ -34,12 +35,22 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     _maybeShowTutorial();
   }
 
-  /// 初回起動の人にはあそびかたを自動で見せる（スキップ可・一度きり）。
+  /// 初回起動の人にはあそびかたを見せる（スキップ可・一度きり）。
+  ///
+  /// 読むだけで終わらせず、**そのまま1回やってもらう**。
+  /// 説明を読んだだけでは手が動かないまま閉じられるので、
+  /// 名前をつける→呼ぶ→取れる→コインをもらう、までを一続きにする。
   Future<void> _maybeShowTutorial() async {
-    if (!await shouldShowTutorial()) return;
+    if (await shouldShowTutorial()) {
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const TutorialScreen()));
+    }
+    // 🎮 読み物のあと（または読み物をスキップした人にも）おためしを1回
+    if (!await shouldPlayTutorial()) return;
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => const TutorialScreen()));
+        builder: (_) => const TutorialPlayScreen()));
   }
 
   @override
