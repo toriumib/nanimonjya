@@ -502,7 +502,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         const SizedBox(height: 16),
         _businessCard(c),
         const SizedBox(height: 14),
-        _body('「${c.name}です。よろしく」', size: 15),
+        _body(noahGreetLineJa(c), size: 15),
         const SizedBox(height: 6),
         _body('——名刺は、これきり。次に会うのは三百三十年後。', size: 12.5),
         const SizedBox(height: 18),
@@ -601,15 +601,32 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                     fontWeight: FontWeight.w900,
                     color: Color(q.target.colorValue))),
           ),
+        const SizedBox(height: 10),
+        // 💬 相手のほうから話しかけてくる形にする。
+        //    「この人の名前は？」だけだと問題集になってしまう。
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BoxDecoration(
+            color: Color(q.target.colorValue).withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+                color: Color(q.target.colorValue).withValues(alpha: 0.5)),
+          ),
+          child: Text(
+            '「${noahAskLineJa(q.target, q.field, _phase == _Phase.recall)}」',
+            style: const TextStyle(
+                fontSize: 15, height: 1.7, color: Color(0xFFD7E2FF)),
+          ),
+        ),
         const SizedBox(height: 8),
         Center(
           child: Text(q.field.questionJa,
               style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFFFF9A3C))),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         for (final choice in q.choices)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -634,9 +651,12 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           const SizedBox(height: 6),
           _body(
             q.isCorrect(_picked!)
-                ? '「……覚えていてくれたんだ」'
-                : '「いえ、それは——たぶん、別の人の話です」',
+                ? noahHitLineJa(q.target)
+                : noahMissLineJa(q.target, _picked!),
             size: 14,
+            color: q.isCorrect(_picked!)
+                ? const Color(0xFF7DFFB0)
+                : const Color(0xFFFFB4B4),
           ),
           const SizedBox(height: 16),
           _nextButton(_index + 1 < _cast.length

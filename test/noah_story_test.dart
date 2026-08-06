@@ -182,4 +182,40 @@ void main() {
       }
     });
   });
+
+  group('セリフ', () {
+    test('全員ぶんの挨拶・正解・不正解のセリフが出る', () {
+      for (final c in kNoahCast) {
+        expect(noahGreetLineJa(c), isNotEmpty, reason: c.id);
+        expect(noahHitLineJa(c), isNotEmpty, reason: c.id);
+        expect(noahMissLineJa(c, 'だれかの名前'), isNotEmpty, reason: c.id);
+      }
+    });
+
+    test('正解のセリフはキャラごとに違う（使い回しをしない）', () {
+      final lines = kNoahCast.map(noahHitLineJa).toSet();
+      expect(lines.length, kNoahCast.length);
+    });
+
+    test('出題のセリフは項目ごとに用意されている', () {
+      for (final f in NoahField.values) {
+        expect(noahAskLineJa(kNoahCast.first, f, true), isNotEmpty,
+            reason: f.labelJa);
+        expect(noahAskLineJa(kNoahCast.first, f, false), isNotEmpty,
+            reason: f.labelJa);
+      }
+    });
+
+    test('初回の再会だけ「覚えてる？」で始まる', () {
+      final first = noahAskLineJa(kNoahCast.first, NoahField.name, true);
+      final later = noahAskLineJa(kNoahCast.first, NoahField.name, false);
+      expect(first, contains('覚えてる'));
+      expect(first, isNot(later));
+    });
+
+    test('まちがえたときは、選んだ答えを台詞に含める', () {
+      final line = noahMissLineJa(kNoahCast.first, '星野 未来');
+      expect(line, contains('星野 未来'));
+    });
+  });
 }

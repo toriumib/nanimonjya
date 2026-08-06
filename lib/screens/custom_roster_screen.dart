@@ -22,7 +22,11 @@ import '../widgets/banner_ad_slot.dart';
 /// 「おぼえる」= 自分の名簿の管理画面。
 /// 職場・学校などの写真＋名前を登録し、学習・テスト・対戦の起点になる。
 class CustomRosterScreen extends StatefulWidget {
-  const CustomRosterScreen({super.key});
+  /// 開いた直後に顔メモ（アバター）作成へ進むか。
+  /// 名刺おぼえタブの「🧑‍🎨 顔メモをつくる」から来たときに true。
+  final bool startAvatar;
+
+  const CustomRosterScreen({super.key, this.startAvatar = false});
 
   @override
   State<CustomRosterScreen> createState() => _CustomRosterScreenState();
@@ -35,6 +39,12 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   void initState() {
     super.initState();
     CustomRosterService.instance.load();
+    if (widget.startAvatar) {
+      // 一覧を挟まず、そのまま顔づくりへ入る
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _addAvatar();
+      });
+    }
   }
 
   Future<void> _addPhoto(ImageSource source) async {
@@ -122,22 +132,28 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF3A7BD5)),
-              title: Text(m.customPickPhoto),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _addPhoto(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera, color: Color(0xFFE8663C)),
-              title: Text(m.customTakePhoto),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _addPhoto(ImageSource.camera);
-              },
-            ),
+            // 📷 写真の保存は dart:io を使うのでモバイル限定。
+            //    Web では顔メモ（アバター）だけを出す。
+            if (!kIsWeb)
+              ListTile(
+                leading:
+                    const Icon(Icons.photo_library, color: Color(0xFF3A7BD5)),
+                title: Text(m.customPickPhoto),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _addPhoto(ImageSource.gallery);
+                },
+              ),
+            if (!kIsWeb)
+              ListTile(
+                leading:
+                    const Icon(Icons.photo_camera, color: Color(0xFFE8663C)),
+                title: Text(m.customTakePhoto),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _addPhoto(ImageSource.camera);
+                },
+              ),
             // 🧑‍🎨 写真が撮れない相手はこちら。実際はこちらのほうが出番が多い。
             ListTile(
               leading: const Icon(Icons.face_retouching_natural,
@@ -184,23 +200,6 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
-
-    // Web は写真アップロード（ファイル保存）非対応
-    if (kIsWeb) {
-      return Scaffold(
-        appBar: AppBar(title: Text(m.tabMemorize)),
-        // 説明が長いので、はみ出さないようスクロールできるようにする
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              m.customMobileOnly,
-              style: const TextStyle(fontSize: 14, height: 1.7),
-            ),
-          ),
-        ),
-      );
-    }
 
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(),
@@ -712,7 +711,8 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
               _field('memo', '自由記入メモ', maxLen: 300, lines: 4),
             ]),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
+            if (!kIsWeb)
+              OutlinedButton.icon(
               icon: const Icon(Icons.badge_outlined, size: 18),
               label: Text(
                 hasCard ? m.customCardSelected : m.customPickCardImage,

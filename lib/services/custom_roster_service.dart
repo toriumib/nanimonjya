@@ -239,10 +239,14 @@ class CustomRosterService extends ChangeNotifier {
             .toList();
         // 実ファイルが残っているものだけ採用（アンインストール後の再インストール等に備える）。
         // ⚠️ アバターだけの人は写真ファイルを持たないので、ここで消さないこと。
-        _entries = list
-            .where((e) =>
-                e.imagePath.isEmpty || File(e.imagePath).existsSync())
-            .toList();
+        // ⚠️ Web には dart:io の File が無い。顔メモ（アバター）は
+        //    写真ファイルを持たないので、Webではそのまま全部通す。
+        _entries = kIsWeb
+            ? list
+            : list
+                .where((e) =>
+                    e.imagePath.isEmpty || File(e.imagePath).existsSync())
+                .toList();
       } catch (_) {
         _entries = [];
       }
@@ -276,17 +280,24 @@ class CustomRosterService extends ChangeNotifier {
     required CustomEntry draft,
     String? cardSourcePath,
   }) async {
-    final facesDir = await _facesDir();
     final id = _uuid.v4();
     var destPath = '';
-    if (sourcePath != null && sourcePath.isNotEmpty) {
-      destPath = '${facesDir.path}/$id${_ext(sourcePath)}';
-      await File(sourcePath).copy(destPath);
-    }
-    String cardPath = '';
-    if (cardSourcePath != null && cardSourcePath.isNotEmpty) {
-      cardPath = '${facesDir.path}/${id}_card${_ext(cardSourcePath)}';
-      await File(cardSourcePath).copy(cardPath);
+    var cardPath = '';
+    // 🖼 画像を1枚も扱わないなら、保存先ディレクトリにも触らない。
+    //    path_provider は Web に実装が無く、呼ぶだけで例外になる。
+    //    顔メモ（アバター）だけの登録は、これで Web でも通る。
+    final hasFiles = (sourcePath != null && sourcePath.isNotEmpty) ||
+        (cardSourcePath != null && cardSourcePath.isNotEmpty);
+    if (hasFiles && !kIsWeb) {
+      final facesDir = await _facesDir();
+      if (sourcePath != null && sourcePath.isNotEmpty) {
+        destPath = '${facesDir.path}/$id${_ext(sourcePath)}';
+        await File(sourcePath).copy(destPath);
+      }
+      if (cardSourcePath != null && cardSourcePath.isNotEmpty) {
+        cardPath = '${facesDir.path}/${id}_card${_ext(cardSourcePath)}';
+        await File(cardSourcePath).copy(cardPath);
+      }
     }
     _entries = [
       ..._entries,
@@ -310,19 +321,25 @@ class CustomRosterService extends ChangeNotifier {
     final old = _entries[idx];
     var imagePath = old.imagePath;
     var cardPath = old.cardImagePath;
-    final facesDir = await _facesDir();
-
-    if (newSourcePath != null && newSourcePath.isNotEmpty) {
-      final dest = '${facesDir.path}/${old.id}_${DateTime.now().millisecondsSinceEpoch}${_ext(newSourcePath)}';
-      await File(newSourcePath).copy(dest);
-      _deleteQuietly(old.imagePath);
-      imagePath = dest;
-    }
-    if (newCardSourcePath != null && newCardSourcePath.isNotEmpty) {
-      final dest = '${facesDir.path}/${old.id}_card_${DateTime.now().millisecondsSinceEpoch}${_ext(newCardSourcePath)}';
-      await File(newCardSourcePath).copy(dest);
-      _deleteQuietly(old.cardImagePath);
-      cardPath = dest;
+    // 写真を選び直したときだけファイルを触る（Webでは画像を扱わない）
+    final replacing = (newSourcePath != null && newSourcePath.isNotEmpty) ||
+        (newCardSourcePath != null && newCardSourcePath.isNotEmpty);
+    if (replacing && !kIsWeb) {
+      final facesDir = await _facesDir();
+      final stamp = DateTime.now().millisecondsSinceEpoch;
+      if (newSourcePath != null && newSourcePath.isNotEmpty) {
+        final dest = '${facesDir.path}/${old.id}_$stamp${_ext(newSourcePath)}';
+        await File(newSourcePath).copy(dest);
+        _deleteQuietly(old.imagePath);
+        imagePath = dest;
+      }
+      if (newCardSourcePath != null && newCardSourcePath.isNotEmpty) {
+        final dest =
+            '${facesDir.path}/${old.id}_card_$stamp${_ext(newCardSourcePath)}';
+        await File(newCardSourcePath).copy(dest);
+        _deleteQuietly(old.cardImagePath);
+        cardPath = dest;
+      }
     }
 
     _entries = [
@@ -337,7 +354,7 @@ class CustomRosterService extends ChangeNotifier {
   }
 
   void _deleteQuietly(String path) {
-    if (path.isEmpty) return;
+    if (path.isEmpty || kIsWeb) return;
     try {
       final f = File(path);
       if (f.existsSync()) f.deleteSync();

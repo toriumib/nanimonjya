@@ -608,3 +608,80 @@ const List<NoahLine> kNoahBeforeResult = [
       '昼と夜の境目——ターミネータの帯だけが、ちょうどいい温度をしていた。'),
   NoahLine(NoahVoice.narration, '乗員名簿が読み上げられる。'),
 ];
+
+// ── 3択のときのセリフ ────────────────────────────────
+
+/// 出題のときに相手が言うこと。
+///
+/// 「この人の名前は？」だけだと問題集になってしまう。
+/// 相手のほうから話しかけてくる形にして、
+/// **人に向かって思い出している**手ざわりを出す。
+String noahAskLineJa(NoahCharacter c, NoahField field, bool first) {
+  switch (field) {
+    case NoahField.name:
+      return first
+          ? 'あ、起きた。……ねえ、わたしのこと、覚えてる？'
+          : 'ひさしぶり。名前、出てくる？';
+    case NoahField.affiliation:
+      return 'ところで、わたしがどこの所属だったか、言える？';
+    case NoahField.hobby:
+      return '船を出る前、何が好きだって話したか、覚えてる？';
+    case NoahField.commId:
+      return '通信ID、まだ登録してくれてる？ ……番号、言ってみて';
+    case NoahField.school:
+      return 'わたしがどこの学生だったか。あの夜、話したよね';
+  }
+}
+
+/// 正解したとき。相手ごとに少し口ぶりを変える。
+String noahHitLineJa(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino':
+      return '「……覚えてたんだ。うれしい。窯の火みたいだね、そういうの」';
+    case 'kiryu':
+      return '「正解。三百三十年、よく持ちましたね、その記憶」';
+    case 'mizuhara':
+      return '「よかった。わたし、忘れられてたらどうしようって」';
+    case 'tachibana':
+      return '「ありがとう。……なんだ、そんなに嬉しいものなんだな、呼ばれるのは」';
+    case 'hoshino':
+      return '「合格！ じゃあ次の星空、一緒に撮りに行こう」';
+    case 'iwao':
+      return '「ほう。……わしの名を覚えとる若いのがおるとはな」';
+    case 'kusunoki':
+      return '「へえ。ちゃんと届いてたんだ、わたしの声」';
+    case 'shirakawa':
+      return '「上出来だ。……記憶が残ってるなら、蘇生は成功だな」';
+    default:
+      return '「……覚えていてくれたんだ」';
+  }
+}
+
+/// まちがえたとき。責めない。**別の人と混ざっている**ことを示す。
+String noahMissLineJa(NoahCharacter c, String picked) {
+  return '「ううん、それは——たぶん、別の人の話。$picked、って言ったよね」';
+}
+
+/// 出会いのとき、名刺を渡しながら言うこと。
+String noahGreetLineJa(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino':
+      return '「日比野です。炉をやってます。……よろしく」';
+    case 'kiryu':
+      return '「桐生です。意識の研究を。名前、覚えるの得意ですか？」';
+    case 'mizuhara':
+      return '「水原です。うちの子たち——受精卵カプセルの担当です」';
+    case 'tachibana':
+      return '「橘です。空気と水を回してます。あなたが吸ってるぶんも」';
+    case 'hoshino':
+      return '「星野未来です。未来って書いてミライ。祖父がつけました」';
+    case 'iwao':
+      return '「岩尾。山と、この星の地面を見とる」';
+    case 'kusunoki':
+      return '「楠です。ロボット担当。困ったら呼んでください」';
+    case 'shirakawa':
+      return '「白川です。あなたを眠らせて、起こす係です」';
+    default:
+      return '「${c.name}です。よろしく」';
+  }
+}
