@@ -476,3 +476,135 @@ const List<NoahDate> kNoahDates = [
   NoahDate('旧フェアウェイの記録映像',
       '発射の朝の映像。十八番のピンフラッグだけが、まだ立っている。'),
 ];
+
+// ── 乗船定員：覚えるほど、助かる人が増える ──────────────
+
+/// 定員の節目。
+///
+/// 最初の計画は「受精卵だけを送る」で、世話人12名しか乗れなかった。
+/// 研究が進むほど乗れる人数が増える——という筋を、
+/// **プレイヤーが思い出せた数**に結びつける。
+/// 覚えることが人を救う、というのがこの物語の主題そのものなので、
+/// 数字が動くところを画面に出す。
+const List<int> kNoahCapacitySteps = [12, 108, 300, 500];
+
+/// 節目に届いたときの見出しと、その根拠になった研究。
+const List<String> kNoahCapacityReasons = [
+  '受精卵と世話人だけの計画',
+  '冷凍睡眠の見通しが立った',
+  '閉じた生態系が回る計算になった',
+  '推進と減速の両方が成立した',
+];
+
+/// [correct]問思い出せたときの乗船定員。
+///
+/// 全問正解で500名（全員）に届くようにしている。
+int noahCapacityFor(int correct, int total) {
+  if (total <= 0) return kNoahCapacitySteps.first;
+  final ratio = correct / total;
+  if (ratio >= 0.999) return kNoahCapacitySteps[3];
+  if (ratio >= 0.66) return kNoahCapacitySteps[2];
+  if (ratio >= 0.33) return kNoahCapacitySteps[1];
+  return kNoahCapacitySteps.first;
+}
+
+int noahCapacityStepIndex(int correct, int total) =>
+    kNoahCapacitySteps.indexOf(noahCapacityFor(correct, total));
+
+/// 🧠 研究にもとづく「覚え方」の話。
+///
+/// ⚠️ 断定しない。「〜とされる」「〜と言われている」で書き、
+/// 出典を添える（`meta_strings.dart` の cognitiveDisclaimer と同じ方針）。
+/// 文章はこのアプリのオリジナル。外部記事の引き写しはしない。
+class NoahNote {
+  final String title;
+  final String body;
+  final String source;
+  const NoahNote(this.title, this.body, this.source);
+}
+
+const List<NoahNote> kNoahNotes = [
+  NoahNote(
+    '声に出すと、残りやすい',
+    '聞いただけの言葉より、自分で声に出したり書いたりした言葉のほうが'
+        'あとで思い出しやすい、という報告がある。'
+        '名刺をもらったら、その場で一度「○○さん」と呼んでみる。'
+        'それだけで手がかりが増えるとされている。',
+    'MacLeod ら（2010）産出効果の研究',
+  ),
+  NoahNote(
+    '思い出す練習が、いちばん効く',
+    '同じ時間をかけるなら、繰り返し読むより、'
+        '一度隠して思い出すほうが長く残るとされる。'
+        'この船で毎回テストがあるのは、意地悪だからではない。',
+    'Roediger & Karpicke（2006）テスト効果の研究',
+  ),
+  NoahNote(
+    '名前だけが、覚えにくい',
+    '同じ「田中」でも、職業としての田中さんより、'
+        '名字としての田中さんのほうが思い出しにくいという報告がある。'
+        '名前はその人の何も説明しないので、引っかかる場所が少ないためだと言われる。',
+    'McWeeny ら（1987）ベイカー・ベイカー錯誤',
+  ),
+  NoahNote(
+    '意味をつけると、引っかかる',
+    '顔の特徴や、聞いた話と結びつけて覚えたものは残りやすいとされる。'
+        '「陶芸をやる日比野さん」「囲碁を打つ桐生さん」——'
+        '趣味を先に聞くのは、名前をひとりにしないためでもある。',
+    'Craik & Tulving（1975）処理水準の研究',
+  ),
+  NoahNote(
+    '自分に結びつけると、強くなる',
+    '自分と関係づけて覚えた情報は、そうでない情報より'
+        '思い出しやすいという報告がある。'
+        '「この人とどこで会ったか」を一緒に覚えておくと、あとで効く。',
+    'Rogers ら（1977）自己関連づけ効果',
+  ),
+  NoahNote(
+    '間をあけて、もう一度',
+    '一度で覚えきろうとするより、間をあけて思い出し直すほうが'
+        '長持ちするとされている。三百三十年は、さすがに空けすぎだが。',
+    'Ebbinghaus 以来の分散学習の研究',
+  ),
+];
+
+/// 「なぜ名前なのか」を所長が話す章。物語の主題をここで言う。
+const List<NoahLine> kNoahWhyNames = [
+  NoahLine(NoahVoice.player, 'ひとつ、聞いていいですか'),
+  NoahLine(NoahVoice.player,
+      '名前を覚えるのが、そんなに大事なんですか。'
+      '記録は全部、船のデータベースにあるのに'),
+  NoahLine(NoahVoice.director, 'ある。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      'データベースは、誰が誰かを教えてくれる。'
+      'だが、呼んではくれない。',
+      who: '所長'),
+  NoahLine(NoahVoice.director,
+      '三百三十年後、五百人が同時に目を覚ます。'
+      '全員が、記憶の一部を失っている。',
+      who: '所長'),
+  NoahLine(NoahVoice.director,
+      'そこで最初に起きることは、パニックでも略奪でもない。', who: '所長'),
+  NoahLine(NoahVoice.director, '沈黙だ。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '隣に誰かがいるのに、話しかけられない。名前を知らないから。', who: '所長'),
+  NoahLine(NoahVoice.narration,
+      '——所長は、しばらく黙っていた。'),
+  NoahLine(NoahVoice.director,
+      '名前を呼ばれると、人は自分がここにいると分かる。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      'それだけのことだ。それだけのことが、五百人を集団にする。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      'だから、覚えてくれ。一人でも多く。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '君が覚えた人数のぶんだけ、この船は大きくなる。', who: '所長'),
+];
+
+/// 到着直前、定員がどこまで伸びたかを見せる章の前口上。
+const List<NoahLine> kNoahBeforeResult = [
+  NoahLine(NoahVoice.narration, '着陸準備。'),
+  NoahLine(NoahVoice.narration,
+      '窓の外で、赤い小さな太陽が海に映っている。'
+      '昼と夜の境目——ターミネータの帯だけが、ちょうどいい温度をしていた。'),
+  NoahLine(NoahVoice.narration, '乗員名簿が読み上げられる。'),
+];

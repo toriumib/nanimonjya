@@ -127,4 +127,59 @@ void main() {
       expect(r.totalAffection, 9);
     });
   });
+
+  group('乗船定員（覚えるほど助かる人が増える）', () {
+    test('全問正解で全員ぶんに届く', () {
+      expect(noahCapacityFor(12, 12), kNoahCapacitySteps.last);
+      expect(noahCapacityFor(12, 12), 500);
+    });
+
+    test('思い出せないと最初の計画のまま', () {
+      expect(noahCapacityFor(0, 12), kNoahCapacitySteps.first);
+      expect(noahCapacityFor(0, 12), 12);
+    });
+
+    test('思い出した数に応じて段階的に増える', () {
+      final steps = [
+        noahCapacityFor(0, 12),
+        noahCapacityFor(4, 12),
+        noahCapacityFor(8, 12),
+        noahCapacityFor(12, 12),
+      ];
+      for (var i = 1; i < steps.length; i++) {
+        expect(steps[i], greaterThan(steps[i - 1]));
+      }
+    });
+
+    test('出題が無くても落ちない（0除算をしない）', () {
+      expect(noahCapacityFor(0, 0), kNoahCapacitySteps.first);
+    });
+
+    test('段階の見出しが人数と同じ数だけある', () {
+      expect(kNoahCapacityReasons.length, kNoahCapacitySteps.length);
+      expect(noahCapacityStepIndex(12, 12), kNoahCapacitySteps.length - 1);
+      expect(noahCapacityStepIndex(0, 12), 0);
+    });
+  });
+
+  group('覚え方のメモ', () {
+    test('本文と出典がそろっている（出典なしで断定しない方針）', () {
+      expect(kNoahNotes, isNotEmpty);
+      for (final n in kNoahNotes) {
+        expect(n.title, isNotEmpty);
+        expect(n.body, isNotEmpty);
+        expect(n.source, isNotEmpty, reason: n.title);
+      }
+    });
+
+    test('効果を断定する書き方をしていない', () {
+      // 「必ず」「証明された」等の断定は薬機法・Playポリシーの観点で避ける
+      const banned = ['必ず', '確実に', '証明された', '治る', '治療'];
+      for (final n in kNoahNotes) {
+        for (final w in banned) {
+          expect(n.body.contains(w), isFalse, reason: '${n.title} / $w');
+        }
+      }
+    });
+  });
 }

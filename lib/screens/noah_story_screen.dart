@@ -28,6 +28,7 @@ class NoahStoryScreen extends StatefulWidget {
 enum _Phase {
   setup, // 性別・恋愛対象を選ぶ
   prologue, // 序章
+  whyNames, // なぜ名前なのか（物語の主題）
   beforeMeeting, // 名刺交換の前口上
   meet, // 名刺をもらう
   beforeSleep, // 出発前夜
@@ -35,7 +36,9 @@ enum _Phase {
   recall, // 記憶テスト（名前・趣味）
   date, // デート
   climax, // 減速危機
+  note, // 研究にもとづく覚え方のメモ
   finalTest, // 最終テスト（所属・通信ID・学生時代）
+  beforeResult, // 着陸準備
   ending,
 }
 
@@ -59,14 +62,23 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   int _correct = 0;
   int _total = 0;
 
+  /// 覚え方の話。毎回ちがうものが出るように、周回ごとに選び直す。
+  List<NoahNote> _notes = const [];
+  int _noteIndex = 0;
+
+  /// いま何人まで乗れるか。思い出した数で伸びる。
+  int get _capacity => noahCapacityFor(_correct, _total);
+
   // ── 進行 ──
 
   List<NoahLine> get _script => switch (_phase) {
         _Phase.prologue => kNoahPrologue,
+        _Phase.whyNames => kNoahWhyNames,
         _Phase.beforeMeeting => kNoahBeforeMeeting,
         _Phase.beforeSleep => kNoahBeforeSleep,
         _Phase.awake => kNoahAwake,
         _Phase.climax => kNoahClimax,
+        _Phase.beforeResult => kNoahBeforeResult,
         _ => const [],
       };
 
@@ -84,6 +96,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _line = 0;
     _correct = 0;
     _total = 0;
+    _notes = ([...kNoahNotes]..shuffle(_rng)).take(3).toList();
+    _noteIndex = 0;
     _phase = _Phase.prologue;
   }
 
@@ -100,6 +114,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.setup:
           _startGame();
         case _Phase.prologue:
+          _phase = _Phase.whyNames;
+        case _Phase.whyNames:
           _phase = _Phase.beforeMeeting;
         case _Phase.beforeMeeting:
           _phase = _Phase.meet;
@@ -123,7 +139,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _prepare(const [NoahField.name, NoahField.hobby]);
           } else {
             _index = 0;
-            _phase = _Phase.date;
+            _phase = _Phase.note; // 一息いれて、覚え方の話をする
           }
         case _Phase.date:
           if (_index + 1 < _cast.length) {
@@ -131,6 +147,13 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           } else {
             _index = 0;
             _phase = _Phase.climax;
+          }
+        case _Phase.note:
+          if (_noteIndex + 1 < _notes.length) {
+            _noteIndex += 1;
+          } else {
+            _noteIndex = 0;
+            _phase = _Phase.date;
           }
         case _Phase.climax:
           _phase = _Phase.finalTest;
@@ -148,9 +171,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               NoahField.school,
             ]);
           } else {
-            _phase = _Phase.ending;
-            _grantReward();
+            _phase = _Phase.beforeResult;
           }
+        case _Phase.beforeResult:
+          _phase = _Phase.ending;
+          _grantReward();
         case _Phase.ending:
           // タブの中では閉じられないので、最初から遊べるように戻す
           if (widget.embedded) {
@@ -209,6 +234,20 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         automaticallyImplyLeading: !widget.embedded,
         title: const Text('🚀 プロジェクト・ノア',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+        actions: [
+          // 覚えた数がそのまま「助かる人数」になる。ずっと見えていてほしい
+          if (_phase != _Phase.setup)
+            Padding(
+              padding: const EdgeInsets.only(right: 14),
+              child: Center(
+                child: Text('定員 $_capacity名',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF7DFFB0))),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Container(
@@ -226,6 +265,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               _Phase.meet => _meet(),
               _Phase.recall || _Phase.finalTest => _quiz(),
               _Phase.date => _date(),
+              _Phase.note => _noteView(),
               _Phase.ending => _ending(),
               _ => _scriptView(),
             },
@@ -409,6 +449,44 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       NoahVoice.chara => _body('「${l.text}」',
           color: const Color(0xFF5AD1FF).withValues(alpha: alpha)),
     };
+  }
+
+  // ── 覚え方の話（研究にもとづく／断定はしない）──
+
+  Widget _noteView() {
+    final n = _notes[_noteIndex];
+    return ListView(
+      children: [
+        Text('船内資料 ${_noteIndex + 1} / ${_notes.length}',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
+        const SizedBox(height: 14),
+        const Center(child: Text('🧠', style: TextStyle(fontSize: 48))),
+        const SizedBox(height: 14),
+        Center(
+          child: Text(n.title,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFFF9A3C))),
+        ),
+        const SizedBox(height: 16),
+        _body(n.body, size: 14.5),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0B1020),
+            border: Border.all(color: const Color(0xFF1D2A4A)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text('出典：${n.source}',
+              style: const TextStyle(
+                  fontSize: 11.5, color: Color(0xFF8FA3C8), height: 1.6)),
+        ),
+        const SizedBox(height: 20),
+        _nextButton(_noteIndex + 1 < _notes.length ? '次の資料' : '船内を歩く'),
+      ],
+    );
   }
 
   // ── ③ 名刺をもらう ──
@@ -691,6 +769,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           child: Column(
             children: [
               _statRow('思い出せた', '$_correct / $_total'),
+              _statRow('乗船できた人数', '$_capacity 名'),
               for (final e in ranked)
                 _statRow(noahCharacterById(e.key)?.name ?? e.key,
                     '♥ ${e.value}'),
@@ -704,6 +783,24 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF7DFFB0))),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            color: const Color(0xFF12203C),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            _capacity >= kNoahCapacitySteps.last
+                ? '全員ぶんの名前が、三百三十年を越えた。'
+                    '${kNoahCapacityReasons[3]}のは、'
+                    '君が誰ひとり取りこぼさなかったからだ。'
+                : '${kNoahCapacityReasons[noahCapacityStepIndex(_correct, _total)]}。'
+                    'もっと思い出せれば、もっと多くの人が乗れる。',
+            style: const TextStyle(
+                fontSize: 12.5, height: 1.7, color: Color(0xFF7DFFB0)),
+          ),
         ),
         const SizedBox(height: 20),
         _nextButton(widget.embedded ? 'もう一度あそぶ' : 'とじる'),
