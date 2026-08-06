@@ -4,7 +4,10 @@ import 'dart:math';
 /// - svg   : バンドルされたオリジナルSVG（assets/images/faces/*.svg）
 /// - asset : バンドルされたフリー素材の写真風イラスト（assets/images/char*.jpg）
 /// - file  : ユーザーがアップロードした写真（端末のファイルパス、モバイル限定）
-enum FaceKind { svg, asset, file }
+/// 顔の描き方。
+/// [avatar] のときは [Person.face] に画像パスではなく
+/// アバターのJSON文字列（`Avatar.encode()`）が入る。
+enum FaceKind { svg, asset, file, avatar }
 
 /// 「人物」1人分。顔（画像）・名前・趣味を持つ。
 /// なまえコールでは名前はプレイヤーがつけるので [name] は使わない場合もある。

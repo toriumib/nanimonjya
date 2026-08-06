@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../models/avatar.dart';
 import '../models/person.dart';
+import 'avatar_view.dart';
 
 /// 人物の顔を種類（SVG/画像アセット/アップロード写真）に応じて描画するウィジェット。
 /// 写真は角丸でクロップして表示する。
@@ -23,6 +25,14 @@ class FaceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (person.kind) {
+      // 🧑‍🎨 顔メモのアバター。画像ではなくコードで描くので、
+      //    Web でもファイルの有無に関係なく必ず表示できる。
+      case FaceKind.avatar:
+        return AvatarView(
+          avatar: Avatar.decode(person.face),
+          size: size,
+          radius: radius,
+        );
       case FaceKind.svg:
         return SvgPicture.asset(person.face, width: size, height: size);
       case FaceKind.asset:

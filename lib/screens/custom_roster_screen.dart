@@ -6,10 +6,13 @@ import 'dart:io';
 
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
+import '../models/avatar.dart';
 import '../services/card_ocr_service.dart';
 import '../services/custom_roster_service.dart';
 import '../services/sfx.dart';
+import '../widgets/avatar_view.dart';
 import '../widgets/face_view.dart';
+import 'avatar_editor_screen.dart';
 import 'name_call_screen.dart';
 import 'recall_training_screen.dart';
 import 'study_screen.dart';
@@ -62,6 +65,29 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     }
   }
 
+  /// 🧑‍🎨 写真の代わりにアバターを作って登録する。
+  ///
+  /// 職場で新しく会った人の顔写真を、本人に断りなく撮るわけにはいかない。
+  /// 特徴（メガネ・ほくろ・髪型）を選んで顔を組み立てれば、
+  /// 写真が無くても顔と名前を結びつけて覚えられる。
+  Future<void> _addAvatar() async {
+    final avatar = await Navigator.push<Avatar>(
+      context,
+      MaterialPageRoute(builder: (_) => const AvatarEditorScreen()),
+    );
+    if (avatar == null || !mounted) return;
+    final result = await Navigator.push<_FormResult>(
+      context,
+      MaterialPageRoute(builder: (_) => _EntryFormScreen(avatar: avatar)),
+    );
+    if (result == null || result.entry.name.trim().isEmpty) return;
+    await CustomRosterService.instance.add(
+      draft: result.entry.copyWith(avatar: avatar.encode()),
+      cardSourcePath: result.cardPath,
+    );
+    Sfx.instance.coin();
+  }
+
   /// 登録済みの人を開いて、項目を見る／直す。
   Future<void> _openEntry(CustomEntry e) async {
     final result = await Navigator.push<_FormResult>(
@@ -110,6 +136,19 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
               onTap: () {
                 Navigator.pop(sheetContext);
                 _addPhoto(ImageSource.camera);
+              },
+            ),
+            // 🧑‍🎨 写真が撮れない相手はこちら。実際はこちらのほうが出番が多い。
+            ListTile(
+              leading: const Icon(Icons.face_retouching_natural,
+                  color: Color(0xFF8A5AC2)),
+              title: const Text('顔メモをつくる（アバター）'),
+              subtitle: const Text(
+                  '写真が無くてもOK。メガネ・ほくろ・髪型で特徴を残せます',
+                  style: TextStyle(fontSize: 11.5)),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _addAvatar();
               },
             ),
             const SizedBox(height: 8),
@@ -427,8 +466,10 @@ class _FormResult {
 /// 全部埋める必要はなく、**名前だけで登録できる**（他は任意）。
 class _EntryFormScreen extends StatefulWidget {
   final CustomEntry? initial;
-  final String? facePath; // 顔写真のプレビュー（新規のときは null）
-  const _EntryFormScreen({this.initial, required this.facePath});
+  final String? facePath; // 顔写真のプレビュー（写真で登録するとき）
+  /// 🧑‍🎨 アバターで登録するときのプレビュー。
+  final Avatar? avatar;
+  const _EntryFormScreen({this.initial, this.facePath, this.avatar});
 
   @override
   State<_EntryFormScreen> createState() => _EntryFormScreenState();
@@ -448,6 +489,25 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
   late final Map<String, TextEditingController> _c = {
     for (final k in _keys) k: TextEditingController(text: _initialValue(k)),
   };
+
+  /// 表示・保存するアバター（写真で登録する場合は null のまま）。
+  late Avatar? _avatar = widget.avatar ??
+      (widget.initial != null && widget.initial!.avatar.isNotEmpty
+          ? Avatar.decode(widget.initial!.avatar)
+          : null);
+
+  Future<void> _editAvatar() async {
+    final next = await Navigator.push<Avatar>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AvatarEditorScreen(
+          initial: _avatar,
+          personName: _t('name').isEmpty ? null : _t('name'),
+        ),
+      ),
+    );
+    if (next != null && mounted) setState(() => _avatar = next);
+  }
 
   String? _cardPath;
   bool _ocrBusy = false;
@@ -597,7 +657,28 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
                   child: Image.file(File(widget.facePath!),
                       width: 110, height: 110, fit: BoxFit.cover),
                 ),
+              )
+            else if (_avatar != null) ...[
+              // 誰の情報を入れているのか分かるよう、作った顔をここにも出す
+              Center(child: AvatarView(avatar: _avatar!, size: 110, radius: 16)),
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _editAvatar,
+                  icon: const Icon(Icons.face_retouching_natural, size: 18),
+                  label: const Text('顔を直す'),
+                ),
               ),
+              if (_avatar!.featuresJa().isNotEmpty)
+                Center(
+                  child: Text(
+                    '特徴：${_avatar!.featuresJa().join('・')}',
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w900,
+                        color: Color(0xFF2B5CA5)),
+                  ),
+                ),
+            ],
             const SizedBox(height: 12),
             // 名前だけ必須。ほかは覚えるための手がかりなので、
             // 書きたい人だけ開いて書けばいい形にしている。
@@ -700,7 +781,12 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
                   ? null
                   : () => Navigator.pop(
                         context,
-                        _FormResult(entry: _build(), cardPath: _cardPath),
+                        _FormResult(
+                          entry: _avatar == null
+                              ? _build()
+                              : _build().copyWith(avatar: _avatar!.encode()),
+                          cardPath: _cardPath,
+                        ),
                       ),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
