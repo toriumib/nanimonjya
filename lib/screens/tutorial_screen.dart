@@ -146,8 +146,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   '👥 Use the slider to set how many faces',
                 ],
           note: ja
-              ? 'はじめては 4人 が ちょうどいいよ。なれたら 16人まで ふやせる😊'
-              : 'Start with 4 faces. You can go up to 16 later 😊',
+              ? 'はじめては 4人。なれたら 15人まで ふやせるよ。'
+                  '🎴1人あたりの枚数も 2〜5枚で えらべる😊'
+              : 'Start with 4 faces (up to 15), and 2-5 cards each 😊',
           illustration: '👥',
           screenshot: 'assets/images/tutorial/step_home.png',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFE8FFF7)],
@@ -160,17 +161,20 @@ class _TutorialScreenState extends State<TutorialScreen> {
           points: ja
               ? [
                   'カードが 1まいずつ 出てくるよ',
-                  'はじめて出た子には 名前をつける',
-                  '口に出して「〇〇！」と 言うのがコツ',
+                  'はじめて出た子には 名前がつく',
+                  '口に出して「〇〇さん！」と 言うのがコツ',
                 ]
               : [
                   'Cards appear one at a time',
-                  'Name each new face',
+                  'Each new face gets a name',
                   'Say it out loud — that helps',
                 ],
           note: ja
-              ? 'ここでは まだ 点は入らないよ。おぼえる じかん だからね。'
-              : 'No points yet — this is the memorizing step.',
+              ? 'ひとり・CPU戦では アプリが名前を きめてくれる。'
+              'みんなであそぶときは じぶんたちで つけよう。'
+              'ここでは まだ 点は入らないよ。おぼえる じかん だからね。'
+              : 'Solo and CPU games name them for you. '
+                  'No points yet — this is the memorizing step.',
           illustration: '✏️',
           screenshot: 'assets/images/tutorial/step_naming.png',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFD8F6F0)],
@@ -182,18 +186,20 @@ class _TutorialScreenState extends State<TutorialScreen> {
           title: ja ? '③ また出てきたら 名前をこたえる' : '3. Answer when they return',
           points: ja
               ? [
-                  'まえに 名前をつけた子が また出てくる',
-                  'ひとりのときは 4つの中から えらぶ',
-                  'みんなのときは いっせいに さけぶ📣',
+                  'さっき名前がついた子が また出てくる',
+                  'ひとり・CPU戦 … 4つの中から えらぶ',
+                  'みんなであそぶ … いっせいに 名前をさけぶ📣',
                 ]
               : [
-                  'A face you already named comes back',
-                  'Alone: pick from four choices',
-                  'Party: everyone shouts at once 📣',
+                  'A face that was named comes back',
+                  'Solo / CPU — pick from four choices',
+                  'Party — everyone shouts the name 📣',
                 ],
           note: ja
-              ? 'みんなのときは 早く言えた人の P1・P2… を おす。せいかいすると カードがもらえる🎉'
-              : 'In party mode, tap P1/P2… for whoever said it first. They win the card 🎉',
+              ? 'せいかいすると カードがもらえる🎉 まちがえると 相手のもの。'
+              'みんなであそぶときは 早く言えた人の P1・P2… を おしてね。'
+              : 'Correct answers win the card 🎉 In party mode tap P1/P2… '
+                  'for whoever said it first.',
           illustration: '📣',
           screenshot: 'assets/images/tutorial/step_recall.png',
           gradient: const [Color(0xFFE8E3FF), Color(0xFFFFE3F0)],
@@ -205,9 +211,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
           title: ja ? '④ カードを 多くあつめた人の勝ち' : '4. Most cards wins!',
           points: ja
               ? [
+                  '「つける → 思い出す」を くりかえす',
                   'カードが なくなったら おしまい',
                   'たくさん あつめた人の勝ち🏆',
-                  'さいごに みんなの名前が ぜんぶ出る',
                 ]
               : [
                   'The game ends when cards run out',
@@ -215,8 +221,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   'Every name is revealed at the end',
                 ],
           note: ja
-              ? '「そんな名前だったっけ！？」で もりあがるよ😆'
-              : 'That is where the laughs happen 😆',
+              ? 'さいごに みんなの名前が ぜんぶ出る。'
+              '「そんな名前だったっけ！？」で もりあがるよ😆'
+              : 'Every name is revealed at the end 😆',
           illustration: '🏆',
           screenshot: 'assets/images/tutorial/hook_school.png',
           gradient: const [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],

@@ -1425,6 +1425,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
 
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
+  String get tabStory => ja ? 'ものがたり' : 'Story';
   // 📖 ルールブック（いつでも見直せるルール一覧）
   String get rulebookTitle => ja ? '📖 ルールブック' : '📖 Rulebook';
   /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。

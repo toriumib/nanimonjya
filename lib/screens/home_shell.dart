@@ -6,6 +6,7 @@ import '../services/bgm.dart';
 import '../services/sfx.dart';
 import 'character_shop_screen.dart';
 import 'memory_tips_screen.dart';
+import 'noah_story_screen.dart';
 import 'profile_screen.dart';
 import 'top_screen.dart';
 import 'training_hub_screen.dart';
@@ -101,6 +102,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           TrainingHubScreen(active: _index == 1), // ビジネス特訓
           const CharacterShopScreen(embedded: true), // ショップ
           const MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
+          const NoahStoryScreen(embedded: true), // 📖 ものがたり
           const ProfileScreen(), // マイページ
         ],
       ),
@@ -113,7 +115,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
           AppAnalytics.featureOpen(const [
-            'namecall', 'training', 'shop', 'read', 'profile'
+            'namecall', 'training', 'shop', 'read', 'story', 'profile'
           ][i]);
           Bgm.instance.playHome();
           setState(() => _index = i);
@@ -130,6 +132,10 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           NavigationDestination(
             icon: const Text('🛍', style: TextStyle(fontSize: 22)),
             label: m.tabShop,
+          ),
+          NavigationDestination(
+            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
+            label: m.tabStory,
           ),
           NavigationDestination(
             icon: const Text('📚', style: TextStyle(fontSize: 22)),

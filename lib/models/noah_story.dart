@@ -304,3 +304,175 @@ NoahResult resolveNoahEnding(Map<String, int> affection) {
   }
   return NoahResult(ending: NoahEnding.bitter, totalAffection: total);
 }
+
+// ── 物語の地の文・セリフ ──────────────────────────────
+
+/// 話し手。ナレーションと主人公と相手だけで足りる。
+enum NoahVoice { narration, player, chara, director }
+
+/// 1画面ぶんの文。
+class NoahLine {
+  final NoahVoice voice;
+  final String text;
+
+  /// 所長など、キャストではない人の表示名。
+  final String who;
+
+  const NoahLine(this.voice, this.text, {this.who = ''});
+}
+
+/// 主人公の性別。台詞は同一だが、一人称と呼ばれ方だけ変える。
+enum NoahGender { male, female, none }
+
+extension NoahGenderLabel on NoahGender {
+  String get labelJa => switch (this) {
+        NoahGender.male => '男性',
+        NoahGender.female => '女性',
+        NoahGender.none => 'どちらでもない',
+      };
+
+  /// 主人公の一人称。
+  String get pronounJa => switch (this) {
+        NoahGender.male => 'おれ',
+        NoahGender.female => 'わたし',
+        NoahGender.none => 'じぶん',
+      };
+}
+
+/// 恋愛対象の絞り込み。
+enum NoahPreference { men, women, all }
+
+extension NoahPreferenceLabel on NoahPreference {
+  String get labelJa => switch (this) {
+        NoahPreference.men => '男性',
+        NoahPreference.women => '女性',
+        NoahPreference.all => 'どちらも',
+      };
+
+  List<NoahCharacter> filter(List<NoahCharacter> all) => switch (this) {
+        NoahPreference.men => [for (final c in all) if (c.male) c],
+        NoahPreference.women => [for (final c in all) if (!c.male) c],
+        NoahPreference.all => all,
+      };
+}
+
+/// 序章。太陽が膨らみ、大池町から箱舟が発つまで。
+const List<NoahLine> kNoahPrologue = [
+  NoahLine(NoahVoice.narration, '西暦、五十億二千二十六年。'),
+  NoahLine(NoahVoice.narration, '太陽は、赤い。'),
+  NoahLine(NoahVoice.narration,
+      '水素を使い切った星は膨らみ、空の三分の一を占めていた。'
+      '水星と金星はもう無い。'),
+  NoahLine(NoahVoice.narration,
+      '地球はかろうじて呑まれずにいるが、地表は鉛が溶ける温度になった。'),
+  NoahLine(NoahVoice.narration,
+      '人類は、横浜・戸塚区大池町の地下三キロに潜っている。'),
+  NoahLine(NoahVoice.director, 'よく集まってくれた。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      'ここは昔、ゴルフ場だった。十八ホール、七十万平方メートル。'
+      '平らで、水があって、道がある。発射場にちょうどよかった。',
+      who: '所長'),
+  NoahLine(NoahVoice.director, '十八番グリーンの真下に、サイロを掘った。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '行き先は四十九光年先、LHS 1140 b。'
+      '赤色矮星をまわる、水のあるスーパーアースだ。',
+      who: '所長'),
+  NoahLine(NoahVoice.player, '……四十九光年。どれくらいかかるんですか'),
+  NoahLine(NoahVoice.director,
+      '光の十五パーセントで、三百三十年。眠りながら渡る。', who: '所長'),
+  NoahLine(NoahVoice.narration, 'ざわめき。誰かが息を吸う音。'),
+  NoahLine(NoahVoice.director, 'ただし、ひとつ問題がある。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '長期の冷凍睡眠から覚めると、記憶が欠ける。'
+      'それも、いちばん先に消えるのが——',
+      who: '所長'),
+  NoahLine(NoahVoice.director, '人の、名前だ。', who: '所長'),
+  NoahLine(NoahVoice.narration,
+      '船には五百人が乗る。目覚めたとき、隣が誰か分からない五百人。'),
+  NoahLine(NoahVoice.director,
+      'だから君たちの仕事は、研究だけじゃない。', who: '所長'),
+  NoahLine(NoahVoice.director, '覚えることだ。名前を。全員ぶん。', who: '所長'),
+];
+
+/// 名刺交換の前口上。
+const List<NoahLine> kNoahBeforeMeeting = [
+  NoahLine(NoahVoice.narration, '——顔合わせが始まった。'),
+  NoahLine(NoahVoice.narration,
+      '全員が名刺を持っている。紙ではない。'
+      '船内の通信IDと、所属と、趣味まで刷ってある。'),
+  NoahLine(NoahVoice.narration,
+      '「趣味まで書くのは、思い出す手がかりを増やすためです」——'
+      '白川医師はそう言った。'),
+  NoahLine(NoahVoice.narration, '名刺を見られるのは、一度きり。'),
+];
+
+/// 冷凍睡眠に入る前夜。
+const List<NoahLine> kNoahBeforeSleep = [
+  NoahLine(NoahVoice.narration, '出発の前夜。'),
+  NoahLine(NoahVoice.narration,
+      'テニスコートの壁に、誰かが爪で「また明日」と刻んでいた。'),
+  NoahLine(NoahVoice.narration, 'その下に、また誰かが同じ言葉を刻む。'),
+  NoahLine(NoahVoice.narration, '順番に、全員が。'),
+  NoahLine(NoahVoice.player, '……三百三十年後の「また明日」か'),
+  NoahLine(NoahVoice.narration,
+      '十八番グリーンが割れ、箱舟「ノア」がせり上がる。'),
+  NoahLine(NoahVoice.narration,
+      '大池の水が霧になって噴き上がり、蒸気の幕が音を吸った。'),
+  NoahLine(NoahVoice.director,
+      '本日のホール、パー4。グリーンまでの距離——四十九光年。', who: '所長'),
+  NoahLine(NoahVoice.narration, 'ポッドの蓋が閉じる。'),
+];
+
+/// 目覚め。ここから記憶テストが始まる。
+const List<NoahLine> kNoahAwake = [
+  NoahLine(NoahVoice.narration, '——三百三十年。'),
+  NoahLine(NoahVoice.narration, '蓋が開く。冷たい空気。'),
+  NoahLine(NoahVoice.narration, '天井が見える。自分の名前は、言える。'),
+  NoahLine(NoahVoice.player, '（……じゃあ、あの人は？）'),
+  NoahLine(NoahVoice.narration, '隣のポッドから、誰かが起き上がる。'),
+];
+
+/// 減速危機。全員が同時に動く場面。
+const List<NoahLine> kNoahClimax = [
+  NoahLine(NoahVoice.narration, '減速フェーズ、開始。'),
+  NoahLine(NoahVoice.narration,
+      '直径数百キロの磁気セイルを開き、恒星風を受けて止まる。'
+      'これに失敗すると、船は星を素通りして虚空へ出る。'),
+  NoahLine(NoahVoice.narration, 'セイル展開——七十三パーセントで停止。'),
+  NoahLine(NoahVoice.chara, '窓は四分。四分で開く'),
+  NoahLine(NoahVoice.chara, '融合炉の出力、ぜんぶセイルに回す'),
+  NoahLine(NoahVoice.chara, 'ロボット群を船外へ。全員、帰す'),
+  NoahLine(NoahVoice.chara, '生態系を最小消費に。命は、守る'),
+  NoahLine(NoahVoice.chara, '右舷、三度だけ傾けろ。熱がもたない'),
+  NoahLine(NoahVoice.chara, '息を止めて。大丈夫だ'),
+  NoahLine(NoahVoice.narration, 'セイル、百パーセント展開。'),
+  NoahLine(NoahVoice.narration, '減速、成功。'),
+  NoahLine(NoahVoice.narration,
+      '——窓の外に、赤い小さな太陽と、青黒い海の惑星があった。'),
+  NoahLine(NoahVoice.narration,
+      '着陸前に、もう一度だけ確かめておきたいことがある。'),
+];
+
+/// デートの場所。船内の設備は全部、生きるための装置でもある。
+class NoahDate {
+  final String place;
+  final String flavor;
+  const NoahDate(this.place, this.flavor);
+}
+
+const List<NoahDate> kNoahDates = [
+  NoahDate('人工河川',
+      'この川の水の九十九パーセントは、三百年前に誰かが飲んだ水だという。循環している。'),
+  NoahDate('フードコート',
+      '藻類のステーキとコオロギの天ぷら。醤油だけは地球から持ってきた酵母を継ぎ足している。'),
+  NoahDate('カラオケ',
+      '船の回転数と共鳴する曲があるらしく、特定の音程で床が微かに震える。'),
+  NoahDate('百貨店',
+      '船の中に新品は無い。全部リサイクル素材だ。だから、直す職人がいちばん偉い。'),
+  NoahDate('テニスコート',
+      '重力は半分。球はゆっくり落ちて、コリオリの力でわずかに曲がる。'),
+  NoahDate('観測デッキ',
+      '窓の外は、ただ黒い。星は動かない。三百三十年、ほとんど同じ景色だ。'),
+  NoahDate('旧フェアウェイの記録映像',
+      '発射の朝の映像。十八番のピンフラッグだけが、まだ立っている。'),
+];

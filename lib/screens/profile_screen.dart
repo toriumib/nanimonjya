@@ -6,6 +6,7 @@ import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
+import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../l10n/premium_articles.dart';
 import '../services/bgm.dart';
@@ -267,6 +268,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 🎁 デイリーで手に入るもの（コイン・キャラ）を絵で並べる。
+  /// 顔は実際のキャラ画像を使う。「誰がもらえるか」が想像できるほうが押される。
+  Widget _rewardPreview() {
+    final faces = kCharImageAssets.take(4).toList();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF6D8), Color(0xFFFFE3EE)],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFD46B), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Text('🪙', style: TextStyle(fontSize: 26)),
+          const SizedBox(width: 8),
+          for (final f in faces)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(f,
+                    width: 34,
+                    height: 34,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        const Text('🙂', style: TextStyle(fontSize: 24))),
+              ),
+            ),
+          const Expanded(
+            child: Text(
+              'コインとキャラが もらえます',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  height: 1.35,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF8A6A1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _dailyBonusCard(MetaStrings m, PlayerProfile p) {
     return _sectionCard(
       title: '📅 ${m.dailyBonus}',
@@ -274,6 +321,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(p.dailyStreak > 0 ? m.streakDays(p.dailyStreak) : m.comeBackTomorrow),
+          const SizedBox(height: 10),
+          // 🎁 もらえるものを絵で見せる。
+          //    カレンダーだけだと月初は白いマスばかりで、
+          //    何がもらえるカードなのか分からなかった。
+          _rewardPreview(),
           const SizedBox(height: 12),
           // 📅 ハンコカレンダー。数字の「連続◯日」より、空いたマスが
           //    見えるほうが「明日は埋めよう」につながる。

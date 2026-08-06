@@ -10,59 +10,98 @@ import '../widgets/banner_ad_slot.dart';
 /// 🚀 ストーリーモード「プロジェクト・ノア」。
 ///
 /// 遊びの芯は本編と同じ「会って、覚えて、思い出す」。
-/// 名刺交換で名前と所属と趣味を教わり、再会したときに3択で答える。
+/// 名刺で名前・所属・趣味・通信IDを渡され、
+/// 三百三十年の冷凍睡眠のあと、3択で思い出す。
 /// **覚えているほど親しくなり、結末が変わる**。
 ///
-/// ⚠️ 劇中で人は死なない。孤独エンドのマインドアップロードも
-/// 「死」ではなく引越しとして書く（船の世話係として全員を見守り続ける）。
-///
-/// 立ち絵は後から入れる前提で、いまは絵文字を大きく出しているだけ。
-/// 差し替えるときは [_portrait] だけ直せば済むようにしてある。
+/// 立ち絵は後から入れる前提。差し替えるのは [_portrait] の1か所で済む。
 class NoahStoryScreen extends StatefulWidget {
-  const NoahStoryScreen({super.key});
+  /// 下タブの中に置くときは true（戻る矢印と余白を減らす）。
+  final bool embedded;
+
+  const NoahStoryScreen({super.key, this.embedded = false});
 
   @override
   State<NoahStoryScreen> createState() => _NoahStoryScreenState();
 }
 
-enum _Phase { prologue, meet, recall, date, finalTest, ending }
+enum _Phase {
+  setup, // 性別・恋愛対象を選ぶ
+  prologue, // 序章
+  beforeMeeting, // 名刺交換の前口上
+  meet, // 名刺をもらう
+  beforeSleep, // 出発前夜
+  awake, // 目覚め
+  recall, // 記憶テスト（名前・趣味）
+  date, // デート
+  climax, // 減速危機
+  finalTest, // 最終テスト（所属・通信ID・学生時代）
+  ending,
+}
 
 class _NoahStoryScreenState extends State<NoahStoryScreen> {
   final _rng = Random();
 
-  _Phase _phase = _Phase.prologue;
+  _Phase _phase = _Phase.setup;
+  NoahGender _gender = NoahGender.female;
+  NoahPreference _pref = NoahPreference.all;
 
-  /// この周回に出てくる科学者（4人）。8人だと1周が長すぎる。
-  late List<NoahCharacter> _cast;
-
+  /// この周回に出てくる科学者。4人だと1周が20分ほどで収まる。
+  List<NoahCharacter> _cast = [];
+  final List<NoahCharacter> _met = [];
   final Map<String, int> _affection = {};
 
-  int _index = 0; // いま何人目か／何問目か
+  int _index = 0; // 何人目か
+  int _line = 0; // 台詞の何行目か
   NoahQuestion? _q;
   String? _picked;
-
-  /// 名刺交換で会った人（3択のまちがい選択肢のもとになる）。
-  final List<NoahCharacter> _met = [];
 
   int _correct = 0;
   int _total = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _cast = ([...kNoahCast]..shuffle(_rng)).take(4).toList();
+  // ── 進行 ──
+
+  List<NoahLine> get _script => switch (_phase) {
+        _Phase.prologue => kNoahPrologue,
+        _Phase.beforeMeeting => kNoahBeforeMeeting,
+        _Phase.beforeSleep => kNoahBeforeSleep,
+        _Phase.awake => kNoahAwake,
+        _Phase.climax => kNoahClimax,
+        _ => const [],
+      };
+
+  void _startGame() {
+    final pool = _pref.filter(kNoahCast);
+    // 絞りこんだ結果が少なすぎると3択の相手が作れないので、全員から補う
+    final base = pool.length >= 4 ? pool : kNoahCast;
+    _cast = ([...base]..shuffle(_rng)).take(4).toList();
+    _affection.clear();
     for (final c in _cast) {
       _affection[c.id] = 0;
     }
+    _met.clear();
+    _index = 0;
+    _line = 0;
+    _correct = 0;
+    _total = 0;
+    _phase = _Phase.prologue;
   }
-
-  // ── 進行 ──
 
   void _next() {
     Sfx.instance.pop();
     setState(() {
+      // 台詞が続く章は、まず1行ずつ送る
+      if (_script.isNotEmpty && _line + 1 < _script.length) {
+        _line += 1;
+        return;
+      }
+      _line = 0;
       switch (_phase) {
+        case _Phase.setup:
+          _startGame();
         case _Phase.prologue:
+          _phase = _Phase.beforeMeeting;
+        case _Phase.beforeMeeting:
           _phase = _Phase.meet;
           _index = 0;
         case _Phase.meet:
@@ -71,9 +110,13 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _index += 1;
           } else {
             _index = 0;
-            _phase = _Phase.recall;
-            _prepare(const [NoahField.name, NoahField.hobby]);
+            _phase = _Phase.beforeSleep;
           }
+        case _Phase.beforeSleep:
+          _phase = _Phase.awake;
+        case _Phase.awake:
+          _phase = _Phase.recall;
+          _prepare(const [NoahField.name, NoahField.hobby]);
         case _Phase.recall:
           if (_index + 1 < _cast.length) {
             _index += 1;
@@ -87,13 +130,15 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _index += 1;
           } else {
             _index = 0;
-            _phase = _Phase.finalTest;
-            _prepare(const [
-              NoahField.affiliation,
-              NoahField.commId,
-              NoahField.school,
-            ]);
+            _phase = _Phase.climax;
           }
+        case _Phase.climax:
+          _phase = _Phase.finalTest;
+          _prepare(const [
+            NoahField.affiliation,
+            NoahField.commId,
+            NoahField.school,
+          ]);
         case _Phase.finalTest:
           if (_index + 1 < _cast.length) {
             _index += 1;
@@ -107,7 +152,12 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _grantReward();
           }
         case _Phase.ending:
-          Navigator.pop(context);
+          // タブの中では閉じられないので、最初から遊べるように戻す
+          if (widget.embedded) {
+            _phase = _Phase.setup;
+          } else {
+            Navigator.pop(context);
+          }
       }
     });
   }
@@ -129,7 +179,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _total += 1;
     if (ok) {
       _correct += 1;
-      // 思い出せた項目のぶんだけ、相手との距離が縮まる
+      // 思い出せたぶんだけ、相手との距離が縮まる
       _affection[q.target.id] = (_affection[q.target.id] ?? 0) + 1;
       Sfx.instance.correct();
     } else {
@@ -139,9 +189,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   }
 
   Future<void> _grantReward() async {
-    // 覚えた数がそのままごほうびになる（読むだけでは増えない）
-    final coins = 20 + _correct * 10;
-    await PlayerProfile.instance.grantBonusCoins(coins);
+    // 覚えた数がそのままごほうび。読むだけでは増えない
+    await PlayerProfile.instance.grantBonusCoins(20 + _correct * 10);
   }
 
   NoahResult get _result => resolveNoahEnding(_affection);
@@ -157,6 +206,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: const Color(0xFFD7E2FF),
+        automaticallyImplyLeading: !widget.embedded,
         title: const Text('🚀 プロジェクト・ノア',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
       ),
@@ -170,13 +220,14 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
             child: switch (_phase) {
-              _Phase.prologue => _prologue(),
+              _Phase.setup => _setup(),
               _Phase.meet => _meet(),
               _Phase.recall || _Phase.finalTest => _quiz(),
               _Phase.date => _date(),
               _Phase.ending => _ending(),
+              _ => _scriptView(),
             },
           ),
         ),
@@ -184,7 +235,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     );
   }
 
-  /// 立ち絵の置き場所。あとで画像に差し替える。
+  /// 立ち絵の置き場所。画像を入れるときはここだけ直せばよい。
   Widget _portrait(NoahCharacter c, {double size = 96}) => Container(
         width: size,
         height: size,
@@ -197,10 +248,12 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         child: Text(c.emoji, style: TextStyle(fontSize: size * 0.45)),
       );
 
-  Widget _body(String text, {double size = 15}) => Text(
+  Widget _body(String text, {double size = 15, Color? color}) => Text(
         text,
         style: TextStyle(
-            fontSize: size, height: 1.8, color: const Color(0xFFD7E2FF)),
+            fontSize: size,
+            height: 1.85,
+            color: color ?? const Color(0xFFD7E2FF)),
       );
 
   Widget _nextButton(String label) => SizedBox(
@@ -218,108 +271,250 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         ),
       );
 
-  Widget _prologue() => ListView(
+  // ── ① 性別と恋愛対象をえらぶ ──
+
+  Widget _setup() => ListView(
         children: [
-          const SizedBox(height: 20),
-          const Text('☀️', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          _body('太陽は赤く、大きくなった。\n'
-              '空の三分の一が、燃えている。'),
-          const SizedBox(height: 14),
-          _body('横浜・戸塚区大池町。かつてゴルフ場だった丘の地下から、'
-              '箱舟「ノア」が発つ。行き先は49光年先、LHS 1140 b。'),
-          const SizedBox(height: 14),
-          _body('片道330年。眠りながら渡る。'),
-          const SizedBox(height: 14),
-          _body('——ただ、ひとつだけ問題がある。'),
+          const SizedBox(height: 12),
+          const Center(child: Text('🚀', style: TextStyle(fontSize: 56))),
           const SizedBox(height: 8),
-          _body('長く眠ると、人の名前から先に、忘れる。', size: 17),
-          const SizedBox(height: 24),
-          _nextButton('乗船する'),
+          const Center(
+            child: Text('プロジェクト・ノア',
+                style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5AD1FF))),
+          ),
+          const SizedBox(height: 4),
+          const Center(
+            child: Text('大池町から、四十九光年',
+                style: TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
+          ),
+          const SizedBox(height: 22),
+          _pickerCard(
+            'あなたは',
+            [
+              for (final g in NoahGender.values)
+                _chip(g.labelJa, _gender == g, () => setState(() => _gender = g))
+            ],
+          ),
+          const SizedBox(height: 12),
+          _pickerCard(
+            '心を寄せる相手は',
+            [
+              for (final p in NoahPreference.values)
+                _chip(p.labelJa, _pref == p, () => setState(() => _pref = p))
+            ],
+          ),
+          const SizedBox(height: 18),
+          _body(
+              '名刺で名前・所属・趣味・通信IDを渡されます。見られるのは一度だけ。\n'
+              '三百三十年の冷凍睡眠のあと、どれだけ思い出せるかで結末が変わります。',
+              size: 13),
+          const SizedBox(height: 20),
+          _nextButton('はじめる'),
         ],
       );
 
-  Widget _meet() {
-    final c = _cast[_index];
-    return ListView(
-      children: [
-        Text('出会い ${_index + 1} / ${_cast.length}',
-            style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
-        const SizedBox(height: 14),
-        Center(child: _portrait(c, size: 120)),
-        const SizedBox(height: 18),
-        Center(
-          child: Text(c.name,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(c.colorValue))),
-        ),
-        Center(
-          child: Text(c.reading,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
-        ),
-        const SizedBox(height: 18),
-        _card([
-          _row('所属', c.field),
-          _row('趣味', c.hobby),
-          _row('通信ID', c.commId),
-          _row('学生時代', c.school),
-        ]),
-        const SizedBox(height: 16),
-        _body('「${c.name}です。よろしく」\n'
-            '——名刺は、一度しか見せてもらえない。'),
-        const SizedBox(height: 20),
-        _nextButton(_index + 1 < _cast.length ? '次の人に会う' : '冷凍睡眠に入る'),
-      ],
-    );
-  }
-
-  Widget _card(List<Widget> children) => Container(
-        padding: const EdgeInsets.all(14),
+  Widget _pickerCard(String title, List<Widget> chips) => Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
         decoration: BoxDecoration(
           color: const Color(0xFF0B1020),
           border: Border.all(color: const Color(0xFF1D2A4A)),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(children: children),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5AD1FF))),
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: chips),
+          ],
+        ),
       );
 
-  Widget _row(String k, String v) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
+  Widget _chip(String label, bool selected, VoidCallback onTap) => GestureDetector(
+        onTap: () {
+          Sfx.instance.pop();
+          onTap();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF5AD1FF) : Colors.transparent,
+            border: Border.all(color: const Color(0xFF5AD1FF), width: 1.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w900,
+                  color: selected
+                      ? const Color(0xFF05070F)
+                      : const Color(0xFF5AD1FF))),
+        ),
+      );
+
+  // ── ② 地の文の章 ──
+
+  Widget _scriptView() {
+    final lines = _script;
+    final shown = lines.take(_line + 1).toList();
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            reverse: true,
+            children: [
+              for (final l in shown.reversed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _lineView(l, dim: l != shown.last),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text('${_line + 1} / ${lines.length}',
+            style: const TextStyle(fontSize: 11, color: Color(0xFF8FA3C8))),
+        const SizedBox(height: 6),
+        _nextButton(_line + 1 < lines.length ? '▼ つづき' : 'すすむ'),
+      ],
+    );
+  }
+
+  Widget _lineView(NoahLine l, {bool dim = false}) {
+    final alpha = dim ? 0.42 : 1.0;
+    return switch (l.voice) {
+      NoahVoice.narration =>
+        _body(l.text, color: const Color(0xFFA8B6D6).withValues(alpha: alpha)),
+      NoahVoice.player => _body('（${_gender.pronounJa}）「${l.text}」',
+          color: const Color(0xFF7DFFB0).withValues(alpha: alpha)),
+      NoahVoice.director => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.who.isEmpty ? '所長' : l.who,
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFFFF9A3C).withValues(alpha: alpha))),
+            _body('「${l.text}」',
+                color: const Color(0xFFD7E2FF).withValues(alpha: alpha)),
+          ],
+        ),
+      NoahVoice.chara => _body('「${l.text}」',
+          color: const Color(0xFF5AD1FF).withValues(alpha: alpha)),
+    };
+  }
+
+  // ── ③ 名刺をもらう ──
+
+  Widget _meet() {
+    final c = _cast[_index];
+    return ListView(
+      children: [
+        Text('名刺交換 ${_index + 1} / ${_cast.length}',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
+        const SizedBox(height: 12),
+        Center(child: _portrait(c, size: 104)),
+        const SizedBox(height: 16),
+        _businessCard(c),
+        const SizedBox(height: 14),
+        _body('「${c.name}です。よろしく」', size: 15),
+        const SizedBox(height: 6),
+        _body('——名刺は、これきり。次に会うのは三百三十年後。', size: 12.5),
+        const SizedBox(height: 18),
+        _nextButton(_index + 1 < _cast.length ? '次の人と挨拶する' : '出発の前夜へ'),
+      ],
+    );
+  }
+
+  /// 📇 名刺。ここに書いてあることが、そのまま後で出題される。
+  Widget _businessCard(NoahCharacter c) => Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF7FAFF), Color(0xFFDDE7F5)],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Color(c.colorValue), width: 2),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x66000000), blurRadius: 14, offset: Offset(0, 6)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(c.field,
+                style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF2B5CA5))),
+            const SizedBox(height: 6),
+            Text(c.reading,
+                style: const TextStyle(
+                    fontSize: 10.5, color: Color(0xFF6A7A93))),
+            Text(c.name,
+                style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF10182A),
+                    letterSpacing: 2)),
+            const SizedBox(height: 10),
+            Container(height: 1, color: const Color(0x332B5CA5)),
+            const SizedBox(height: 8),
+            _cardRow('通信ID', c.commId),
+            _cardRow('趣味', c.hobby),
+            _cardRow('学生時代', c.school),
+            const SizedBox(height: 6),
+            const Text('箱舟ノア 乗員証',
+                style: TextStyle(fontSize: 9.5, color: Color(0xFF8899AD))),
+          ],
+        ),
+      );
+
+  Widget _cardRow(String k, String v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 70,
+              width: 62,
               child: Text(k,
                   style: const TextStyle(
-                      fontSize: 12, color: Color(0xFF5AD1FF))),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF2B5CA5))),
             ),
             Expanded(
               child: Text(v,
                   style: const TextStyle(
-                      fontSize: 13.5, color: Color(0xFFD7E2FF))),
+                      fontSize: 12.5, color: Color(0xFF10182A))),
             ),
           ],
         ),
       );
 
+  // ── ④ 記憶テスト ──
+
   Widget _quiz() {
     final q = _q!;
     final answered = _picked != null;
-    final lead = _phase == _Phase.recall
-        ? '——330年後。目が覚めた。'
-        : '——減速がはじまる。もう一度だけ、確かめておきたい。';
     return ListView(
       children: [
-        Text('${_index + 1} / ${_cast.length}',
+        Text('${_phase == _Phase.recall ? '思い出す' : '最終確認'} '
+            '${_index + 1} / ${_cast.length}',
             style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
         const SizedBox(height: 10),
-        _body(lead, size: 13),
-        const SizedBox(height: 14),
-        Center(child: _portrait(q.target, size: 110)),
-        const SizedBox(height: 14),
+        Center(child: _portrait(q.target, size: 100)),
+        const SizedBox(height: 12),
         if (q.field != NoahField.name)
           Center(
             child: Text(q.target.name,
@@ -328,7 +523,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                     fontWeight: FontWeight.w900,
                     color: Color(q.target.colorValue))),
           ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Center(
           child: Text(q.field.questionJa,
               style: const TextStyle(
@@ -351,7 +546,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                   disabledForegroundColor: const Color(0xFF05070F),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   textStyle: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w900),
+                      fontSize: 14.5, fontWeight: FontWeight.w900),
                 ),
                 child: Text(choice, textAlign: TextAlign.center),
               ),
@@ -367,8 +562,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           ),
           const SizedBox(height: 16),
           _nextButton(_index + 1 < _cast.length
-              ? '次へ'
-              : (_phase == _Phase.recall ? 'デートに誘う' : '結末へ')),
+              ? '次の人へ'
+              : (_phase == _Phase.recall ? '船内を歩く' : '着陸へ')),
         ],
       ],
     );
@@ -381,27 +576,28 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     return const Color(0xFF44506B);
   }
 
-  /// デートは「思い出す手がかりを増やす場面」。
-  /// ここで聞いた話が、そのまま最終テストの出題になる。
+  // ── ⑤ デート ──
+
   Widget _date() {
     final c = _cast[_index];
-    const places = ['百貨店', '人工河川', 'カラオケ', 'フードコート', 'テニスコート', '旧フェアウェイ'];
-    final place = places[_index % places.length];
+    final d = kNoahDates[(_index + c.id.length) % kNoahDates.length];
     return ListView(
       children: [
-        Text('デート ${_index + 1} / ${_cast.length}',
+        Text('船内 ${_index + 1} / ${_cast.length}',
             style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
+        const SizedBox(height: 12),
+        Center(child: _portrait(c, size: 100)),
         const SizedBox(height: 14),
-        Center(child: _portrait(c, size: 110)),
-        const SizedBox(height: 16),
         Center(
-          child: Text('$place・${c.name}',
+          child: Text('${d.place}・${c.name}',
               style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,
                   color: Color(c.colorValue))),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+        _body(d.flavor, size: 13.5, color: const Color(0xFFA8B6D6)),
+        const SizedBox(height: 16),
         _body('「${c.school}にいたころの話、してもいい？」'),
         const SizedBox(height: 10),
         _body('「${c.hobby}は、いまも続けてる。船の中でも」'),
@@ -416,16 +612,16 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             color: const Color(0xFF12203C),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text(
-            '💡 ここで聞いた話は、あとで聞かれます。',
-            style: TextStyle(fontSize: 12.5, color: Color(0xFF5AD1FF)),
-          ),
+          child: const Text('💡 ここで聞いた話は、あとで聞かれます。',
+              style: TextStyle(fontSize: 12.5, color: Color(0xFF5AD1FF))),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
         _nextButton(_index + 1 < _cast.length ? '次の人と過ごす' : '減速フェーズへ'),
       ],
     );
   }
+
+  // ── ⑥ 結末 ──
 
   Widget _ending() {
     final r = _result;
@@ -433,10 +629,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       NoahEnding.happy => (
           'ハッピーエンド',
           '🌅',
-          '${r.partner?.name ?? ''}と、ターミネータの浜に降りた。\n\n'
+          '${r.partner?.name ?? ''}と、ターミネータの浜に降りた。\n'
+              '永遠の夕暮れの帯。昼と夜のあいだだけが、ちょうどいい温度をしている。\n\n'
               '「${r.partner?.regret ?? ''}」——その心残りを、この星でやり直す。\n\n'
               'カプセルが開いて、最初の産声が上がる。\n'
-              '「330年、かかったな」\n'
+              '「三百三十年、かかったな」\n'
               '「うん。でも、名前は忘れなかった」',
         ),
       NoahEnding.bitter => (
@@ -444,7 +641,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           '👨‍👩‍👧‍👦',
           '誰のことも、同じくらい大切だった。\n'
               'だから誰とも、特別にはならなかった。\n\n'
-              '500人全員で入植し、全員で子どもを育てた。\n\n'
+              '五百人で降り、五百人で子どもを育てた。\n'
+              '遺伝的多様性は足りている。計算上は、なんの問題もない。\n\n'
               '——数世代あと。\n'
               '子孫たちが笑って言う。\n'
               '「ねえ、ご先祖さま。みんな顔が同じで、区別つかないんだけど」\n'
@@ -455,10 +653,10 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           '🛰️',
           '結局、誰の名前も覚えきれなかった。\n\n'
               'だから、世話係を志願した。\n'
-              '眠る500人を起こさないよう、静かに船を回す役。\n\n'
-              '意識をロボットへ移す。死ぬわけじゃない。引越しだ。\n'
+              '眠る五百人を起こさないよう、静かに船を回す役。\n\n'
+              '意識をロボットへ移す。引越しのようなものだ。\n'
               '体温は返ってこないけれど、手は動く。\n\n'
-              '330年、ポッドを拭き続けた。\n'
+              '三百三十年、ポッドを拭き続けた。\n'
               '到着の朝、全員が目を覚ます。\n'
               '「……あなたは？」\n'
               '「航行管理です。おはようございます。全員、そろっています」\n\n'
@@ -471,8 +669,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
 
     return ListView(
       children: [
-        Center(child: Text(emoji, style: const TextStyle(fontSize: 64))),
-        const SizedBox(height: 10),
+        Center(child: Text(emoji, style: const TextStyle(fontSize: 60))),
+        const SizedBox(height: 8),
         Center(
           child: Text(title,
               style: const TextStyle(
@@ -483,11 +681,22 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         const SizedBox(height: 18),
         _body(text),
         const SizedBox(height: 22),
-        _card([
-          _row('思い出せた', '$_correct / $_total'),
-          for (final e in ranked)
-            _row(noahCharacterById(e.key)?.name ?? e.key, '♥ ${e.value}'),
-        ]),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0B1020),
+            border: Border.all(color: const Color(0xFF1D2A4A)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              _statRow('思い出せた', '$_correct / $_total'),
+              for (final e in ranked)
+                _statRow(noahCharacterById(e.key)?.name ?? e.key,
+                    '♥ ${e.value}'),
+            ],
+          ),
+        ),
         const SizedBox(height: 12),
         Center(
           child: Text('🪙 ${20 + _correct * 10} コインを受け取りました',
@@ -496,14 +705,27 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF7DFFB0))),
         ),
-        const SizedBox(height: 12),
-        const Center(
-          child: Text('※ この物語で亡くなる人はいません。',
-              style: TextStyle(fontSize: 11, color: Color(0xFF8FA3C8))),
-        ),
         const SizedBox(height: 20),
-        _nextButton('とじる'),
+        _nextButton(widget.embedded ? 'もう一度あそぶ' : 'とじる'),
       ],
     );
   }
+
+  Widget _statRow(String k, String v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(k,
+                  style: const TextStyle(
+                      fontSize: 13, color: Color(0xFFD7E2FF))),
+            ),
+            Text(v,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5AD1FF))),
+          ],
+        ),
+      );
 }
