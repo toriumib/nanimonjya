@@ -1,0 +1,130 @@
+import 'dart:math';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:nanimonjya/models/noah_story.dart';
+
+/// 🚀 ストーリーモード「プロジェクト・ノア」のロジック。
+///
+/// 3択の作り方と、結末の判定を固定する。
+/// とくに「まちがいの選択肢は他のキャラの本物のデータ」は、
+/// 崩れると4択が実質2択になってしまう要点なのでテストで守る。
+void main() {
+  group('キャスト', () {
+    test('8人いて、IDが重複していない', () {
+      expect(kNoahCast.length, 8);
+      expect(kNoahCast.map((c) => c.id).toSet().length, 8);
+    });
+
+    test('出題に使う項目が全員そろっている（空欄だと3択が作れない）', () {
+      for (final c in kNoahCast) {
+        for (final f in NoahField.values) {
+          expect(f.valueOf(c), isNotEmpty, reason: '${c.id} / ${f.labelJa}');
+        }
+      }
+    });
+
+    test('IDから引ける／知らないIDは null', () {
+      expect(noahCharacterById('hoshino')?.name, '星野 未来');
+      expect(noahCharacterById('nobody'), isNull);
+    });
+  });
+
+  group('3択の作り方', () {
+    test('正解を必ず含み、重複のない3択になる', () {
+      final rng = Random(1);
+      for (final f in NoahField.values) {
+        final q = buildNoahQuestion(
+          target: kNoahCast.first,
+          field: f,
+          pool: kNoahCast,
+          random: rng,
+        );
+        expect(q.choices.length, 3, reason: f.labelJa);
+        expect(q.choices.toSet().length, 3, reason: f.labelJa);
+        expect(q.choices, contains(q.answer), reason: f.labelJa);
+      }
+    });
+
+    test('まちがいの選択肢は、すべて別のキャラの本物のデータ', () {
+      final q = buildNoahQuestion(
+        target: kNoahCast[0],
+        field: NoahField.hobby,
+        pool: kNoahCast,
+        random: Random(2),
+      );
+      final real = kNoahCast.map((c) => c.hobby).toSet();
+      for (final c in q.choices) {
+        expect(real, contains(c)); // 適当な造語が混ざっていない
+      }
+    });
+
+    test('自分自身は、まちがいの選択肢にならない', () {
+      final target = kNoahCast[3];
+      final q = buildNoahQuestion(
+        target: target,
+        field: NoahField.name,
+        pool: kNoahCast,
+        random: Random(3),
+      );
+      expect(q.choices.where((c) => c == target.name).length, 1);
+    });
+
+    test('出会った人が少なくても、全キャストから補って3択にする', () {
+      final q = buildNoahQuestion(
+        target: kNoahCast[0],
+        field: NoahField.commId,
+        pool: const [], // まだ誰にも会っていない
+        random: Random(4),
+      );
+      expect(q.choices.length, 3);
+      expect(q.choices, contains(kNoahCast[0].commId));
+    });
+
+    test('正誤の判定', () {
+      final q = buildNoahQuestion(
+        target: kNoahCast[2],
+        field: NoahField.name,
+        pool: kNoahCast,
+        random: Random(5),
+      );
+      expect(q.isCorrect(kNoahCast[2].name), isTrue);
+      expect(q.isCorrect('だれかの名前'), isFalse);
+    });
+  });
+
+  group('結末の判定', () {
+    test('誰の名前も覚えられなければ孤独エンド', () {
+      final r = resolveNoahEnding({'a': 1, 'b': 0, 'c': 2});
+      expect(r.ending, NoahEnding.lonely);
+      expect(r.partner, isNull);
+    });
+
+    test('1位がはっきりリードしていればハッピーエンド', () {
+      final r = resolveNoahEnding({'hoshino': 8, 'kiryu': 3, 'iwao': 1});
+      expect(r.ending, NoahEnding.happy);
+      expect(r.partner?.id, 'hoshino');
+    });
+
+    test('横並びならビターエンド（相手は決まらない）', () {
+      final r = resolveNoahEnding({'hoshino': 4, 'kiryu': 4, 'iwao': 4});
+      expect(r.ending, NoahEnding.bitter);
+      expect(r.partner, isNull);
+    });
+
+    test('わずかなリードではハッピーにならない', () {
+      final r = resolveNoahEnding({'hoshino': 5, 'kiryu': 4});
+      expect(r.ending, NoahEnding.bitter);
+    });
+
+    test('しきい値ちょうどは孤独にならない', () {
+      final r = resolveNoahEnding({'hoshino': kNoahLonelyThreshold});
+      expect(r.ending, isNot(NoahEnding.lonely));
+    });
+
+    test('総好感度は結果に持ち回る', () {
+      final r = resolveNoahEnding({'a': 5, 'b': 4});
+      expect(r.totalAffection, 9);
+    });
+  });
+}

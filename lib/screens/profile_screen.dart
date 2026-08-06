@@ -13,6 +13,7 @@ import '../services/daily_reminder.dart';
 import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
 import 'character_shop_screen.dart';
+import 'noah_story_screen.dart';
 import 'report_screen.dart';
 import 'story_screen.dart';
 import 'player_selection_screen.dart';
@@ -399,6 +400,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: const Text('📖 ストーリー'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7A5AC2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 🚀 SFストーリー。読むだけでなく、覚えた数で結末が変わる。
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NoahStoryScreen()),
+                );
+              },
+              icon: const Icon(Icons.rocket_launch_rounded),
+              label: const Text('🚀 プロジェクト・ノア'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1D3A6B),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 textStyle: const TextStyle(
