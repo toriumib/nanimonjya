@@ -13,6 +13,8 @@ library;
 
 import 'dart:math';
 
+import 'avatar.dart';
+
 /// 恋愛対象の8人。
 ///
 /// ⚠️ 3択の**まちがいの選択肢は、必ず別のキャラの本物のデータ**から作る。
@@ -27,9 +29,16 @@ class NoahCharacter {
   final String commId; // 通信ID（電話番号のかわり）
   final String school; // 学生時代
   final String regret; // やり残したこと（終盤で回収する）
-  final String emoji; // 立ち絵が入るまでの仮の顔
+  final String emoji; // 一覧などで使う小さな目印
   final int colorValue; // 名前の色
   final bool male;
+
+  /// 🧑‍🎨 立ち絵。顔メモと同じアバターで描く。
+  ///
+  /// 専用の絵を8人ぶん用意しなくても、特徴（メガネ・ひげ・髪型）で
+  /// 見分けがつく。**顔メモで使っているのと同じ仕組み**なので、
+  /// 「この人はこういう顔」を覚える練習としても筋が通る。
+  final Avatar avatar;
 
   const NoahCharacter({
     required this.id,
@@ -43,6 +52,7 @@ class NoahCharacter {
     required this.emoji,
     required this.colorValue,
     required this.male,
+    required this.avatar,
   });
 }
 
@@ -59,6 +69,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🔥',
     colorValue: 0xFFE8663C,
     male: false,
+    // 陶芸の窯元育ち。長い髪をまとめている
+    avatar: Avatar(
+      skin: 1, faceShape: 0, hair: 5, hairColor: 1, eyes: 2, eyebrows: 0,
+      nose: 0, mouth: 0, glasses: 0, mole: 3, beard: 0,
+      gender: 2, age: 36, height: 162),
   ),
   NoahCharacter(
     id: 'kiryu',
@@ -72,6 +87,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '⚛️',
     colorValue: 0xFF5AC8E8,
     male: true,
+    // 理屈っぽい量子屋。四角メガネとオールバック
+    avatar: Avatar(
+      skin: 1, faceShape: 3, hair: 6, hairColor: 0, eyes: 3, eyebrows: 2,
+      nose: 2, mouth: 3, glasses: 2, mole: 0, beard: 0,
+      gender: 1, age: 41, height: 176),
   ),
   NoahCharacter(
     id: 'mizuhara',
@@ -85,6 +105,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🧬',
     colorValue: 0xFF7ACB8A,
     male: false,
+    // よく笑う生物学者。ポニーテール
+    avatar: Avatar(
+      skin: 0, faceShape: 1, hair: 4, hairColor: 2, eyes: 5, eyebrows: 0,
+      nose: 1, mouth: 1, glasses: 0, mole: 0, beard: 0,
+      gender: 2, age: 33, height: 158),
   ),
   NoahCharacter(
     id: 'tachibana',
@@ -98,6 +123,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🌿',
     colorValue: 0xFF4E9A51,
     male: true,
+    // 盆栽をやる年長者。白髪まじりとあごひげ
+    avatar: Avatar(
+      skin: 2, faceShape: 2, hair: 1, hairColor: 5, eyes: 1, eyebrows: 1,
+      nose: 0, mouth: 0, glasses: 0, mole: 0, beard: 2,
+      gender: 1, age: 45, height: 172),
   ),
   NoahCharacter(
     id: 'hoshino',
@@ -111,6 +141,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🛰️',
     colorValue: 0xFF6C7BE8,
     male: false,
+    // 星を撮る若手。ショートとまるい目
+    avatar: Avatar(
+      skin: 0, faceShape: 0, hair: 2, hairColor: 0, eyes: 4, eyebrows: 0,
+      nose: 1, mouth: 1, glasses: 0, mole: 4, beard: 0,
+      gender: 2, age: 29, height: 165),
   ),
   NoahCharacter(
     id: 'iwao',
@@ -124,6 +159,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🪨',
     colorValue: 0xFF9A7B4F,
     male: true,
+    // 山に登る惑星屋。ぼうずと無精ひげ、四角い輪郭
+    avatar: Avatar(
+      skin: 3, faceShape: 2, hair: 0, hairColor: 5, eyes: 3, eyebrows: 1,
+      nose: 2, mouth: 2, glasses: 0, mole: 0, beard: 3,
+      gender: 1, age: 52, height: 170),
   ),
   NoahCharacter(
     id: 'kusunoki',
@@ -137,6 +177,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🤖',
     colorValue: 0xFFB06BC8,
     male: false,
+    // ラジオを直すロボット屋。丸メガネとウェーブ
+    avatar: Avatar(
+      skin: 1, faceShape: 1, hair: 5, hairColor: 4, eyes: 0, eyebrows: 2,
+      nose: 1, mouth: 3, glasses: 1, mole: 1, beard: 0,
+      gender: 2, age: 30, height: 160),
   ),
   NoahCharacter(
     id: 'shirakawa',
@@ -150,6 +195,11 @@ const List<NoahCharacter> kNoahCast = [
     emoji: '🩺',
     colorValue: 0xFF4FA3D1,
     male: true,
+    // 走る医師。細いメガネ、細い目
+    avatar: Avatar(
+      skin: 2, faceShape: 3, hair: 2, hairColor: 0, eyes: 3, eyebrows: 3,
+      nose: 0, mouth: 0, glasses: 3, mole: 0, beard: 1,
+      gender: 1, age: 38, height: 180),
   ),
 ];
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/noah_story.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/avatar_view.dart';
 import '../widgets/banner_ad_slot.dart';
 
 /// 🚀 ストーリーモード「プロジェクト・ノア」。
@@ -275,17 +276,31 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     );
   }
 
-  /// 立ち絵の置き場所。画像を入れるときはここだけ直せばよい。
+  /// 🧑‍🎨 立ち絵。顔メモと同じアバターで描く。
+  ///
+  /// 専用の絵を8人ぶん用意しなくても、メガネ・ひげ・髪型で見分けがつく。
+  /// 描画そのものは AvatarView に任せているので、
+  /// 顔の作りを変えたければ models/noah_story.dart の avatar を直せばよい。
   Widget _portrait(NoahCharacter c, {double size = 96}) => Container(
         width: size,
         height: size,
-        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Color(c.colorValue).withValues(alpha: 0.18),
           shape: BoxShape.circle,
-          border: Border.all(color: Color(c.colorValue), width: 2),
+          border: Border.all(color: Color(c.colorValue), width: 2.5),
+          boxShadow: [
+            BoxShadow(
+              color: Color(c.colorValue).withValues(alpha: 0.35),
+              blurRadius: 18,
+            ),
+          ],
         ),
-        child: Text(c.emoji, style: TextStyle(fontSize: size * 0.45)),
+        child: ClipOval(
+          child: AvatarView(
+            avatar: c.avatar,
+            size: size,
+            radius: 0,
+          ),
+        ),
       );
 
   Widget _body(String text, {double size = 15, Color? color}) => Text(

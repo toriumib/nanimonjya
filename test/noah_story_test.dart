@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:nanimonjya/models/avatar.dart';
 import 'package:nanimonjya/models/noah_story.dart';
 
 /// 🚀 ストーリーモード「プロジェクト・ノア」のロジック。
@@ -216,6 +217,39 @@ void main() {
     test('まちがえたときは、選んだ答えを台詞に含める', () {
       final line = noahMissLineJa(kNoahCast.first, '星野 未来');
       expect(line, contains('星野 未来'));
+    });
+  });
+
+  group('立ち絵（アバター）', () {
+    test('全員に顔がある', () {
+      for (final c in kNoahCast) {
+        expect(c.avatar.encode(), isNotEmpty, reason: c.id);
+      }
+    });
+
+    test('全員の顔が違う（見分けがつく）', () {
+      final faces = kNoahCast.map((c) => c.avatar.encode()).toSet();
+      expect(faces.length, kNoahCast.length);
+    });
+
+    test('顔の値が範囲内（描画で落ちない）', () {
+      for (final c in kNoahCast) {
+        final a = c.avatar;
+        expect(a.skin, inInclusiveRange(0, Avatar.skinCount - 1), reason: c.id);
+        expect(a.hair, inInclusiveRange(0, Avatar.hairCount - 1), reason: c.id);
+        expect(a.glasses, inInclusiveRange(0, Avatar.glassesCount - 1),
+            reason: c.id);
+        expect(a.beard, inInclusiveRange(0, Avatar.beardCount - 1),
+            reason: c.id);
+        expect(a.mole, inInclusiveRange(0, Avatar.moleCount - 1), reason: c.id);
+      }
+    });
+
+    test('保存して読み直しても同じ顔になる', () {
+      for (final c in kNoahCast) {
+        expect(Avatar.decode(c.avatar.encode()).encode(), c.avatar.encode(),
+            reason: c.id);
+      }
     });
   });
 }
