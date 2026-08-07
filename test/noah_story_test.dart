@@ -203,12 +203,12 @@ void main() {
   group('乗船定員（覚えるほど助かる人が増える）', () {
     test('全問正解で全員ぶんに届く', () {
       expect(noahCapacityFor(12, 12), kNoahCapacitySteps.last);
-      expect(noahCapacityFor(12, 12), 500);
+      expect(noahCapacityFor(12, 12), 16);
     });
 
     test('思い出せないと最初の計画のまま', () {
       expect(noahCapacityFor(0, 12), kNoahCapacitySteps.first);
-      expect(noahCapacityFor(0, 12), 12);
+      expect(noahCapacityFor(0, 12), 4);
     });
 
     test('思い出した数に応じて段階的に増える', () {

@@ -125,7 +125,7 @@ const List<NoahCharacter> kNoahCast = [
         '量子状態は複製できないから、引っ越しは常に片道になる。二人にはならない。\n'
         'そして同じ理由で、三百三十年の眠りも「死んで生まれ直した」ではなくなる。\n'
         '複製されていないのだから、戻ってきたのは同じものだ。\n'
-        '——五百人は、一度も死んでいない。\n'
+        '——十七人は、一度も死んでいない。\n'
         '碁盤の最後の一手を置いて、彼は言う。「負けました。姉さん、強かったな」'
   ),
   NoahCharacter(
@@ -274,7 +274,7 @@ const List<NoahCharacter> kNoahCast = [
     theoryShort: '覚醒・夢・眠りは三つの軸の合成にすぎない。意識は状態である',
     uploadEnding: '冬也の理論が採択された世界では、引っ越しは**第四の状態**として設計される。\n'
         '眠りでも覚醒でもない状態を通って、向こう側で目を覚ます。\n'
-        '彼は五百人ぶんの手順書を書き、一人ずつ名前を読みながら送り出した。\n'
+        '彼は十六人ぶんの手順書を書き、一人ずつ名前を読みながら送り出した。\n'
         '「『大丈夫』とは言わん。……いや」\n'
         '「今日は言う。大丈夫だ」'
   ),
@@ -758,7 +758,7 @@ extension NoahPreferenceLabel on NoahPreference {
 ///
 /// ⚠️ **この物語のいちばん大事な一語**。
 /// 所長は船に乗らないので、覚醒のたびに顔を見て呼び直す機会が無い。
-/// だから五百人のうち、この人の名前だけが先に薄くなる——という筋が
+/// だから十七人のうち、この人の名前だけが先に薄くなる——という筋が
 /// [kNoahForgot] → [kNoahBeforeResult] で回収される。
 /// 表示は基本 `所長` のままにして、名前を出す場所を絞ること。
 /// どこでも出していると、忘れる場面も思い出す場面も効かなくなる。
@@ -816,7 +816,7 @@ const List<NoahLine> kNoahPrologue = [
       who: '所長'),
   NoahLine(NoahVoice.director, '人の、名前だ。', who: '所長'),
   NoahLine(NoahVoice.narration,
-      '船には五百人が乗る。目覚めたとき、隣が誰か分からない五百人。'),
+      '船に乗るのは十六人と、君だ。目覚めたとき、隣が誰か分からない十七人。'),
   NoahLine(NoahVoice.director,
       'だから君たちの仕事は、研究だけじゃない。', who: '所長'),
   NoahLine(NoahVoice.director, '覚えることだ。名前を。全員ぶん。', who: '所長'),
@@ -829,9 +829,9 @@ const List<NoahLine> kNoahPrologue = [
 /// ここで言っておかないと、数字が増えても嬉しくない。
 const List<NoahLine> kNoahCapacityScene = [
   NoahLine(NoahVoice.director, 'もうひとつ、先に言っておく。', who: '所長'),
-  NoahLine(NoahVoice.director, 'この船に乗れるのは、十二名だ。', who: '所長'),
+  NoahLine(NoahVoice.director, 'この船に乗れるのは、四名だ。', who: '所長'),
   NoahLine(NoahVoice.narration, '——誰も、声を出さなかった。'),
-  NoahLine(NoahVoice.player, '……十二人。地下にいるのは、一万人以上いますよね'),
+  NoahLine(NoahVoice.player, '……四人。ここに残っているのは、十七人ですよね'),
   NoahLine(NoahVoice.director,
       '差別でも、抽選でもない。ただの物理だ。', who: '所長'),
   NoahLine(NoahVoice.director,
@@ -842,7 +842,7 @@ const List<NoahLine> kNoahCapacityScene = [
   NoahLine(NoahVoice.director,
       'だから計画の主役は人間じゃない。受精卵一万個と、人工子宮だ。', who: '所長'),
   NoahLine(NoahVoice.director,
-      '十二名は、その荷物を四十九光年運ぶための世話人にすぎん。', who: '所長'),
+      '四名は、その荷物を四十九光年運ぶための世話人にすぎん。', who: '所長'),
   NoahLine(NoahVoice.narration,
       '乗れないと決まった者は、乗る者に宛てて手紙を一通書く。'),
   NoahLine(NoahVoice.narration,
@@ -855,10 +855,10 @@ const List<NoahLine> kNoahCapacityScene = [
   NoahLine(NoahVoice.director, 'だが、この数字は動く。', who: '所長'),
   NoahLine(NoahVoice.director,
       '研究がひとつ通るたび、乗れる人数は増える。'
-      '冷凍睡眠が確かになれば百八名。生態系が閉じれば三百名。',
+      '冷凍睡眠が確かになれば八名。生態系が閉じれば十二名。',
       who: '所長'),
   NoahLine(NoahVoice.director,
-      '推進と減速の両方が成立すれば——五百名。全員だ。', who: '所長'),
+      '推進と減速の両方が成立すれば——十六名。全員だ。', who: '所長'),
   // ⚠️ 主人公の一人称は画面側が [NoahGender.pronounJa] で足すので、
   //    セリフ本文には「ぼく」「わたし」を書かないこと（二重になる）
   NoahLine(NoahVoice.player, '……何をすれば、いいんですか'),
@@ -888,8 +888,8 @@ const List<NoahLine> kNoahForgot = [
   NoahLine(NoahVoice.narration,
       '目が覚めるたび、名簿を頭から順に呼ぶことにしていた。'
       '台帳は開かない。開いたら負けだと思っている。'),
-  NoahLine(NoahVoice.narration, '一番から、四百九十九番まで。詰まらなかった。'),
-  NoahLine(NoahVoice.narration, 'そして、五百番目で止まった。'),
+  NoahLine(NoahVoice.narration, '一番から、十六番まで。詰まらなかった。'),
+  NoahLine(NoahVoice.narration, 'そして、十七人目で止まった。'),
   NoahLine(NoahVoice.narration, '顔は出る。白髪。分厚い手。曲がった襟。'),
   NoahLine(NoahVoice.narration,
       '声も出る。「中国四千年の歴史？ 可愛いもんだ」。'
@@ -900,7 +900,7 @@ const List<NoahLine> kNoahForgot = [
   NoahLine(NoahVoice.player, '……うそだろ'),
   NoahLine(NoahVoice.chara, 'ああ、それか。理屈は簡単だ'),
   NoahLine(NoahVoice.chara,
-      'この船の四百九十九人は、二十八年ごとに目の前に出てくる。'
+      'この船の十六人は、二十八年ごとに目の前に出てくる。'
       '顔を見て、声を聞いて、名前で呼ぶ。そのたびに塗り直される'),
   NoahLine(NoahVoice.chara, 'あの人は、乗っていない'),
   NoahLine(NoahVoice.chara, '塗り直す機会が、一度も無かった'),
@@ -917,7 +917,7 @@ const List<NoahLine> kNoahForgot = [
       'その日から、船の記録の人事の欄に鍵がかかった。'
       '外せるのは、医師ひとり。'),
   NoahLine(NoahVoice.narration,
-      'そして——五百人に、ひとつだけ頼んで回ることになる。'),
+      'そして——十六人に、ひとつだけ頼んで回ることになる。'),
   NoahLine(NoahVoice.narration, '「すれ違ったら、相手を名前で呼んでください」。'),
   NoahLine(NoahVoice.narration,
       '理由は言えなかった。自分が一人ぶん失くしたとは、'
@@ -1162,15 +1162,15 @@ const List<NoahMystery> kNoahMysteries = [
   NoahMystery(
     charaId: 'shirakawa',
     title: '冷凍ポッドの番号札が、毎晩ひとつだけ磨かれている',
-    scene: 'ポッドは五百基。全部を磨くなら一晩で足りるはずだ。\n'
+    scene: 'ポッドは十六基。全部磨いても、一晩で終わる。\n'
         'なのに毎晩、必ずひとつだけ磨かれている。'
-        '五百日かけて一周し、また最初に戻る。',
+        '十六日かけて一周し、また最初に戻る。',
     answer: '磨くとき、番号ではなく名前を声に出していた。\n\n'
         'かつて三人の患者を、冷凍で見送った。'
         'カルテには番号しか残していない。'
         '名前で呼ぶと、失敗が「人」になってしまうからだ。\n\n'
         '「大丈夫」と言えなかったぶん、名前だけは呼ぶことにした。'
-        '五百人ぶん、順番に。',
+        '十六人ぶん、順番に。',
   ),
   NoahMystery(
     charaId: 'aizawa',
@@ -1213,7 +1213,7 @@ const List<NoahMystery> kNoahMysteries = [
   NoahMystery(
     charaId: 'karita',
     title: '船内端末のキー配列が、一台だけ違う',
-    scene: '五百台ある端末のうち、一台だけキーの並びが標準と違う。'
+    scene: '十七台ある端末のうち、一台だけキーの並びが標準と違う。'
         '登録上は同じ型番で、改造の申請も出ていない。\n'
         '使っている人を見た者はいない。'
         'それでも摩耗の具合から、毎日誰かが打っているのは確かだった。',
@@ -1345,7 +1345,7 @@ List<NoahMysteryQuestion> buildNoahMysteries({
 /// **プレイヤーが思い出せた数**に結びつける。
 /// 覚えることが人を救う、というのがこの物語の主題そのものなので、
 /// 数字が動くところを画面に出す。
-const List<int> kNoahCapacitySteps = [12, 108, 300, 500];
+const List<int> kNoahCapacitySteps = [4, 8, 12, 16];
 
 /// 節目に届いたときの見出しと、その根拠になった研究。
 const List<String> kNoahCapacityReasons = [
@@ -1357,7 +1357,7 @@ const List<String> kNoahCapacityReasons = [
 
 /// [correct]問思い出せたときの乗船定員。
 ///
-/// 全問正解で500名（全員）に届くようにしている。
+/// 全問正解で16名（全員）に届くようにしている。
 int noahCapacityFor(int correct, int total) {
   if (total <= 0) return kNoahCapacitySteps.first;
   final ratio = correct / total;
@@ -1479,7 +1479,7 @@ const List<NoahLine> kNoahWhyNames = [
       'だが、呼んではくれない。',
       who: '所長'),
   NoahLine(NoahVoice.director,
-      '三百三十年後、五百人が同時に目を覚ます。'
+      '三百三十年後、十七人が同時に目を覚ます。'
       '全員が、記憶の一部を失っている。',
       who: '所長'),
   NoahLine(NoahVoice.director,
@@ -1492,7 +1492,7 @@ const List<NoahLine> kNoahWhyNames = [
   NoahLine(NoahVoice.director,
       '名前を呼ばれると、人は自分がここにいると分かる。', who: '所長'),
   NoahLine(NoahVoice.director,
-      'それだけのことだ。それだけのことが、五百人を集団にする。', who: '所長'),
+      'それだけのことだ。それだけのことが、十七人を家族にする。', who: '所長'),
   NoahLine(NoahVoice.director,
       'だから、覚えてくれ。一人でも多く。', who: '所長'),
   NoahLine(NoahVoice.director,
@@ -1514,7 +1514,7 @@ const List<NoahLine> kNoahConsciousness = [
   NoahLine(NoahVoice.narration, '——減速の前に、もうひとつ終わった実験がある。'),
   NoahLine(NoahVoice.chara, 'この船は、意識を調べる装置としては異常です'),
   NoahLine(NoahVoice.chara,
-      '五百人の意識が、二十八年ごとに十一回、'
+      '十七人の意識が、二十八年ごとに十一回、'
       '完全に止まって、また動く。地上では誰にも作れない'),
   NoahLine(NoahVoice.player, '……それで、何か分かったんですか'),
   NoahLine(NoahVoice.chara, '地球では、決着がつきませんでした'),
@@ -1545,7 +1545,7 @@ const List<NoahLine> kNoahConsciousness = [
   NoahLine(NoahVoice.narration, '誰も、何も言わなかった。'),
   NoahLine(NoahVoice.chara,
       '「二度と誰も死なせない」と言った人は、もう十一回死なせている'),
-  NoahLine(NoahVoice.chara, '毎晩磨かれていた五百枚は、墓標だったことになる'),
+  NoahLine(NoahVoice.chara, '毎晩磨かれていた十六枚は、墓標だったことになる'),
   NoahLine(NoahVoice.chara, '理屈は通っています。誰も反証できない'),
   NoahLine(NoahVoice.chara, '……ただ、私は受け入れる気がありませんでした'),
   NoahLine(NoahVoice.narration, '——三百年かけて測っていたものが、ひとつだけある。'),
@@ -1574,7 +1574,7 @@ const List<NoahLine> kNoahConsciousness = [
       'コピーされていないなら、'
       '二十八年の眠りは「死んで生まれ直した」ではありえない'),
   NoahLine(NoahVoice.chara, '戻ってきたのは、同じものです'),
-  NoahLine(NoahVoice.chara, '——五百人は、一度も死んでいない'),
+  NoahLine(NoahVoice.chara, '——十七人は、一度も死んでいない'),
   NoahLine(NoahVoice.narration,
       'そして、この人が四十年抱えていた問いが、'
       '答えの出ないまま消えた。'),
@@ -1604,8 +1604,8 @@ const List<NoahLine> kNoahBeforeResult = [
   NoahLine(NoahVoice.narration,
       '端末が差し出される。見れば三秒で終わる。'),
   NoahLine(NoahVoice.narration, '——受け取らなかった。'),
-  NoahLine(NoahVoice.narration, '一番から、四百九十九番まで。詰まらなかった。'),
-  NoahLine(NoahVoice.narration, 'そして、五百番目。'),
+  NoahLine(NoahVoice.narration, '一番から、十六番まで。詰まらなかった。'),
+  NoahLine(NoahVoice.narration, 'そして、十七人目。'),
   NoahLine(NoahVoice.narration,
       '二百年近く出てこなかった名前だ。いま出てくる理由は、ひとつもない。'),
   NoahLine(NoahVoice.narration, '息を吸う。'),

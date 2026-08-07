@@ -29,14 +29,14 @@ class NoahStoryScreen extends StatefulWidget {
 enum _Phase {
   setup, // 性別・恋愛対象を選ぶ
   prologue, // 序章
-  capacity, // 定員十二名の宣告と「さよならの手紙」
+  capacity, // 定員四名の宣告と「さよならの手紙」
   whyNames, // なぜ名前なのか（物語の主題）
   beforeMeeting, // 名刺交換の前口上
   meet, // 名刺をもらう
   beforeSleep, // 出発前夜
   awake, // 目覚め
   recall, // 記憶テスト（名前・趣味）
-  forgot, // 五百番目の名前を落としていたことに気づく
+  forgot, // 十七人目の名前を落としていたことに気づく
   date, // デート
   beforeMystery, // 幕間の前口上
   mystery, // 船内の小さな謎（心残りから当てる）
@@ -175,7 +175,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _prepare(const [NoahField.name, NoahField.hobby]);
           } else {
             _index = 0;
-            // 4人を思い出せた直後に、五百番目を落としていたことが分かる
+            // 4人を思い出せた直後に、十七人目を落としていたことが分かる
             _phase = _Phase.forgot;
           }
         case _Phase.forgot:
@@ -985,7 +985,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           '👨‍👩‍👧‍👦',
           '誰のことも、同じくらい覚えていた。\n'
               'だから誰とも、特別にはならなかった。\n\n'
-              '五百人で降り、五百人で子どもを育てた。\n'
+              '十七人で降り、十七人で子どもを育てた。\n'
               '遺伝的多様性はむしろ足りている。'
               '創始者効果を避けるという意味では、計算上いちばん賢い。\n\n'
               '中央広場に椅子を円く並べた。'
@@ -1005,7 +1005,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               'そして移せば、元の身体は必ず壊れる。控えは残らない。\n\n'
               '誰に使うか、という会議が開かれた。\n'
               '候補は出た。だが、どれも要らなかった。\n\n'
-              '「五百人、全員生きています」\n'
+              '「十七人、全員生きています」\n'
               '「一度も死んでいない。証明されました」\n'
               '「引っ越す必要のある人が、いま、ひとりもいない」\n\n'
               '三対は封をして、新東戸塚の最初の図書館に納めた。\n'
@@ -1014,7 +1014,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               'それから、名簿をもう一度読んだ。\n'
               '${r.partner?.name ?? ''}の名前も、所属も、趣味も、通信IDも、'
               '学生時代も、心残りも、ぜんぶ言えた。\n\n'
-              '——五百番目の名前も。\n\n'
+              '——十七人目の名前も。\n\n'
               'あの人の量子状態は、赤色巨星の中で散った。'
               '転送する相手が、もう宇宙のどこにも無い。\n'
               'それでも情報は消えていない。'
@@ -1027,12 +1027,12 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           '🛰️',
           '名前は、あまり残らなかった。\n\n'
               'だから、世話係を志願した。\n'
-              '眠る五百人を起こさないよう、静かに船を回す役。\n\n'
+              '眠る十六人を起こさないよう、静かに船を回す役。\n\n'
               '意識をロボットへ移す。引越しのようなものだ。\n'
               '体温は返ってこないけれど、手は動く。\n\n'
               '三百三十年、ポッドを拭き続けた。'
               '一晩にひとつ、番号ではなく名前を読みながら。'
-              '五百日で一周し、また最初に戻る。'
+              '十六日で一周し、また最初に戻る。'
               '——覚えていなかったぶんは、そうやって覚え直した。\n\n'
               '到着の朝、全員が目を覚ます。\n'
               '「……あなたは？」\n'
