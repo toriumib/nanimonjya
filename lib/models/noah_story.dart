@@ -306,7 +306,60 @@ enum NoahEnding {
   /// 誰の名前もほとんど覚えられなかった。
   /// マインドアップロードして、船の世話係として全員を見守り続ける。
   lonely,
+
+  /// 🌟 真エンド。**全員の全項目を覚えている**ときだけ開く。
+  ///
+  /// 好感度では届かない。誰を好きかではなく、
+  /// **誰の何を覚えているか**で決まるところがこの結末の趣旨。
+  trueEnd,
 }
+
+// ── 🌐 世界線：覚えている項目の割合 ────────────────────
+
+/// 真エンドに必要なダイバージェンス。
+const double kNoahTrueEndDivergence = 1.0;
+
+/// 世界線の呼び名。Steins;Gate 風に、数字を六桁で出す前提。
+String noahWorldLineJa(double divergence) {
+  if (divergence >= kNoahTrueEndDivergence) return 'Ω';
+  if (divergence >= 0.6) return 'γ';
+  if (divergence >= 0.3) return 'α';
+  return 'β';
+}
+
+String noahDivergenceLabel(double d) => d.toStringAsFixed(6);
+
+/// 覚えている項目の割合。
+///
+/// [remembered] は「この人のこの項目は正解した」の集合。
+/// [askable] は出しうる (人物, 項目) の総数。
+///
+/// ⚠️ 好感度とは別物にしてあること。
+/// 「好きだから覚えている」ではなく「覚えているから会える」に
+/// したいので、♥は相手を決めるためだけに使う。
+double noahDivergence(Map<String, Set<NoahField>> remembered, int askable) {
+  if (askable <= 0) return 0;
+  var hit = 0;
+  for (final fields in remembered.values) {
+    hit += fields.length;
+  }
+  final d = hit / askable;
+  return d > 1 ? 1 : d;
+}
+
+// ── ⚡ 転送権（もつれ対）────────────────────────────
+
+/// 積んできたもつれ対の数。
+///
+/// **これは作者が決めた数ではなく、物理から出てくる縛り**。
+/// 量子テレポーテーション（Bennett ら 1993）は、事前に共有した
+/// もつれ対と古典通信路を要求する。そしてもつれは局所操作と
+/// 古典通信だけでは増やせないので、地球で作って積んだぶんが全部になる。
+///
+/// ⚠️ ここを「補充できる」に変えると、転送が使い捨ての切り札でなくなり、
+/// 「移せば元は必ず壊れる」の重さも消える。
+const int kNoahEntangledPairs = 3;
+
 
 /// 結末の判定。
 ///
@@ -334,8 +387,25 @@ const int kNoahLonelyThreshold = 6;
 /// ハッピーエンドに必要な「1位と2位の差」。
 const int kNoahLeadNeeded = 3;
 
-NoahResult resolveNoahEnding(Map<String, int> affection) {
+/// [divergence] が 1.0 に達していれば、好感度より先に真エンドが取れる。
+/// 既定は 0 なので、渡さなければ従来どおりの判定になる。
+NoahResult resolveNoahEnding(
+  Map<String, int> affection, {
+  double divergence = 0,
+}) {
   final total = affection.values.fold<int>(0, (a, b) => a + b);
+
+  // 🌟 全員の全項目を覚えている＝どの好感度より優先される
+  if (divergence >= kNoahTrueEndDivergence) {
+    final ranked = affection.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return NoahResult(
+      ending: NoahEnding.trueEnd,
+      totalAffection: total,
+      partner: ranked.isEmpty ? null : noahCharacterById(ranked.first.key),
+    );
+  }
+
   if (total < kNoahLonelyThreshold) {
     return NoahResult(ending: NoahEnding.lonely, totalAffection: total);
   }

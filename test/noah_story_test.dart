@@ -129,6 +129,72 @@ void main() {
     });
   });
 
+  group('世界線（覚えている項目でエンドが変わる）', () {
+    Map<String, Set<NoahField>> full(List<NoahCharacter> cast) => {
+          for (final c in cast) c.id: NoahField.values.toSet(),
+        };
+
+    test('項目を覚えるほどダイバージェンスが上がる', () {
+      final cast = kNoahCast.take(4).toList();
+      final askable = cast.length * (NoahField.values.length + 1);
+      expect(noahDivergence({}, askable), 0);
+      expect(noahDivergence({cast[0].id: {NoahField.name}}, askable),
+          closeTo(1 / askable, 1e-9));
+    });
+
+    test('出題が無くても落ちない／1.0を超えない', () {
+      expect(noahDivergence({'a': {NoahField.name}}, 0), 0);
+      expect(noahDivergence(full(kNoahCast), 1), 1.0);
+    });
+
+    test('世界線の呼び名が段階で変わる', () {
+      expect(noahWorldLineJa(0.0), 'β');
+      expect(noahWorldLineJa(0.29), 'β');
+      expect(noahWorldLineJa(0.30), 'α');
+      expect(noahWorldLineJa(0.59), 'α');
+      expect(noahWorldLineJa(0.60), 'γ');
+      expect(noahWorldLineJa(0.99), 'γ');
+      expect(noahWorldLineJa(1.0), 'Ω');
+    });
+
+    test('六桁で表示する（Steins;Gate 風）', () {
+      expect(noahDivergenceLabel(0.5714285), '0.571429');
+      expect(noahDivergenceLabel(1), '1.000000');
+    });
+
+    test('ダイバージェンス1.0で真エンドが開く', () {
+      final r = resolveNoahEnding({'hoshino': 4, 'kiryu': 4}, divergence: 1.0);
+      expect(r.ending, NoahEnding.trueEnd);
+      expect(r.partner?.id, 'hoshino'); // 相手は好感度1位から決まる
+    });
+
+    test('真エンドは好感度より優先される（横並びでも開く）', () {
+      // 「好きだから覚えている」ではなく「覚えているから会える」
+      final flat = resolveNoahEnding({'a': 5, 'b': 5, 'c': 5});
+      expect(flat.ending, NoahEnding.bitter);
+      final same = resolveNoahEnding({'a': 5, 'b': 5, 'c': 5}, divergence: 1.0);
+      expect(same.ending, NoahEnding.trueEnd);
+    });
+
+    test('一項目でも欠ければ真エンドにならない', () {
+      final r = resolveNoahEnding({'hoshino': 9}, divergence: 0.999999);
+      expect(r.ending, isNot(NoahEnding.trueEnd));
+    });
+
+    test('ダイバージェンスを渡さなければ従来どおり', () {
+      expect(resolveNoahEnding({'hoshino': 8, 'kiryu': 3}).ending,
+          NoahEnding.happy);
+    });
+  });
+
+  group('転送権（もつれ対）', () {
+    test('三対だけ積んでいる', () {
+      // もつれは局所操作では増やせない＝地球で作ったぶんが全部、
+      // という物理の縛りから来ている数字。補充できる実装に変えないこと
+      expect(kNoahEntangledPairs, 3);
+    });
+  });
+
   group('乗船定員（覚えるほど助かる人が増える）', () {
     test('全問正解で全員ぶんに届く', () {
       expect(noahCapacityFor(12, 12), kNoahCapacitySteps.last);

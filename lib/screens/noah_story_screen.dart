@@ -69,6 +69,15 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   int _correct = 0;
   int _total = 0;
 
+  /// 🌐 「この人のこの項目は思い出せた」の記録。世界線はこれで決まる。
+  /// 好感度（♥）とは別物で、♥は相手を決めるためだけに使う。
+  final Map<String, Set<NoahField>> _remembered = {};
+
+  /// 出しうる (人物, 項目) の総数。謎のぶん（心残り）も1項目として数える。
+  int get _askable => _cast.length * (NoahField.values.length + 1);
+
+  double get _divergence => noahDivergence(_remembered, _askable);
+
   /// 覚え方の話。毎回ちがうものが出るように、周回ごとに選び直す。
   List<NoahNote> _notes = const [];
   int _noteIndex = 0;
@@ -116,6 +125,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _line = 0;
     _correct = 0;
     _total = 0;
+    _remembered.clear();
     _notes = ([...kNoahNotes]..shuffle(_rng)).take(3).toList();
     _noteIndex = 0;
     // 謎はデートで聞いた心残りが手がかりになるので、出す相手はこの周回のキャスト
@@ -257,6 +267,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       _correct += 1;
       // 思い出せたぶんだけ、相手との距離が縮まる
       _affection[q.target.id] = (_affection[q.target.id] ?? 0) + 1;
+      // どの項目を覚えていたかを記録する（世界線の材料）
+      (_remembered[q.target.id] ??= <NoahField>{}).add(q.field);
       Sfx.instance.correct();
     } else {
       Sfx.instance.wrong();
@@ -275,6 +287,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     if (q.isCorrect(picked)) {
       _correct += 1;
       _affection[q.culprit.id] = (_affection[q.culprit.id] ?? 0) + 1;
+      // 心残りも1項目ぶん。デートを聞いていた証拠になる
+      (_remembered[q.culprit.id] ??= <NoahField>{}).add(NoahField.school);
       Sfx.instance.correct();
     } else {
       Sfx.instance.wrong();
@@ -287,7 +301,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     await PlayerProfile.instance.grantBonusCoins(20 + _correct * 10);
   }
 
-  NoahResult get _result => resolveNoahEnding(_affection);
+  NoahResult get _result =>
+      resolveNoahEnding(_affection, divergence: _divergence);
 
   // ── 画面 ──
 
@@ -309,11 +324,24 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 14),
               child: Center(
-                child: Text('定員 $_capacity名',
-                    style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF7DFFB0))),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('定員 $_capacity名',
+                        style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF7DFFB0))),
+                    Text(
+                        '${noahWorldLineJa(_divergence)} '
+                        '${noahDivergenceLabel(_divergence)}',
+                        style: const TextStyle(
+                            fontSize: 10,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            color: Color(0xFF8FA3C8))),
+                  ],
+                ),
               ),
             ),
         ],
@@ -966,6 +994,31 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               '「ねえ、ご先祖さま。みんな顔が同じで、区別つかないんだけど」\n'
               '「それ、褒め言葉だよ」',
         ),
+      NoahEnding.trueEnd => (
+          '真エンド ─ 世界線 Ω',
+          '🌟',
+          '転送権は三対。地球で作って積んできたぶんが、全部だ。\n'
+              'もつれは局所操作では増やせない。使えば消える。\n'
+              'そして移せば、元の身体は必ず壊れる。控えは残らない。\n\n'
+              '誰に使うか、という会議が開かれた。\n'
+              '候補は出た。だが、どれも要らなかった。\n\n'
+              '「五百人、全員生きています」\n'
+              '「一度も死んでいない。証明されました」\n'
+              '「引っ越す必要のある人が、いま、ひとりもいない」\n\n'
+              '三対は封をして、新東戸塚の最初の図書館に納めた。\n'
+              '「さよならの手紙」の隣に。\n'
+              '札には一行だけ書いた。——「いつか、要る人が来たら」\n\n'
+              'それから、名簿をもう一度読んだ。\n'
+              '${r.partner?.name ?? ''}の名前も、所属も、趣味も、通信IDも、'
+              '学生時代も、心残りも、ぜんぶ言えた。\n\n'
+              '——五百番目の名前も。\n\n'
+              'あの人の量子状態は、赤色巨星の中で散った。'
+              '転送する相手が、もう宇宙のどこにも無い。\n'
+              'それでも情報は消えていない。'
+              'どこかへ移っただけで、無くなってはいない。\n\n'
+              '回収する術は、永遠に無い。\n'
+              'だから呼ぶ。届かないと分かっていても、在ることは確かだから。',
+        ),
       NoahEnding.lonely => (
           '共生エンド',
           '🛰️',
@@ -1018,6 +1071,10 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           child: Column(
             children: [
               _statRow('思い出せた', '$_correct / $_total'),
+              _statRow('世界線',
+                  '${noahWorldLineJa(_divergence)} '
+                  '${noahDivergenceLabel(_divergence)}'),
+              _statRow('転送権（もつれ対）', '$kNoahEntangledPairs 対'),
               _statRow('乗船できた人数', '$_capacity 名'),
               for (final e in ranked)
                 _statRow(noahCharacterById(e.key)?.name ?? e.key,
@@ -1041,7 +1098,10 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            _capacity >= kNoahCapacitySteps.last
+            _result.ending == NoahEnding.trueEnd
+                ? '世界線 Ω。名前・所属・趣味・通信ID・学生時代・心残り——'
+                    '全員ぶんが揃った。転送権を使う理由が、ひとつも無くなった。'
+                : _capacity >= kNoahCapacitySteps.last
                 ? '全員ぶんの名前が、三百三十年を越えた。'
                     '${kNoahCapacityReasons[3]}のは、'
                     '君が誰ひとり取りこぼさなかったからだ。'
