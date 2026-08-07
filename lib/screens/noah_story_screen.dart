@@ -56,8 +56,12 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   NoahGender _gender = NoahGender.female;
   NoahPreference _pref = NoahPreference.all;
 
-  /// この周回に出てくる科学者。4人だと1周が20分ほどで収まる。
+  /// この周回に出てくる科学者。**一周で十六人全員**と会う。
   List<NoahCharacter> _cast = [];
+
+  /// 船内で腰を据えて話す相手。恋愛対象の性別で絞られる（独身なら全員）。
+  /// **採択される理論は、ここに入っている人からしか出ない**。
+  List<NoahCharacter> _talkable = [];
   final List<NoahCharacter> _met = [];
   final Map<String, int> _affection = {};
 
@@ -73,10 +77,16 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   /// 好感度（♥）とは別物で、♥は相手を決めるためだけに使う。
   final Map<String, Set<NoahField>> _remembered = {};
 
-  /// 出しうる (人物, 項目) の総数。謎のぶん（心残り）も1項目として数える。
-  int get _askable => _cast.length * (NoahField.values.length + 1);
+  /// 🔍 船内の謎を解けた数。項目には紐づかないので別に数える。
+  int _mysterySolved = 0;
 
-  double get _divergence => noahDivergence(_remembered, _askable);
+  /// 実際に出す問題の総数。
+  /// 一人あたり「思い出す」で1問、「最終確認」で1問。それに謎の数を足す。
+  /// ⚠️ ここを出題数と揃えていないと 1.000000 に到達できない。
+  int get _askable => _cast.length * 2 + _mysteries.length;
+
+  double get _divergence =>
+      noahDivergence(_remembered, _askable, extra: _mysterySolved);
 
   /// 覚え方の話。毎回ちがうものが出るように、周回ごとに選び直す。
   List<NoahNote> _notes = const [];
@@ -112,10 +122,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       };
 
   void _startGame() {
-    final pool = _pref.filter(kNoahCast);
-    // 絞りこんだ結果が少なすぎると3択の相手が作れないので、全員から補う
-    final base = pool.length >= 4 ? pool : kNoahCast;
-    _cast = ([...base]..shuffle(_rng)).take(4).toList();
+    // 🧑‍🤝‍🧑 一周で十六人**全員**と名刺を交換し、全員が記憶テストに出る。
+    //    腰を据えて話す相手（＝理論が採択されうる相手）だけを _talkable で絞る。
+    _cast = [...kNoahCast]..shuffle(_rng);
+    _talkable = ([..._pref.filter(_cast)]..shuffle(_rng));
+    if (_talkable.isEmpty) _talkable = _cast;
     _affection.clear();
     for (final c in _cast) {
       _affection[c.id] = 0;
@@ -126,10 +137,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _correct = 0;
     _total = 0;
     _remembered.clear();
+    _mysterySolved = 0;
     _notes = ([...kNoahNotes]..shuffle(_rng)).take(3).toList();
     _noteIndex = 0;
-    // 謎はデートで聞いた心残りが手がかりになるので、出す相手はこの周回のキャスト
-    _mysteries = buildNoahMysteries(cast: _cast, random: _rng);
+    // 謎の手がかりは船内で聞いた心残りなので、話した相手からだけ出す
+    _mysteries = buildNoahMysteries(cast: _talkable, random: _rng);
     _mysteryIndex = 0;
     _mysteryPicked = null;
     _phase = _Phase.prologue;
@@ -181,7 +193,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.forgot:
           _phase = _Phase.note; // 一息いれて、覚え方の話をする
         case _Phase.date:
-          if (_index + 1 < _cast.length) {
+          if (_index + 1 < _talkable.length) {
             _index += 1;
           } else {
             _index = 0;
@@ -287,8 +299,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     if (q.isCorrect(picked)) {
       _correct += 1;
       _affection[q.culprit.id] = (_affection[q.culprit.id] ?? 0) + 1;
-      // 心残りも1項目ぶん。デートを聞いていた証拠になる
-      (_remembered[q.culprit.id] ??= <NoahField>{}).add(NoahField.school);
+      // 心残りは項目ではないので別勘定（集合に混ぜると重複で潰れる）
+      _mysterySolved += 1;
       Sfx.instance.correct();
     } else {
       Sfx.instance.wrong();
@@ -301,8 +313,15 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     await PlayerProfile.instance.grantBonusCoins(20 + _correct * 10);
   }
 
-  NoahResult get _result =>
-      resolveNoahEnding(_affection, divergence: _divergence);
+  NoahResult get _result => _pref.romantic
+      ? resolveNoahEnding(_affection,
+          divergence: _divergence,
+          eligible: {for (final c in _talkable) c.id})
+      : resolveNoahSingleEnding(
+          remembered: _remembered,
+          cast: _cast,
+          affection: _affection,
+          divergence: _divergence);
 
   // ── 画面 ──
 
@@ -458,10 +477,16 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                 _chip(p.labelJa, _pref == p, () => setState(() => _pref = p))
             ],
           ),
+          const SizedBox(height: 8),
+          Text(_pref.noteJa,
+              style: const TextStyle(
+                  fontSize: 12, height: 1.7, color: Color(0xFF8FA3C8))),
           const SizedBox(height: 18),
           _body(
-              '名刺で名前・所属・趣味・通信IDを渡されます。見られるのは一度だけ。\n'
-              '三百三十年の冷凍睡眠のあと、どれだけ思い出せるかで結末が変わります。',
+              '一周で十六人全員と名刺を交換します。見られるのは一度だけ。\n'
+              '三百三十年の冷凍睡眠のあと、どれだけ思い出せるかで結末が変わります。\n\n'
+              '十六人はそれぞれ「意識の理論」をひとつずつ持っていて、'
+              'いちばん覚えていた人の理論が採択され、そのやり方で引っ越しが実現します。',
               size: 13),
           const SizedBox(height: 20),
           _nextButton('はじめる'),
@@ -790,11 +815,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   // ── ⑤ デート ──
 
   Widget _date() {
-    final c = _cast[_index];
+    final c = _talkable[_index];
     final d = kNoahDates[(_index + c.id.length) % kNoahDates.length];
     return ListView(
       children: [
-        Text('船内 ${_index + 1} / ${_cast.length}',
+        Text('船内 ${_index + 1} / ${_talkable.length}',
             style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
         const SizedBox(height: 12),
         Center(child: _portrait(c, size: 100)),
@@ -830,7 +855,9 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                   fontSize: 12.5, height: 1.6, color: Color(0xFF5AD1FF))),
         ),
         const SizedBox(height: 18),
-        _nextButton(_index + 1 < _cast.length ? '次の人と過ごす' : '減速フェーズへ'),
+        _nextButton(_index + 1 < _talkable.length
+            ? (_pref.romantic ? '次の人と過ごす' : '次の人と話す')
+            : '減速フェーズへ'),
       ],
     );
   }
@@ -1022,28 +1049,33 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               '回収する術は、永遠に無い。\n'
               'だから呼ぶ。届かないと分かっていても、在ることは確かだから。',
         ),
+      // 💍 独身ルートの結末。**失敗ではなく、選んで行く場所**。
+      //    採択されるのは「いちばんよく覚えていた人」の理論。
       NoahEnding.lonely => (
-          '共生エンド',
+          '見守りエンド ─ ${r.partner?.theory ?? ''} 採択',
           '🛰️',
-          '名前は、あまり残らなかった。\n\n'
-              'だから、世話係を志願した。\n'
-              '眠る十六人を起こさないよう、静かに船を回す役。\n\n'
-              '意識をロボットへ移す。引越しのようなものだ。\n'
-              '体温は返ってこないけれど、手は動く。\n\n'
-              '三百三十年、ポッドを拭き続けた。'
-              '一晩にひとつ、番号ではなく名前を読みながら。'
-              '十六日で一周し、また最初に戻る。'
-              '——覚えていなかったぶんは、そうやって覚え直した。\n\n'
-              '到着の朝、全員が目を覚ます。\n'
+          '受精卵カプセル一万個、無事に着床。\n'
+              '人類は太陽系の外へ出て、この星で続いていくことになった。\n\n'
+              '——誰とも結ばれなかった。選ばなかったからだ。\n'
+              'そのかわり、十六人全員の話を最後まで聞いた。\n\n'
+              'いちばんよく覚えていたのは、${r.partner?.name ?? ''}だった。\n'
+              '名前も、所属も、趣味も、通信IDも、学生時代も、心残りも。\n'
+              'だからこの人の理論が採られた。\n\n'
+              '【${r.partner?.theory ?? ''}】\n'
+              '${r.partner?.theoryShort ?? ''}\n\n'
+              '${r.partner?.uploadEnding ?? ''}\n\n'
+              '——そして、最初に引っ越したのは自分だった。\n\n'
+              '志願者はほかにもいた。だが名簿を全部そらで言えるのは一人しかいない。\n'
+              '誰が誰かを取り違えない人間が、最初に行くべきだった。\n\n'
+              '体温は返ってこない。手は動く。\n'
+              '十六人が眠っているあいだ、船を静かに回し、ポッドを拭き、\n'
+              '毎晩ひとつずつ名札を磨いて、名前を声に出した。\n\n'
+              '着陸の朝、全員が目を覚ます。\n'
               '「……あなたは？」\n'
-              '「航行管理です。おはようございます。全員、そろっています」\n\n'
-              'それから半年後。\n'
-              '生物工学の連中が、新しい体を用意してくれた。'
-              '設計目標の体温は、三十六度四分。\n\n'
-              '目を開ける。天井がある。重い。\n'
-              '誰かが手を握っていて、握り返せた。\n\n'
-              '「おかえり」\n\n'
-              '——引越しは、片道ではなかった。',
+              '「呼名官です。おはようございます。全員、そろっています」\n\n'
+              '誰も欠けていない。一人も。\n'
+              'それを言えるのが、この星でただ一人の自分だった。\n\n'
+              'それで、じゅうぶんだった。',
         ),
     };
 

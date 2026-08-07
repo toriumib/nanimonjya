@@ -140,11 +140,31 @@ void main() {
         };
 
     test('項目を覚えるほどダイバージェンスが上がる', () {
-      final cast = kNoahCast.take(4).toList();
-      final askable = cast.length * (NoahField.values.length + 1);
+      // 出題は一人2問（思い出す・最終確認）＋謎の数
+      const mysteries = 2;
+      final askable = kNoahCast.length * 2 + mysteries;
       expect(noahDivergence({}, askable), 0);
-      expect(noahDivergence({cast[0].id: {NoahField.name}}, askable),
+      expect(noahDivergence({kNoahCast[0].id: {NoahField.name}}, askable),
           closeTo(1 / askable, 1e-9));
+    });
+
+    test('謎の正解は項目と別に数える（重複で潰れないこと）', () {
+      // 最終確認で school を当て、謎でも当てたときに 2 と数えられる必要がある。
+      // 集合に混ぜると 1 に潰れて 1.000000 に永遠に届かなくなる
+      final d = noahDivergence(
+          {'kiryu': {NoahField.school}}, 2, extra: 1);
+      expect(d, 1.0);
+    });
+
+    test('全問正解でちょうど 1.000000 に届く', () {
+      const mysteries = 2;
+      final askable = kNoahCast.length * 2 + mysteries;
+      final all = {
+        for (final c in kNoahCast) c.id: {NoahField.name, NoahField.school},
+      };
+      expect(noahDivergence(all, askable, extra: mysteries), 1.0);
+      expect(noahDivergenceLabel(noahDivergence(all, askable, extra: mysteries)),
+          '1.000000');
     });
 
     test('出題が無くても落ちない／1.0を超えない', () {
@@ -437,6 +457,81 @@ void main() {
           expect(l.who, isNotEmpty, reason: l.text);
         }
       }
+    });
+  });
+
+  group('恋愛対象と、採択される理論', () {
+    Map<String, Set<NoahField>> remembered(Map<String, int> counts) => {
+          for (final e in counts.entries)
+            e.key: NoahField.values.take(e.value).toSet(),
+        };
+
+    test('男性を選ぶと、話す相手は男性8人だけ', () {
+      final t = NoahPreference.men.filter(kNoahCast);
+      expect(t, hasLength(8));
+      expect(t.every((c) => c.male), isTrue);
+    });
+
+    test('女性を選ぶと、話す相手は女性8人だけ', () {
+      final t = NoahPreference.women.filter(kNoahCast);
+      expect(t, hasLength(8));
+      expect(t.every((c) => !c.male), isTrue);
+    });
+
+    test('独身モードでは十六人全員と話す', () {
+      expect(NoahPreference.none.filter(kNoahCast), hasLength(16));
+      expect(NoahPreference.none.romantic, isFalse);
+      expect(NoahPreference.men.romantic, isTrue);
+    });
+
+    test('相手は恋愛対象の性別からしか決まらない', () {
+      // 記憶テストは十六人全員に出るので好感度は全員ぶん貯まる。
+      // それでも結ばれるのは、話した相手の中からでなければならない
+      final men = {for (final c in kNoahCast.where((c) => c.male)) c.id};
+      final r = resolveNoahEnding(
+        {'mizuhara': 20, 'kiryu': 9, 'tachibana': 1}, // 水原は女性
+        eligible: men,
+      );
+      expect(r.ending, NoahEnding.happy);
+      expect(r.partner?.id, 'kiryu');
+      expect(r.partner?.male, isTrue);
+    });
+
+    test('独身ルートは、いちばん覚えていた人の理論が採られる', () {
+      // 好感度ではなく**覚えている項目の数**で決まる
+      final r = resolveNoahSingleEnding(
+        remembered: remembered({'naka': 5, 'sakaki': 1}),
+        cast: kNoahCast,
+        affection: {'sakaki': 99, 'naka': 1}, // 好感度は榊が上でも
+      );
+      expect(r.ending, NoahEnding.lonely);
+      expect(r.partner?.id, 'naka');
+    });
+
+    test('覚えた数が同じなら、好感度で決める', () {
+      final r = resolveNoahSingleEnding(
+        remembered: remembered({'naka': 3, 'sakaki': 3}),
+        cast: kNoahCast,
+        affection: {'sakaki': 7, 'naka': 2},
+      );
+      expect(r.partner?.id, 'sakaki');
+    });
+
+    test('独身ルートも、覚えきれば真エンドに届く', () {
+      final r = resolveNoahSingleEnding(
+        remembered: remembered({'kiryu': 5}),
+        cast: kNoahCast,
+        affection: {'kiryu': 3},
+        divergence: 1.0,
+      );
+      expect(r.ending, NoahEnding.trueEnd);
+    });
+
+    test('何も覚えていなくても相手は決まる（暗い結末にしない）', () {
+      final r = resolveNoahSingleEnding(
+        remembered: const {}, cast: kNoahCast, affection: const {});
+      expect(r.partner, isNotNull);
+      expect(r.ending, NoahEnding.lonely);
     });
   });
 

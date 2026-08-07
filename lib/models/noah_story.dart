@@ -615,9 +615,18 @@ String noahDivergenceLabel(double d) => d.toStringAsFixed(6);
 /// ⚠️ 好感度とは別物にしてあること。
 /// 「好きだから覚えている」ではなく「覚えているから会える」に
 /// したいので、♥は相手を決めるためだけに使う。
-double noahDivergence(Map<String, Set<NoahField>> remembered, int askable) {
+/// [extra] は項目に紐づかない正解（船内の謎など）の数。
+///
+/// ⚠️ 謎の正解を [remembered] に混ぜてはいけない。
+/// 同じ項目を最終確認でも当てていると集合が重複を潰してしまい、
+/// **1.000000 に永遠に届かなくなる**（実際にそのバグを踏んだ）。
+double noahDivergence(
+  Map<String, Set<NoahField>> remembered,
+  int askable, {
+  int extra = 0,
+}) {
   if (askable <= 0) return 0;
-  var hit = 0;
+  var hit = extra;
   for (final fields in remembered.values) {
     hit += fields.length;
   }
@@ -667,11 +676,24 @@ const int kNoahLeadNeeded = 3;
 
 /// [divergence] が 1.0 に達していれば、好感度より先に真エンドが取れる。
 /// 既定は 0 なので、渡さなければ従来どおりの判定になる。
+///
+/// [eligible] は**理論が採択されうる相手のID**。
+/// 恋愛対象を男性にしたなら男性8人、女性にしたなら女性8人が入る。
+/// 記憶テストは十六人全員に出るので好感度は全員ぶん貯まるが、
+/// **結ばれる相手はここから選ぶ**。空なら従来どおり全員が対象。
 NoahResult resolveNoahEnding(
   Map<String, int> affection, {
   double divergence = 0,
+  Set<String> eligible = const {},
 }) {
-  final total = affection.values.fold<int>(0, (a, b) => a + b);
+  final affectionAll = affection;
+  if (eligible.isNotEmpty) {
+    affection = {
+      for (final e in affection.entries)
+        if (eligible.contains(e.key)) e.key: e.value,
+    };
+  }
+  final total = affectionAll.values.fold<int>(0, (a, b) => a + b);
 
   // 🌟 全員の全項目を覚えている＝どの好感度より優先される
   if (divergence >= kNoahTrueEndDivergence) {
@@ -701,6 +723,30 @@ NoahResult resolveNoahEnding(
     );
   }
   return NoahResult(ending: NoahEnding.bitter, totalAffection: total);
+}
+
+/// 💍 独身ルートの結末。
+///
+/// 恋愛での勝者ではなく、**いちばんよく覚えていた人**の理論が採られる。
+/// そして自分は意識を移して、みんなを見守る側にまわる。
+/// ⚠️ これは失敗ではない。**選んで行く場所**なので、
+/// 好感度がいくら低くても暗い結末にしないこと。
+NoahResult resolveNoahSingleEnding({
+  required Map<String, Set<NoahField>> remembered,
+  required List<NoahCharacter> cast,
+  required Map<String, int> affection,
+  double divergence = 0,
+}) {
+  final total = affection.values.fold<int>(0, (a, b) => a + b);
+  final best =
+      noahBestRemembered(remembered, cast, affection: affection);
+  return NoahResult(
+    ending: divergence >= kNoahTrueEndDivergence
+        ? NoahEnding.trueEnd
+        : NoahEnding.lonely,
+    totalAffection: total,
+    partner: best,
+  );
 }
 
 // ── 物語の地の文・セリフ ──────────────────────────────
@@ -738,20 +784,73 @@ extension NoahGenderLabel on NoahGender {
 }
 
 /// 恋愛対象の絞り込み。
-enum NoahPreference { men, women, all }
+///
+/// ⚠️ **会う相手と、深く話す相手は別**。
+/// 一周で十六人全員と名刺を交換し、十六人全員が記憶テストに出る。
+/// ただし船内で腰を据えて話す（デートする）のは、ここで選んだ性別だけ。
+/// 採択される理論も、その相手たちの中から決まる。
+enum NoahPreference {
+  men,
+  women,
+  all,
+
+  /// 💍 独身モード。恋愛はしないが、**十六人全員と対話する**。
+  /// 採択されるのは「いちばんよく覚えていた人」の理論で、
+  /// 自分は意識を移して、みんなを見守る側にまわる。
+  none,
+}
 
 extension NoahPreferenceLabel on NoahPreference {
   String get labelJa => switch (this) {
         NoahPreference.men => '男性',
         NoahPreference.women => '女性',
         NoahPreference.all => 'どちらも',
+        NoahPreference.none => '恋愛なし（独身）',
       };
 
+  String get noteJa => switch (this) {
+        NoahPreference.men => '男性8人と船内で過ごします。理論もその8人から選ばれます',
+        NoahPreference.women => '女性8人と船内で過ごします。理論もその8人から選ばれます',
+        NoahPreference.all => '十六人全員が対象になります',
+        NoahPreference.none =>
+          '恋愛はしません。十六人全員と対話し、いちばん覚えていた人の理論が採られます',
+      };
+
+  /// 恋愛をするかどうか。
+  bool get romantic => this != NoahPreference.none;
+
+  /// 船内で腰を据えて話す相手。ここから採択される理論が決まる。
   List<NoahCharacter> filter(List<NoahCharacter> all) => switch (this) {
         NoahPreference.men => [for (final c in all) if (c.male) c],
         NoahPreference.women => [for (final c in all) if (!c.male) c],
         NoahPreference.all => all,
+        // 独身は誰とも恋愛しないが、話す相手は全員
+        NoahPreference.none => all,
       };
+}
+
+/// 💍 いちばんよく覚えていた人。独身ルートで理論を出すのに使う。
+///
+/// 好感度ではなく**覚えている項目の数**で決める。
+/// 同数のときだけ好感度で並べ、それも同じなら名簿順（安定させるため）。
+NoahCharacter? noahBestRemembered(
+  Map<String, Set<NoahField>> remembered,
+  List<NoahCharacter> among, {
+  Map<String, int> affection = const {},
+}) {
+  NoahCharacter? best;
+  var bestFields = -1;
+  var bestLove = -1;
+  for (final c in among) {
+    final f = remembered[c.id]?.length ?? 0;
+    final love = affection[c.id] ?? 0;
+    if (f > bestFields || (f == bestFields && love > bestLove)) {
+      best = c;
+      bestFields = f;
+      bestLove = love;
+    }
+  }
+  return best;
 }
 
 /// 所長の名前。
