@@ -295,24 +295,32 @@ NoahQuestion buildNoahQuestion({
   );
 }
 
-/// 結末。**どの結末でも誰も死なない**。
+/// 結末。**どの結末でも誰も死なない・嫌な思いをする人もいない**。
 enum NoahEnding {
-  /// 好感度がはっきり1位の相手がいる。
+  /// 好感度がはっきり1位の相手がいる。最愛の人とLHS 1140 bで結ばれる。
   happy,
 
-  /// 全員がほぼ同じ。子孫に「顔が似すぎ」と笑われる。
+  /// 2人以上が好感度1位で並んでいる（全員ではない）。
+  /// みんなで子育てする大家族エンド。
+  harem,
+
+  /// 全員の好感度がぴったり同じ。500人の同窓会エンド。
+  /// 子孫に「顔が似すぎて見分けつかない」と笑われる（恨まれるほどではない）。
   bitter,
 
   /// 誰の名前もほとんど覚えられなかった。
-  /// マインドアップロードして、船の世話係として全員を見守り続ける。
+  /// 一人だけロケット同乗係として、穏やかに船と乗員のお世話をして過ごす。
+  /// やがてマインドアップロードがロボットへ完了し、そのままお世話を続ける。
   lonely,
 }
 
 /// 結末の判定。
 ///
 /// - 覚えた総量が少なすぎる → [NoahEnding.lonely]
+/// - 全員が同じ好感度 → [NoahEnding.bitter]（同窓会エンド）
+/// - 1位が2人以上で並んでいる（全員ではない）→ [NoahEnding.harem]
 /// - 1位が2位より [leadNeeded] 以上リード → [NoahEnding.happy]
-/// - それ以外（横並び） → [NoahEnding.bitter]
+/// - それ以外（僅差） → [NoahEnding.bitter]
 class NoahResult {
   final NoahEnding ending;
 
@@ -344,7 +352,14 @@ NoahResult resolveNoahEnding(Map<String, int> affection) {
     ..sort((a, b) => b.value.compareTo(a.value));
   final top = ranked.first;
   final second = ranked.length > 1 ? ranked[1].value : 0;
+  final tiedAtTop = ranked.where((e) => e.value == top.value).length;
 
+  if (tiedAtTop == ranked.length) {
+    return NoahResult(ending: NoahEnding.bitter, totalAffection: total);
+  }
+  if (tiedAtTop >= 2) {
+    return NoahResult(ending: NoahEnding.harem, totalAffection: total);
+  }
   if (top.value - second >= kNoahLeadNeeded) {
     return NoahResult(
       ending: NoahEnding.happy,

@@ -107,10 +107,21 @@ void main() {
       expect(r.partner?.id, 'hoshino');
     });
 
-    test('横並びならビターエンド（相手は決まらない）', () {
+    test('全員が横並びならビターエンド（相手は決まらない）', () {
       final r = resolveNoahEnding({'hoshino': 4, 'kiryu': 4, 'iwao': 4});
       expect(r.ending, NoahEnding.bitter);
       expect(r.partner, isNull);
+    });
+
+    test('1位が2人以上で並んでいる（全員ではない）と大家族エンド', () {
+      final r = resolveNoahEnding({'hoshino': 6, 'kiryu': 6, 'iwao': 1});
+      expect(r.ending, NoahEnding.harem);
+      expect(r.partner, isNull);
+    });
+
+    test('全員が同着なら、2人だけでも大家族エンドにはならずビター', () {
+      final r = resolveNoahEnding({'hoshino': 3, 'kiryu': 3});
+      expect(r.ending, NoahEnding.bitter);
     });
 
     test('わずかなリードではハッピーにならない', () {
