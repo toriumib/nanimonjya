@@ -48,6 +48,7 @@ dependencies:
   google_mlkit_text_recognition: ^0.13.0  # 名刺のOCR取り込み（端末内処理・モバイル限定）
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
+  characters: ^1.4.0
 
 
 dev_dependencies:
