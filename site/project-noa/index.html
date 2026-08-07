@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT NOA — 東戸塚・49光年の約束</title>
+<meta name="description" content="西暦5,000,002,026年。赤色巨星となった太陽の下、人類最後の都市・ノア・ドームから49光年先のLHS 1140 bを目指す。八人の科学者と、名前を覚える記録官の330年。">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛸</text></svg>">
+</head>
+<body>
+<div id="progress"></div>
+
+<nav class="nav"><div class="nav-inner">
+  <a class="nav-logo" href="index.html">PROJECT NOA</a>
+  <div class="nav-links">
+    <a href="index.html">序章</a>
+    <a href="story.html">本編</a>
+    <a href="characters.html">八人</a>
+    <a href="world.html">箱舟と科学</a>
+    <a href="endings.html">結末</a>
+  </div>
+</div></nav>
+
+<div class="container">
+
+<h1>PROJECT NOA</h1>
+<div class="subtitle">東戸塚 ・ 四十九光年 の 約束</div>
+
+<svg class="hero-sun" viewBox="0 0 320 200" role="img" aria-label="赤色巨星となった太陽と、その下の地平線">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#ff7a4a" stop-opacity=".95"/>
+      <stop offset="55%" stop-color="#c04040" stop-opacity=".75"/>
+      <stop offset="100%" stop-color="#3a0f12" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a1512"/>
+      <stop offset="100%" stop-color="#05080f"/>
+    </linearGradient>
+  </defs>
+  <circle cx="160" cy="110" r="120" fill="url(#g)"/>
+  <rect x="0" y="150" width="320" height="50" fill="url(#ground)"/>
+  <path d="M0 152 L60 143 L110 155 L170 141 L230 154 L280 146 L320 153 L320 200 L0 200 Z" fill="#120a0c"/>
+  <rect x="156" y="120" width="8" height="34" fill="#0b0f18"/>
+  <path d="M160 108 l6 12 h-12 z" fill="#d4a24c" opacity=".85"/>
+</svg>
+
+<div class="kanji">諾 亜 五 千 億 年</div>
+
+<p class="quote" style="text-align:center;border:none;padding:0">
+「中国四千年の歴史？ 可愛いもんだ。<br>
+我々は百三十八億年の宇宙の灯火を、たった四十九光年先に運ぶんだ。」<br>
+<span style="font-size:.85rem">— 土倉源三 所長、第1回プロジェクト・ノア総会にて</span>
+</p>
+
+<h2>序章 — なぜ我々は地球を捨てるのか</h2>
+
+<div class="science">
+<b>天文事実（現在の観測に基づく）：</b><br>
+・太陽の主系列星段階は残り約50億年（Schröder &amp; Smith 2008）<br>
+・約11億年後：太陽光度+11% → 湿潤温室効果で海洋蒸発開始（Kasting 1988）<br>
+・約50億年後：赤色巨星分枝（RGB）突入、半径 ~1 AU（現在の地球軌道相当）<br>
+・本作設定：西暦 5,000,002,026年。太陽は視直径40度の赤黒い巨体。<br>
+　地表温度：平均1,200℃。鉛も溶ける。
+</div>
+
+<p>かつて横浜市戸塚区だった場所は、いまは溶岩台地の下3kmに眠っている。人類最後の都市国家「ノア・ドーム」は、東戸塚駅の地下にあったとされる地層の上に建設された。駅そのものはとうに蒸発したが、改札の真下にあった花崗岩の基礎だけが、五十億年ぶんの熱に耐えて残った。ドームの第一区画は、いまもその上に立っている。</p>
+
+<p>太陽はもう、かつての太陽ではない。空の半分を覆う赤い巨星は、もはや光源ではなく、<b>重力の敵</b>として我々を見下ろしている。</p>
+
+<p>ドームの寿命は、あと四十年と少し。冷却系の熱交換器が限界に達する日は、カレンダーに赤い丸で記されている。誰も口には出さないが、全員がその日付を暗記している。</p>
+
+<h3>そして、あなたの仕事について</h3>
+
+<p>プレイヤーが演じるのは、ノア・ドーム市民登録局の<b>記録官（アーキビスト）</b>だ。技術者ではない。何ひとつ発明できないし、プラズマの磁場も計算できない。</p>
+
+<p>あなたの仕事はただひとつ——<b>顔と名前を、覚えること</b>。</p>
+
+<p>ドームの最終人口は12,000人。そのうち船に乗れるのは、当初計画でわずか12名。誰が乗り、誰が残るのかを決める会議に、あなたは書記として同席する。決めるのはあなたではない。だが、記録するのはあなただ。残る者の名前も、乗る者の名前も、等しく同じ台帳に書かれる。</p>
+
+<div class="quote">
+「記録官さん。あなたは、人類最後の名簿を書いている。<br>
+だからひとつだけ約束してほしい。<br>
+——<b>誰の名前も、間違えないでくれ。</b>」<br>
+— 土倉源三
+</div>
+
+<p>これは、覚えることそのものが職務であり、祈りであり、最終的には<span class="highlight">生存技術</span>になる物語である。</p>
+
+<h2>目的地 — LHS 1140 b</h2>
+
+<div class="breakthrough">
+<h4>🔭 観測的突破</h4>
+<p>JWSTによるNIRSpec/MIRI観測の結果、LHS 1140 bは厚い水素大気（ミニネプチューン）ではなく、<b>高平均分子量の大気（N₂-CO₂-H₂Oなど）</b>を持つ可能性が高いことが示された。</p>
+<p>とりわけ<b>窒素に富む大気</b>の存在が示唆されており、これは地球型の大気組成に近いことを意味する。</p>
+<p>さらに、この窒素大気が温室効果をもたらすことで、潮汐ロックされた「目玉惑星（Eyeball Planet）」の昼側中心部に<b>液体の水の海洋</b>が存在する可能性が支持されている。</p>
+<p class="citation">出典: Cadieux et al. (2024), MacDonald et al. (2024), JWST Transmission Spectroscopy</p>
+</div>
+
+<div class="science-success">
+<b>観測データ：</b><br>
+・距離：48.9光年（くじら座方向）<br>
+・中心星：LHS 1140（M4.5V型赤色矮星、質量 0.179 M☉、有効温度 3216 K）<br>
+・惑星 b：公転周期 24.737日、軌道長半径 0.0946 AU<br>
+・質量：5.60 ± 0.49 M⊕、半径：1.727 ± 0.079 R⊕（Cadieux et al. 2024）<br>
+・<b>大気確認</b>：JWSTがヘリウム1083nm吸収を検出<br>
+・<b>ウォーターワールド仮説</b>：低密度＝大気か大量の水。海洋惑星の可能性が高い<br>
+・<b>窒素大気モデル</b>：N₂優勢の大気モデルが有力視される<br>
+・<b>コールドトラップ</b>：地球より強力な冷たい層が水蒸気の宇宙への流出を防止<br>
+・潮汐ロック確実（自転周期＝公転周期）<br>
+・表面重力：約1.9 g（地球のほぼ倍）
+</div>
+
+<p>LHS 1140 bは、<b>すでに窒素大気と海洋を持っている可能性が高い</b>。我々が目指すのは「ゼロから作る」テラフォーミングではなく、「<b>既存の環境を微調整する</b>」テラフォーミングだ。</p>
+
+<h3>なぜこの星を選んだのか</h3>
+<ul>
+<li>ハビタブルゾーン内（恒星放射量：地球の41%）</li>
+<li>赤色矮星としては珍しく、<b>フレア活動が穏やか</b>（Dittmann et al. 2017）</li>
+<li>岩石惑星として確認済み（ガス惑星ではない）</li>
+<li><b>窒素大気が存在</b>（呼吸可能な大気への改質が容易）</li>
+<li><b>液体の水が存在</b>（海洋惑星モデル）。テラフォーミングに必要な二大要素が揃っている</li>
+<li>距離49光年は、光速15%の核融合推進で約330年。世代船で到達可能な限界距離</li>
+</ul>
+
+<h2>発射場 — 大池町を選んだ地質工学的根拠</h2>
+
+<p>かつて横浜市戸塚区大池町には、「大池カントリークラブ」という18ホールのゴルフ場があった。そのフェアウェイの下に、全長4.2kmの箱舟を収める発射サイロが掘られた。</p>
+
+<div class="breakthrough">
+<h4>🌍 東京層群の支持力</h4>
+<p>戸塚区を含む関東平野の深部には、洪積世の<b>東京層群</b>（および相模層群）と呼ばれる堅固な泥岩・砂岩互層が存在する。</p>
+<p>この地層は表層の関東ローム層（火山灰）の下、深度数百メートル〜数千メートルに分布し、<b>大深度地下構造物の支持層</b>として優れた力学特性を持つ。</p>
+<p>全長4.2km、質量数百万トンの箱舟NOA-1を支え、発射時の莫大な推力と振動に耐えるには、この<b>東京層群の岩盤</b>を直接基礎とするサイロ構造が不可欠だった。</p>
+<p>加えて、ゴルフ場の広大な敷地は発射時の熱線・衝撃波に対する安全緩衝帯として機能し、周囲の住宅地跡への影響を最小化する。</p>
+<p class="citation">出典: AIST 3D地質図, GSJ Urban Geology Map</p>
+</div>
+
+<div class="table-wrap">
+<table>
+<tr><th>理由</th><th>科学的・工学的根拠</th></tr>
+<tr><td>① 広さ</td><td>18ホール＝約70万㎡。発射時の衝撃波・熱線の安全緩衝帯として最低限必要な面積</td></tr>
+<tr><td>② 水源</td><td>「大池」＋柏尾川水系。D-³Heロケット点火時の冷却水として毎秒12,000トン必要</td></tr>
+<tr><td>③ 地盤</td><td><b>東京層群</b>（堅固な泥岩・砂岩互層）が地下深くに分布し、大深度サイロの支持層として最適</td></tr>
+<tr><td>④ 人口密度</td><td>周辺は緑地保全区域。打ち上げ失敗時のリスク最小化</td></tr>
+<tr><td>⑤ 物語的理由</td><td>18番ホールのグリーン真下が主発射口。<b>「人類最後のティーショットは、空へ向かう」</b></td></tr>
+</table>
+</div>
+
+<h2>この物語の読みかた</h2>
+
+<div class="pagelinks">
+  <a class="pagelink" href="story.html"><span class="t">本編 — 五幕の物語</span><span class="d">地上の四十年、発射前夜、330年の船内、そして着陸。船内で起きる「小さな謎」とその答え。</span></a>
+  <a class="pagelink" href="characters.html"><span class="t">八人の科学者</span><span class="d">それぞれの担当技術・過去のやり直し・個別ルートの結末。全員が攻略対象。</span></a>
+  <a class="pagelink" href="world.html"><span class="t">箱舟と科学</span><span class="d">NOA-1の構造、330年の航行計画、到着後の五百年テラフォーミング、参考文献。</span></a>
+  <a class="pagelink" href="endings.html"><span class="t">結末とゲームシステム</span><span class="d">四つのハッピーエンド、記憶テストの仕様、デートイベント一覧。</span></a>
+</div>
+
+<div class="note">
+本サイトはゲーム企画のための創作設定資料です。実在の天体・技術・研究に関する記述は現実の観測や文献に基づいていますが、物語・人物・年代・組織はすべてフィクションです。作中の医療・生物学的描写は演出であり、実在の技術の性能を保証するものではありません。
+</div>
+
+<div class="next">
+  <span></span>
+  <a href="story.html">本編を読む →</a>
+</div>
+
+<footer>
+PROJECT NOA © 5,000,002,026 / Higashitotsuka → LHS 1140 b
+</footer>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>
