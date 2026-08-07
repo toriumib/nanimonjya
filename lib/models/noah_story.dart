@@ -418,13 +418,19 @@ const String kNoahDirectorName = '土倉 源三';
 
 /// 序章。太陽が膨らみ、大池町から箱舟が発つまで。
 const List<NoahLine> kNoahPrologue = [
-  NoahLine(NoahVoice.narration, '西暦、五十億二千二十六年。'),
-  NoahLine(NoahVoice.narration, '太陽は、赤い。'),
+  // ⚠️ 年代を「五十億年後」と書かないこと。
+  //    Schröder & Smith (2008) では、太陽が赤色巨星分枝の先端に達するのは
+  //    約76億年後。五十億年後はまだ主系列の終わりごろで、空は埋まらない。
+  //    しかも同論文は「現在の軌道半径が1.15 AU 以上でないと生き残れない」
+  //    ＝地球は呑まれる、と結論している。だから“呑まれる直前”に出る。
+  NoahLine(NoahVoice.narration, '——太陽が、いちばん大きくなる年。'),
+  NoahLine(NoahVoice.narration, '空は、赤い。'),
   NoahLine(NoahVoice.narration,
-      '水素を使い切った星は膨らみ、空の三分の一を占めていた。'
+      '水素を使い切った星は膨らみ、空の半分を占めていた。'
       '水星と金星はもう無い。'),
   NoahLine(NoahVoice.narration,
-      '地球はかろうじて呑まれずにいるが、地表は鉛が溶ける温度になった。'),
+      '地球はまだ呑まれずにいる。だが地表は鉛が溶ける温度になり、'
+      'この軌道が残る保証も、もう無い。'),
   NoahLine(NoahVoice.narration,
       '人類は、横浜・戸塚区大池町の地下三キロに潜っている。'),
   NoahLine(NoahVoice.director, 'よく集まってくれた。', who: '所長'),
@@ -433,10 +439,24 @@ const List<NoahLine> kNoahPrologue = [
       '平らで、水があって、道がある。発射場にちょうどよかった。',
       who: '所長'),
   NoahLine(NoahVoice.director, '十八番グリーンの真下に、サイロを掘った。', who: '所長'),
+  // ⚠️ 実在の天体。断定しないこと。
+  //    確定しているのは「水素に富む大気ではない（>10σ で棄却）」まで。
+  //    窒素大気は 2.3σ、水蒸気は約3σ の“兆候”にとどまる（Cadieux et al. 2024）。
+  //    2026年に地上のマゼラン望遠鏡+WINEREDがヘリウム流出を検出している（Science）。
+  //    「水がある」と言い切ると観測より先に行ってしまうので、賭けとして書く。
   NoahLine(NoahVoice.director,
-      '行き先は四十九光年先、LHS 1140 b。'
-      '赤色矮星をまわる、水のあるスーパーアースだ。',
+      '行き先は四十八・九光年先、LHS 1140 b。'
+      '赤色矮星をまわる、岩の惑星だ。',
       who: '所長'),
+  NoahLine(NoahVoice.player, '……水は、あるんですか'),
+  NoahLine(NoahVoice.director,
+      'あるかもしれん、という段階だ。'
+      'ガスの塊でないことは分かっている。大気を保っていることも。',
+      who: '所長'),
+  NoahLine(NoahVoice.director,
+      'だが窒素の海があるかどうかは、まだ兆しが見えているだけだ。', who: '所長'),
+  NoahLine(NoahVoice.player, '……賭けなんですね'),
+  NoahLine(NoahVoice.director, 'ああ。人類で一番大きな賭けだ。', who: '所長'),
   NoahLine(NoahVoice.player, '……四十九光年。どれくらいかかるんですか'),
   NoahLine(NoahVoice.director,
       '光の十五パーセントで、三百三十年。眠りながら渡る。', who: '所長'),
