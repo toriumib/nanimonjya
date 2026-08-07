@@ -12,9 +12,14 @@ import 'package:nanimonjya/models/noah_story.dart';
 /// 崩れると4択が実質2択になってしまう要点なのでテストで守る。
 void main() {
   group('キャスト', () {
-    test('8人いて、IDが重複していない', () {
-      expect(kNoahCast.length, 8);
-      expect(kNoahCast.map((c) => c.id).toSet().length, 8);
+    test('16人いて、IDが重複していない', () {
+      expect(kNoahCast.length, 16);
+      expect(kNoahCast.map((c) => c.id).toSet().length, 16);
+    });
+
+    test('男女が8人ずつ', () {
+      expect(kNoahCast.where((c) => c.male).length, 8);
+      expect(kNoahCast.where((c) => !c.male).length, 8);
     });
 
     test('出題に使う項目が全員そろっている（空欄だと3択が作れない）', () {
@@ -287,7 +292,7 @@ void main() {
   });
 
   group('船内の小さな謎', () {
-    test('8人ぜんいんに謎がひとつずつある', () {
+    test('全員に謎がひとつずつある', () {
       expect(kNoahMysteries.length, kNoahCast.length);
       expect(kNoahMysteries.map((m) => m.charaId).toSet().length,
           kNoahCast.length);
@@ -430,6 +435,42 @@ void main() {
       for (final l in [...kNoahPrologue, ...kNoahCapacityScene]) {
         if (l.voice == NoahVoice.director) {
           expect(l.who, isNotEmpty, reason: l.text);
+        }
+      }
+    });
+  });
+
+  group('意識の理論（16人が1つずつ持つ）', () {
+    test('全員が理論を持ち、重複していない', () {
+      final theories = kNoahCast.map((c) => c.theory).toSet();
+      expect(theories.length, kNoahCast.length);
+      for (final c in kNoahCast) {
+        expect(c.theory, isNotEmpty, reason: c.id);
+        expect(c.theoryShort, isNotEmpty, reason: c.id);
+        expect(c.uploadEnding, isNotEmpty, reason: c.id);
+      }
+    });
+
+    test('意識の量子論を持つ人が必ずいる', () {
+      // 転送の一方通行（no-cloning）を言えるのはこの理論だけで、
+      // 「誰も死ななかった」の根拠になっている。外したら物語が崩れる
+      final q = kNoahCast.where((c) => c.theory.contains('量子論'));
+      expect(q, hasLength(1));
+      expect(q.first.id, 'kiryu');
+    });
+
+    test('採択される理論は、いちばん親しくなった相手のもの', () {
+      final r = resolveNoahEnding({'naka': 9, 'sakaki': 2});
+      expect(r.ending, NoahEnding.happy);
+      expect(r.partner?.theory, contains('ネットワーク抑制'));
+    });
+
+    test('どの結末の本文にも、人が死ぬ書き方をしない', () {
+      const banned = ['死んだ', '死ぬ', '殺', '失われた命'];
+      for (final c in kNoahCast) {
+        for (final w in banned) {
+          expect(c.uploadEnding.contains(w), isFalse,
+              reason: '${c.id} / $w');
         }
       }
     });

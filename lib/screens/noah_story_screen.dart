@@ -663,6 +663,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _cardRow('通信ID', c.commId),
             _cardRow('趣味', c.hobby),
             _cardRow('学生時代', c.school),
+            _cardRow('理論', c.theory),
             const SizedBox(height: 6),
             const Text('箱舟ノア 乗員証',
                 style: TextStyle(fontSize: 9.5, color: Color(0xFF8899AD))),
@@ -962,18 +963,20 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   Widget _ending() {
     final r = _result;
     final (title, emoji, text) = switch (r.ending) {
+      // 🧠 いちばん親しくなった相手の**理論が採択される**。
+      //    16人が別々の理論を持っているので、ここから16通りの結末が生える。
+      //    ⚠️ どれも人が死なない書き方を守ること。
       NoahEnding.happy => (
-          'ハッピーエンド',
+          '${r.partner?.theory ?? ''} 採択',
           '🌅',
-          '着陸の前に、乗員名簿が読み上げられた。\n'
-              '呼ばれた者が「はい」と答えて、一歩前に出る。\n'
-              '——五百人ぶん、一度も詰まらずに読み切った。\n\n'
-              '${r.partner?.name ?? ''}と、ターミネータの浜に降りた。\n'
-              '永遠の夕暮れの帯。昼と夜のあいだだけが、ちょうどいい温度をしている。\n'
-              '重力は一・九倍。外骨格なしでは、まだ十歩と歩けない。\n\n'
+          '受精卵カプセル一万個、無事に着床。\n'
+              '人類は太陽系の外へ出て、この星で続いていくことになった。\n\n'
+              '——そして、意識をどう運ぶかが決まる。\n'
+              '採択されたのは、いちばん長く話を聞いた人の理論だった。\n\n'
+              '【${r.partner?.theory ?? ''}】\n'
+              '${r.partner?.theoryShort ?? ''}\n\n'
+              '${r.partner?.uploadEnding ?? ''}\n\n'
               '「${r.partner?.regret ?? ''}」——その心残りを、この星でやり直す。\n\n'
-              'カプセルが開いて、最初の産声が上がる。\n'
-              '最初の子の名前を、名簿の一行目に書き足した。\n\n'
               '「三百三十年、かかったな」\n'
               '「うん。でも、名前は忘れなかった」',
         ),

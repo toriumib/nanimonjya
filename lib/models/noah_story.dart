@@ -35,10 +35,27 @@ class NoahCharacter {
 
   /// 🧑‍🎨 立ち絵。顔メモと同じアバターで描く。
   ///
-  /// 専用の絵を8人ぶん用意しなくても、特徴（メガネ・ひげ・髪型）で
+  /// 専用の絵を16人ぶん用意しなくても、特徴（メガネ・ひげ・髪型）で
   /// 見分けがつく。**顔メモで使っているのと同じ仕組み**なので、
   /// 「この人はこういう顔」を覚える練習としても筋が通る。
   final Avatar avatar;
+
+  /// 🧠 この人が抱えている意識の理論。**16人が全員ちがう理論を持つ**。
+  ///
+  /// いちばん親しくなった相手の理論が採択され、
+  /// その理論のやり方でマインドアップロードが実現する——という筋なので、
+  /// **16人ぶん16通りの結末**がここから生える。
+  /// ⚠️ 桐生の「意識の量子論」は外さないこと。
+  /// 転送の一方通行（no-cloning）を言えるのはこの理論だけで、
+  /// 「誰も死ななかった」の根拠になっている。
+  final String theory;
+
+  /// 理論の一行説明。名刺の裏に刷ってある体で出す。
+  final String theoryShort;
+
+  /// その理論が採択された世界で、人はどう「引っ越す」ことになるか。
+  /// ⚠️ **どれも人が死なない**書き方にすること。
+  final String uploadEnding;
 
   const NoahCharacter({
     required this.id,
@@ -53,6 +70,9 @@ class NoahCharacter {
     required this.colorValue,
     required this.male,
     required this.avatar,
+    required this.theory,
+    required this.theoryShort,
+    required this.uploadEnding,
   });
 }
 
@@ -74,6 +94,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 1, faceShape: 0, hair: 5, hairColor: 1, eyes: 2, eyebrows: 0,
       nose: 0, mouth: 0, glasses: 0, mole: 3, beard: 0,
       gender: 2, age: 36, height: 162),
+    theory: 'ダイナミック・コア理論（DCT）',
+    theoryShort: '動的にできる「核」が意識を担う。核はいつでも組み直せる',
+    uploadEnding: '楓の理論が採択された世界では、意識は器ではなく**炎の芯**として扱われる。\n'
+        '薪を入れ替えても火が同じ火であるように、体を替えても核が続いていれば同じ人。\n'
+        'だから引っ越しは「移す」ではなく「焚き直す」と呼ばれた。\n'
+        '新東戸塚の最初の窯に火が入った日、彼女は炎の前で言う。\n'
+        '「お父さん。核だけは、消さずに持ってきたよ」'
   ),
   NoahCharacter(
     id: 'kiryu',
@@ -92,6 +119,14 @@ const List<NoahCharacter> kNoahCast = [
       skin: 1, faceShape: 3, hair: 6, hairColor: 0, eyes: 3, eyebrows: 2,
       nose: 2, mouth: 3, glasses: 2, mole: 0, beard: 0,
       gender: 1, age: 41, height: 176),
+    theory: '意識の量子論',
+    theoryShort: '意識の基盤は量子状態。ゆえに複製できず、移すことしかできない',
+    uploadEnding: '悟の理論が採択された世界には、**控えというものが存在しない**。\n'
+        '量子状態は複製できないから、引っ越しは常に片道になる。二人にはならない。\n'
+        'そして同じ理由で、三百三十年の眠りも「死んで生まれ直した」ではなくなる。\n'
+        '複製されていないのだから、戻ってきたのは同じものだ。\n'
+        '——五百人は、一度も死んでいない。\n'
+        '碁盤の最後の一手を置いて、彼は言う。「負けました。姉さん、強かったな」'
   ),
   NoahCharacter(
     id: 'mizuhara',
@@ -110,6 +145,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 0, faceShape: 1, hair: 4, hairColor: 2, eyes: 5, eyebrows: 0,
       nose: 1, mouth: 1, glasses: 0, mole: 0, beard: 0,
       gender: 2, age: 33, height: 158),
+    theory: 'ラディカル可塑性仮説（RPT）',
+    theoryShort: '学ぶことによって意識が生まれる。作り替わり続けるものが意識である',
+    uploadEnding: '紗耶香の理論が採択された世界では、意識は**継ぎ足すもの**になる。\n'
+        '完成品を移すのではなく、新しい体に少しずつ学び直させて、育て切る。\n'
+        '時間はかかる。だが途切れない。ぬか床と同じやり方だ。\n'
+        '「一世代で仕上げようとしないこと。それだけなんですよ」\n'
+        '彼女はそう言って、その日82人目の子を取り上げる。'
   ),
   NoahCharacter(
     id: 'tachibana',
@@ -128,6 +170,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 2, faceShape: 2, hair: 1, hairColor: 5, eyes: 1, eyebrows: 1,
       nose: 0, mouth: 0, glasses: 0, mole: 0, beard: 2,
       gender: 1, age: 45, height: 172),
+    theory: '統合情報理論（IIT）',
+    theoryShort: '統合された情報の量が、そのまま意識の量である',
+    uploadEnding: '宗一郎の理論が採択された世界では、引っ越しの条件はただ一つ、\n'
+        '**統合が途切れないこと**になる。切らずに、少しずつ、置き換える。\n'
+        '彼が閉じた生態系でやったことと同じで、制御を足さずに、待つ。\n'
+        '「急かすな。系は自分で釣り合う」\n'
+        '新東戸塚のドームで、ゼラニウムが18鉢に増えた朝の言葉である。'
   ),
   NoahCharacter(
     id: 'hoshino',
@@ -146,6 +195,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 0, faceShape: 0, hair: 2, hairColor: 0, eyes: 4, eyebrows: 0,
       nose: 1, mouth: 1, glasses: 0, mole: 4, beard: 0,
       gender: 2, age: 29, height: 165),
+    theory: 'グローバル・ワークスペース理論（GNWT）',
+    theoryShort: '情報が広く放送されたとき、それが意識になる',
+    uploadEnding: '未来の理論が採択された世界では、意識は**放送**として扱われる。\n'
+        'だから引っ越しは、送信所を建て替える工事に似たものになった。\n'
+        '電波は途切れない。周波数も、番組も、同じまま。ただ塔だけが新しい。\n'
+        '「止まらずに切り替えられたら、それは同じ放送です」\n'
+        '祖父に見せられなかった星空を、彼女は新しい空から撮り直しはじめる。'
   ),
   NoahCharacter(
     id: 'iwao',
@@ -164,6 +220,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 3, faceShape: 2, hair: 0, hairColor: 5, eyes: 3, eyebrows: 1,
       nose: 2, mouth: 2, glasses: 0, mole: 0, beard: 3,
       gender: 1, age: 52, height: 170),
+    theory: '意識の電磁情報場理論（CEMI）',
+    theoryShort: '脳が生む電磁場そのものが意識である',
+    uploadEnding: '玄助の理論が採択された世界では、意識は**場**として引っ越す。\n'
+        '体は場を立てるための土地でしかなく、土地は造り替えればいい。\n'
+        '標高312メートルの丘が人工島の中央に据えられた日、\n'
+        '彼は設計図の備考欄に一行だけ書き足した。——「返却」。\n'
+        'その丘の上でだけ、匿名の俳句に署名が入るようになった。'
   ),
   NoahCharacter(
     id: 'kusunoki',
@@ -182,6 +245,13 @@ const List<NoahCharacter> kNoahCast = [
       skin: 1, faceShape: 1, hair: 5, hairColor: 4, eyes: 0, eyebrows: 2,
       nose: 1, mouth: 3, glasses: 1, mole: 1, beard: 0,
       gender: 2, age: 30, height: 160),
+    theory: '注意スキーマ理論（AST）',
+    theoryShort: '意識とは、注意についての脳の内部モデルである',
+    uploadEnding: '玲の理論が採択された世界では、意識は**モデル**なので、\n'
+        '描き直せる場所へ持っていける。人にも、機械にも、どちらにも。\n'
+        'だから彼女の作った体は、最初から人間用と機械用の区別が無い。\n'
+        '設計目標の体温は36.4℃。兄の平熱だった。\n'
+        '「握れる手を作る。それがわたしの専門だから」'
   ),
   NoahCharacter(
     id: 'shirakawa',
@@ -200,6 +270,214 @@ const List<NoahCharacter> kNoahCast = [
       skin: 2, faceShape: 3, hair: 2, hairColor: 0, eyes: 3, eyebrows: 3,
       nose: 0, mouth: 0, glasses: 3, mole: 0, beard: 1,
       gender: 1, age: 38, height: 180),
+    theory: '活性化/情報/モード合成仮説（AIM）',
+    theoryShort: '覚醒・夢・眠りは三つの軸の合成にすぎない。意識は状態である',
+    uploadEnding: '冬也の理論が採択された世界では、引っ越しは**第四の状態**として設計される。\n'
+        '眠りでも覚醒でもない状態を通って、向こう側で目を覚ます。\n'
+        '彼は五百人ぶんの手順書を書き、一人ずつ名前を読みながら送り出した。\n'
+        '「『大丈夫』とは言わん。……いや」\n'
+        '「今日は言う。大丈夫だ」'
+  ),
+  // ── ここから、第二陣の八人 ─────────────────────────
+  NoahCharacter(
+    id: 'aizawa',
+    name: '相沢 灯',
+    reading: 'あいざわ あかり',
+    field: '認知科学研究所',
+    hobby: '編み物',
+    commId: 'ART-0311',
+    school: '名大・情報学部',
+    regret: '母のセーターを編み終えられなかった',
+    emoji: '🧶',
+    colorValue: 0xFFE8A0C0,
+    male: false,
+    // 編み物をする認知科学者。三つ編みとやわらかい目
+    avatar: Avatar(
+      skin: 0, faceShape: 1, hair: 7, hairColor: 3, eyes: 5, eyebrows: 0,
+      nose: 1, mouth: 4, glasses: 0, mole: 2, beard: 0,
+      gender: 2, age: 28, height: 156),
+    theory: '適応共鳴理論（ART）',
+    theoryShort: '入ってきたものと覚えているものが響き合ったとき、認識が立つ',
+    uploadEnding: '灯の理論が採択された世界では、引っ越しは**編み直し**になる。\n'
+        '古い段を一段ずつほどきながら、同じ模様を新しい糸で編んでいく。\n'
+        'ほどく速さと編む速さが合っていれば、模様は一度も途切れない。\n'
+        '「合ってさえいれば、いいんです。急がなければ」\n'
+        '新東戸塚の冬、彼女は母のセーターの続きを編みはじめる。',
+  ),
+  NoahCharacter(
+    id: 'fuyuki',
+    name: '冬木 遼',
+    reading: 'ふゆき りょう',
+    field: '高次脳機能研究センター',
+    hobby: '落語',
+    commId: 'HOT-0450',
+    school: '早大・文学部から医学部へ',
+    regret: '師匠の十八番を継がなかった',
+    emoji: '🎭',
+    colorValue: 0xFF9AA8E8,
+    male: true,
+    // 落語をやる神経科学者。角刈りに近い短髪、笑い皺
+    avatar: Avatar(
+      skin: 1, faceShape: 0, hair: 3, hairColor: 0, eyes: 4, eyebrows: 1,
+      nose: 2, mouth: 4, glasses: 4, mole: 0, beard: 0,
+      gender: 1, age: 44, height: 168),
+    theory: '高次表象理論（HOT）',
+    theoryShort: '「自分が見ている」と気づいたとき、はじめて意識になる',
+    uploadEnding: '遼の理論が採択された世界では、引っ越しが済んだ合図は**本人の一言**になる。\n'
+        '「ああ、いま自分が見ているな」——そう気づけたら、それで完了だ。\n'
+        '外から測る装置は無い。高座で客がどこで笑うかを測れないのと同じで。\n'
+        '「わかるんですよ。噺と一緒で、入った瞬間ってのは」\n'
+        '彼は新東戸塚の広場で、師匠の十八番を三百三十年ぶりに掛ける。',
+  ),
+  NoahCharacter(
+    id: 'mido',
+    name: '御堂 静香',
+    reading: 'みどう しずか',
+    field: '神経内科・身体性研究部門',
+    hobby: '合気道',
+    commId: 'DAM-0628',
+    school: '京大医学部・合気道部',
+    regret: '父の介護を人任せにした',
+    emoji: '🥋',
+    colorValue: 0xFFE8C46A,
+    male: false,
+    // 合気道をやる医師。まとめ髪と静かな目
+    avatar: Avatar(
+      skin: 2, faceShape: 3, hair: 6, hairColor: 0, eyes: 1, eyebrows: 3,
+      nose: 0, mouth: 2, glasses: 0, mole: 0, beard: 0,
+      gender: 2, age: 39, height: 170),
+    theory: 'ダマシオの理論（身体マップ）',
+    theoryShort: '身体の地図が先にあり、そこから自己が立ち上がる',
+    uploadEnding: '静香の理論が採択された世界では、**先に体を用意する**ことになる。\n'
+        '意識だけを送っても着地できない。受け止める身体の地図が要る。\n'
+        'だから新東戸塚では、引っ越しの前に必ず「体に慣れる半年」が置かれた。\n'
+        '一・九Gの床の上で、立って、歩いて、転んで、それから移る。\n'
+        '「地面を覚えるのが先です。人はそこからしか始まらない」',
+  ),
+  NoahCharacter(
+    id: 'karita',
+    name: '苅田 亨',
+    reading: 'かりた とおる',
+    field: '情報統合工学研究室',
+    hobby: '自作キーボード',
+    commId: 'SPC-1024',
+    school: '東工大・情報理工',
+    regret: '共同開発者と喧嘩別れした',
+    emoji: '⌨️',
+    colorValue: 0xFF6ED0C0,
+    male: true,
+    // キーボードを作る工学者。無造作な髪と丸メガネ
+    avatar: Avatar(
+      skin: 1, faceShape: 1, hair: 4, hairColor: 1, eyes: 0, eyebrows: 2,
+      nose: 1, mouth: 1, glasses: 1, mole: 0, beard: 0,
+      gender: 1, age: 35, height: 174),
+    theory: '統合セマンティックポインター競合理論（SPC）',
+    theoryShort: '意味の候補どうしが競い合い、勝ったものが意識に上る',
+    uploadEnding: '亨の理論が採択された世界では、引っ越しは**勝ち抜き戦**の形をとる。\n'
+        '新しい基盤の上で候補を走らせ、いつもと同じものが勝てば、それが本人だ。\n'
+        '負け筋まで含めて同じでなければ通らない。癖も、迷いも、誤変換も。\n'
+        '「その人らしさって、勝ち方じゃなくて負け方のほうに出るんですよ」\n'
+        '彼は喧嘩別れした相手の設計を、そのままキー配列に残している。',
+  ),
+  NoahCharacter(
+    id: 'naka',
+    name: '名嘉 うみ',
+    reading: 'なか うみ',
+    field: '麻酔科・意識モニタ研究',
+    hobby: '素潜り',
+    commId: 'NIH-0808',
+    school: '琉大医学部',
+    regret: '祖母に海を見せると言って果たせなかった',
+    emoji: '🌊',
+    colorValue: 0xFF5FC8E8,
+    male: false,
+    // 海に潜る麻酔科医。short hair、日焼け
+    avatar: Avatar(
+      skin: 3, faceShape: 0, hair: 2, hairColor: 0, eyes: 2, eyebrows: 0,
+      nose: 2, mouth: 1, glasses: 0, mole: 3, beard: 0,
+      gender: 2, age: 31, height: 163),
+    theory: 'ネットワーク抑制仮説（NIH）',
+    theoryShort: '意識は抑えられている。抑えが外れたときに現れる',
+    uploadEnding: 'うみの理論が採択された世界では、引っ越しは**足すのではなく外す**作業になる。\n'
+        '新しい体には、あらかじめ全部が抑え込まれた状態で入っている。\n'
+        'あとは順番に抑えを解いていくだけ。麻酔から覚ますのと同じ手順だ。\n'
+        '「潜って、浮くだけです。息を止めていられれば大丈夫」\n'
+        '新東戸塚の海に最初に潜ったのは、彼女だった。',
+  ),
+  NoahCharacter(
+    id: 'ashihara',
+    name: '芦原 慎',
+    reading: 'あしはら まこと',
+    field: '生物物理学研究所',
+    hobby: '燻製づくり',
+    commId: 'BIE-0902',
+    school: '阪大・生命機能',
+    regret: '弟子に何も教えないまま送り出した',
+    emoji: '🔥',
+    colorValue: 0xFFC08A5A,
+    male: true,
+    // 燻製を作る生物物理屋。白髪まじりの長め、口ひげ
+    avatar: Avatar(
+      skin: 2, faceShape: 2, hair: 5, hairColor: 5, eyes: 3, eyebrows: 1,
+      nose: 0, mouth: 3, glasses: 2, mole: 0, beard: 3,
+      gender: 1, age: 49, height: 177),
+    theory: 'ビーベリッヒの理論（膜・脂質過程）',
+    theoryShort: '意識は細胞の膜のふるまいに支えられている',
+    uploadEnding: '慎の理論が採択された世界では、運ぶのは情報ではなく**膜の状態**になる。\n'
+        '燻製と同じで、急に温度を変えれば台無しになる。だから何日もかけて移す。\n'
+        '新東戸塚の引っ越し施設は、彼の燻製小屋とそっくりの形をしている。\n'
+        '「待てるかどうかだけなんだ、こういうのは」\n'
+        '彼は今度こそ、弟子に手順を全部書いて渡した。',
+  ),
+  NoahCharacter(
+    id: 'chigusa',
+    name: '千種 郁',
+    reading: 'ちぐさ かおる',
+    field: '記憶科学研究室',
+    hobby: '古時計の修理',
+    commId: 'MCT-1201',
+    school: '筑波大・心理学',
+    regret: '祖父の時計を止めたまま持ってきた',
+    emoji: '🕰',
+    colorValue: 0xFFB8A0E8,
+    male: false,
+    // 古時計を直す記憶研究者。長い髪を下ろしている、細いメガネ
+    avatar: Avatar(
+      skin: 0, faceShape: 3, hair: 5, hairColor: 2, eyes: 1, eyebrows: 2,
+      nose: 1, mouth: 0, glasses: 3, mole: 1, beard: 0,
+      gender: 2, age: 34, height: 161),
+    theory: '記憶意識・一時性理論（MCTT）',
+    theoryShort: '意識とは、時間の流れと記憶がつくる連なりである',
+    uploadEnding: '郁の理論が採択された世界では、引っ越しで大事なのは**時計を止めないこと**になる。\n'
+        '中身を移すより、時間の連なりを切らないほうが先だ。\n'
+        'だから移送中もずっと、その人の主観の時間は進み続けるよう設計された。\n'
+        '「止まった時計は、直せます。でも止めないほうがずっと楽なので」\n'
+        '祖父の時計は、着陸の朝にもう一度動きはじめる。',
+  ),
+  NoahCharacter(
+    id: 'sakaki',
+    name: '榊 秀一',
+    reading: 'さかき しゅういち',
+    field: '科学哲学・現象学研究室',
+    hobby: '写経',
+    commId: 'GUR-0056',
+    school: '東北大・哲学',
+    regret: '妻の問いに答えないまま四十年経った',
+    emoji: '📜',
+    colorValue: 0xFFA8B49A,
+    male: true,
+    // 写経をする哲学者。最年長、白髪と長いあごひげ
+    avatar: Avatar(
+      skin: 4, faceShape: 2, hair: 1, hairColor: 4, eyes: 1, eyebrows: 3,
+      nose: 0, mouth: 2, glasses: 2, mole: 4, beard: 2,
+      gender: 1, age: 56, height: 166),
+    theory: 'ギュルヴィッチの理論（意識野）',
+    theoryShort: '意識には中心と周縁があり、野そのものが形を持つ',
+    uploadEnding: '秀一の理論が採択された世界では、移すのは中身ではなく**視野の形**になる。\n'
+        '何がいま真ん中にあって、何が端に置かれているか。その配置が本人だ。\n'
+        'だから引っ越しの検査は、記憶の照合ではなく「何が気になるか」を訊く。\n'
+        '「答えは要りません。何を気にしているかが、あなたですから」\n'
+        '四十年答えなかった妻の問いを、彼は写経の最後の一行に書き写す。',
   ),
 ];
 
@@ -894,6 +1172,108 @@ const List<NoahMystery> kNoahMysteries = [
         '「大丈夫」と言えなかったぶん、名前だけは呼ぶことにした。'
         '五百人ぶん、順番に。',
   ),
+  NoahMystery(
+    charaId: 'aizawa',
+    title: '談話室の毛糸が、毎晩ひと巻きだけ減っている',
+    scene: '船に毛糸は持ち込めない。繊維は全部、循環系の資源として登録されている。\n'
+        'なのに談話室の籠から、毎晩ひと巻きぶんだけ減る。\n'
+        '減ったぶんは翌朝、きちんと同じ量だけ戻っている。',
+    answer: '編んではほどき、ほどいては編んでいた。\n\n'
+        '地球で、母のセーターを編み終えられなかった。'
+        '袖が片方だけ残ったまま、間に合わなかった。\n'
+        '完成させてしまうと終わってしまうので、'
+        '毎晩おなじところまで編んで、朝までにほどく。\n\n'
+        '「終わらせないでおくのも、続けるうちなんです」',
+  ),
+  NoahMystery(
+    charaId: 'fuyuki',
+    title: '誰もいない食堂から、笑い声だけが聞こえる日がある',
+    scene: '当直の記録では、その時間、食堂には誰もいない。\n'
+        'なのに扉の外まで、拍子のそろった笑い声が届く。'
+        '録音しても、声は一人ぶんしか入っていない。',
+    answer: '一人で高座をやっていた。客席のぶんの笑いも、自分で入れて。\n\n'
+        '師匠の十八番を継がないまま船に乗った。'
+        '継がなかった噺は、演じる人がいなくなれば消える。\n'
+        'だから客がいなくても掛け続ける。'
+        '笑いどころで笑う人がいないと噺は死ぬので、そこも自分でやる。\n\n'
+        '「噺は、覚えてるやつが一人いれば残るんです」',
+  ),
+  NoahMystery(
+    charaId: 'mido',
+    title: '低重力室の床に、毎朝きれいな円が描かれている',
+    scene: '0.5G室の床に、直径四メートルほどの円が薄く残っている。'
+        '掃除しても翌朝また現れる。\n'
+        '床材の摩耗を測ると、円周に沿って均等に減っていた。'
+        '——同じところを、同じ速さで、何百回も。',
+    answer: '毎朝、一人で受け身を取り続けていた。\n\n'
+        '父の介護を人任せにしたまま、看取れなかった。'
+        '身体に触れる仕事を選んだのに、いちばん触れるべき体に触れなかった。\n\n'
+        '「倒れる練習です。倒れ方を知らない人は、人を支えられないので」',
+  ),
+  NoahMystery(
+    charaId: 'karita',
+    title: '船内端末のキー配列が、一台だけ違う',
+    scene: '五百台ある端末のうち、一台だけキーの並びが標準と違う。'
+        '登録上は同じ型番で、改造の申請も出ていない。\n'
+        '使っている人を見た者はいない。'
+        'それでも摩耗の具合から、毎日誰かが打っているのは確かだった。',
+    answer: '喧嘩別れした共同開発者の配列だった。\n\n'
+        '二人で作りかけていたものが、途中で止まった。'
+        '相手の癖に合わせた並びだけが、直さないまま残っている。\n'
+        '直せば楽になる。直さないのは、直したら忘れるからだ。\n\n'
+        '「その人らしさって、勝ち方じゃなくて負け方のほうに出るんですよ」',
+  ),
+  NoahMystery(
+    charaId: 'naka',
+    title: '人工河川の水位が、毎晩ほんの少しだけ下がる',
+    scene: '循環系の収支は合っている。漏れてはいない。'
+        'ただ、決まった時刻に数センチだけ水位が下がり、しばらくして戻る。\n'
+        '——何かが、沈んでいる。',
+    answer: '毎晩、川底に潜って息を止めていた。\n\n'
+        '祖母に海を見せると言って、果たせないまま船に乗った。'
+        '船に海は無い。いちばん深いのが、この川の底だ。\n'
+        '潜って、目を開けて、上を見る。それだけで海の代わりになる。\n\n'
+        '「浮くところまでが海なんです。沈むだけなら、ただの水なので」',
+  ),
+  NoahMystery(
+    charaId: 'ashihara',
+    title: 'フードコートの片隅で、いつも同じ温度が保たれている',
+    scene: '空調の記録に、説明のつかない一角がある。'
+        '摂氏28度前後を、三百年ずっと保っている小さな区画。\n'
+        '何かを温めているのでも、冷やしているのでもない。'
+        'ただ、変わらないように保っている。',
+    answer: '燻製の代わりだった。煙は出せないので、温度だけを再現している。\n\n'
+        '弟子に何も教えないまま送り出したことを、ずっと悔いていた。'
+        '手順は言葉にすると死ぬ、と思い込んでいたからだ。\n'
+        'だから温度だけを残した。いつか誰かが気づいて、訊きに来るように。\n\n'
+        '「待てるかどうかだけなんだ、こういうのは」',
+  ),
+  NoahMystery(
+    charaId: 'chigusa',
+    title: '船内時計より、いつも七分遅れている時計がある',
+    scene: '観測室の壁に、規格外の機械式時計が掛かっている。'
+        '積載記録には「私物・重量200g」としか書かれていない。\n'
+        '止まってはいない。ただ、いつ見ても船内時刻より七分遅れている。\n'
+        '誰も直そうとしない。',
+    answer: '祖父の時計で、地球を出た瞬間に止めたものだった。\n\n'
+        '七分は、発射から最後の通信が届くまでの時間。'
+        'そのぶんだけ遅らせて、動かし直してある。\n'
+        '直せば合う。合わせないのは、合わせたら地球が消えるからだ。\n\n'
+        '「止まった時計は直せます。でも、止めないほうがずっと楽なので」',
+  ),
+  NoahMystery(
+    charaId: 'sakaki',
+    title: '図書区画に、同じ一行だけを写した紙が積まれている',
+    scene: '紙は貴重品なので、船内では再生紙しか使えない。'
+        'その再生紙が、同じ一行だけを繰り返し写した状態で積まれている。\n'
+        '写経のようだが、経文ではない。'
+        '読むと、それは<b>問いかけ</b>だった。',
+    answer: '妻の問いだった。四十年、答えないまま来た問い。\n\n'
+        '答えを書けば終わる。書けないから、問いのほうを写し続けている。\n'
+        '写しているあいだは、まだ考えていることになるからだ。\n\n'
+        '「答えは要りません。何を気にしているかが、あなたですから」\n'
+        '——彼自身が、いちばんそれを実践していた。',
+  ),
 ];
 
 /// 「この習慣は誰のものか」を当てる3択。
@@ -1290,6 +1670,22 @@ String noahHitLineJa(NoahCharacter c) {
       return '「へえ。ちゃんと届いてたんだ、わたしの声」';
     case 'shirakawa':
       return '「上出来だ。……記憶が残ってるなら、蘇生は成功だな」';
+    case 'aizawa':
+      return '「よかった……ほどかずに済みました」';
+    case 'fuyuki':
+      return '「よっ、名人。おあとがよろしいようで」';
+    case 'mido':
+      return '「ありがとう。……いま、少し体が軽くなりました」';
+    case 'karita':
+      return '「正解。ちゃんと勝ち筋のほうを覚えててくれたんだ」';
+    case 'naka':
+      return '「うわ、覚えてる！ じゃあ今度いっしょに潜ろう」';
+    case 'ashihara':
+      return '「ほう。……待った甲斐があったな」';
+    case 'chigusa':
+      return '「合ってます。時計より正確ですね、あなた」';
+    case 'sakaki':
+      return '「よろしい。——では、次の問いに進みましょうか」';
     default:
       return '「……覚えていてくれたんだ」';
   }
@@ -1328,6 +1724,22 @@ String noahMysteryHitLineJa(NoahCharacter c) {
     case 'shirakawa':
       return '「見られていたか。'
           '……別に、供養のつもりじゃない。手順のうちだ」';
+    case 'aizawa':
+      return '「見てたんですね。……終わらせないでおくのも、続けるうちなので」';
+    case 'fuyuki':
+      return '「聞こえてましたか。いや、客がいないと噺は死ぬもんで」';
+    case 'mido':
+      return '「よく気づきました。倒れ方を知らない人は、人を支えられませんから」';
+    case 'karita':
+      return '「バレたか。直せば楽なんですけどね。直すと忘れるので」';
+    case 'naka':
+      return '「あー、水位でバレた。ちゃんと戻してたんだけどな」';
+    case 'ashihara':
+      return '「気づいたか。……いつか誰かが訊きに来ると思ってた」';
+    case 'chigusa':
+      return '「七分、数えたんですね。合わせないのは、合わせたら消えるからです」';
+    case 'sakaki':
+      return '「読みましたか。答えは書いてありませんよ。まだ考えているので」';
     default:
       return '「……よく気づいたね」';
   }
@@ -1357,6 +1769,22 @@ String noahGreetLineJa(NoahCharacter c) {
       return '「楠です。ロボット担当。困ったら呼んでください」';
     case 'shirakawa':
       return '「白川です。あなたを眠らせて、起こす係です」';
+    case 'aizawa':
+      return '「相沢です。認知科学。……手、動かしてないと落ち着かなくて」';
+    case 'fuyuki':
+      return '「冬木遼と申します。高次脳機能。前座なら三十年やってます」';
+    case 'mido':
+      return '「御堂です。身体のほうから意識を見ています。……握手、しますか」';
+    case 'karita':
+      return '「苅田です。情報統合。このキーボード、自分で作りました」';
+    case 'naka':
+      return '「名嘉うみです！ 麻酔科。眠らせるほうも起こすほうも、やります」';
+    case 'ashihara':
+      return '「芦原だ。生物物理。……あんた、燻製は好きか」';
+    case 'chigusa':
+      return '「千種です。記憶の研究をしています。時間のほうから」';
+    case 'sakaki':
+      return '「榊です。哲学をやっております。……お名前を、もう一度」';
     default:
       return '「${c.name}です。よろしく」';
   }
