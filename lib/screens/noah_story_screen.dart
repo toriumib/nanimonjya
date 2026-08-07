@@ -42,6 +42,7 @@ enum _Phase {
   mystery, // 船内の小さな謎（心残りから当てる）
   midVoyage, // 航行中の危機（引き返せなくなる）
   climax, // 減速危機
+  consciousness, // 意識の淘汰（量子論が残る）
   note, // 研究にもとづく覚え方のメモ
   finalTest, // 最終テスト（所属・通信ID・学生時代）
   beforeResult, // 着陸準備
@@ -96,6 +97,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.beforeMystery => kNoahBeforeMystery,
         _Phase.midVoyage => kNoahMidVoyage,
         _Phase.climax => kNoahClimax,
+        _Phase.consciousness => kNoahConsciousness,
         _Phase.beforeResult => kNoahBeforeResult,
         _ => const [],
       };
@@ -201,6 +203,10 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _phase = _Phase.date;
           }
         case _Phase.climax:
+          // 減速で「止まれた」直後に、意識の決着を置く。
+          // 全員が生き延びた実感の上でないと「一度も死んでいない」が効かない
+          _phase = _Phase.consciousness;
+        case _Phase.consciousness:
           _phase = _Phase.finalTest;
           _prepare(const [
             NoahField.affiliation,

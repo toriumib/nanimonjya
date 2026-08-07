@@ -1049,6 +1049,95 @@ const List<NoahLine> kNoahWhyNames = [
       '君が覚えた人数のぶんだけ、この船は大きくなる。', who: '所長'),
 ];
 
+/// 🧠 意識の淘汰。三百年かけて、理論がひとつずつ落ちる章。
+///
+/// 地上（Cogitate Consortium 2025, Nature）では IIT と GNWT の
+/// 敵対的共同研究が**勝者なし**で終わっている。それを船が終わらせる。
+///
+/// ⚠️ 決着の向きを変えないこと。
+/// 残った三つ（GNWT / IIT / 電磁場仮説）は、どれも
+/// 「二十八年ごとに意識が消えている＝十一回死んだ」に行き着く。
+/// 量子論だけが no-cloning のおかげで「複製されていない＝同じもの」と言える。
+/// **これが本作の「誰も死なない」に理由を与えている**ので、
+/// ここを緩めると作品の背骨が抜ける。
+const List<NoahLine> kNoahConsciousness = [
+  NoahLine(NoahVoice.narration, '——減速の前に、もうひとつ終わった実験がある。'),
+  NoahLine(NoahVoice.chara, 'この船は、意識を調べる装置としては異常です'),
+  NoahLine(NoahVoice.chara,
+      '五百人の意識が、二十八年ごとに十一回、'
+      '完全に止まって、また動く。地上では誰にも作れない'),
+  NoahLine(NoahVoice.player, '……それで、何か分かったんですか'),
+  NoahLine(NoahVoice.chara, '地球では、決着がつきませんでした'),
+  NoahLine(NoahVoice.chara,
+      '意識の理論を二つ並べて、どちらが正しければ何が見えるかを'
+      '先に約束させて、第三者に実験させる。'
+      'それでも勝者は出なかった'),
+  NoahLine(NoahVoice.chara, 'ここでは、二十九のうち二十五が落ちました'),
+  NoahLine(NoahVoice.narration,
+      '——止まっているあいだを語れない理論が、まず落ちた。'),
+  NoahLine(NoahVoice.narration,
+      '——脳の中だけで説明する理論が、次に落ちた。'
+      '隣のポッドほど記憶がにじむ、という事実を説明できなかったからだ。'),
+  NoahLine(NoahVoice.chara, '残ったのは三つ。どれも強い理論です'),
+  NoahLine(NoahVoice.chara, '情報が広く放送されたら意識、という説'),
+  NoahLine(NoahVoice.chara, '統合された情報の量が意識、という説'),
+  NoahLine(NoahVoice.chara, '脳が生む電磁場そのものが意識、という説'),
+  NoahLine(NoahVoice.narration, '——三つ目は、この船で直に否定された。'),
+  NoahLine(NoahVoice.narration,
+      '磁気セイルを開いた日、船内の電磁環境は桁で変わった。'
+      'それでも、誰の意識にも何も起きなかった。'),
+  NoahLine(NoahVoice.chara, '問題は、残った二つです'),
+  NoahLine(NoahVoice.chara, '放送が止まれば、意識は無い'),
+  NoahLine(NoahVoice.chara, '統合が消えれば、意識は無い'),
+  NoahLine(NoahVoice.chara,
+      'どちらでも同じ結論になる。'
+      '——この船の全員は、十一回死んで、十一回生まれた'),
+  NoahLine(NoahVoice.narration, '誰も、何も言わなかった。'),
+  NoahLine(NoahVoice.chara,
+      '「二度と誰も死なせない」と言った人は、もう十一回死なせている'),
+  NoahLine(NoahVoice.chara, '毎晩磨かれていた五百枚は、墓標だったことになる'),
+  NoahLine(NoahVoice.chara, '理屈は通っています。誰も反証できない'),
+  NoahLine(NoahVoice.chara, '……ただ、私は受け入れる気がありませんでした'),
+  NoahLine(NoahVoice.narration, '——三百年かけて測っていたものが、ひとつだけある。'),
+  NoahLine(NoahVoice.narration,
+      '隣り合ったポッドほど、記憶が混ざる。'
+      'その混ざり方が、距離に応じて減っていく。'),
+  NoahLine(NoahVoice.narration,
+      'ポッドのあいだに配線は無い。遮蔽もされている。'
+      '情報が渡る道が、どこにも無い。'),
+  NoahLine(NoahVoice.chara, 'ガラス化した脳は、熱の雑音がほとんど消えています'),
+  NoahLine(NoahVoice.chara,
+      'その状態でなら、近くに置かれたものどうしに'
+      '相関が残る。にじみは、その跡です'),
+  NoahLine(NoahVoice.player, '……名前を呼ぶと減るのは'),
+  NoahLine(NoahVoice.chara, '呼ばれた状態は、繰り返し測られている'),
+  NoahLine(NoahVoice.chara, '測られたものは、相関から切り離される'),
+  NoahLine(NoahVoice.narration,
+      '——二百年、理由も言わずに全員に頼んで回っていたことに、'
+      'ここでようやく理由がついた。'),
+  NoahLine(NoahVoice.chara, 'あなたがやっていたのは、感傷じゃない'),
+  NoahLine(NoahVoice.chara, '保全作業です'),
+  NoahLine(NoahVoice.narration, '——そして、いちばん大事なことが出てくる。'),
+  NoahLine(NoahVoice.chara, '量子の状態は、複製できません'),
+  NoahLine(NoahVoice.chara, '元を壊さずにコピーを作ることは、原理的にできない'),
+  NoahLine(NoahVoice.chara,
+      'コピーされていないなら、'
+      '二十八年の眠りは「死んで生まれ直した」ではありえない'),
+  NoahLine(NoahVoice.chara, '戻ってきたのは、同じものです'),
+  NoahLine(NoahVoice.chara, '——五百人は、一度も死んでいない'),
+  NoahLine(NoahVoice.narration,
+      'そして、この人が四十年抱えていた問いが、'
+      '答えの出ないまま消えた。'),
+  NoahLine(NoahVoice.narration, '「コピーされた意識は、本人か」'),
+  NoahLine(NoahVoice.narration, 'コピーは作れない。作れないものについて訊いても、仕方がない。'),
+  NoahLine(NoahVoice.chara, 'できるのは、移すことだけです'),
+  NoahLine(NoahVoice.chara, '移せば、元は必ず壊れる。控えは残らない。二人にもならない'),
+  NoahLine(NoahVoice.chara, '——引っ越し、と呼んでいたやつです'),
+  NoahLine(NoahVoice.narration,
+      '三百三十年前から、この人はそう言っていた。'
+      '証明できるようになるまでに、三百三十年かかっただけだった。'),
+];
+
 /// 到着直前。定員を見せる前に、落とした名前を回収する。
 ///
 /// ⚠️ **思い出すのではなく、口が先に動く**という決着にしてある。

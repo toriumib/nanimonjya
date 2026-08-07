@@ -307,6 +307,7 @@ void main() {
         '謎の前': kNoahBeforeMystery,
         '航行中': kNoahMidVoyage,
         '減速': kNoahClimax,
+        '意識の淘汰': kNoahConsciousness,
         '着陸前': kNoahBeforeResult,
       };
       chapters.forEach((name, lines) {
@@ -328,6 +329,7 @@ void main() {
         '謎の前': kNoahBeforeMystery,
         '航行中': kNoahMidVoyage,
         '減速': kNoahClimax,
+        '意識の淘汰': kNoahConsciousness,
         '着陸前': kNoahBeforeResult,
       };
       final appearsIn = <String>[];
@@ -337,6 +339,17 @@ void main() {
         }
       });
       expect(appearsIn, ['定員', '着陸前']);
+    });
+
+    test('意識の決着は、量子論の向きを保つ', () {
+      // 「残った三理論はどれも十一回の死に行き着き、量子論だけが連続を言える」
+      // という向きが、本作の「誰も死なない」を支えている。緩めたら落とす。
+      final body = kNoahConsciousness.map((l) => l.text).join();
+      expect(body, contains('複製できません'));
+      expect(body, contains('一度も死んでいない'));
+      expect(body, contains('引っ越し'));
+      // コピー可能＝バックアップが残る、という書き方に戻っていないこと
+      expect(body.contains('控えは残らない'), isTrue);
     });
 
     test('落とした名前を、最後に必ず回収する', () {
