@@ -571,6 +571,32 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                         Text(m.realCardTrainingDesc,
                             style: const TextStyle(
                                 fontSize: 12.5, color: Colors.black54)),
+                        const SizedBox(height: 10),
+                        // 🧑‍🎨 顔メモ（アバター）。写真が撮れない相手はこちら。
+                        //    Web でも使えるので kIsWeb で隠さない。
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Sfx.instance.pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const CustomRosterScreen(startAvatar: true)),
+                              );
+                            },
+                            icon: const Icon(Icons.face_retouching_natural),
+                            label: const Text('🧑‍🎨 顔メモをつくる'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8A5AC2),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(48),
+                              textStyle: const TextStyle(
+                                  fontSize: 14.5, fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         ElevatedButton.icon(
                           onPressed: () {

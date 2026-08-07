@@ -175,6 +175,44 @@ class Bgm {
     _current = null;
     await playGame();
   }
+
+  /// 🔊 いま鳴らしている場面のBGMを、選び直した曲でかけ直す。
+  ///
+  /// ⚠️ ショップは「ホームのタブ」の中にあるので、曲を選んだあとに
+  /// [restartGameBgm] を呼ぶと**ゲーム用の曲**が鳴り出してしまい、
+  /// 画面を移動した瞬間にホームの曲へ戻る（＝選んだのに変わらない、に見える）。
+  /// いまの場面に合わせてかけ直す。
+  Future<void> restartCurrent() async {
+    _current = null;
+    switch (_mode) {
+      case _BgmMode.game:
+        await playGame();
+      case _BgmMode.result:
+        await playResult();
+      case _BgmMode.home:
+      case _BgmMode.none:
+        await playHome();
+    }
+  }
+
+  /// ▶️ 試聴。持っていない曲でも鳴らせる（買う前に聴けないと選べないため）。
+  ///
+  /// 場面の設定（[_mode]）は変えないので、試聴をやめて画面を移れば
+  /// もとの曲に戻る。
+  Future<void> preview(String fileName) {
+    return _serialize(() async {
+      try {
+        await _player.stop();
+        await _player.setAsset(assetKey(fileName));
+        await _player.setLoopMode(LoopMode.off);
+        await _player.setVolume(0.4);
+        _current = null; // 試聴後にかけ直せるよう、鳴っている曲の記録は残さない
+        await _player.play();
+      } catch (e) {
+        debugPrint('BGM preview failed ($fileName): $e');
+      }
+    });
+  }
 }
 
 /// BGMをいまどの用途で鳴らしているか。

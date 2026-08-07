@@ -50,6 +50,9 @@ class NameCallScreen extends StatefulWidget {
   final OnlineMatchSession? online;
   final List<Person>? customPeople; // 自分の写真の名簿（各Person.nameが正解名）
   final int peopleCount; // 登場人数（6〜12）。カスタム/オンライン時は無視
+  /// 1人あたりの札の枚数（2〜5）。多いほど同じ顔に何度も会う。
+  final int? copiesPerPerson;
+
   final bool nameAsYouGo; // true=出たとき命名（1枚ずつ・初登場でその場命名）
   /// まとめて命名のとき、名前を自分で入力せず自動でつける（入力が面倒な人向け）。
 
@@ -75,6 +78,7 @@ class NameCallScreen extends StatefulWidget {
     this.online,
     this.customPeople,
     this.peopleCount = NameCallGame.peopleCount,
+    this.copiesPerPerson,
     // 🗑 命名ルールの切り替えと「2枚同時に出す」は廃止した（設定が多すぎて
     //    遊ぶ前に迷わせていた）。常に「出たとき命名」で動く。
     this.nameAsYouGo = true,
@@ -252,6 +256,9 @@ class _NameCallScreenState extends State<NameCallScreen> {
       cardsPerRound: 1,
       // 🤖 CPU対戦は難易度ぶんの人数をまとめて覚えてから思い出す。
       //    かんたん=1人ずつ、鬼=4人まとめて。カスタム名簿は命名済みなので対象外。
+      // 🌐 オンラインは両端末で山札の枚数が一致しないと成立しないので、
+      //    部屋に載せていない設定はここで既定へ戻す。
+      copiesPerPerson: _isOnline ? null : widget.copiesPerPerson,
       groupSize: (_isCpu && !_isCustom)
           ? _diff.groupSize
           : 0,
@@ -621,6 +628,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
       }
       final gained = _roundHits.where((h) => h).length;
       _cardsWon[0] += gained;
+      if (gained > 0) Sfx.instance.get(); // 🎴 カードが手に入った音
       // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
       //    プレイヤーのおてつきは没収せず、誰の点にもならない。
       if (_isCpu && _cpuTookRound) _cardsWon[1] += 1;
@@ -635,7 +643,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
     if (_phase != _Phase.round) return;
     if (player >= 0) {
       _cardsWon[player] += 1;
-      Sfx.instance.correct();
+      Sfx.instance.get(); // 🎴 カードが手に入った音
       HapticFeedback.lightImpact();
     } else {
       Sfx.instance.wrong();
@@ -1874,6 +1882,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                     builder: (_) => NameCallScreen(
                       customPeople: widget.customPeople,
                       peopleCount: widget.peopleCount,
+                      copiesPerPerson: widget.copiesPerPerson,
                       quizMode: widget.quizMode,
                       // CPU戦の再戦で難易度が消えないように引き継ぐ
                       cpuLevel: widget.cpuLevel,

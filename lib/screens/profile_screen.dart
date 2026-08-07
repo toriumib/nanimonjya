@@ -6,6 +6,7 @@ import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
+import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../l10n/premium_articles.dart';
 import '../services/bgm.dart';
@@ -13,7 +14,9 @@ import '../services/daily_reminder.dart';
 import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
 import 'character_shop_screen.dart';
+import 'noah_story_screen.dart';
 import 'report_screen.dart';
+import 'story_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
@@ -115,6 +118,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!playedNow) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(m.adQueued)));
+    }
+  }
+
+  /// 📮 バグ報告・改善要望をメールで送ってもらう。
+  ///
+  /// ホームに置いていたが、ホームが縦に長くなって遊ぶボタンが
+  /// スクロールの下に隠れていたのでこちらへ移した。
+  /// 件名と本文の書き出しを入れておく（白紙だと何を書けばいいか分からず、
+  /// そのまま閉じられてしまう）。
+  Future<void> _sendFeedback() async {
+    Sfx.instance.pop();
+    final m = MetaStrings.of(context);
+    final uri = Uri(
+      scheme: 'mailto',
+      path: kFeedbackEmail,
+      queryParameters: {
+        'subject': m.feedbackSubject,
+        'body': m.feedbackBody,
+      },
+    );
+    var launched = false;
+    try {
+      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      launched = false;
+    }
+    if (!launched && mounted) {
+      // メールアプリが無い端末やWebでは開けないので、宛先をコピーできる形で見せる
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(m.feedbackButton),
+          content: SelectableText(
+            '${m.feedbackNoMailApp}\n\n$kFeedbackEmail',
+            style: const TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(m.trainingIntroOk),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -221,6 +268,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 🎁 デイリーで手に入るもの（コイン・キャラ）を絵で並べる。
+  /// 顔は実際のキャラ画像を使う。「誰がもらえるか」が想像できるほうが押される。
+  Widget _rewardPreview() {
+    final faces = kCharImageAssets.take(4).toList();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF6D8), Color(0xFFFFE3EE)],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFD46B), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Text('🪙', style: TextStyle(fontSize: 26)),
+          const SizedBox(width: 8),
+          for (final f in faces)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(f,
+                    width: 34,
+                    height: 34,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        const Text('🙂', style: TextStyle(fontSize: 24))),
+              ),
+            ),
+          const Expanded(
+            child: Text(
+              'コインとキャラが もらえます',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  height: 1.35,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF8A6A1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _dailyBonusCard(MetaStrings m, PlayerProfile p) {
     return _sectionCard(
       title: '📅 ${m.dailyBonus}',
@@ -228,6 +321,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(p.dailyStreak > 0 ? m.streakDays(p.dailyStreak) : m.comeBackTomorrow),
+          const SizedBox(height: 10),
+          // 🎁 もらえるものを絵で見せる。
+          //    カレンダーだけだと月初は白いマスばかりで、
+          //    何がもらえるカードなのか分からなかった。
+          _rewardPreview(),
           const SizedBox(height: 12),
           // 📅 ハンコカレンダー。数字の「連続◯日」より、空いたマスが
           //    見えるほうが「明日は埋めよう」につながる。
@@ -320,6 +418,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ],
+          const SizedBox(height: 10),
+          // 📮 ご意見・不具合の窓口（ホームから移設）
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _sendFeedback,
+              icon: const Text('📮', style: TextStyle(fontSize: 18)),
+              label: Text(MetaStrings.of(context).feedbackButton),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2E7D5B),
+                side: const BorderSide(color: Color(0xFF2E7D5B), width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                textStyle: const TextStyle(
+                    fontSize: 14.5, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 📖 ストーリーモード。読むと「覚えるコツ」が物語として入るので、
+          // 遊ばない日でも開く理由になる。
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoryListScreen()),
+                );
+              },
+              icon: const Icon(Icons.auto_stories_rounded),
+              label: const Text('📖 ストーリー'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7A5AC2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 🚀 SFストーリー。読むだけでなく、覚えた数で結末が変わる。
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NoahStoryScreen()),
+                );
+              },
+              icon: const Icon(Icons.rocket_launch_rounded),
+              label: const Text('🚀 プロジェクト・ノア'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1D3A6B),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           // 📊 速さ・正確性・定着率の3指標で、モード別の成績を見る画面。
           // 「どれだけ覚えられているか」は戦績カードの数字だけでは分からない。

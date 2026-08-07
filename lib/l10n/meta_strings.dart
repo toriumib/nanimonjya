@@ -885,6 +885,13 @@ This tab is where you get stronger on your own.
   /// 出てくるキャラの数だと分かる書き方にする。
   String peopleCountLabel(int n) => ja ? '$n キャラ' : '$n chars';
   String peopleCountValue(int n) => ja ? '$n人' : '$n';
+  // 🎴 1人あたりの札の枚数
+  String get copiesTitle =>
+      ja ? '🎴 1人あたりの枚数' : '🎴 Cards per character';
+  String copiesValue(int n) => ja ? '$n枚' : '$n';
+  String copiesHint(int total, int recalls) => ja
+      ? '全部で$total枚。1人につき$recalls回 名前を答えます（多いほど覚えやすい）'
+      : '$total cards total — you answer each person $recalls time(s)';
   String get peopleCountTitle =>
       ja ? '👥 出てくるキャラの数' : '👥 How many characters appear';
   String peopleCountHint(int n) => ja
@@ -1020,7 +1027,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get deckTooFew =>
       ja ? '⚠️ 4人以上えらんでね' : '⚠️ Pick at least 4';
   String get deckSelectAll => ja ? 'ぜんいん出す' : 'Select all';
-  String get deckSectionBase => ja ? '基本の12人' : 'The original 12';
+  String get deckSectionBase => ja ? '基本の15人' : 'The original 15';
   String get deckSectionBought => ja ? '🛍 買ったキャラ' : '🛍 Purchased';
   String get deckSectionMine => ja ? '📷 自分で登録した人' : '📷 Your own photos';
   String get deckEmptyBought => ja
@@ -1224,7 +1231,8 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get storeAdLoading => ja ? '動画をじゅんび中…' : 'Loading video…';
   String get storeRate => ja ? '⭐ アプリを評価する' : '⭐ Rate the app';
   String get storeOwned => ja ? '所持ずみ' : 'Owned';
-  String get storeStarter => ja ? '基本キャラ（12人・最初から）' : 'Starter cast (12, free)';
+  String get storeStarter =>
+      ja ? '基本キャラ（15人・最初から）' : 'Starter cast (15, free)';
   String get storeMore => ja ? '➕ 追加キャラ（コインで仲間に）' : '➕ More characters (buy with coins)';
   String get storeBought => ja ? '新しいキャラを仲間にした！🎉' : 'New character unlocked! 🎉';
   /// 買った直後の案内。買っただけでは変化が見えないので、
@@ -1417,6 +1425,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
 
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
+  String get tabStory => ja ? 'ものがたり' : 'Story';
   // 📖 ルールブック（いつでも見直せるルール一覧）
   String get rulebookTitle => ja ? '📖 ルールブック' : '📖 Rulebook';
   /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。

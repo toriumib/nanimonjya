@@ -44,6 +44,8 @@ class _TopScreenState extends State<TopScreen>
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
+  /// 1人あたりの札の枚数。2枚＝1往復、増やすほど同じ顔に何度も会う。
+  int _copies = NameCallGame.defaultCopiesPerPerson;
 
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
@@ -275,6 +277,7 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => CpuEntryScreen(
                             level: lv,
                             peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
                           ),
                         ),
                       );
@@ -352,6 +355,7 @@ class _TopScreenState extends State<TopScreen>
                           builder: (_) => NameCallScreen(
                             humanPlayers: n,
                             peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
                           ),
                         ),
                       );
@@ -436,49 +440,6 @@ class _TopScreenState extends State<TopScreen>
     if (!played) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(m.adQueued)));
-    }
-  }
-
-  /// 📮 バグ報告・改善要望をメールで送ってもらう。
-  ///
-  /// 件名と本文の書き出しを入れておく（白紙だと何を書けばいいか分からず
-  /// そのまま閉じられてしまう）。アプリの版も入れて、どのビルドの話か
-  /// こちらで分かるようにする。
-  Future<void> _sendFeedback() async {
-    Sfx.instance.pop();
-    final m = MetaStrings.of(context);
-    final uri = Uri(
-      scheme: 'mailto',
-      path: kFeedbackEmail,
-      queryParameters: {
-        'subject': m.feedbackSubject,
-        'body': m.feedbackBody,
-      },
-    );
-    var launched = false;
-    try {
-      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      launched = false;
-    }
-    if (!launched && mounted) {
-      // メールアプリが無い端末やWebでは開けないので、宛先をコピーできる形で見せる
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(m.feedbackButton),
-          content: SelectableText(
-            '${m.feedbackNoMailApp}\n\n$kFeedbackEmail',
-            style: const TextStyle(fontSize: 14),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(m.trainingIntroOk),
-            ),
-          ],
-        ),
-      );
     }
   }
 
@@ -951,6 +912,53 @@ class _TopScreenState extends State<TopScreen>
                                   style: const TextStyle(
                                       fontSize: 11, color: Colors.black54),
                                 ),
+                                const SizedBox(height: 8),
+                                // 🎴 1人あたりの枚数。
+                                //    2枚＝命名1回＋想起1回で終わり。
+                                //    増やすと同じ顔に何度も会うので、
+                                //    間隔をあけた復習に近づいて定着しやすい。
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    m.copiesTitle,
+                                    style: const TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF2B5CA5)),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      m.copiesValue(_copies),
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF2B5CA5)),
+                                    ),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _copies.toDouble(),
+                                        min: NameCallGame.minCopiesPerPerson
+                                            .toDouble(),
+                                        max: NameCallGame.maxCopiesPerPerson
+                                            .toDouble(),
+                                        divisions:
+                                            NameCallGame.maxCopiesPerPerson -
+                                                NameCallGame.minCopiesPerPerson,
+                                        label: m.copiesValue(_copies),
+                                        onChanged: (v) => setState(
+                                            () => _copies = v.round()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  m.copiesHint(
+                                      _peopleCount * _copies, _copies - 1),
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.black54),
+                                ),
                                 const SizedBox(height: 10),
                                 // 📖 ルールをいつでも見直せる丸ボタン
                                 Row(
@@ -967,94 +975,92 @@ class _TopScreenState extends State<TopScreen>
                                   ],
                                 ),
                                 const SizedBox(height: 14),
-                                // 「みんなで」をメインに昇格。
-                                // ひとりで遊びたい人は「ビジネス特訓」タブの
-                                // 線むすび特訓のほうが向いているため、
-                                // なまえコールは本来の複数人プレイに専念させる。
+                                // 並び順は「よく押されるもの順」。
+                                // ⚠️ ホームが縦に長くてスクロールしないと
+                                //    下のボタンに気づけなかったので、
+                                //    説明文を削り、オンライン2種は横並びにして
+                                //    1画面に収まる高さにしている。
+                                //    ここにボタンを足すときは高さの合計に注意。
                                 _gradientButton(
                                   label: m.nameCallLocalButton,
                                   colors: const [
                                     Color(0xFFF08A5D),
                                     Color(0xFFE8663C)
                                   ],
-                                  height: 54,
-                                  fontSize: 18,
+                                  height: 52,
+                                  fontSize: 17,
                                   onTap: () => _pickLocalPlayers(context),
                                 ),
-                                const SizedBox(height: 10),
-                                _gradientButton(
-                                  label: m.nameCallOnlineButton,
-                                  colors: const [
-                                    Color(0xFFFFB65C),
-                                    Color(0xFFFF9F45)
-                                  ],
-                                  height: 48,
-                                  fontSize: 14,
-                                  onTap: () {
-                                    Sfx.instance.fanfare();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        // 👥 1台で遊ぶときの人数設定を
-                                        //    そのままオンラインへ持っていく
-                                        builder: (_) => OnlineLobbyScreen(
-                                          game: 'namecall',
-                                          initialPeople: _peopleCount,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                // 🏆 知らない人と、通話なしで遊べる早押し。
-                                //    フレンドマッチは相手を探すところから
-                                //    自分でやる必要があり、遊べる人が限られていた。
-                                _gradientButton(
-                                  label: m.rankMatchTitle,
-                                  colors: const [
-                                    Color(0xFFFFD46B),
-                                    Color(0xFFE8A400)
-                                  ],
-                                  height: 48,
-                                  fontSize: 14,
-                                  onTap: () {
-                                    Sfx.instance.fanfare();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const OnlineLobbyScreen(
-                                            game: 'rank'),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  m.rankMatchHomeHint,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.black54),
-                                ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 // 🤖 ひとりでも勝ち負けのある遊びができるように。
-                                // 相手を呼べないときの受け皿でもある。
+                                //    相手を呼べないときの受け皿で、実際に
+                                //    いちばん遊ばれるので2番目に置く。
                                 _gradientButton(
                                   label: m.nameCallCpuButton,
                                   colors: const [
                                     Color(0xFF8A5AC2),
                                     Color(0xFF6E44A8)
                                   ],
-                                  height: 48,
-                                  fontSize: 14,
+                                  height: 50,
+                                  fontSize: 16,
                                   onTap: () => _pickCpuLevel(context),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  m.nameCallCpuHint,
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.black54),
+                                const SizedBox(height: 8),
+                                // 🌐 オンラインは2種類を横並びに。
+                                //    フレンド＝知り合いと、ランク＝知らない人と。
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _gradientButton(
+                                        label: m.nameCallOnlineButton,
+                                        colors: const [
+                                          Color(0xFFFFB65C),
+                                          Color(0xFFFF9F45)
+                                        ],
+                                        height: 46,
+                                        fontSize: 13,
+                                        onTap: () {
+                                          Sfx.instance.fanfare();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              // 👥 1台で遊ぶときの人数設定を
+                                              //    そのままオンラインへ持っていく
+                                              builder: (_) => OnlineLobbyScreen(
+                                                game: 'namecall',
+                                                initialPeople: _peopleCount,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _gradientButton(
+                                        label: m.rankMatchTitle,
+                                        colors: const [
+                                          Color(0xFFFFD46B),
+                                          Color(0xFFE8A400)
+                                        ],
+                                        height: 46,
+                                        fontSize: 13,
+                                        onTap: () {
+                                          Sfx.instance.fanfare();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const OnlineLobbyScreen(
+                                                      game: 'rank'),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 // 📸 自分の写真で覚える・対戦
                                 OutlinedButton.icon(
                                   onPressed: () {
@@ -1171,20 +1177,9 @@ class _TopScreenState extends State<TopScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // 📮 フィードバック（バグ報告・改善要望）
-                  TextButton.icon(
-                    onPressed: _sendFeedback,
-                    icon: const Text('📮', style: TextStyle(fontSize: 18)),
-                    label: Text(MetaStrings.of(context).feedbackButton),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF2E7D5B),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  // 📮 ご意見・不具合の窓口はマイページへ移した。
+                  //    ホームが縦に長く、遊ぶボタンがスクロールの下に
+                  //    隠れていたため。困ったときに探す場所はマイページで足りる。
                   const SizedBox(height: 8),
                   // Buy Me a Coffee ボタン
                   TextButton.icon(

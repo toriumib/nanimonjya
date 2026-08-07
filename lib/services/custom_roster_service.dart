@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/avatar.dart';
 import '../models/person.dart';
 
 /// 自分でアップロードした「人物」1人分（顔写真＋名前＋名刺情報＋人メモ）。
@@ -19,6 +20,13 @@ import '../models/person.dart';
 class CustomEntry {
   final String id;
   final String imagePath; // 顔写真（アプリのドキュメントディレクトリ内のコピー）
+
+  /// 🧑‍🎨 顔メモのアバター（`Avatar.encode()` の文字列。空なら未設定）。
+  ///
+  /// 職場で会う人の顔写真を勝手に撮るわけにはいかないので、
+  /// 特徴を選んで組み立てた顔をここに持たせる。
+  /// 写真とアバターの両方があるときは**写真を優先**する（本物のほうが確実）。
+  final String avatar;
   final String cardImagePath; // 実物の名刺画像（任意）
 
   // ── 基本 ──
@@ -52,6 +60,7 @@ class CustomEntry {
     required this.id,
     required this.imagePath,
     required this.name,
+    this.avatar = '',
     this.cardImagePath = '',
     this.reading = '',
     this.nickname = '',
@@ -76,10 +85,12 @@ class CustomEntry {
     String? id,
     String? imagePath,
     String? cardImagePath,
+    String? avatar,
   }) =>
       CustomEntry(
         id: id ?? this.id,
         imagePath: imagePath ?? this.imagePath,
+        avatar: avatar ?? this.avatar,
         cardImagePath: cardImagePath ?? this.cardImagePath,
         name: name,
         reading: reading,
@@ -104,6 +115,7 @@ class CustomEntry {
   Map<String, dynamic> toJson() => {
         'id': id,
         'imagePath': imagePath,
+        'avatar': avatar,
         'name': name,
         'company': company,
         'title': title,
@@ -132,6 +144,7 @@ class CustomEntry {
     return CustomEntry(
       id: j['id'] as String,
       imagePath: j['imagePath'] as String,
+      avatar: s('avatar'),
       name: j['name'] as String,
       company: s('company'),
       title: s('title'),
@@ -154,9 +167,13 @@ class CustomEntry {
     );
   }
 
+  /// 顔写真があればそれを、無ければアバターを使う。
+  /// どちらも無ければ既定のアバターを描く（顔が真っ白にならないように）。
   Person toPerson() => Person(
-        face: imagePath,
-        kind: FaceKind.file,
+        face: imagePath.isNotEmpty ? imagePath : (avatar.isEmpty
+            ? const Avatar().encode()
+            : avatar),
+        kind: imagePath.isNotEmpty ? FaceKind.file : FaceKind.avatar,
         name: name,
         hobby: '',
         company: company,
@@ -220,8 +237,16 @@ class CustomRosterService extends ChangeNotifier {
         final list = (jsonDecode(raw) as List)
             .map((e) => CustomEntry.fromJson(e as Map<String, dynamic>))
             .toList();
-        // 実ファイルが残っているものだけ採用（アンインストール後の再インストール等に備える）
-        _entries = list.where((e) => File(e.imagePath).existsSync()).toList();
+        // 実ファイルが残っているものだけ採用（アンインストール後の再インストール等に備える）。
+        // ⚠️ アバターだけの人は写真ファイルを持たないので、ここで消さないこと。
+        // ⚠️ Web には dart:io の File が無い。顔メモ（アバター）は
+        //    写真ファイルを持たないので、Webではそのまま全部通す。
+        _entries = kIsWeb
+            ? list
+            : list
+                .where((e) =>
+                    e.imagePath.isEmpty || File(e.imagePath).existsSync())
+                .toList();
       } catch (_) {
         _entries = [];
       }
@@ -249,19 +274,30 @@ class CustomRosterService extends ChangeNotifier {
   ///
   /// [draft] は入力フォームが作った項目一式（id と imagePath は無視される）。
   /// [cardSourcePath] があれば実物の名刺画像も保存する。
+  /// [sourcePath] は顔写真。**アバターだけで登録するときは null**。
   Future<void> add({
-    required String sourcePath,
+    String? sourcePath,
     required CustomEntry draft,
     String? cardSourcePath,
   }) async {
-    final facesDir = await _facesDir();
     final id = _uuid.v4();
-    final destPath = '${facesDir.path}/$id${_ext(sourcePath)}';
-    await File(sourcePath).copy(destPath);
-    String cardPath = '';
-    if (cardSourcePath != null && cardSourcePath.isNotEmpty) {
-      cardPath = '${facesDir.path}/${id}_card${_ext(cardSourcePath)}';
-      await File(cardSourcePath).copy(cardPath);
+    var destPath = '';
+    var cardPath = '';
+    // 🖼 画像を1枚も扱わないなら、保存先ディレクトリにも触らない。
+    //    path_provider は Web に実装が無く、呼ぶだけで例外になる。
+    //    顔メモ（アバター）だけの登録は、これで Web でも通る。
+    final hasFiles = (sourcePath != null && sourcePath.isNotEmpty) ||
+        (cardSourcePath != null && cardSourcePath.isNotEmpty);
+    if (hasFiles && !kIsWeb) {
+      final facesDir = await _facesDir();
+      if (sourcePath != null && sourcePath.isNotEmpty) {
+        destPath = '${facesDir.path}/$id${_ext(sourcePath)}';
+        await File(sourcePath).copy(destPath);
+      }
+      if (cardSourcePath != null && cardSourcePath.isNotEmpty) {
+        cardPath = '${facesDir.path}/${id}_card${_ext(cardSourcePath)}';
+        await File(cardSourcePath).copy(cardPath);
+      }
     }
     _entries = [
       ..._entries,
@@ -285,19 +321,25 @@ class CustomRosterService extends ChangeNotifier {
     final old = _entries[idx];
     var imagePath = old.imagePath;
     var cardPath = old.cardImagePath;
-    final facesDir = await _facesDir();
-
-    if (newSourcePath != null && newSourcePath.isNotEmpty) {
-      final dest = '${facesDir.path}/${old.id}_${DateTime.now().millisecondsSinceEpoch}${_ext(newSourcePath)}';
-      await File(newSourcePath).copy(dest);
-      _deleteQuietly(old.imagePath);
-      imagePath = dest;
-    }
-    if (newCardSourcePath != null && newCardSourcePath.isNotEmpty) {
-      final dest = '${facesDir.path}/${old.id}_card_${DateTime.now().millisecondsSinceEpoch}${_ext(newCardSourcePath)}';
-      await File(newCardSourcePath).copy(dest);
-      _deleteQuietly(old.cardImagePath);
-      cardPath = dest;
+    // 写真を選び直したときだけファイルを触る（Webでは画像を扱わない）
+    final replacing = (newSourcePath != null && newSourcePath.isNotEmpty) ||
+        (newCardSourcePath != null && newCardSourcePath.isNotEmpty);
+    if (replacing && !kIsWeb) {
+      final facesDir = await _facesDir();
+      final stamp = DateTime.now().millisecondsSinceEpoch;
+      if (newSourcePath != null && newSourcePath.isNotEmpty) {
+        final dest = '${facesDir.path}/${old.id}_$stamp${_ext(newSourcePath)}';
+        await File(newSourcePath).copy(dest);
+        _deleteQuietly(old.imagePath);
+        imagePath = dest;
+      }
+      if (newCardSourcePath != null && newCardSourcePath.isNotEmpty) {
+        final dest =
+            '${facesDir.path}/${old.id}_card_$stamp${_ext(newCardSourcePath)}';
+        await File(newCardSourcePath).copy(dest);
+        _deleteQuietly(old.cardImagePath);
+        cardPath = dest;
+      }
     }
 
     _entries = [
@@ -312,7 +354,7 @@ class CustomRosterService extends ChangeNotifier {
   }
 
   void _deleteQuietly(String path) {
-    if (path.isEmpty) return;
+    if (path.isEmpty || kIsWeb) return;
     try {
       final f = File(path);
       if (f.existsSync()) f.deleteSync();
