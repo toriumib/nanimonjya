@@ -186,8 +186,9 @@ details.mystery .answer { border-top: 1px dashed var(--line); padding-top: 1rem;
 
 /* ---------- misc ---------- */
 .kanji {
-  font-size: clamp(2.4rem, 9vw, 5rem); color: var(--red); text-align: center;
-  margin: 3rem 0; opacity: .55; letter-spacing: .4em;
+  font-size: clamp(1.6rem, 8vw, 4rem); color: var(--red); text-align: center;
+  margin: 3rem 0; opacity: .55; letter-spacing: .35em;
+  white-space: nowrap; text-indent: .35em; /* 末尾の字間ぶんを相殺して中央に見せる */
 }
 .counter { list-style: none; margin-left: 0; }
 .counter li { position: relative; padding-left: 0; }
