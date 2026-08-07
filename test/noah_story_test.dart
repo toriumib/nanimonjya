@@ -220,6 +220,111 @@ void main() {
     });
   });
 
+  group('船内の小さな謎', () {
+    test('8人ぜんいんに謎がひとつずつある', () {
+      expect(kNoahMysteries.length, kNoahCast.length);
+      expect(kNoahMysteries.map((m) => m.charaId).toSet().length,
+          kNoahCast.length);
+      for (final m in kNoahMysteries) {
+        expect(noahCharacterById(m.charaId), isNotNull, reason: m.charaId);
+        expect(m.title, isNotEmpty, reason: m.charaId);
+        expect(m.scene, isNotEmpty, reason: m.charaId);
+        expect(m.answer, isNotEmpty, reason: m.charaId);
+      }
+    });
+
+    test('正解を含む3択になり、選択肢が重複しない', () {
+      final cast = kNoahCast.take(4).toList();
+      final qs = buildNoahMysteries(cast: cast, random: Random(7));
+      expect(qs, isNotEmpty);
+      for (final q in qs) {
+        expect(q.choices.length, 3);
+        expect(q.choices.map((c) => c.id).toSet().length, 3);
+        expect(q.choices.map((c) => c.id), contains(q.culprit.id));
+      }
+    });
+
+    test('選択肢は、その周回に出てきた人だけから作る', () {
+      // 会っていない人が混ざると、消去法で当たってしまって謎にならない
+      final cast = kNoahCast.take(4).toList();
+      final ids = cast.map((c) => c.id).toSet();
+      for (final q in buildNoahMysteries(cast: cast, random: Random(8))) {
+        for (final c in q.choices) {
+          expect(ids, contains(c.id));
+        }
+      }
+    });
+
+    test('同じ人の謎が周回内で二度出ない', () {
+      final cast = kNoahCast.take(4).toList();
+      final qs = buildNoahMysteries(cast: cast, random: Random(9), count: 4);
+      expect(qs.map((q) => q.culprit.id).toSet().length, qs.length);
+    });
+
+    test('キャストが少なすぎるときは謎を出さない（3択が作れない）', () {
+      expect(buildNoahMysteries(cast: kNoahCast.take(1).toList()), isEmpty);
+      expect(buildNoahMysteries(cast: const []), isEmpty);
+    });
+
+    test('要求した数より候補が少なければ、あるぶんだけ返す', () {
+      final qs = buildNoahMysteries(
+          cast: kNoahCast.take(3).toList(), random: Random(10), count: 9);
+      expect(qs.length, 3);
+    });
+
+    test('正誤の判定', () {
+      final cast = kNoahCast.take(4).toList();
+      final q = buildNoahMysteries(cast: cast, random: Random(11)).first;
+      final other = cast.firstWhere((c) => c.id != q.culprit.id);
+      expect(q.isCorrect(q.culprit), isTrue);
+      expect(q.isCorrect(other), isFalse);
+    });
+
+    test('IDから謎を引ける／知らないIDは null', () {
+      expect(noahMysteryFor('shirakawa'), isNotNull);
+      expect(noahMysteryFor('nobody'), isNull);
+    });
+
+    test('解けたとき・外したときのセリフが全員ぶん出る', () {
+      for (final c in kNoahCast) {
+        expect(noahMysteryHitLineJa(c), isNotEmpty, reason: c.id);
+      }
+      final line = noahMysteryMissLineJa(kNoahCast[0], kNoahCast[1]);
+      expect(line, contains(kNoahCast[0].name)); // 選んだ人の名前を出す
+    });
+  });
+
+  group('物語の章', () {
+    test('地の文の章がどれも空でない（空だと画面が進まなくなる）', () {
+      final chapters = <String, List<NoahLine>>{
+        '序章': kNoahPrologue,
+        '定員': kNoahCapacityScene,
+        'なぜ名前': kNoahWhyNames,
+        '名刺の前': kNoahBeforeMeeting,
+        '前夜': kNoahBeforeSleep,
+        '目覚め': kNoahAwake,
+        '謎の前': kNoahBeforeMystery,
+        '航行中': kNoahMidVoyage,
+        '減速': kNoahClimax,
+        '着陸前': kNoahBeforeResult,
+      };
+      chapters.forEach((name, lines) {
+        expect(lines, isNotEmpty, reason: name);
+        for (final l in lines) {
+          expect(l.text, isNotEmpty, reason: name);
+        }
+      });
+    });
+
+    test('所長のセリフには話し手の名前が入っている', () {
+      for (final l in [...kNoahPrologue, ...kNoahCapacityScene]) {
+        if (l.voice == NoahVoice.director) {
+          expect(l.who, isNotEmpty, reason: l.text);
+        }
+      }
+    });
+  });
+
   group('立ち絵（アバター）', () {
     test('全員に顔がある', () {
       for (final c in kNoahCast) {

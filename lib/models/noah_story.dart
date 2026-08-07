@@ -444,6 +444,51 @@ const List<NoahLine> kNoahPrologue = [
   NoahLine(NoahVoice.director, '覚えることだ。名前を。全員ぶん。', who: '所長'),
 ];
 
+/// 🪑 定員の宣告。「さよならの手紙」の章。
+///
+/// 定員カウンターは画面の右上にずっと出ているが、
+/// **なぜ12名なのか**を物語の中で一度も言っていなかった。
+/// ここで言っておかないと、数字が増えても嬉しくない。
+const List<NoahLine> kNoahCapacityScene = [
+  NoahLine(NoahVoice.director, 'もうひとつ、先に言っておく。', who: '所長'),
+  NoahLine(NoahVoice.director, 'この船に乗れるのは、十二名だ。', who: '所長'),
+  NoahLine(NoahVoice.narration, '——誰も、声を出さなかった。'),
+  NoahLine(NoahVoice.player, '……十二人。地下にいるのは、一万人以上いますよね'),
+  NoahLine(NoahVoice.director,
+      '差別でも、抽選でもない。ただの物理だ。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '冷凍睡眠から戻れるのが四割。生態系の物質収支が閉じない。'
+      '推進剤の質量比が許さない。三つのうちひとつでも崩れれば、'
+      '船はただの棺になる。',
+      who: '所長'),
+  NoahLine(NoahVoice.director,
+      'だから計画の主役は人間じゃない。受精卵一万個と、人工子宮だ。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '十二名は、その荷物を四十九光年運ぶための世話人にすぎん。', who: '所長'),
+  NoahLine(NoahVoice.narration,
+      '乗れないと決まった者は、乗る者に宛てて手紙を一通書く。'),
+  NoahLine(NoahVoice.narration,
+      '到着後に開封され、新しい星の最初の図書館に収められる。'
+      'それが、残る側に許されたただひとつの渡航手段だった。'),
+  NoahLine(NoahVoice.narration, '——「さよならの手紙」と呼ばれている。'),
+  NoahLine(NoahVoice.narration,
+      '科学者たちも、全員が書いていた。技術者の枠は多く見ても四つ。'
+      '八人のうち半分は、自分が作った船を見送る側にまわる。'),
+  NoahLine(NoahVoice.director, 'だが、この数字は動く。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '研究がひとつ通るたび、乗れる人数は増える。'
+      '冷凍睡眠が確かになれば百八名。生態系が閉じれば三百名。',
+      who: '所長'),
+  NoahLine(NoahVoice.director,
+      '推進と減速の両方が成立すれば——五百名。全員だ。', who: '所長'),
+  // ⚠️ 主人公の一人称は画面側が [NoahGender.pronounJa] で足すので、
+  //    セリフ本文には「ぼく」「わたし」を書かないこと（二重になる）
+  NoahLine(NoahVoice.player, '……何をすれば、いいんですか'),
+  NoahLine(NoahVoice.director, '覚えろ。', who: '所長'),
+  NoahLine(NoahVoice.director,
+      '君が思い出せた数だけ、この船は大きくなる。', who: '所長'),
+];
+
 /// 名刺交換の前口上。
 const List<NoahLine> kNoahBeforeMeeting = [
   NoahLine(NoahVoice.narration, '——顔合わせが始まった。'),
@@ -480,6 +525,33 @@ const List<NoahLine> kNoahAwake = [
   NoahLine(NoahVoice.narration, '天井が見える。自分の名前は、言える。'),
   NoahLine(NoahVoice.player, '（……じゃあ、あの人は？）'),
   NoahLine(NoahVoice.narration, '隣のポッドから、誰かが起き上がる。'),
+];
+
+/// 🛰 航行中の危機。先遣プローブが黙る。
+///
+/// 減速の山場（[kNoahClimax]）の前に、もうひとつ引っかかりを置く。
+/// **引き返せない**ことをここで確定させておくと、
+/// 減速の成否がそのまま全員の生死になる。
+const List<NoahLine> kNoahMidVoyage = [
+  NoahLine(NoahVoice.narration, '——航行、百六十三年目。'),
+  NoahLine(NoahVoice.narration,
+      '八十年先に出した先遣プローブ「ヨハネ」からの定時信号が、途絶えた。'),
+  NoahLine(NoahVoice.chara, '大気モデルが外れている可能性がある'),
+  NoahLine(NoahVoice.chara, '窒素が無ければ、こちらの菌は根づかない'),
+  NoahLine(NoahVoice.player, '……引き返すことは'),
+  NoahLine(NoahVoice.chara, 'できない'),
+  NoahLine(NoahVoice.chara,
+      '減速に使う磁気セイルは、あの星の恒星風でしか働かない。'
+      'ここで止まる手段は、無い'),
+  NoahLine(NoahVoice.narration, '沈黙。'),
+  NoahLine(NoahVoice.chara, 'なら、外れていた場合の菌も作る'),
+  NoahLine(NoahVoice.chara, 'あと百六十年ある。四十年で一系統、四系統は間に合う'),
+  NoahLine(NoahVoice.narration,
+      '——「ヨハネ」の沈黙の理由が分かるのは、到着の直前になる。'),
+  NoahLine(NoahVoice.narration,
+      'プローブは壊れていなかった。自己複製する機械が増えすぎて、'
+      '送信アンテナごと基礎材に変えてしまっていた。'),
+  NoahLine(NoahVoice.narration, '成功しすぎた結果の、沈黙だった。'),
 ];
 
 /// 減速危機。全員が同時に動く場面。
@@ -526,6 +598,203 @@ const List<NoahDate> kNoahDates = [
   NoahDate('旧フェアウェイの記録映像',
       '発射の朝の映像。十八番のピンフラッグだけが、まだ立っている。'),
 ];
+
+// ── 🔍 船内の小さな謎 ──────────────────────────────
+
+/// 船の中で、誰かが毎日ひそかに続けていること。
+///
+/// **答えはすべて [NoahCharacter.regret] に繋がっている**。
+/// デートで心残りを聞いていれば解ける、という作りにしてある。
+/// 3択の顔ぶれは他のキャラなので、ここでも「混ざっている」感触が出る。
+///
+/// ⚠️ 犯人探しではない。誰も悪いことをしていない。
+/// 見出しやセリフを足すときも、責める調子にはしないこと。
+class NoahMystery {
+  /// 続けている人。
+  final String charaId;
+
+  /// 謎の見出し。
+  final String title;
+
+  /// 気づくまでの地の文。
+  final String scene;
+
+  /// 種明かし。心残りとの繋がりをここで言う。
+  final String answer;
+
+  const NoahMystery({
+    required this.charaId,
+    required this.title,
+    required this.scene,
+    required this.answer,
+  });
+}
+
+const List<NoahMystery> kNoahMysteries = [
+  NoahMystery(
+    charaId: 'hibino',
+    title: '消灯後の工作室で、電気炉だけが温まっている',
+    scene: '工作室の電気炉に、夜だけ火が入る。'
+        '成形物は何も入っていない。空焚きだ。\n'
+        '記録を見ると、温度の上げ下げが妙に不規則で、'
+        '途中でわざと弱める時間が挟まっている。',
+    answer: '備前の登り窯の温度カーブを、そのまま再現していた。\n'
+        '火を強くしすぎると割れるから、途中で弱める。'
+        '実家の窯焚きの手順そのものだ。\n\n'
+        '「ただいま」を言えないまま出てきたから、'
+        '代わりに毎晩、父の火加減をなぞっている。',
+  ),
+  NoahMystery(
+    charaId: 'kiryu',
+    title: '談話室の碁盤の石が、毎朝ひとつ増えている',
+    scene: '談話室の隅に碁盤が置いてある。誰も打っているところを見た人がいない。\n'
+        'なのに毎朝、石がひとつだけ増えている。'
+        '黒と白が、きちんと交互に。',
+    answer: '相手の手番も、自分で打っていた。\n'
+        '一日一手。三百三十年かけて、一局を打ち切るつもりでいる。\n\n'
+        '「一緒に碁を打とう」と言ってくれた姉の誘いを、'
+        '断り続けたまま船に乗った。'
+        'いまは、断らずに打っている。',
+  ),
+  NoahMystery(
+    charaId: 'mizuhara',
+    title: '食堂の醤油だけ、補給記録に載っていない',
+    scene: '船の中の物は、一滴残らず収支表に載っている。'
+        '載っていなければ、どこかで漏れている。\n'
+        'ところが食堂の「特製醤油」だけ、'
+        '入庫の記録が三百年ぶん、どこにも無い。',
+    answer: '補給していないから、記録が無かった。継ぎ足していただけだ。\n\n'
+        '祖母のぬか床は、塩の収支が合わなくて船に持ち込めなかった。'
+        'だから乳酸菌と酵母だけを分けて、醤油として起こし直した。\n\n'
+        '祖母の六十年に、船の三百三十年を継ぎ足している。',
+  ),
+  NoahMystery(
+    charaId: 'tachibana',
+    title: '観測デッキの鉢に、毎朝だれかが水をやっている',
+    scene: '観測デッキの隅に、鉢がひとつ置いてある。'
+        '閉じた生態系の収支表に載っていない、規格外の植物だ。\n'
+        '当直のロボットへの引き継ぎ書には、一行だけ書いてある。\n'
+        '——「量は多すぎないこと。こいつは、待つのが好きな株なので」',
+    answer: '地球に残した妻が、最後まで育てていた株の分け身だった。\n\n'
+        '「二人の庭を作る」という約束は、間に合わなかった。'
+        '墓に水をやることも、ついにできなかった。\n\n'
+        'だから三百三十年、毎朝この鉢に水をやっている。',
+  ),
+  NoahMystery(
+    charaId: 'hoshino',
+    title: '観測窓の、いちばん何も無い方角にカメラが向いている',
+    scene: '船の望遠カメラが、毎晩きまった方角を向く。\n'
+        '進行方向でもなければ、目的地でもない。'
+        '撮っても何も写らない、ただ黒いだけの方角だ。',
+    answer: '船が出てきた方角だった。\n'
+        '四十九光年ぶん離れると、太陽はもう星の一粒にもならない。'
+        'だから何も写らない。\n\n'
+        '「本当の星空を見せる」と祖父に約束したまま、'
+        '地上の空はとうに赤く濁ってしまった。\n'
+        '見せられなかったぶんを、毎晩ここから撮り続けている。',
+  ),
+  NoahMystery(
+    charaId: 'iwao',
+    title: 'カラオケの掲示板に、匿名の俳句が一句ずつ増える',
+    scene: '掲示板に、誰のものとも書かれていない句が貼られる。'
+        '目覚めるたびに、一句だけ。\n'
+        '達筆で、素っ気なくて、決して名前が入っていない。\n'
+        '——並べてみると、季語が全部おなじだった。',
+    answer: '全句に「山」が入っていた。船に山は無い。\n\n'
+        '若いころ、開発で山をひとつ潰した。'
+        '標高三百十二メートル、名前の付いていない山だった。'
+        '名前が無かったから、誰も反対しなかった。\n\n'
+        '故郷の山に最後に登れなかったぶんを、句で登り直している。',
+  ),
+  NoahMystery(
+    charaId: 'kusunoki',
+    title: '誰も使っていない周波数に、毎晩ノイズが乗る',
+    scene: '船の通信帯のうち、いちばん端の周波数は空いている。'
+        '割り当てが無いから、誰も使わない。\n'
+        'その帯に、毎晩きまった時刻だけノイズが乗る。'
+        '意味のある信号ではない。ただの雑音だ。\n'
+        'なのに、聞いていると笑い方のクセのようなものが混じって聞こえる。',
+    answer: '兄のラジオを、鳴らし続けていた。\n\n'
+        '真空管の一本がどうしても手に入らなくて、'
+        '最後まで直せないまま兄を見送った。\n'
+        '直しきれない機械は、鳴らしておくしかない。\n\n'
+        '「雑音でも、鳴っていれば壊れてはいない」——'
+        'それが、修理屋の理屈だった。',
+  ),
+  NoahMystery(
+    charaId: 'shirakawa',
+    title: '冷凍ポッドの番号札が、毎晩ひとつだけ磨かれている',
+    scene: 'ポッドは五百基。全部を磨くなら一晩で足りるはずだ。\n'
+        'なのに毎晩、必ずひとつだけ磨かれている。'
+        '五百日かけて一周し、また最初に戻る。',
+    answer: '磨くとき、番号ではなく名前を声に出していた。\n\n'
+        'かつて三人の患者を、冷凍で見送った。'
+        'カルテには番号しか残していない。'
+        '名前で呼ぶと、失敗が「人」になってしまうからだ。\n\n'
+        '「大丈夫」と言えなかったぶん、名前だけは呼ぶことにした。'
+        '五百人ぶん、順番に。',
+  ),
+];
+
+/// 「この習慣は誰のものか」を当てる3択。
+class NoahMysteryQuestion {
+  final NoahMystery mystery;
+  final NoahCharacter culprit;
+
+  /// 表示順に並んだ選択肢（正解を1人含む）。
+  final List<NoahCharacter> choices;
+
+  const NoahMysteryQuestion({
+    required this.mystery,
+    required this.culprit,
+    required this.choices,
+  });
+
+  bool isCorrect(NoahCharacter picked) => picked.id == culprit.id;
+}
+
+NoahMystery? noahMysteryFor(String charaId) {
+  for (final m in kNoahMysteries) {
+    if (m.charaId == charaId) return m;
+  }
+  return null;
+}
+
+/// [cast] の中から謎を [count] 個えらぶ。
+///
+/// 選択肢は必ず**その周回に出てきた人**から作る。
+/// 会っていない人を混ぜると、消去法で当たってしまって謎にならない。
+List<NoahMysteryQuestion> buildNoahMysteries({
+  required List<NoahCharacter> cast,
+  Random? random,
+  int count = 2,
+  int choiceCount = 3,
+}) {
+  final rng = random ?? Random();
+  // 3択ぶんの顔ぶれが揃わないなら、謎そのものを出さない
+  if (cast.length < choiceCount) return const [];
+
+  final candidates = [
+    for (final c in cast)
+      if (noahMysteryFor(c.id) != null) c,
+  ]..shuffle(rng);
+
+  final out = <NoahMysteryQuestion>[];
+  for (final culprit in candidates.take(count)) {
+    final others = [
+      for (final c in cast)
+        if (c.id != culprit.id) c,
+    ]..shuffle(rng);
+
+    final choices = [culprit, ...others.take(choiceCount - 1)]..shuffle(rng);
+    out.add(NoahMysteryQuestion(
+      mystery: noahMysteryFor(culprit.id)!,
+      culprit: culprit,
+      choices: choices,
+    ));
+  }
+  return out;
+}
 
 // ── 乗船定員：覚えるほど、助かる人が増える ──────────────
 
@@ -616,6 +885,46 @@ const List<NoahNote> kNoahNotes = [
         '長持ちするとされている。三百三十年は、さすがに空けすぎだが。',
     'Ebbinghaus 以来の分散学習の研究',
   ),
+  NoahNote(
+    '覚えたら、眠る',
+    '眠っているあいだに、その日おぼえたことが整理されて'
+        '定着していくと考えられている。'
+        '徐波と紡錘波のタイミングが揃うときに、'
+        'その受け渡しが起きているという説がある。\n'
+        'この船が眠りながら渡るのは、燃料の都合だけではない。',
+    'Staresina（2024）睡眠中の記憶固定に関する総説',
+  ),
+  NoahNote(
+    'どこで会ったかを、一緒に覚える',
+    '思い出すときの手がかりは、覚えたときの状況と結びついているとされる。'
+        'その人の名前だけを裸で覚えるより、'
+        '「観測デッキで会った星野さん」と場所ごと覚えたほうが'
+        'あとで引っかかりやすいと言われている。',
+    'Godden & Baddeley（1975）文脈依存記憶の研究',
+  ),
+  NoahNote(
+    'まちがえても、ためになる',
+    '思い出そうとして外したあとに正解を知ると、'
+        '最初から正解だけを見せられるより残りやすいことがある、'
+        'という報告がある。\n'
+        'この船のテストでまちがえても、無駄にはならないとされている。',
+    'Kornell ら（2009）失敗を含む検索の効果',
+  ),
+];
+
+/// 幕間「船内の小さな謎」の前口上。
+const List<NoahLine> kNoahBeforeMystery = [
+  NoahLine(NoahVoice.narration, '——航行のあいだ、船には妙な習慣がいくつかある。'),
+  NoahLine(NoahVoice.narration,
+      '当番表にも、収支表にも載っていない。'
+      'なのに、何十年たっても途切れない。'),
+  NoahLine(NoahVoice.narration,
+      '誰がやっているのか、誰も名乗り出ない。'
+      '悪いことではないので、追及する者もいない。'),
+  NoahLine(NoahVoice.player, '……でも、心当たりならある'),
+  NoahLine(NoahVoice.narration,
+      '船内を歩いたとき、みんな心残りをひとつずつ話していった。'),
+  NoahLine(NoahVoice.narration, 'あれを覚えていれば、たぶん分かる。'),
 ];
 
 /// 「なぜ名前なのか」を所長が話す章。物語の主題をここで言う。
@@ -711,6 +1020,44 @@ String noahHitLineJa(NoahCharacter c) {
 String noahMissLineJa(NoahCharacter c, String picked) {
   return '「ううん、それは——たぶん、別の人の話。$picked、って言ったよね」';
 }
+
+/// 🔍 謎が解けたときに、その人が言うこと。
+///
+/// 白状させるのではなく、**見つけてもらった**という書き方にする。
+String noahMysteryHitLineJa(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino':
+      return '「……見てたんだ。恥ずかしいな。'
+          '空焚きなんて、燃料の無駄なのにね」';
+    case 'kiryu':
+      return '「よく気づきましたね。'
+          '——ええ、相手の手も私が打っています。ずるいですか？」';
+    case 'mizuhara':
+      return '「ばれた。収支表に載せると、'
+          '『それ要りますか』って言われちゃうから」';
+    case 'tachibana':
+      return '「……よく分かったな。'
+          '規格外の鉢がひとつ、それだけの話だ」';
+    case 'hoshino':
+      return '「あそこ、何も写らないんですよ。'
+          'それでも、向けておきたくて」';
+    case 'iwao':
+      return '「季語で当てたか。……やるな、若いの」';
+    case 'kusunoki':
+      return '「聞こえてた？ よかった。'
+          'わたしにしか聞こえてないのかと思ってた」';
+    case 'shirakawa':
+      return '「見られていたか。'
+          '……別に、供養のつもりじゃない。手順のうちだ」';
+    default:
+      return '「……よく気づいたね」';
+  }
+}
+
+/// 謎を外したとき。ここでも責めない。
+String noahMysteryMissLineJa(NoahCharacter picked, NoahCharacter culprit) =>
+    '「${picked.name}さんじゃないよ。'
+    'その人にも心残りはあるけど、これは別の人のかたちだ」';
 
 /// 出会いのとき、名刺を渡しながら言うこと。
 String noahGreetLineJa(NoahCharacter c) {
