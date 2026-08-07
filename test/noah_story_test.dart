@@ -303,6 +303,7 @@ void main() {
         '名刺の前': kNoahBeforeMeeting,
         '前夜': kNoahBeforeSleep,
         '目覚め': kNoahAwake,
+        '忘れた': kNoahForgot,
         '謎の前': kNoahBeforeMystery,
         '航行中': kNoahMidVoyage,
         '減速': kNoahClimax,
@@ -314,6 +315,36 @@ void main() {
           expect(l.text, isNotEmpty, reason: name);
         }
       });
+    });
+
+    test('所長の名前は、出す場所を絞ってある', () {
+      // どこでも出していると、忘れる場面も思い出す場面も効かなくなる。
+      // 名乗り（定員の章）と、最後に呼ぶところ（着陸前）の2か所だけ。
+      final chapters = {
+        '序章': kNoahPrologue,
+        '定員': kNoahCapacityScene,
+        'なぜ名前': kNoahWhyNames,
+        '忘れた': kNoahForgot,
+        '謎の前': kNoahBeforeMystery,
+        '航行中': kNoahMidVoyage,
+        '減速': kNoahClimax,
+        '着陸前': kNoahBeforeResult,
+      };
+      final appearsIn = <String>[];
+      chapters.forEach((name, lines) {
+        if (lines.any((l) => l.text.contains(kNoahDirectorName))) {
+          appearsIn.add(name);
+        }
+      });
+      expect(appearsIn, ['定員', '着陸前']);
+    });
+
+    test('落とした名前を、最後に必ず回収する', () {
+      // 忘れる章があるのに拾う章が無い、という壊れ方をしないように
+      expect(kNoahForgot.any((l) => l.text.contains('名前だけが、無い')), isTrue);
+      expect(
+          kNoahBeforeResult.any((l) => l.text.contains(kNoahDirectorName)),
+          isTrue);
     });
 
     test('所長のセリフには話し手の名前が入っている', () {

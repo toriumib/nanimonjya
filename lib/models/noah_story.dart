@@ -406,6 +406,16 @@ extension NoahPreferenceLabel on NoahPreference {
       };
 }
 
+/// 所長の名前。
+///
+/// ⚠️ **この物語のいちばん大事な一語**。
+/// 所長は船に乗らないので、覚醒のたびに顔を見て呼び直す機会が無い。
+/// だから五百人のうち、この人の名前だけが先に薄くなる——という筋が
+/// [kNoahForgot] → [kNoahBeforeResult] で回収される。
+/// 表示は基本 `所長` のままにして、名前を出す場所を絞ること。
+/// どこでも出していると、忘れる場面も思い出す場面も効かなくなる。
+const String kNoahDirectorName = '土倉 源三';
+
 /// 序章。太陽が膨らみ、大池町から箱舟が発つまで。
 const List<NoahLine> kNoahPrologue = [
   NoahLine(NoahVoice.narration, '西暦、五十億二千二十六年。'),
@@ -487,6 +497,66 @@ const List<NoahLine> kNoahCapacityScene = [
   NoahLine(NoahVoice.director, '覚えろ。', who: '所長'),
   NoahLine(NoahVoice.director,
       '君が思い出せた数だけ、この船は大きくなる。', who: '所長'),
+  NoahLine(NoahVoice.narration, '——所長は、名簿の綴りを机に置いた。'),
+  NoahLine(NoahVoice.narration, 'まだ十二行しか埋まっていない。'),
+  NoahLine(NoahVoice.director,
+      'これは君が持っていけ。書くのも、読むのも、君だ。', who: '所長'),
+  NoahLine(NoahVoice.player, '……所長は、乗らないんですか'),
+  NoahLine(NoahVoice.narration, '答えは返ってこなかった。'),
+  NoahLine(NoahVoice.narration,
+      '名刺は八十枚刷られた。八人に十枚ずつ。計算はぴったり合う。'),
+  NoahLine(NoahVoice.narration, 'この人のぶんだけ、一枚も無い。'),
+  NoahLine(NoahVoice.director, '$kNoahDirectorName だ。', who: '所長'),
+  NoahLine(NoahVoice.director, '……覚えなくていい。渡す名刺も無い', who: '所長'),
+];
+
+/// 🕳 いちばん大事な名前を落とす章。
+///
+/// 記憶テストで4人を思い出したあとに置く。
+/// **覚えていた直後に、覚えていなかったことが分かる**のがこの章の役目なので、
+/// 順番を入れ替えないこと。
+const List<NoahLine> kNoahForgot = [
+  NoahLine(NoahVoice.narration, '——テストのあと、ふと手が止まる。'),
+  NoahLine(NoahVoice.narration,
+      '目が覚めるたび、名簿を頭から順に呼ぶことにしていた。'
+      '台帳は開かない。開いたら負けだと思っている。'),
+  NoahLine(NoahVoice.narration, '一番から、四百九十九番まで。詰まらなかった。'),
+  NoahLine(NoahVoice.narration, 'そして、五百番目で止まった。'),
+  NoahLine(NoahVoice.narration, '顔は出る。白髪。分厚い手。曲がった襟。'),
+  NoahLine(NoahVoice.narration,
+      '声も出る。「中国四千年の歴史？ 可愛いもんだ」。'
+      '「本日のホール、パー4」。'),
+  NoahLine(NoahVoice.narration, '十八番グリーンの照明。机に置かれた、名簿の綴り。'),
+  NoahLine(NoahVoice.narration, '全部ある。'),
+  NoahLine(NoahVoice.narration, '名前だけが、無い。'),
+  NoahLine(NoahVoice.player, '……うそだろ'),
+  NoahLine(NoahVoice.chara, 'ああ、それか。理屈は簡単だ'),
+  NoahLine(NoahVoice.chara,
+      'この船の四百九十九人は、二十八年ごとに目の前に出てくる。'
+      '顔を見て、声を聞いて、名前で呼ぶ。そのたびに塗り直される'),
+  NoahLine(NoahVoice.chara, 'あの人は、乗っていない'),
+  NoahLine(NoahVoice.chara, '塗り直す機会が、一度も無かった'),
+  NoahLine(NoahVoice.narration,
+      '——いちばん大事に持っていたつもりのものが、いちばん先に薄くなった。'),
+  NoahLine(NoahVoice.narration, '持っていただけで、使っていなかったからだ。'),
+  NoahLine(NoahVoice.player, '……調べれば、船の記録に載ってます'),
+  NoahLine(NoahVoice.chara, '載っている。三秒で済む'),
+  NoahLine(NoahVoice.player, '調べて出てきた名前は、思い出したことになりません'),
+  NoahLine(NoahVoice.chara, '感傷だな'),
+  NoahLine(NoahVoice.player, 'はい'),
+  NoahLine(NoahVoice.chara, '……いい感傷だ。付き合ってやる'),
+  NoahLine(NoahVoice.narration,
+      'その日から、船の記録の人事の欄に鍵がかかった。'
+      '外せるのは、医師ひとり。'),
+  NoahLine(NoahVoice.narration,
+      'そして——五百人に、ひとつだけ頼んで回ることになる。'),
+  NoahLine(NoahVoice.narration, '「すれ違ったら、相手を名前で呼んでください」。'),
+  NoahLine(NoahVoice.narration,
+      '理由は言えなかった。自分が一人ぶん失くしたとは、'
+      'どうしても言えなかったからだ。'),
+  NoahLine(NoahVoice.narration,
+      'それでも全員がやった。うるさくて、少し滑稽で、'
+      '二百年近く誰も欠かさなかった。'),
 ];
 
 /// 名刺交換の前口上。
@@ -959,13 +1029,43 @@ const List<NoahLine> kNoahWhyNames = [
       '君が覚えた人数のぶんだけ、この船は大きくなる。', who: '所長'),
 ];
 
-/// 到着直前、定員がどこまで伸びたかを見せる章の前口上。
+/// 到着直前。定員を見せる前に、落とした名前を回収する。
+///
+/// ⚠️ **思い出すのではなく、口が先に動く**という決着にしてある。
+/// 二百年ぶん毎晩繰り返したものは、もう「思い出す」ものではなくなっている、
+/// という筋（手続き記憶のたとえ）。ここを「頑張って思い出した」に直すと、
+/// [kNoahForgot] で「使っていなかったから薄くなった」と言ったことと矛盾する。
 const List<NoahLine> kNoahBeforeResult = [
   NoahLine(NoahVoice.narration, '着陸準備。'),
   NoahLine(NoahVoice.narration,
       '窓の外で、赤い小さな太陽が海に映っている。'
       '昼と夜の境目——ターミネータの帯だけが、ちょうどいい温度をしていた。'),
-  NoahLine(NoahVoice.narration, '乗員名簿が読み上げられる。'),
+  NoahLine(NoahVoice.narration, '降りる前に、ひとつだけ儀式が残っている。'),
+  NoahLine(NoahVoice.chara, 'そろそろ鍵を外すぞ。名簿を読むのは、あんただ'),
+  NoahLine(NoahVoice.narration,
+      '端末が差し出される。見れば三秒で終わる。'),
+  NoahLine(NoahVoice.narration, '——受け取らなかった。'),
+  NoahLine(NoahVoice.narration, '一番から、四百九十九番まで。詰まらなかった。'),
+  NoahLine(NoahVoice.narration, 'そして、五百番目。'),
+  NoahLine(NoahVoice.narration,
+      '二百年近く出てこなかった名前だ。いま出てくる理由は、ひとつもない。'),
+  NoahLine(NoahVoice.narration, '息を吸う。'),
+  NoahLine(NoahVoice.narration, '——考えるより先に、口が動いた。'),
+  NoahLine(NoahVoice.player, kNoahDirectorName),
+  NoahLine(NoahVoice.narration, '言ってから、自分で驚いた。'),
+  NoahLine(NoahVoice.narration,
+      '思い出したのではない。毎晩、そう言っていた。'
+      'ただ、言っていることに気づいていなかっただけだ。'),
+  NoahLine(NoahVoice.narration,
+      '忘れていたのは名前ではなく、'
+      '自分がそれを呼び続けていたという事実のほうだった。'),
+  NoahLine(NoahVoice.chara, '……ほらな'),
+  NoahLine(NoahVoice.chara, '思い出せないものと、身についたものは、別のところにある'),
+  NoahLine(NoahVoice.chara, '——ああ。それから'),
+  NoahLine(NoahVoice.chara, '大丈夫だったな'),
+  NoahLine(NoahVoice.narration,
+      '「大丈夫」と言えない医師が、その一言を使ったのは、これが最初だった。'),
+  NoahLine(NoahVoice.narration, '——乗員名簿、読み上げ完了。'),
 ];
 
 // ── 3択のときのセリフ ────────────────────────────────

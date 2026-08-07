@@ -36,6 +36,7 @@ enum _Phase {
   beforeSleep, // 出発前夜
   awake, // 目覚め
   recall, // 記憶テスト（名前・趣味）
+  forgot, // 五百番目の名前を落としていたことに気づく
   date, // デート
   beforeMystery, // 幕間の前口上
   mystery, // 船内の小さな謎（心残りから当てる）
@@ -91,6 +92,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.beforeMeeting => kNoahBeforeMeeting,
         _Phase.beforeSleep => kNoahBeforeSleep,
         _Phase.awake => kNoahAwake,
+        _Phase.forgot => kNoahForgot,
         _Phase.beforeMystery => kNoahBeforeMystery,
         _Phase.midVoyage => kNoahMidVoyage,
         _Phase.climax => kNoahClimax,
@@ -161,8 +163,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _prepare(const [NoahField.name, NoahField.hobby]);
           } else {
             _index = 0;
-            _phase = _Phase.note; // 一息いれて、覚え方の話をする
+            // 4人を思い出せた直後に、五百番目を落としていたことが分かる
+            _phase = _Phase.forgot;
           }
+        case _Phase.forgot:
+          _phase = _Phase.note; // 一息いれて、覚え方の話をする
         case _Phase.date:
           if (_index + 1 < _cast.length) {
             _index += 1;
