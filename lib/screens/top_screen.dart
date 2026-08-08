@@ -9,7 +9,7 @@ import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'name_call_screen.dart'; // メインモード「なまえがお」
 import 'cpu_entry_screen.dart'; // CPU対戦まえの参戦演出
 import 'match_game_screen.dart' show CpuLevel;
-import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
+import 'custom_roster_screen.dart'; // 🧑‍🎨 顔メモ
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import '../services/player_profile.dart';
@@ -17,6 +17,7 @@ import '../models/cpu_difficulty.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
+import '../services/review_prompt.dart'; // ⭐ ストアのレビューを開く
 import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
@@ -166,8 +167,9 @@ class _TopScreenState extends State<TopScreen>
 
   /// 🧭 ホーム下部のまとめ導線1つぶん。
   ///
-  /// 顔メモ・マイページ・チュートリアル・支援を同じ見た目の小さなタイルにして、
-  /// 2列に並べる。縦長のボタンを積むより、ずっと少ない高さで収まる。
+  /// 顔メモ・マイページ・チュートリアル・レビュー・支援を
+  /// 同じ見た目の小さなタイルにして並べる。
+  /// 縦長のボタンを積むより、ずっと少ない高さで収まる。
   Widget _shortcutTile({
     required String emoji,
     required String label,
@@ -1140,8 +1142,6 @@ class _TopScreenState extends State<TopScreen>
                               Expanded(
                                 child: _shortcutTile(
                                   emoji: '🧑‍🎨',
-                                  // 「顔メモ」だけでは何のための機能か分からず
-                                  // 押されなかった。使う場面を名前に入れる。
                                   label: '顔メモ',
                                   analyticsId: 'face_memo',
                                   color: const Color(0xFF1E8A82),
@@ -1175,7 +1175,10 @@ class _TopScreenState extends State<TopScreen>
                                 child: _shortcutTile(
                                   emoji: '👧👦',
                                   analyticsId: 'tutorial',
-                                  label: MetaStrings.of(context).howToPlay,
+                                  // 「あそびかた」から改称。
+                                  // チュートリアルという言葉のほうが、
+                                  // 何が始まるのか想像しやすい。
+                                  label: 'チュートリアル',
                                   color: const Color(0xFF1E7BA6),
                                   onTap: () => Navigator.push(
                                     context,
@@ -1187,14 +1190,25 @@ class _TopScreenState extends State<TopScreen>
                               const SizedBox(width: 8),
                               Expanded(
                                 child: _shortcutTile(
-                                  emoji: '☕',
-                                  analyticsId: 'support',
-                                  label: localizations.buyMeACoffee,
-                                  color: const Color(0xFFBB6B2A),
-                                  onTap: _launchBuyMeACoffee,
+                                  // ⭐ 自分から書きに行ける場所。
+                                  //    自動のレビュー依頼は Google の割り当てで
+                                  //    出ないことがあるので、必ず1つ置いておく。
+                                  emoji: '⭐',
+                                  analyticsId: 'review',
+                                  label: 'レビューする',
+                                  color: const Color(0xFFCE8A00),
+                                  onTap: openStoreReview,
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 8),
+                          _shortcutTile(
+                            emoji: '☕',
+                            analyticsId: 'support',
+                            label: localizations.buyMeACoffee,
+                            color: const Color(0xFFBB6B2A),
+                            onTap: _launchBuyMeACoffee,
                           ),
                         ],
                       );

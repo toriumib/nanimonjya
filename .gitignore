@@ -53,3 +53,10 @@ android/app/key.properties
 # Node (Cloud Functions)
 node_modules/
 .vercel
+
+# 🔐 署名鍵。これを失う・漏らすとPlayの同じアプリを二度と更新できない。
+# ローカルPCとオフラインのバックアップだけに置き、リポジトリには入れない。
+# （以前 key.jks がコミットされていたので、履歴から削除したうえで再発を防ぐ）
+key.jks
+*.jks
+*.keystore
