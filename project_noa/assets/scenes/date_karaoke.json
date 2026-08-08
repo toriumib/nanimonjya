@@ -1,0 +1,46 @@
+{
+  "id": "date_karaoke",
+  "chapter": "ACT III ／ カラオケ",
+  "bg": "ship_karaoke",
+  "bgAge": 4,
+  "bgm": { "id": "date_song", "fade": 1.0 },
+  "lines": [
+    { "t": "mono", "text": "音響室は、カラオケということになっている。" },
+    { "t": "mono", "text": "設計したのは小栗澪。藝大の音響出身の人だ。" },
+
+    { "t": "say", "name": "小栗", "sprite": "oguri/normal",
+      "text": "この部屋、回転区画の二回転と共振する周波数があるんです。" },
+    { "t": "say", "name": "小栗", "sprite": "oguri/smile",
+      "text": "その音だけ、やたら大きく響く。……偶然ですけどね。" },
+    { "t": "mono", "text": "船と一緒に鳴る音がある、というのは、少し可笑しかった。" },
+
+    { "t": "mono", "text": "壁の掲示板に、俳句が貼ってある。詠み人しらず。" },
+    { "t": "say", "name": "小栗", "sprite": "oguri/normal",
+      "text": "毎回、増えてるんですよ。誰が貼ってるのか、みんな知らないふりをしてる。" },
+    { "t": "say", "name": "小栗", "sprite": "oguri/smile",
+      "text": "山の句ばかり。……この船に、山は無いのに。" },
+
+    { "t": "choice", "options": [
+      { "text": "岩尾さんですね", "jump": "" },
+      { "text": "知らないふりを、続けましょうか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "小栗", "sprite": "oguri/smile",
+      "text": "……ええ。そのほうが、いいと思います。" },
+    { "t": "mono", "text": "解いても得しない謎、というものがある。" },
+    { "t": "mono", "text": "解くと、その人を少し好きになるだけの謎だ。" },
+    { "t": "flag", "set": "mystery_haiku_guessed" },
+
+    { "t": "say", "name": "小栗", "sprite": "oguri/normal",
+      "text": "私はチェロでした。師匠のホールが、取り壊された日に立ち会えなくて。" },
+    { "t": "say", "name": "小栗", "sprite": "oguri/tired",
+      "text": "……音は残らない。だから、部屋のほうを覚えていたかったんです。" },
+
+    { "t": "aff", "char": "oguri", "d": 2 },
+    { "t": "aff", "char": "iwao", "d": 1 },
+    { "t": "flag", "set": "date_karaoke_done" },
+    { "t": "memtest", "char": "oguri", "field": "hobby" },
+
+    { "t": "jump", "to": "act3_sc02" }
+  ]
+}

@@ -110,6 +110,15 @@
     },
 
     {
+      "id": "azumi", "name": "安曇 千尋", "reading": "あずみ ちひろ",
+      "affiliation": "発達教育設計室", "hobby": "紙芝居",
+      "commId": "EDU-0417", "school": "お茶の水女子大・発達心理",
+      "regret": "受け持った子に、最後の授業をしていない",
+      "cast": 3, "romance": false, "color": "0xFF5FA8A0", "emoji": "📖",
+      "_note": "17人目。到着後に第一世代へ教える役。意識の持論を持たない唯一の人物（STORY 5.4）。"
+    },
+
+    {
       "id": "tsuchikura", "name": "土倉 源三", "reading": "とくら げんぞう",
       "affiliation": "プロジェクト・ノア統括本部", "hobby": "ゴルフ",
       "commId": "NOA-0001", "school": "横浜・戸塚生まれ",

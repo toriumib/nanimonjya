@@ -201,6 +201,15 @@ const Map<String, PortraitSpec> kPortraits = {
     outfit: Color(0xFF7E6BC8),
     build: 0.88,
   ),
+  'azumi': PortraitSpec(
+    hair: HairStyle.messy, // 短めのくせ毛。子どもに触られる前提の人
+    hairColor: _hairBrown,
+    skin: _skinB,
+    outfit: Color(0xFF5FA8A0),
+    accessory: Accessory.roundGlasses,
+    build: 0.92,
+    faceRatio: 0.95,
+  ),
 
   // ── 所長 ──
   'tsuchikura': PortraitSpec(

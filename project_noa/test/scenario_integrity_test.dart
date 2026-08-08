@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:project_noa/models/noah_field.dart';
 import 'package:project_noa/models/scene_script.dart';
 import 'package:project_noa/systems/ending.dart';
+import 'package:project_noa/ui/art/portrait.dart';
 
 /// シナリオの通し検査。
 ///
@@ -37,6 +38,38 @@ void main() {
 
   test('シナリオが1本以上ある', () {
     expect(scenes, isNotEmpty);
+  });
+
+  test('登場人物は17人（STORY 1章の「残存人口17人」と合わせる）', () {
+    // ここがずれると記憶率の分母（17×5＝85）も、
+    // 最終盤の「17人ぶんの点呼」もおかしくなる。
+    expect(cast.all.length, 17);
+  });
+
+  test('全員に立ち絵がある（誰か1人だけ出てこない、を防ぐ）', () {
+    for (final c in cast.all) {
+      expect(kPortraits.containsKey(c.id), isTrue,
+          reason: '${c.name}（${c.id}）の立ち絵が無い');
+    }
+  });
+
+  test('立ち絵の余りが無い（消したキャラの絵が残っていない）', () {
+    final ids = cast.all.map((c) => c.id).toSet();
+    for (final id in kPortraits.keys) {
+      expect(ids.contains(id), isTrue, reason: '$id はもう名簿にいない');
+    }
+  });
+
+  test('シナリオが指す立ち絵のIDが実在する', () {
+    for (final s in scenes.values) {
+      for (final l in s.lines) {
+        if (l is LineSay && l.sprite.isNotEmpty) {
+          final id = l.sprite.split('/').first;
+          expect(kPortraits.containsKey(id), isTrue,
+              reason: '${s.id}: 知らない立ち絵 ${l.sprite}');
+        }
+      }
+    }
   });
 
   test('ファイル名と中の id が一致している', () {

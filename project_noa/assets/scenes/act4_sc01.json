@@ -31,6 +31,28 @@
     { "t": "aff", "char": "mizuhara", "d": 1 },
     { "t": "memtest", "char": "mizuhara", "field": "hobby" },
 
+    { "t": "mono", "text": "船の奥、いちばん明るい部屋に、その人はいた。" },
+    { "t": "mono", "text": "到着後に第一世代へ教えるための部屋。まだ生徒はひとりもいない。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "所長の名前、ですか。……私も出てきません。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "みなさん、意識がどうとか難しい話をされますけど。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "私は持論を持っていないんです。" },
+
+    { "t": "choice", "options": [
+      { "text": "教育の人なのに？", "jump": "" },
+      { "text": "……どうして持たないんですか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "あの子が『せんせい』って呼べるようになるのに、どの説も要らないので。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "呼べるようになったら、それでもう成立してるでしょう。" },
+    { "t": "mono", "text": "十六人ぶんの理屈を聞いたあとだったので、その一言はよく効いた。" },
+    { "t": "aff", "char": "azumi", "d": 1 },
+    { "t": "memtest", "char": "azumi", "field": "hobby" },
+
     { "t": "choice", "options": [
       { "text": "名刺を探す", "jump": "" },
       { "text": "所長本人に聞く", "jump": "" }

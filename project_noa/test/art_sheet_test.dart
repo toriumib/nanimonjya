@@ -1,6 +1,3 @@
-@Tags(['art'])
-library;
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,10 +13,29 @@ import 'package:project_noa/ui/art/portrait.dart';
 /// 絵はテストで正しさを言えない（「かわいいか」は判定できない）。
 /// できるのは**全部を一枚に並べて、人が見られるようにすること**。
 ///
-///   flutter test --update-goldens test/art_sheet_test.dart
+/// 書き出しかた:
+///
+///   ART=1 flutter test --update-goldens test/art_sheet_test.dart
 ///
 /// で test/goldens/ に PNG が出る。
+///
+/// ⚠️ ふだんの `flutter test` では走らせない。ゴールデン画像は
+///    フォントやGPUの違いで1ドットずれるので、中身が正しくても
+///    別のマシンで落ちてしまう。
+///
+/// ⚠️ dart_test.yaml の `tags` は使わなかった。
+///    `skip:` にするとタグを指定しても走らず、`exclude_tags:` にすると
+///    `--tags art` でも上書きできない（どちらも走らせる手段が無くなる）。
+///    環境変数なら、走らせたいときに確実に走る。
+const _enabled = bool.hasEnvironment('ART')
+    ? true
+    : String.fromEnvironment('ART', defaultValue: '') != '';
+
 void main() {
+  if (!_enabled && (Platform.environment['ART'] ?? '').isEmpty) {
+    test('絵の一覧（ART=1 のときだけ書き出す）', () {}, skip: 'ART=1 flutter test --update-goldens test/art_sheet_test.dart');
+    return;
+  }
   testWidgets('立ち絵の一覧（全員 × 4表情）', (tester) async {
     final ids = kPortraits.keys.toList();
     await tester.binding.setSurfaceSize(const Size(1120, 1500));
