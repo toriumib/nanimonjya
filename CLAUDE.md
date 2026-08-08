@@ -128,9 +128,13 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 終盤30秒は⚡2倍（`rushSeconds`）。にらみ合いのまま終わらせないため
 
 ## ビルド・リリース
+手順の詳細は `DEPLOY.md`、スマホから作業するときは `MOBILE.md` を見る。
 - **Android**: `scripts/bump_and_build.ps1`（versionCode自動+1してAABビルド）。出力: `build/app/outputs/bundle/release/app-release.aab`
-- 署名: `android/app/key.properties`（gitignore対象・ローカルPCのみ。keystoreは `key.jks`）
-- **Web**: `flutter build web --release` → Vercel (`vercel deploy --prod` in build/web) / Firebase Hosting
+- 署名: `android/app/key.properties` と `key.jks` は**どちらもgitignore対象・ローカルPCのみ**。
+  ⚠️ 以前 `key.jks` がコミットされていたので履歴から削除した（`.gitignore` に `*.jks`）。
+  **二度とリポジトリに入れないこと**。クラウド環境に鍵が無い＝スマホからAABは出せない、で正しい
+- **Web**: `flutter build web --release` → **`build/web` の中で** `npx vercel --prod`
+  （リポジトリのルートから叩くとファイル数上限15,000に引っかかる）
 - `web/app-ads.txt` はAdMob審査用。ビルドで build/web に自動コピーされる。消さないこと
 
 ## 重要な決まりごと
