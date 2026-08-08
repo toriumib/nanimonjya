@@ -19,6 +19,7 @@ import 'online_lobby_screen.dart';
 import 'ranking_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// オンライン同時レースの結果画面。
 /// 相手の結果が届くのを待ち、手数（同数ならタイム）で勝敗を決める。
@@ -67,6 +68,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('online_result');
     widget.session.opponentResult.addListener(_onOpponentResult);
     _onOpponentResult(); // 既に届いている場合
     // 相手が長時間終わらない場合は勝ち扱い（切断・放置対策）

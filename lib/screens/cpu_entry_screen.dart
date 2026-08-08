@@ -11,6 +11,7 @@ import '../services/sfx.dart';
 import '../widgets/face_view.dart';
 import 'match_game_screen.dart' show CpuLevel;
 import 'name_call_screen.dart';
+import '../services/app_analytics.dart';
 
 /// ⚔️ CPU対戦のまえの「参戦」演出。
 ///
@@ -47,6 +48,7 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('cpu_entry');
     // 対戦相手の顔は、いま出演できるキャラから1人選ぶ
     final pool = applyDeckFilter(
       [

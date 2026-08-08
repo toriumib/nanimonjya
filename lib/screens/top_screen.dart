@@ -26,6 +26,7 @@ import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
+import '../services/app_analytics.dart';
 
 // 多言語対応のために追加
 
@@ -172,6 +173,8 @@ class _TopScreenState extends State<TopScreen>
     required String label,
     required Color color,
     required VoidCallback onTap,
+    /// 📊 押された数を数えるための固定の識別子。
+    required String analyticsId,
     bool highlight = false,
   }) {
     return Material(
@@ -181,6 +184,7 @@ class _TopScreenState extends State<TopScreen>
         borderRadius: BorderRadius.circular(14),
         onTap: () {
           Sfx.instance.pop();
+          AppAnalytics.modePick(analyticsId);
           onTap();
         },
         child: Container(
@@ -360,6 +364,7 @@ class _TopScreenState extends State<TopScreen>
   /// コインを貯める動機づけにする。
   void _pickCpuLevel(BuildContext context) {
     Sfx.instance.pop();
+    AppAnalytics.modePick('cpu');
     final m = MetaStrings.of(context);
     // 難易度の中身（覚える人数・持ち時間・コイン）は models/cpu_difficulty.dart が
     // 一次情報。ここに数字を直書きすると実際の報酬と食い違うので必ず参照する。
@@ -480,6 +485,7 @@ class _TopScreenState extends State<TopScreen>
   /// みんなで対戦（なまえがお）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
     Sfx.instance.pop();
+    AppAnalytics.modePick('local');
     final m = MetaStrings.of(context);
     showModalBottomSheet<void>(
       context: context,
@@ -558,6 +564,7 @@ class _TopScreenState extends State<TopScreen>
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('top');
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800), // アニメーションの時間
@@ -1066,6 +1073,8 @@ class _TopScreenState extends State<TopScreen>
                                         fontSize: 13,
                                         onTap: () {
                                           Sfx.instance.fanfare();
+                                          AppAnalytics.modePick(
+                                              'online_friend');
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
@@ -1092,6 +1101,7 @@ class _TopScreenState extends State<TopScreen>
                                         fontSize: 13,
                                         onTap: () {
                                           Sfx.instance.fanfare();
+                                          AppAnalytics.modePick('rank');
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
@@ -1135,6 +1145,7 @@ class _TopScreenState extends State<TopScreen>
                                 child: _shortcutTile(
                                   emoji: '🧑‍🎨',
                                   label: '顔メモ',
+                                  analyticsId: 'face_memo',
                                   color: const Color(0xFF1E8A82),
                                   onTap: () => Navigator.push(
                                     context,
@@ -1148,6 +1159,7 @@ class _TopScreenState extends State<TopScreen>
                               Expanded(
                                 child: _shortcutTile(
                                   emoji: canClaim ? '🎁' : '🏆',
+                                  analyticsId: 'profile',
                                   label: canClaim
                                       ? MetaStrings.of(context).dailyBonus
                                       : MetaStrings.of(context).profileTitle,
@@ -1164,6 +1176,7 @@ class _TopScreenState extends State<TopScreen>
                               Expanded(
                                 child: _shortcutTile(
                                   emoji: '👧👦',
+                                  analyticsId: 'tutorial',
                                   label: MetaStrings.of(context).howToPlay,
                                   color: const Color(0xFF1E7BA6),
                                   onTap: () => Navigator.push(
@@ -1177,6 +1190,7 @@ class _TopScreenState extends State<TopScreen>
                               Expanded(
                                 child: _shortcutTile(
                                   emoji: '☕',
+                                  analyticsId: 'support',
                                   label: localizations.buyMeACoffee,
                                   color: const Color(0xFFBB6B2A),
                                   onTap: _launchBuyMeACoffee,

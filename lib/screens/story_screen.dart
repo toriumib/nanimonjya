@@ -6,6 +6,7 @@ import '../models/story.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 📖 ストーリーモード。
 ///
@@ -40,6 +41,7 @@ class _StoryScreenState extends State<StoryScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('story_legacy');
     SharedPreferences.getInstance().then((p) {
       final saved = p.getInt(storyLineKey(widget.chapter.id)) ?? 0;
       if (!mounted || saved <= 0) return;

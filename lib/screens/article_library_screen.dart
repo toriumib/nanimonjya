@@ -8,6 +8,7 @@ import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/themed_background.dart';
+import '../services/app_analytics.dart';
 
 /// 📚 コインで読める読み物の一覧。
 ///
@@ -30,6 +31,7 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('article_library');
     _rewardAd.load();
     RewardedInterstitialHelper.instance.load();
   }

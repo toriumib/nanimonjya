@@ -183,6 +183,43 @@ class AppAnalytics {
   static void featureOpen(String feature) =>
       _log('feature_open', {'feature': feature});
 
+  /// 🎯 ホームでどの遊び方のボタンが押されたか。
+  ///
+  /// [featureOpen] が数えるのは「下タブを切り替えた回数」なので、
+  /// なまえがおタブの中にある みんなで／ひとりで／オンライン／ランク が
+  /// まったく区別できなかった。**どのモードが人気か**を知るには
+  /// 押された瞬間をボタン単位で撃つ必要がある。
+  ///
+  /// [mode] は固定の識別子:
+  /// 'local'（みんなで1台）/ 'cpu' / 'online_friend' / 'rank' /
+  /// 'face_memo' / 'tutorial' / 'support' / 'profile' / 'rules'。
+  ///
+  /// GA4 では mode 別に数えると、そのままモード人気の順位表になる。
+  /// 起動しただけの回数と区別するため、game_start とは別イベントにする
+  /// （押したが設定シートで止めた人も、ここには残る）。
+  static void modePick(String mode) => _log('mode_pick', {'mode': mode});
+
+  /// 🚀 ものがたりモードの進み具合。
+  ///
+  /// 読み物と違って章が長いので、「開いた数」だけでは
+  /// 最後まで遊ばれているのか途中で閉じられているのか分からない。
+  /// [phase] は _Phase の名前をそのまま入れる。
+  static void storyProgress(String phase) =>
+      _log('story_progress', {'phase': phase});
+
+  /// 🚀 ものがたりモードの結末。どの結末に届いたかの分布を見る。
+  /// [ending] は 'happy' / 'harem' / 'bitter' / 'lonely'。
+  static void storyEnding({
+    required String ending,
+    required int correct,
+    required int total,
+  }) =>
+      _log('story_ending', {
+        'ending': ending,
+        'correct': correct,
+        'total': total,
+      });
+
   /// ショップの購入。何がどれだけ売れているかを商品単位で数える。
   /// [category] は 'character' / 'voice' / 'charm' / 'skin' / 'theme' / 'bgm'。
   /// [method] は 'coins'（コイン購入）/ 'ad'（動画で解放）/ 'iap'（課金）。

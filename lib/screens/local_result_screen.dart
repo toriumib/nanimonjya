@@ -19,6 +19,7 @@ import '../widgets/double_coins_button.dart';
 import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// ローカル対戦（1台で2〜4人）の結果画面。獲得数のランキングを表示する。
 /// [nameCall] がtrueなら「なまえがお」（単位は枚、再戦もなまえがお）。
@@ -65,6 +66,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('local_result');
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
     Bgm.instance.playResult(); // 🎵 選んだリザルト曲（今までどこからも鳴っていなかった）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告

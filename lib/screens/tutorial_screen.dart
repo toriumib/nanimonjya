@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cpu_difficulty.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// チュートリアルを見終えたかどうかの保存キー。
 /// 初回起動時だけ自動で開き、一度終えたら二度と出さない。
@@ -403,6 +404,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('tutorial');
     // 途中で閉じた人を最初からやり直させない（離脱の大きな原因）
     savedTutorialPage().then((saved) {
       if (!mounted || saved <= 0) return;

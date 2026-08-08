@@ -10,6 +10,7 @@ import 'match_game_screen.dart';
 import 'online_lobby_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// あそぶモードの選択画面。
 /// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
@@ -21,6 +22,12 @@ class PlayerSelectionScreen extends StatefulWidget {
 }
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.screen('player_selection');
+  }
+
   int _level = 1; // 1..3 → 4/6/8ペア
   int _localPlayers = 2; // みんなで対戦の人数（2〜4）
 

@@ -7,6 +7,7 @@ import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/avatar_view.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 🚀 ストーリーモード「プロジェクト・ノア」。
 ///
@@ -44,6 +45,12 @@ enum _Phase {
 }
 
 class _NoahStoryScreenState extends State<NoahStoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.screen('story_noah');
+  }
+
   final _rng = Random();
 
   _Phase _phase = _Phase.setup;
@@ -104,6 +111,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
 
   void _next() {
     Sfx.instance.pop();
+    final before = _phase;
     setState(() {
       // 台詞が続く章は、まず1行ずつ送る
       if (_script.isNotEmpty && _line + 1 < _script.length) {
@@ -186,6 +194,18 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           }
       }
     });
+    // 📊 章が変わったときだけ撃つ。1行送るたびに撃つと
+    //    イベントが膨れて、どこまで進んだかが逆に読めなくなる。
+    if (_phase != before) {
+      AppAnalytics.storyProgress(_phase.name);
+      if (_phase == _Phase.ending) {
+        AppAnalytics.storyEnding(
+          ending: _result.ending.name,
+          correct: _correct,
+          total: _total,
+        );
+      }
+    }
   }
 
   void _prepare(List<NoahField> fields) {

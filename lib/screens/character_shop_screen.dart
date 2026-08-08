@@ -38,6 +38,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('shop');
     _rewardAd.load();
   }
 

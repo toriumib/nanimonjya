@@ -12,6 +12,7 @@ import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import 'character_shop_screen.dart';
 import 'custom_roster_screen.dart';
+import '../services/app_analytics.dart';
 
 /// 🎴 キャラデッキ編集。
 /// ゲームに出てくる顔ぶれを自分で選べる画面。
@@ -39,6 +40,7 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('character_deck');
     if (!kIsWeb) CustomRosterService.instance.load();
   }
 

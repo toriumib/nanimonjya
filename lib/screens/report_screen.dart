@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/memory_stats.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/themed_background.dart';
+import '../services/app_analytics.dart';
 
 /// 📊 成績レポート。
 ///
@@ -26,6 +27,7 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('report');
     _stats.load().then((_) {
       if (mounted) setState(() => _loading = false);
     });

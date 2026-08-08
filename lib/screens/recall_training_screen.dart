@@ -21,6 +21,7 @@ import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 🧠 思い出しトレーニング
 ///
@@ -108,6 +109,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('recall_training');
     if (widget.people != null && widget.people!.isNotEmpty) {
       _people = [...widget.people!]..shuffle(_rng);
     } else {

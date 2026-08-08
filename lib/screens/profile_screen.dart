@@ -23,6 +23,7 @@ import '../services/rewarded_interstitial_helper.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/stamp_calendar.dart';
+import '../services/app_analytics.dart';
 
 /// 🛠 開発者モードの合言葉。動作確認と画面撮影のためのもの。
 const String _kDevPassphrase = 'Toriumi';
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('profile');
     _rewardAd.load();
     // 画面を開いた時点で条件を満たす実績を解放
     WidgetsBinding.instance.addPostFrameCallback((_) {

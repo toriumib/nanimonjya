@@ -19,6 +19,7 @@ import 'recall_training_screen.dart';
 import 'rulebook_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
@@ -41,6 +42,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('training_hub');
     ReviewQueue.instance.load(); // 期限が来ている人がいるか読み込む
     if (widget.active) _maybeExplain();
   }

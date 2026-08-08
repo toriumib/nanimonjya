@@ -7,6 +7,7 @@ import '../services/sfx.dart';
 import '../widgets/avatar_view.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/themed_background.dart';
+import '../services/app_analytics.dart';
 
 /// 🧑‍🎨 顔メモのアバターを作る画面。
 ///
@@ -31,6 +32,12 @@ class AvatarEditorScreen extends StatefulWidget {
 }
 
 class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.screen('avatar_editor');
+  }
+
   late Avatar _a = widget.initial ?? const Avatar();
 
   void _set(Avatar next) {
