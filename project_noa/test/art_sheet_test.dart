@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:project_noa/models/scene_script.dart';
 import 'package:project_noa/ui/art/backdrop.dart';
+import 'package:project_noa/ui/art/effects.dart';
 import 'package:project_noa/ui/art/portrait.dart';
 
 /// 🎨 絵を目で確かめるための一覧を書き出す。
@@ -122,6 +123,46 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('goldens/backdrops.png'),
+    );
+  });
+
+  testWidgets('演出（フラッシュ・ゆれ・章カード）', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(960, 360));
+    final keys = [
+      GlobalKey<FxLayerState>(),
+      GlobalKey<FxLayerState>(),
+    ];
+    Widget panel(GlobalKey<FxLayerState> k, bool reduce) => Expanded(
+          child: FxLayer(
+            key: k,
+            reduceShake: reduce,
+            child: const Stack(fit: StackFit.expand, children: [
+              NoahBackdrop(id: 'ship_bridge'),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: NoahPortrait(charId: 'hoshino', height: 240,
+                    expression: Expression.surprise),
+              ),
+            ]),
+          ),
+        );
+
+    await tester.pumpWidget(MaterialApp(
+      home: Row(children: [
+        panel(keys[0], false),
+        panel(keys[1], true), // ゆれを弱める設定
+        const Expanded(child: ChapterCard(chapter: 'ACT V ／ 呼名')),
+      ]),
+    ));
+    // 演出のいちばん濃いところで止めて撮る
+    keys[0].currentState!.play(FxKind.flash);
+    keys[1].currentState!.play(FxKind.shake);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 90));
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/effects.png'),
     );
   });
 

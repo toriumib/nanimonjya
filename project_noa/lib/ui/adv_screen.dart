@@ -15,6 +15,7 @@ import '../models/noah_field.dart';
 import '../models/save_data.dart';
 import '../models/scene_script.dart';
 import '../systems/ending.dart';
+import 'art/effects.dart';
 import 'backlog_sheet.dart';
 import 'placeholder.dart';
 import 'save_sheet.dart';
@@ -60,6 +61,7 @@ class _AdvScreenState extends State<AdvScreen> {
   void dispose() {
     _typeTimer?.cancel();
     _autoTimer?.cancel();
+    _chapterTimer?.cancel();
     _clock?.cancel();
     super.dispose();
   }
@@ -105,6 +107,19 @@ class _AdvScreenState extends State<AdvScreen> {
     _system = _system.copyWith(readScenes: {..._system.readScenes, p.scene.id});
     SaveManager.instance.writeSystem(_system);
 
+    // ✨ 台本が積んだ演出を流して、取り下げる。
+    //    拾わずに残すと、次の行でもう一度鳴ってしまう。
+    final fx = p.pendingFx;
+    if (fx != null) {
+      p.pendingFx = null;
+      _fxKey.currentState?.play(fxFromKey(fx));
+    }
+    // 効果音は音源がまだ無いので、いまは捨てるだけ（SPEC 3.8）。
+    p.pendingSe = null;
+
+    // 📖 幕が変わったらカードを出す
+    _maybeShowChapter(p.scene.chapter);
+
     // 未読の話に入ったらスキップを解除する（SPEC 3.2）
     if (_skip && !_canSkipHere) {
       _skip = false;
@@ -135,6 +150,20 @@ class _AdvScreenState extends State<AdvScreen> {
     });
   }
 
+  /// 章が変わった瞬間だけカードを出す。同じ幕の中では出さない。
+  String _lastChapter = '';
+  void _maybeShowChapter(String chapter) {
+    if (chapter.isEmpty || chapter == _lastChapter) return;
+    _lastChapter = chapter;
+    // スキップ中に毎回止められると、飛ばしたい人の邪魔になる
+    if (_skip) return;
+    _chapterTimer?.cancel();
+    setState(() => _chapterCard = chapter);
+    _chapterTimer = Timer(const Duration(milliseconds: 1900), () {
+      if (mounted) setState(() => _chapterCard = null);
+    });
+  }
+
   void _scheduleAuto() {
     _autoTimer?.cancel();
     if (_skip) {
@@ -150,6 +179,13 @@ class _AdvScreenState extends State<AdvScreen> {
       if (mounted && _auto) _tap();
     });
   }
+
+  /// ✨ 演出を流すための取っ手。
+  final _fxKey = GlobalKey<FxLayerState>();
+
+  /// 📖 章タイトルカード。幕が変わったときだけ出す。
+  String? _chapterCard;
+  Timer? _chapterTimer;
 
   /// ⏩ スキップ（SPEC 3.2）。
   bool _skip = false;
@@ -367,7 +403,11 @@ class _AdvScreenState extends State<AdvScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF05080F),
-      body: GestureDetector(
+      // ✨ 演出は画面ぜんぶを包む。文字窓だけ揺れても意味がない。
+      body: FxLayer(
+        key: _fxKey,
+        reduceShake: _cfg.reduceShake,
+        child: GestureDetector(
         onTap: _tap,
         // 上スワイプでバックログ（SPEC 3.3）
         onVerticalDragEnd: (d) {
@@ -501,8 +541,17 @@ class _AdvScreenState extends State<AdvScreen> {
                 },
               ),
             ),
+
+            // ⑤ 章タイトルカード（幕が変わったときだけ）
+            if (_chapterCard != null)
+              AnimatedOpacity(
+                opacity: 1,
+                duration: const Duration(milliseconds: 260),
+                child: ChapterCard(chapter: _chapterCard!),
+              ),
           ],
         ),
+      ),
       ),
     );
   }
