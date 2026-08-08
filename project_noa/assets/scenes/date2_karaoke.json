@@ -1,5 +1,5 @@
 {
-  "id": "date_karaoke",
+  "id": "date2_karaoke",
   "chapter": "ACT III ／ カラオケ",
   "bg": "ship_karaoke",
   "bgAge": 4,
@@ -41,6 +41,6 @@
     { "t": "flag", "set": "date_karaoke_done" },
     { "t": "memtest", "char": "oguri", "field": "hobby" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

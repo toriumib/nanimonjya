@@ -1,5 +1,5 @@
 {
-  "id": "date_tennis",
+  "id": "date2_tennis",
   "chapter": "ACT III ／ テニス（〇・五G室）",
   "bg": "ship_corridor",
   "bgAge": 3,
@@ -49,6 +49,6 @@
     { "t": "flag", "set": "date_tennis_done" },
     { "t": "memtest", "char": "shirakawa", "field": "school" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

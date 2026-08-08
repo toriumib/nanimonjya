@@ -1,0 +1,69 @@
+{
+  "id": "act2_sc03b",
+  "chapter": "ACT II ／ 招待状",
+  "bg": "dome_hall",
+  "bgAge": 0,
+  "bgm": { "id": "invitation", "fade": 2.0 },
+  "lines": [
+    { "t": "mono", "text": "定員五百。" },
+    { "t": "mono", "text": "地下に残っている人間の、ぜんぶが乗れる数字だった。" },
+    { "t": "mono", "text": "十七人どころではない。ドームの全員だ。" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "……計算し直せ。三回だ。三回とも同じ数字が出たら、認める。" },
+    { "t": "mono", "text": "戸部果林が三回計算し、三回とも同じ数字を出した。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "五百二十四。切り上げて五百です。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "……四回目、やります？" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "いい。もういい。" },
+
+    { "t": "bg", "id": "dome_lab", "bgAge": 0 },
+    { "t": "mono", "text": "その夜、全員が机の引き出しを開けた。" },
+    { "t": "mono", "text": "三年ぶんの「さよならの手紙」が、そこに入っている。" },
+    { "t": "mono", "text": "宛名は、まだ書いていない。" },
+
+    { "t": "say", "name": "荒瀬", "sprite": "arase/normal",
+      "text": "……こいつ、どうする。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/smile",
+      "text": "破りましょう。もう要らないので。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/tired",
+      "text": "三年書いたんだぞ。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/smile",
+      "text": "三年ぶん、要らなくなったんです。いいことでしょう。" },
+
+    { "t": "se", "id": "paper" },
+    { "t": "mono", "text": "紙の裂ける音が、部屋のあちこちで鳴った。" },
+    { "t": "mono", "text": "備蓄庫の最後の紙で刷った名刺と、同じ紙だ。" },
+
+    { "t": "choice", "options": [
+      { "text": "裏に、招待状を書く", "jump": "" },
+      { "text": "……破らずに、取っておく", "jump": "" }
+    ]},
+
+    { "t": "mono", "text": "誰かが言い出して、破った紙の裏に書きはじめた。" },
+    { "t": "mono", "text": "「乗ってください」。" },
+    { "t": "mono", "text": "宛名は、ドームに残っている全員ぶん。" },
+    { "t": "mono", "text": "五百二十四通。三日かかった。" },
+    { "t": "flag", "set": "act2_invitations_written" },
+
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "……写経より、こっちのほうが疲れますね。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/smile",
+      "text": "同じ字を書くのは慣れてるんですが、違う名前を五百は初めてです。" },
+    { "t": "aff", "char": "kanzaki", "d": 1 },
+    { "t": "memtest", "char": "kanzaki", "field": "affiliation" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "記録官。君の手が、いちばん要る仕事になったな。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……五百人ぶん、覚えろということですか。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "覚えろとは言っていない。呼べ、と言っている。" },
+    { "t": "mono", "text": "三年前と、同じことを言われた。" },
+    { "t": "mono", "text": "同じ言葉なのに、重さがまるで違っていた。" },
+
+    { "t": "jump", "to": "act3_sc01" }
+  ]
+}

@@ -52,6 +52,6 @@
     { "t": "mono", "text": "——足りている。足りていないのは、所長のぶんだけだ。" },
     { "t": "flag", "set": "noticed_no_tsuchikura_card" },
 
-    { "t": "jump", "to": "act2_sc01" }
+    { "t": "jump", "to": "act1_sc03" }
   ]
 }

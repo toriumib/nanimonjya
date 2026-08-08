@@ -57,6 +57,6 @@
     { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
       "text": "だが。読める人間がいなければ、俺は番号のまま三百年やっていた。" },
 
-    { "t": "jump", "to": "act2_sc02" }
+    { "t": "jump", "to": "act2_sc01b" }
   ]
 }

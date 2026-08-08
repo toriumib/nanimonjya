@@ -73,9 +73,9 @@ class _AdvScreenState extends State<AdvScreen> {
     final resume = widget.resume;
     final sceneId = resume?.sceneId.isNotEmpty == true
         ? resume!.sceneId
-        : 'act1_sc01';
+        : 'act1_sc00';
     final scene = await AssetRepository.instance.loadScene(sceneId) ??
-        await AssetRepository.instance.loadScene('act1_sc01');
+        await AssetRepository.instance.loadScene('act1_sc00');
     if (scene == null || !mounted) return;
 
     final p = ScenePlayer(scene: scene, cast: cast);

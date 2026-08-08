@@ -1,18 +1,12 @@
 {
   "id": "act4_sc01",
-  "chapter": "ACT IV ／ 名前の消えた男（第145年）",
+  "chapter": "ACT IV ／ 名前の消えた男",
   "bg": "ship_archive",
   "bgAge": 5,
   "bgm": { "id": "missing_name", "fade": 2.5 },
   "lines": [
-    { "t": "skip28y" },
-    { "t": "mono", "text": "第五覚醒期。百四十五年目。" },
-    { "t": "mono", "text": "その朝、台帳を開いて、私は手を止めた。" },
-
-    { "t": "fx", "kind": "flash" },
-    { "t": "mono", "text": "所長の欄が、空白だった。" },
-    { "t": "mono", "text": "書き忘れたのではない。**書いた記憶はある**。" },
-    { "t": "mono", "text": "けれど、そこに何と書いたかが、出てこない。" },
+    { "t": "mono", "text": "とくら、げんぞう。" },
+    { "t": "mono", "text": "音は集まった。あとは、確かめるだけだ。" },
 
     { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
       "text": "船内データベースも同じです。所長の項目だけ、ロックされてる。" },
@@ -94,6 +88,6 @@
     { "t": "se", "id": "alarm" },
     { "t": "mono", "text": "そのとき、船が鳴った。" },
 
-    { "t": "jump", "to": "act5_sc01" }
+    { "t": "jump", "to": "act5_sc00" }
   ]
 }

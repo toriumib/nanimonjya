@@ -1,5 +1,5 @@
 {
-  "id": "date_shopping",
+  "id": "date2_shopping",
   "chapter": "ACT III ／ 買い出し（備蓄区画）",
   "bg": "ship_archive",
   "bgAge": 3,
@@ -45,6 +45,6 @@
     { "t": "flag", "set": "date_shopping_done" },
     { "t": "memtest", "char": "mizuhara", "field": "commId" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

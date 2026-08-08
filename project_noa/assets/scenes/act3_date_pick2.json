@@ -1,0 +1,23 @@
+{
+  "id": "act3_date_pick2",
+  "chapter": "ACT III ／ もう一度、どこかへ",
+  "bg": "ship_lounge",
+  "bgAge": 3,
+  "bgm": { "id": "off_duty", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "覚醒期は、まだ終わらない。" },
+    { "t": "mono", "text": "二年は、思っていたより長い。" },
+    { "t": "mono", "text": "同じ人と二度行ってもいいし、別の人と行ってもいい。" },
+
+    { "t": "mono", "text": "——次は、どこへ行こうか。" },
+
+    { "t": "choice", "options": [
+      { "text": "🏬 百貨店（三層区画）", "jump": "date2_department" },
+      { "text": "🌊 川（水循環プラント）", "jump": "date2_river" },
+      { "text": "🎤 カラオケ（音響室）", "jump": "date2_karaoke" },
+      { "text": "🍜 フードコート", "jump": "date2_food" },
+      { "text": "🛍 買い出し（備蓄区画）", "jump": "date2_shopping" },
+      { "text": "🎾 テニス（〇・五G室）", "jump": "date2_tennis" }
+    ]}
+  ]
+}

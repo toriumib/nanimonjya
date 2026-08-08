@@ -1,5 +1,5 @@
 {
-  "id": "date_department",
+  "id": "date2_department",
   "chapter": "ACT III ／ 百貨店",
   "bg": "ship_lounge",
   "bgAge": 3,
@@ -41,6 +41,6 @@
     { "t": "mono", "text": "声に出さずに三回。" },
     { "t": "memtest", "char": "kusunoki", "field": "commId" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

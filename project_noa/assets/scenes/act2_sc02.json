@@ -41,6 +41,18 @@
     { "t": "say", "name": "橘", "sprite": "tachibana/normal",
       "text": "常に正しくあろうとすると、揺れが消える。揺れが消えると、菌が減る。" },
 
+    { "t": "say", "name": "戸部", "sprite": "tobe/surprise",
+      "text": "……制御、切るんですか。三年かけて書いたやつですよ、それ。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "切る。三か月だけだ。だめなら戻す。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/tired",
+      "text": "三か月で循環が崩れたら、やり直しに二年かかります。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "分かってる。" },
+    { "t": "mono", "text": "誰も止めなかった。止める根拠が無かったからだ。" },
+    { "t": "mono", "text": "「妻がそう言っていた」は、論文にはならない。" },
+    { "t": "mono", "text": "けれど、この部屋ではそれで通った。" },
+
     { "t": "mono", "text": "彼は、制御を外した。" },
     { "t": "mono", "text": "三か月、ただ放っておいた。" },
     { "t": "aff", "char": "tachibana", "d": 2 },

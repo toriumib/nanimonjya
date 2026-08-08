@@ -173,7 +173,7 @@ void main() {
   test('最初のシーンから、結末の判定までたどり着ける', () {
     // 届かないと、遊んでも永遠に終わらない。
     final seen = <String>{};
-    final queue = <String>['act1_sc01'];
+    final queue = <String>['act1_sc00'];
     var reachedEnding = false;
 
     while (queue.isNotEmpty) {
@@ -195,7 +195,7 @@ void main() {
     // それ以外が浮いていたら、書いたのに読まれない話があるということ。
     final endingIds = {for (final e in NoahEnding.values) e.sceneId};
     final seen = <String>{};
-    final queue = <String>['act1_sc01'];
+    final queue = <String>['act1_sc00'];
     while (queue.isNotEmpty) {
       final id = queue.removeAt(0);
       if (!seen.add(id)) continue;
@@ -206,6 +206,64 @@ void main() {
     final orphans = scenes.keys.where(
         (id) => !seen.contains(id) && !endingIds.contains(id));
     expect(orphans, isEmpty, reason: 'どこからも呼ばれていない: $orphans');
+  });
+
+  test('1周のボリュームが、目標（およそ1時間）に届いている', () {
+    // 目で数えると必ずサボるので、機械で見積もる。
+    //
+    // 見積もりかた:
+    // - 地の文と台詞 … 1行 3.4秒（既定の文字速度で読んで、送るまで）
+    // - 選択肢       … 1回 6秒（読んで決める）
+    // - 記憶テスト   … 1回 9秒（思い出そうとする時間が長い）
+    //
+    // ⚠️ 分岐は「1周でどれか1本を通る」ので、
+    //    デート6本は**1本ぶんだけ**数える。全部足すと過大になる。
+    // デートは1回目・2回目とも、6本のうち1本しか通らない。
+    final date1 = scenes.keys.where((k) => k.startsWith('date_')).toList();
+    final date2 = scenes.keys.where((k) => k.startsWith('date2_')).toList();
+    final dateIds = [...date1, ...date2];
+    final endingIds = {for (final e in NoahEnding.values) e.sceneId};
+
+    double secondsOf(Scene s) {
+      var sec = 0.0;
+      for (final l in s.lines) {
+        if (l.isText) {
+          sec += 3.4;
+        } else if (l is LineChoice) {
+          sec += 6;
+        } else if (l is LineMemTest) {
+          sec += 9;
+        } else if (l is LineNameInput) {
+          sec += 20; // 入力は時間がかかる
+        }
+      }
+      return sec;
+    }
+
+    var total = 0.0;
+    for (final e in scenes.entries) {
+      if (dateIds.contains(e.key)) continue; // あとで1本ぶんだけ足す
+      if (endingIds.contains(e.key)) continue; // 結末も1本だけ
+      total += secondsOf(e.value);
+    }
+    // デートは各ラウンド1本ぶん（平均）だけ数える
+    for (final round in [date1, date2]) {
+      if (round.isEmpty) continue;
+      total += round.map((k) => secondsOf(scenes[k]!)).reduce((a, b) => a + b) /
+          round.length;
+    }
+    final ends = endingIds.where(scenes.containsKey).toList();
+    if (ends.isNotEmpty) {
+      total += ends.map((k) => secondsOf(scenes[k]!)).reduce((a, b) => a + b) /
+          ends.length;
+    }
+
+    final minutes = total / 60;
+    // 45分を下回ったら「短すぎ」。90分を超えたら「長すぎ」。
+    expect(minutes, greaterThanOrEqualTo(45),
+        reason: '1周が短すぎる（いま ${minutes.toStringAsFixed(1)} 分）');
+    expect(minutes, lessThanOrEqualTo(90),
+        reason: '1周が長すぎる（いま ${minutes.toStringAsFixed(1)} 分）');
   });
 
   test('本編に記憶テストが十分ある（分母だけ増えて出題が無い、を防ぐ）', () {

@@ -1,5 +1,5 @@
 {
-  "id": "date_food",
+  "id": "date2_food",
   "chapter": "ACT III ／ フードコート",
   "bg": "ship_food",
   "bgAge": 3,
@@ -41,6 +41,6 @@
     { "t": "flag", "set": "date_food_done" },
     { "t": "memtest", "char": "shinohara", "field": "affiliation" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

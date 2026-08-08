@@ -1,5 +1,5 @@
 {
-  "id": "date_river",
+  "id": "date2_river",
   "chapter": "ACT III ／ 川",
   "bg": "ship_river",
   "bgAge": 3,
@@ -42,6 +42,6 @@
     { "t": "flag", "set": "date_river_done" },
     { "t": "memtest", "char": "hoshino", "field": "school" },
 
-    { "t": "jump", "to": "act3_date_pick2" }
+    { "t": "jump", "to": "act3_sc02" }
   ]
 }

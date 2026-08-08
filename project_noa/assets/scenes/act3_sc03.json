@@ -1,0 +1,82 @@
+{
+  "id": "act3_sc03",
+  "chapter": "ACT III ／ 濁っていく（第112〜145年）",
+  "bg": "ship_corridor",
+  "bgAge": 5,
+  "bgm": { "id": "long_voyage", "fade": 2.0 },
+  "lines": [
+    { "t": "skip28y" },
+    { "t": "mono", "text": "眠るたびに、少しずつ、何かが混ざる。" },
+    { "t": "mono", "text": "ログを読み返すと、ときどき別の人の名前が挟まっている。" },
+    { "t": "mono", "text": "書いた覚えのない名前が、自分の字で。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "クロス・コンタミネーションだ。前にも言ったな。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "薬は無い。あるのは、思い出す練習だけだ。" },
+    { "t": "mono", "text": "——だから、覚えるほどログは澄む。" },
+    { "t": "mono", "text": "逆に言えば、放っておくほど読めなくなる。" },
+
+    { "t": "bg", "id": "ship_bridge", "bgAge": 5 },
+    { "t": "say", "name": "内海", "sprite": "utsumi/normal",
+      "text": "海のモデル、また組み直しました。九回目です。" },
+    { "t": "mono", "text": "内海螢は、着いたこともない星の海を計算しつづけている。" },
+    { "t": "say", "name": "内海", "sprite": "utsumi/tired",
+      "text": "……実物を見たら、たぶん全部はずれてるんですけどね。" },
+
+    { "t": "choice", "options": [
+      { "text": "それでも、組み直すんですね", "jump": "" },
+      { "text": "はずれていたら、どうしますか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "内海", "sprite": "utsumi/smile",
+      "text": "はずれてたら、十回目を作ります。それだけです。" },
+    { "t": "say", "name": "内海", "sprite": "utsumi/normal",
+      "text": "……最後にもう一度、本物の海に潜りたかったな。" },
+    { "t": "say", "name": "内海", "sprite": "utsumi/smile",
+      "text": "東海大の海洋でした。学生のころは、毎週潜ってたんですよ。" },
+    { "t": "aff", "char": "utsumi", "d": 2 },
+    { "t": "memtest", "char": "utsumi", "field": "school" },
+
+    { "t": "skip28y" },
+    { "t": "bg", "id": "ship_lounge", "bgAge": 6 },
+    { "t": "mono", "text": "第七覚醒期。船の内装が、目に見えて古びてきた。" },
+    { "t": "mono", "text": "白かった壁が、少し黄色い。" },
+
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "記録官さん、これ知ってます？" },
+    { "t": "mono", "text": "戸部果林が広げたのは、手作りのボードゲームだった。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "持ち込んだやつ、全部やり尽くしたんで。作りました。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "ルールは簡単です。乗員の名前を、順番に言っていくだけ。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "言えなかった人が負け。……ふふ、記録官さん有利ですね。" },
+
+    { "t": "mono", "text": "遊びの形をした、思い出す練習だった。" },
+    { "t": "mono", "text": "誰が言い出したわけでもなく、この船では" },
+    { "t": "mono", "text": "そういうものが自然に増えていった。" },
+    { "t": "aff", "char": "tobe", "d": 2 },
+    { "t": "memtest", "char": "tobe", "field": "hobby" },
+
+    { "t": "skip28y" },
+    { "t": "bg", "id": "greenhouse", "bgAge": 7 },
+    { "t": "mono", "text": "第八覚醒期。温室の照明が、二列だけ落ちていた。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/tired",
+      "text": "配線です。直せますけど、部品がもう無い。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/normal",
+      "text": "……編み直します。ほどいて、別のところから持ってきて。" },
+    { "t": "mono", "text": "編み目が一つ抜けると、そこから全部ほどける。" },
+    { "t": "mono", "text": "百四十年前に聞いた話を、私はまだ覚えていた。" },
+    { "t": "aff", "char": "mikami", "d": 2 },
+    { "t": "memtest", "char": "mikami", "field": "hobby" },
+
+    { "t": "bg", "id": "ship_archive", "bgAge": 7 },
+    { "t": "mono", "text": "その夜、台帳を開いた。" },
+    { "t": "mono", "text": "埋まっている欄と、まだ「？」のままの欄。" },
+    { "t": "mono", "text": "埋まっているところは、そのぶん誰かと過ごした時間だ。" },
+    { "t": "mono", "text": "空いているところは、まだ、これから。" },
+
+    { "t": "jump", "to": "act3_sc04" }
+  ]
+}

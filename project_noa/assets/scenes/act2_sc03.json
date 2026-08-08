@@ -57,6 +57,6 @@
     { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
       "text": "言っただろう。この数字は、まだ動くと。" },
 
-    { "t": "jump", "to": "act3_sc01" }
+    { "t": "jump", "to": "act2_sc03b" }
   ]
 }

@@ -74,6 +74,6 @@
     { "t": "aff", "char": "kiryu", "d": 2 },
     { "t": "memtest", "char": "kiryu", "field": "school" },
 
-    { "t": "jump", "to": "act4_sc01" }
+    { "t": "jump", "to": "act3_sc03" }
   ]
 }

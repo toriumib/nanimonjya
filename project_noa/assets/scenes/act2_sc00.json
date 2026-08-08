@@ -1,0 +1,80 @@
+{
+  "id": "act2_sc00",
+  "chapter": "ACT II ／ 十二の椅子",
+  "bg": "dome_office",
+  "bgAge": 0,
+  "bgm": { "id": "twelve_chairs", "fade": 1.5 },
+  "lines": [
+    { "t": "mono", "text": "第二年。誰も、その話をしなかった。" },
+    { "t": "mono", "text": "十七人。椅子は十二。五人が残る。" },
+    { "t": "mono", "text": "話さないことで、無いことにしていた。" },
+
+    { "t": "se", "id": "door" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "決めましょうよ。いま。" },
+    { "t": "mono", "text": "言ったのは、いちばん若い戸部果林だった。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "先延ばしにするほど、決めづらくなります。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/tired",
+      "text": "……ゲームでも、そうなので。" },
+
+    { "t": "say", "name": "荒瀬", "sprite": "arase/normal",
+      "text": "俺は残る。構造は、飛ぶ前に終わる仕事だ。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/tired",
+      "text": "……私もです。船殻は、出発したら直せません。" },
+    { "t": "mono", "text": "二人とも、あっさり言った。" },
+    { "t": "mono", "text": "あっさり言えるように、何か月も考えていたのだと分かった。" },
+
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "……順番に、譲り合う会になりますね。これは。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/tired",
+      "text": "私は弟に謝れないまま送り出した人間です。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "こういう席で先に手を挙げるのは、たぶん逃げなので。黙ります。" },
+
+    { "t": "choice", "options": [
+      { "text": "決めるのは、いまじゃない", "jump": "" },
+      { "text": "……私が残ります", "jump": "" },
+      { "text": "数字のほうを、動かせませんか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "記録官が残る、というのは通らんぞ。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "三百三十年、誰が名簿を読む。ロボットにはできん仕事だ。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……できます。読み上げるだけなら。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "読み上げるのと、呼ぶのは違う。君はそれを知っているだろう。" },
+
+    { "t": "mono", "text": "誰も、その場では決まらなかった。" },
+    { "t": "mono", "text": "決まらないまま、全員が机に戻った。" },
+    { "t": "mono", "text": "そして——書きはじめた。" },
+
+    { "t": "bg", "id": "dome_lab", "bgAge": 0 },
+    { "t": "mono", "text": "「さよならの手紙」。" },
+    { "t": "mono", "text": "乗れなかった側が、乗る側へ渡すための手紙だ。" },
+    { "t": "mono", "text": "宛名を書かないまま、全員が書いていた。" },
+    { "t": "mono", "text": "自分が渡す側になるか、受け取る側になるか、分からないからだ。" },
+    { "t": "flag", "set": "act2_letters_started" },
+
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "……ひとつ、いいですか。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "十二という数字、どこから出てるんです？" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "冷凍睡眠の生存率だ。八十二パーセント。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "減ることを前提に、逆算して十二にしてある。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/surprise",
+      "text": "……減る前提で、椅子を減らしてるんですか。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/tired",
+      "text": "そうだ。合理的だろう。" },
+
+    { "t": "mono", "text": "合理的だった。" },
+    { "t": "mono", "text": "反論できないほどに——という言葉を、私はこの三年で二度使った。" },
+    { "t": "memtest", "char": "shirakawa", "field": "affiliation" },
+
+    { "t": "jump", "to": "act2_sc01" }
+  ]
+}
