@@ -935,7 +935,10 @@ This tab is where you get stronger on your own.
 Register the business cards you receive along with a face photo, and keep 18 fields — name, reading, nickname, gender, birthday, company, title, occupation, hometown, address, relationship, phone, email, X, Instagram, LINE ID, Facebook and free notes.
 
 It needs on-device photo storage, so it does not run in the browser. Nothing you enter is ever sent anywhere.''';
-  String get customAddButton => ja ? '＋ 写真と名前を追加' : '+ Add photo & name';
+  // ⚠️ 「写真と名前を追加」だと、押す前に写真が要ると思われる。
+  //    実際には似顔絵だけでも登録でき、職場の人は写真を撮りにくいので
+  //    そちらのほうが出番が多い。ボタンの字で両方あることを見せる。
+  String get customAddButton => ja ? '＋ 顔をつくる / 写真' : '+ Add a face';
   String get customEmpty => ja
       ? 'まだ登録がありません。「＋」から追加してみよう！'
       : 'No people yet. Tap "+" to add one!';

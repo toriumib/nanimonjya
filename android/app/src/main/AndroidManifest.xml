@@ -14,8 +14,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 再起動後もスケジュール済み通知を復元する -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- ⚠️ ホーム画面に出るアプリ名は下の android:label。
+         ストアの掲載名・アプリ内表記とそろえること。
+         以前ここだけ「名前を覚えよう」で、インストール直後に
+         別のアプリに見えていた。
+         ⚠️ コメントは要素の外に置く。開始タグの属性のあいだに挟むと
+            XMLとして壊れ、ビルドは通るのにインストールで落ちる。 -->
     <application
-        android:label="名前を覚えよう"
+        android:label="なまえがお"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
                android:enableOnBackInvokedCallback="true">

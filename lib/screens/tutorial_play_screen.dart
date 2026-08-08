@@ -10,6 +10,7 @@ import '../models/surnames.dart';
 import '../services/app_analytics.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/emphasis_text.dart';
 import '../widgets/face_view.dart';
 import 'home_shell.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
@@ -169,8 +170,10 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFF3A7BD5), width: 1.6),
         ),
-        child:
-            Text(text, style: const TextStyle(fontSize: 14.5, height: 1.6)),
+        // ⚠️ 素の Text にすると、文言の `**強調**` が星印のまま画面に出る。
+        //    このアプリに Markdown のレンダラは無いので、自前で太字にする。
+        child: EmphasisText(text,
+            style: const TextStyle(fontSize: 14.5, height: 1.6)),
       );
 
   Widget _bigButton(String label, VoidCallback onTap, {Color? color}) =>

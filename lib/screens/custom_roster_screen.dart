@@ -252,13 +252,45 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                     const SizedBox(height: 16),
                     if (entries.length >= 2) _actionButtons(m, entries),
                     const SizedBox(height: 16),
+                    // 🧑‍🎨 まだ0人のとき。文字で「＋から追加してね」と書くだけだと、
+                    //    右下のボタンを押すまで似顔絵が作れることに気づけない。
+                    //    いちばんよく使う入口を、空の場所に大きく置く。
                     if (entries.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Text(
-                          m.customEmpty,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.black54),
+                        padding: const EdgeInsets.symmetric(vertical: 28),
+                        child: Column(
+                          children: [
+                            Text(
+                              m.customEmpty,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              onPressed: _addAvatar,
+                              icon: const Icon(
+                                  Icons.face_retouching_natural, size: 26),
+                              label: const Text('似顔絵をつくる'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF8A5AC2),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 26, vertical: 15),
+                                textStyle: const TextStyle(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              '職場の人の写真は撮りにくいもの。\n'
+                              'メガネ・ほくろ・髪型で特徴を残せます。',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.black54,
+                                  height: 1.5),
+                            ),
+                          ],
                         ),
                       )
                     else
