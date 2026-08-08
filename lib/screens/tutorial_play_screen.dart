@@ -12,7 +12,6 @@ import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/emphasis_text.dart';
 import '../widgets/face_view.dart';
-import 'home_shell.dart';
 import 'match_game_screen.dart' show PlatformDispatcherLocale;
 
 /// このおためしを終えたか。
@@ -309,12 +308,13 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
           const SizedBox(height: 14),
           _bubble(m.tutPlayDone),
           const Spacer(),
-          _bigButton(m.tutPlayToGame, () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const HomeShell()),
-              (r) => false,
-            );
-          }),
+          // ⚠️ ここで HomeShell を作り直さないこと。
+          //    pushAndRemoveUntil にしていたため、戻った先の HomeShell の
+          //    initState がもう一度走り、遊び終えた直後に全11ページの
+          //    「あそびかた」が問答無用で開いていた。
+          //    呼び出し元（HomeShell）へ pop するだけでよい。そうすれば
+          //    HomeShell 側が「読みますか？」と一度だけ聞ける。
+          _bigButton(m.tutPlayToGame, () => Navigator.of(context).pop()),
         ],
       );
 }

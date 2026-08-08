@@ -79,9 +79,12 @@ class DailyReminder {
 
   /// 次の指定時刻（受け取り済みなら翌日）に毎日リマインドを予約する。
   Future<void> scheduleNext({bool skipToday = false}) async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
     // 同意していない人には予約しない
     if (!PlayerProfile.instance.notifyOptIn) return;
+    // ⚠️ 初期化は**ここで初めて**行う。起動時に済ませてしまうと、
+    //    Android 13 以降で何の説明もないまま許可ダイアログが出る。
+    if (!_initialized) await init();
     try {
       await _plugin.cancel(_notificationId);
       final now = tz.TZDateTime.now(tz.local);

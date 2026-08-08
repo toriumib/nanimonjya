@@ -39,6 +39,20 @@ class PushService {
   final _local = FlutterLocalNotificationsPlugin();
   bool _ready = false;
 
+  /// OSの通知許可を求める。**アプリ内で同意をもらってからだけ**呼ぶこと。
+  ///
+  /// Android の POST_NOTIFICATIONS はアプリ全体で1つなので、
+  /// ここと [DailyReminder.requestPermission] のどちらかが通れば両方届く。
+  /// iOS は APNs の登録が別に要るので、こちらも呼んでおく。
+  Future<void> askPermission() async {
+    if (kIsWeb) return;
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+    } catch (e) {
+      debugPrint('PushService.askPermission error: $e');
+    }
+  }
+
   Future<void> init() async {
     // Web は別途VAPIDキーの設定が要るうえ、通知許可の体験も異なるので対象外
     if (kIsWeb || _ready) return;
@@ -46,9 +60,12 @@ class PushService {
     try {
       final messaging = FirebaseMessaging.instance;
 
-      // Android 13+ / iOS は通知許可が必要。
-      // 断られてもアプリは通常どおり動く（お知らせが届かないだけ）。
-      await messaging.requestPermission();
+      // ⚠️ **ここで許可を求めてはいけない。**
+      //    起動直後に何の説明もなくOSのダイアログが出て、まだ何も
+      //    遊んでいない人に判断を迫ることになる。Androidは一度断られると
+      //    二度と出せない。実際、初回起動の最初の画面で出ていた。
+      //    許可は、アプリ内で「受け取る」と言ってもらってから
+      //    [askPermission] で求める（services/notify_prompt.dart）。
 
       // 前面表示中の通知を自分で出すためのチャンネルを作る
       await _local

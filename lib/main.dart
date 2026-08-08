@@ -16,11 +16,9 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/app_open_ad_helper.dart';
-import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
-import 'services/interstitial_ad_helper.dart'; // 3プレイに1回のリザルト全画面広告
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
 // 多言語対応のために追加
@@ -65,7 +63,10 @@ Future<void> main() async {
   // ※ゲーム中に recordMeeting/record を呼ぶので、遊び始める前に必ず読んでおく
   //   （読む前に書くと、あとから load() が上書きして記録が消える）
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
-  DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
+  // 🔔 通知の初期化は**起動時にやらない**。
+  //    初回起動でいきなりOSの許可ダイアログが出て、遊ぶ前に
+  //    判断を迫られる。断られるとAndroidでは二度と出せない。
+  //    予約が必要になった時点（同意後）に DailyReminder が自分で初期化する。
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
   // 💳 課金の初期化。購入ストリームを張って、未処理の購入や復元も拾う（await不要）
   runApp(const MyApp());

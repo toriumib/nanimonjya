@@ -36,22 +36,77 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     _maybeShowTutorial();
   }
 
-  /// 初回起動の人にはあそびかたを見せる（スキップ可・一度きり）。
+  /// 初回起動の人を、**まず1ゲームに入れる**。
   ///
-  /// 読むだけで終わらせず、**そのまま1回やってもらう**。
-  /// 説明を読んだだけでは手が動かないまま閉じられるので、
-  /// 名前をつける→呼ぶ→取れる→コインをもらう、までを一続きにする。
+  /// ⚠️ 以前は「あそびかた（全11ページ）を読ませてから、おためし」の順だった。
+  ///    2026-08 の計測で、**起動した162人のうちゲームを始めたのは75人**。
+  ///    半分が、遊ぶ前に消えていた。
+  ///    説明を先に置くと、読み終わる前に閉じられて、ゲームに辿りつかない。
+  ///
+  /// なので順番を逆にした。**遊ぶ → 面白かった人だけが読む。**
+  /// 説明は押しつけず、遊び終わったあとに一度だけ声をかける。
+  /// 断られたらそれ以上は勧めない（`markTutorialSkipped` が2回で諦める）。
   Future<void> _maybeShowTutorial() async {
-    if (await shouldShowTutorial()) {
+    final needPlay = await shouldPlayTutorial();
+    final needRead = await shouldShowTutorial();
+
+    // 🎮 まず1ゲーム。ここが「最初の成功体験」で、いちばん大事な1分。
+    if (needPlay) {
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const TutorialPlayScreen()));
+      if (!mounted) return;
+      // 遊び終わったあとに、読むかどうかを本人に選ばせる
+      if (needRead) await _offerGuide();
+      return;
+    }
+
+    // おためしを済ませている人（更新で入った人など）には、従来どおり案内する
+    if (needRead) {
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => const TutorialScreen()));
     }
-    // 🎮 読み物のあと（または読み物をスキップした人にも）おためしを1回
-    if (!await shouldPlayTutorial()) return;
-    if (!mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => const TutorialPlayScreen()));
+  }
+
+  /// 遊んだあとに「あそびかたを読む？」と一度だけ聞く。
+  Future<void> _offerGuide() async {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final read = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFFFFF8E6),
+        title: Text(ja ? 'ほかの あそびかたも あるよ' : 'There is more to play'),
+        content: Text(
+          ja
+              ? 'みんなで あそぶ・顔メモ・名刺覚え・ものがたり。\n'
+                  '5分くらいで ぜんぶ わかるよ。\n\n'
+                  'あとから ホームの 📖ルール でも 読めます。'
+              : 'Play together, Face Notes, Card Memory, Story.\n'
+                  'About 5 minutes to see it all.\n\n'
+                  'You can also read it later from 📖 Rules.',
+          style: const TextStyle(height: 1.6),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ja ? 'あとで' : 'Later'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(ja ? '読む' : 'Read'),
+          ),
+        ],
+      ),
+    );
+    if (read == true) {
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const TutorialScreen()));
+    } else {
+      // 断られた。しつこく出さない。
+      await markTutorialSkipped();
+    }
   }
 
   @override
