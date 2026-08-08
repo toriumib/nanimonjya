@@ -1,5 +1,8 @@
 # 計測（Firebase Analytics）
 
+> 📊 2026-08 のデータを読んだ所見と改善計画は [ANALYTICS_REVIEW.md](ANALYTICS_REVIEW.md)。
+> **計測されていない機能の一覧と、これから追加するイベント定義もそちら。**
+
 「どのモードが使われているか・人気か」を後から数えられるようにするための決めごと。
 
 送信は `lib/services/app_analytics.dart` に集約する。**画面やロジックから直接

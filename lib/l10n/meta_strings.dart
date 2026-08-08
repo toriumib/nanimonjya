@@ -706,7 +706,7 @@ class MetaStrings {
   String get feedbackButton =>
       ja ? 'ご意見・不具合を送る' : 'Send feedback';
   String get feedbackSubject =>
-      ja ? '【ペタネーム】ご意見・不具合の報告' : '[PetaName] Feedback / bug report';
+      ja ? '【なまえがお】ご意見・不具合の報告' : '[Namaegao] Feedback / bug report';
   String get feedbackBody => ja
       ? '''※わかる範囲で大丈夫です。書ける項目だけ埋めて送ってください。
 
