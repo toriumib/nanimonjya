@@ -19,6 +19,7 @@ import 'backlog_sheet.dart';
 import 'placeholder.dart';
 import 'save_sheet.dart';
 import 'encyclopedia_screen.dart';
+import 'ledger_screen.dart';
 import 'settings_screen.dart';
 
 class AdvScreen extends StatefulWidget {
@@ -67,6 +68,7 @@ class _AdvScreenState extends State<AdvScreen> {
     await ConfigStore.instance.load();
     final cast = await AssetRepository.instance.loadCast();
     _system = await SaveManager.instance.readSystem();
+    _readBefore = {..._system.readScenes}; // 起動時点の既読を控える
 
     final resume = widget.resume;
     final sceneId = resume?.sceneId.isNotEmpty == true
@@ -103,6 +105,12 @@ class _AdvScreenState extends State<AdvScreen> {
     _system = _system.copyWith(readScenes: {..._system.readScenes, p.scene.id});
     SaveManager.instance.writeSystem(_system);
 
+    // 未読の話に入ったらスキップを解除する（SPEC 3.2）
+    if (_skip && !_canSkipHere) {
+      _skip = false;
+      _snack('ここから先は初めてなので、スキップをやめます');
+    }
+
     if (_cfg.charMs <= 0) {
       setState(() => _shown = p.text.length);
       p.advance(); // 即時表示なら「全文表示済み」にしておく
@@ -129,10 +137,50 @@ class _AdvScreenState extends State<AdvScreen> {
 
   void _scheduleAuto() {
     _autoTimer?.cancel();
+    if (_skip) {
+      // スキップ中は待たずに次へ。速すぎると選択肢を踏み越えるので、
+      // 1フレームぶんだけ間を置く。
+      _autoTimer = Timer(const Duration(milliseconds: 16), () {
+        if (mounted && _skip) _tap();
+      });
+      return;
+    }
     if (!_auto) return;
     _autoTimer = Timer(Duration(milliseconds: _cfg.autoWaitMs), () {
       if (mounted && _auto) _tap();
     });
+  }
+
+  /// ⏩ スキップ（SPEC 3.2）。
+  bool _skip = false;
+
+  /// このシーンを飛ばしてよいか。
+  ///
+  /// 「既読のみスキップ」がONなら、**まだ読んでいない話は飛ばさない**。
+  /// ここを見ないと、初見の人がボタンひとつで本編を全部消し飛ばせてしまう。
+  bool get _canSkipHere {
+    final p = _player;
+    if (p == null) return false;
+    if (!_cfg.skipReadOnly) return true;
+    return _readBefore.contains(p.scene.id);
+  }
+
+  /// この起動より前に読み終えていたシーン。
+  ///
+  /// ⚠️ `_system.readScenes` は**いま読んでいる行でも増える**ので、
+  ///    そのまま見ると「初見なのに既読」になってスキップが素通りする。
+  ///    起動時の内容を別に取っておく。
+  Set<String> _readBefore = const {};
+
+  void _toggleSkip() {
+    setState(() => _skip = !_skip);
+    if (_skip && !_canSkipHere) {
+      // 押した瞬間に理由を言う。黙って効かないのがいちばん困る。
+      _snack('ここはまだ読んでいないので飛ばしません');
+      setState(() => _skip = false);
+      return;
+    }
+    _scheduleAuto();
   }
 
   /// 画面タップ（＝送り）。
@@ -157,6 +205,14 @@ class _AdvScreenState extends State<AdvScreen> {
   Future<void> _afterAdvance() async {
     final p = _player;
     if (p == null) return;
+
+    // 決めごとが出たらスキップを止める。飛ばして選ばれると事故になる。
+    if (_skip &&
+        (p.mode == PlayerMode.choice ||
+            p.mode == PlayerMode.memtest ||
+            p.mode == PlayerMode.nameInput)) {
+      setState(() => _skip = false);
+    }
 
     if (p.mode == PlayerMode.sceneEnd) {
       // ① 結末が決まっていれば、そのエンドへ。
@@ -250,7 +306,12 @@ class _AdvScreenState extends State<AdvScreen> {
   Future<void> _openBacklog() async {
     final p = _player;
     if (p == null) return;
-    await showBacklogSheet(context, p.backlog);
+    await showBacklogSheet(
+      context,
+      p.backlog,
+      contamination: p.contamination,
+      names: p.familyNames,
+    );
   }
 
   Future<void> _openSave({required bool loading}) async {
@@ -349,6 +410,13 @@ class _AdvScreenState extends State<AdvScreen> {
                       onSelected: (v) => switch (v) {
                         'save' => _openSave(loading: false),
                         'load' => _openSave(loading: true),
+                        'ledger' => Navigator.of(context)
+                            .push(MaterialPageRoute<void>(
+                                builder: (_) => LedgerScreen(
+                                      cast: _cast!,
+                                      memory: p.memory,
+                                      affection: p.affection,
+                                    ))),
                         'encyclopedia' => Navigator.of(context)
                             .push(MaterialPageRoute<void>(
                                 builder: (_) => EncyclopediaScreen(
@@ -364,6 +432,7 @@ class _AdvScreenState extends State<AdvScreen> {
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'save', child: Text('セーブ')),
                         PopupMenuItem(value: 'load', child: Text('ロード')),
+                        PopupMenuItem(value: 'ledger', child: Text('台帳')),
                         PopupMenuItem(
                             value: 'encyclopedia', child: Text('船内百科')),
                         PopupMenuItem(value: 'config', child: Text('コンフィグ')),
@@ -418,6 +487,8 @@ class _AdvScreenState extends State<AdvScreen> {
                       },
                     ),
                   _ => _TextWindow(
+                      skip: _skip,
+                      onToggleSkip: _toggleSkip,
                       speaker: p.speaker,
                       text: _fill(p.text)
                           .substring(0, _shown.clamp(0, _fill(p.text).length)),
@@ -500,12 +571,16 @@ class _TextWindow extends StatelessWidget {
   final String text;
   final bool auto;
   final VoidCallback onToggleAuto;
+  final bool skip;
+  final VoidCallback onToggleSkip;
 
   const _TextWindow({
     required this.speaker,
     required this.text,
     required this.auto,
     required this.onToggleAuto,
+    required this.skip,
+    required this.onToggleSkip,
   });
 
   @override
@@ -540,6 +615,16 @@ class _TextWindow extends StatelessWidget {
                           color: Color(0xFF5AD1FF))),
                 ),
               const Spacer(),
+              TextButton(
+                onPressed: onToggleSkip,
+                child: Text(skip ? 'SKIP ●' : 'SKIP',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: skip
+                            ? const Color(0xFFE0A44C)
+                            : const Color(0xFF6A7280))),
+              ),
               TextButton(
                 onPressed: onToggleAuto,
                 child: Text(auto ? 'AUTO ●' : 'AUTO',

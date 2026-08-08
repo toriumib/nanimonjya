@@ -4,11 +4,17 @@ library;
 import 'package:flutter/material.dart';
 
 import '../engine/scene_player.dart';
+import '../systems/contamination.dart';
 
 Future<void> showBacklogSheet(
   BuildContext context,
-  List<BacklogEntry> entries,
-) {
+  List<BacklogEntry> entries, {
+  /// SPEC 4.5 の濁り。0 なら正典のまま出す。
+  double contamination = 0,
+
+  /// 差し替え候補になる人名（姓）。
+  List<String> names = const [],
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -47,21 +53,39 @@ Future<void> showBacklogSheet(
                     separatorBuilder: (_, __) => const SizedBox(height: 14),
                     itemBuilder: (ctx, i) {
                       final e = entries[i];
+                      // ⚠️ 表示のときだけ濁らせる。e.text（正典）は触らない。
+                      //    行番号を種にしているので、開き直しても同じ濁りかたになる。
+                      final shown = contaminate(
+                        e.text,
+                        level: contamination,
+                        names: names,
+                        seed: i,
+                      );
+                      final dirty = isContaminated(e.text, shown);
+                      final speaker = contaminate(
+                        e.speaker,
+                        level: contamination,
+                        names: names,
+                        seed: i + 500000,
+                      );
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (e.speaker.isNotEmpty)
-                            Text(e.speaker,
+                            Text(speaker,
                                 style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w900,
                                     color: Color(0xFF5AD1FF))),
                           if (e.speaker.isNotEmpty) const SizedBox(height: 3),
-                          Text(e.text,
-                              style: const TextStyle(
+                          Text(shown,
+                              style: TextStyle(
                                   fontSize: 14,
                                   height: 1.7,
-                                  color: Color(0xFFE8ECF1))),
+                                  // 濁った行は少し沈ませる。読めなくはしない。
+                                  color: dirty
+                                      ? const Color(0xFFB9A6A0)
+                                      : const Color(0xFFE8ECF1))),
                         ],
                       );
                     },

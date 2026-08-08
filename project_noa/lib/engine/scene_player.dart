@@ -10,6 +10,7 @@ import 'dart:math';
 import '../models/noah_field.dart';
 import '../models/save_data.dart';
 import '../models/scene_script.dart';
+import '../systems/contamination.dart';
 import '../systems/ending.dart';
 import '../systems/memory_store.dart';
 
@@ -69,6 +70,9 @@ class ScenePlayer {
   int _cycle = 0;
   int _aging = 0;
 
+  /// バックログの濁り（SPEC 4.5）。眠るほど濃く、思い出すほど薄くなる。
+  double _contamination = 0;
+
   /// 背景と曲。UI はこれを見て描き替える。
   String _bg = '';
   int _bgAge = 0;
@@ -109,6 +113,11 @@ class ScenePlayer {
   Map<String, int> get affection => Map.unmodifiable(_affection);
   int get cycle => _cycle;
   int get aging => _aging;
+  double get contamination => _contamination;
+
+  /// 差し替え候補になる人名（姓だけ）。汚染の描画に使う。
+  List<String> get familyNames =>
+      [for (final c in cast.all) c.name.split(' ').first];
   String get bg => _bg;
   int get bgAge => _bgAge;
   String get bgm => _bgm;
@@ -209,6 +218,9 @@ class ScenePlayer {
           return;
         case LineSkip28y():
           _cycle += 1;
+          // 眠るほど濁る（SPEC 4.5）
+          _contamination =
+              clampContamination(_contamination + kContaminationPerCycle);
           // 老化は10で頭打ち。背景バリアントが bg_*_age0..10 しかない。
           _aging = min(10, _aging + 1);
         case LineJump():
@@ -244,6 +256,10 @@ class ScenePlayer {
     final ok = memory.answer(q, picked);
     if (ok) {
       _affection[q.target.id] = (_affection[q.target.id] ?? 0) + 1;
+      // 思い出すたび、ログの濁りが少し晴れる。
+      // 「覚えるほど読みやすくなる」を、いちばん素直な報酬にする。
+      _contamination =
+          clampContamination(_contamination - kContaminationClearPerRecall);
     }
     _question = null;
     _mode = PlayerMode.waiting;
@@ -282,6 +298,7 @@ class ScenePlayer {
         flags: {..._flags},
         affection: {..._affection},
         memory: memory.memory,
+        contamination: _contamination,
       );
 
   /// セーブから復帰する。**その行をもう一度表示する**ところまで戻す。
@@ -293,6 +310,7 @@ class ScenePlayer {
     _index = save.lineIndex - 1;
     _cycle = save.cycle;
     _aging = save.aging;
+    _contamination = clampContamination(save.contamination);
     _flags
       ..clear()
       ..addAll(save.flags);
