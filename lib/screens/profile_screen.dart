@@ -20,6 +20,7 @@ import 'story_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
+import '../services/review_prompt.dart'; // ⭐ ストアのレビューを開く
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/stamp_calendar.dart';
@@ -1534,6 +1535,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(m.supportBody, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 12),
+            // ⭐ お金をかけずにいちばん助かるのがレビュー。
+            //    支援ボタンより先に、こちらを置く。
+            //    自動のレビュー依頼は Google の割り当てで出ないことがあるので、
+            //    「自分から書きに行ける場所」を必ず用意しておく。
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Sfx.instance.pop();
+                  openStoreReview();
+                },
+                icon: const Text('⭐', style: TextStyle(fontSize: 18)),
+                label: Text(m.storeRate),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFB300),
+                  foregroundColor: Colors.black87,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              m.ja
+                  ? 'ひとことでも書いてもらえると、見つけてもらいやすくなります。'
+                  : 'Even one line helps other people find the app.',
+              style: const TextStyle(fontSize: 11.5, color: Colors.black54),
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

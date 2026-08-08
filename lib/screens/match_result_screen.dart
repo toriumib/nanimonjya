@@ -1,7 +1,6 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/cpu_rank.dart';
@@ -9,6 +8,7 @@ import '../models/person.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/player_profile.dart';
+import '../services/review_prompt.dart'; // ⭐ レビュー依頼の共通処理
 import '../services/sfx.dart';
 import '../widgets/count_up.dart';
 import '../widgets/double_coins_button.dart';
@@ -102,16 +102,12 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
     if (_won) {
       _confetti.play();
       Sfx.instance.victory();
-      // レビュー依頼: 勝利の余韻タイミングで1回だけ（依頼を出しやすく閾値を3に）
-      if (!profile.reviewPrompted && profile.totalGames >= 3) {
-        Future.delayed(const Duration(milliseconds: 1600), () async {
-          final review = InAppReview.instance;
-          if (await review.isAvailable()) {
-            await profile.markReviewPrompted();
-            review.requestReview();
-          }
-        });
-      }
+      // ⭐ 勝利の余韻でレビューを頼む。
+      // ⚠️ ここは以前 reviewPrompted（1回きりのフラグ）を直接見ていた。
+      //    requestReview() は Google の割り当てで**何も出ないことがある**のに
+      //    フラグだけ立つので、一度も表示されないまま二度と頼めなくなる。
+      //    間隔をあけて数回試す maybeAskReview に寄せる。
+      Future.delayed(const Duration(milliseconds: 1600), maybeAskReview);
     } else {
       Sfx.instance.coin();
     }

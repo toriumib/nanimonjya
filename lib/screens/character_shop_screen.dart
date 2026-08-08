@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/bgm_catalog.dart';
@@ -11,6 +10,7 @@ import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
 import '../services/reward_ad_helper.dart';
+import '../services/review_prompt.dart'; // ⭐ ストアのレビューを開く
 import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
@@ -67,15 +67,11 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
 
   Future<void> _rate() async {
     Sfx.instance.pop();
-    try {
-      final review = InAppReview.instance;
-      if (await review.isAvailable()) {
-        await PlayerProfile.instance.markReviewPrompted();
-        await review.requestReview();
-      } else {
-        await review.openStoreListing();
-      }
-    } catch (_) {}
+    // ⚠️ 自分から押した人には、必ずストアのページを開く。
+    //    アプリ内ダイアログ（requestReview）は Google の割り当てで
+    //    黙って何も出ないことがあり、「押したのに反応が無い」になる。
+    //    自動依頼の回数もここでは消費しない（openStoreReview 参照）。
+    await openStoreReview();
   }
 
   Future<void> _buy(GameCharacter c) async {
