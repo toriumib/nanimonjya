@@ -18,6 +18,7 @@ import '../systems/ending.dart';
 import 'backlog_sheet.dart';
 import 'placeholder.dart';
 import 'save_sheet.dart';
+import 'encyclopedia_screen.dart';
 import 'settings_screen.dart';
 
 class AdvScreen extends StatefulWidget {
@@ -348,6 +349,14 @@ class _AdvScreenState extends State<AdvScreen> {
                       onSelected: (v) => switch (v) {
                         'save' => _openSave(loading: false),
                         'load' => _openSave(loading: true),
+                        'encyclopedia' => Navigator.of(context)
+                            .push(MaterialPageRoute<void>(
+                                builder: (_) => EncyclopediaScreen(
+                                      system: _system,
+                                      // いま気づいた謎も開けるように、
+                                      // この周のフラグを渡す
+                                      flags: p.flags,
+                                    ))),
                         'config' => _openSettings(),
                         'title' => Navigator.pop(context),
                         _ => null,
@@ -355,6 +364,8 @@ class _AdvScreenState extends State<AdvScreen> {
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'save', child: Text('セーブ')),
                         PopupMenuItem(value: 'load', child: Text('ロード')),
+                        PopupMenuItem(
+                            value: 'encyclopedia', child: Text('船内百科')),
                         PopupMenuItem(value: 'config', child: Text('コンフィグ')),
                         PopupMenuItem(value: 'title', child: Text('タイトルへ')),
                       ],
@@ -560,11 +571,17 @@ class _ChoiceBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    // ⚠️ 選択肢が増えると縦に溢れる（デート先は6つある）。
+    //    画面の6割までに収めて、あとはスクロールさせる。
+    return Container(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.62,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           for (final (i, o) in options.indexed)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -582,7 +599,8 @@ class _ChoiceBox extends StatelessWidget {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

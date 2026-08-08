@@ -15,7 +15,9 @@
       { "text": "🏬 百貨店（三層区画）", "jump": "date_department" },
       { "text": "🌊 川（水循環プラント）", "jump": "date_river" },
       { "text": "🎤 カラオケ（音響室）", "jump": "date_karaoke" },
-      { "text": "🍜 フードコート", "jump": "date_food" }
+      { "text": "🍜 フードコート", "jump": "date_food" },
+      { "text": "🛍 買い出し（備蓄区画）", "jump": "date_shopping" },
+      { "text": "🎾 テニス（〇・五G室）", "jump": "date_tennis" }
     ]}
   ]
 }

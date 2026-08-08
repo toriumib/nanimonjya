@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../engine/save_manager.dart';
 import '../models/save_data.dart';
 import 'adv_screen.dart';
+import 'encyclopedia_screen.dart';
 import 'settings_screen.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -92,6 +93,16 @@ class _TitleScreenState extends State<TitleScreen> {
                       'つづきから',
                       _auto == null ? null : () => _play(resume: _auto),
                       hint: _auto == null ? 'まだ記録がありません' : _auto!.sceneId,
+                    ),
+                    const SizedBox(height: 12),
+                    _button(
+                      '船内百科',
+                      () => Navigator.of(context).push(MaterialPageRoute<void>(
+                          builder: (_) =>
+                              EncyclopediaScreen(system: _system))),
+                      hint: _system.unlocks.mysteries
+                          ? '謎、全解禁'
+                          : '用語と、まだ解けていない謎',
                     ),
                     const SizedBox(height: 12),
                     _button(
