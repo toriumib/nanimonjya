@@ -1,0 +1,151 @@
+@Tags(['art'])
+library;
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:project_noa/models/scene_script.dart';
+import 'package:project_noa/ui/art/backdrop.dart';
+import 'package:project_noa/ui/art/portrait.dart';
+
+/// 🎨 絵を目で確かめるための一覧を書き出す。
+///
+/// 絵はテストで正しさを言えない（「かわいいか」は判定できない）。
+/// できるのは**全部を一枚に並べて、人が見られるようにすること**。
+///
+///   flutter test --update-goldens test/art_sheet_test.dart
+///
+/// で test/goldens/ に PNG が出る。
+void main() {
+  testWidgets('立ち絵の一覧（全員 × 4表情）', (tester) async {
+    final ids = kPortraits.keys.toList();
+    await tester.binding.setSurfaceSize(const Size(1120, 1500));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Container(
+          color: const Color(0xFF12182A),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                for (final id in ids)
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(id,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 13)),
+                      ),
+                      for (final e in Expression.values)
+                        NoahPortrait(charId: id, expression: e, height: 88),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/portraits.png'),
+    );
+  });
+
+  testWidgets('背景の一覧（シナリオで使うぶん全部）', (tester) async {
+    // 実際のシナリオが使っているIDだけを並べる。
+    // ここに出ない＝どこからも使われていない背景。
+    final ids = <String>{};
+    for (final f in Directory('assets/scenes').listSync().whereType<File>()) {
+      final j = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+      final s = Scene.fromJson(j);
+      ids.add(s.bg);
+      for (final l in s.lines) {
+        if (l is LineBg) ids.add(l.id);
+      }
+    }
+    final list = ids.where((e) => e.isNotEmpty).toList()..sort();
+
+    await tester.binding.setSurfaceSize(const Size(1200, 1400));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Container(
+          color: Colors.black,
+          child: Wrap(
+            children: [
+              for (final id in list)
+                SizedBox(
+                  width: 300,
+                  height: 200,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      NoahBackdrop(id: id),
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(id,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 11)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700)); // 切替アニメを終わらせる
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/backdrops.png'),
+    );
+  });
+
+  testWidgets('老化のかかりかた（同じ場所を age 0 / 5 / 10 で）', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(960, 440));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Row(
+          children: [
+            for (final age in [0, 5, 10])
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    NoahBackdrop(id: 'ship_lounge', age: age),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: NoahPortrait(
+                          charId: 'tsuchikura', height: 300, aging: age),
+                    ),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('age $age',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/aging.png'),
+    );
+  });
+}
