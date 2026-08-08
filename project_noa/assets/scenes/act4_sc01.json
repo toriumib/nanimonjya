@@ -1,0 +1,77 @@
+{
+  "id": "act4_sc01",
+  "chapter": "ACT IV ／ 名前の消えた男（第145年）",
+  "bg": "ship_archive",
+  "bgAge": 5,
+  "bgm": { "id": "missing_name", "fade": 2.5 },
+  "lines": [
+    { "t": "skip28y" },
+    { "t": "mono", "text": "第五覚醒期。百四十五年目。" },
+    { "t": "mono", "text": "その朝、台帳を開いて、私は手を止めた。" },
+
+    { "t": "fx", "kind": "flash" },
+    { "t": "mono", "text": "所長の欄が、空白だった。" },
+    { "t": "mono", "text": "書き忘れたのではない。**書いた記憶はある**。" },
+    { "t": "mono", "text": "けれど、そこに何と書いたかが、出てこない。" },
+
+    { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
+      "text": "船内データベースも同じです。所長の項目だけ、ロックされてる。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/tired",
+      "text": "壊れたんじゃない。**外から鍵がかかってる**。" },
+    { "t": "memtest", "char": "kusunoki", "field": "affiliation" },
+
+    { "t": "mono", "text": "全員に聞いて回った。" },
+    { "t": "mono", "text": "誰も、所長の名を言えなかった。顔は覚えている。声も。" },
+    { "t": "mono", "text": "名前だけが、抜けている。" },
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/tired",
+      "text": "……こわいですね。顔は浮かぶのに。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/normal",
+      "text": "ベイカー錯誤って言うんでしたっけ。名前だけが、いちばん抜けやすい。" },
+    { "t": "aff", "char": "mizuhara", "d": 1 },
+    { "t": "memtest", "char": "mizuhara", "field": "hobby" },
+
+    { "t": "choice", "options": [
+      { "text": "名刺を探す", "jump": "" },
+      { "text": "所長本人に聞く", "jump": "" }
+    ]},
+
+    { "t": "mono", "text": "名刺は、百六十枚あった。十六人ぶん、十枚ずつ。" },
+    { "t": "mono", "text": "——所長のぶんは、はじめから一枚も無かった。" },
+    { "t": "flag", "set": "act4_no_card_confirmed" },
+
+    { "t": "bg", "id": "ship_bridge", "bgAge": 5 },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "気づいたか。思ったより早かったな。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……あなたが、自分で消したんですか。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "消したんじゃない。**刷らなかった**んだ。最初から。" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "私は六十八だ。着くころには、とっくにいない。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "いない人間の名を覚えておく余白があるなら、生きる人間に使え。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "……そう考えた。合理的だろう。" },
+
+    { "t": "mono", "text": "合理的だった。反論できないほどに。" },
+    { "t": "mono", "text": "だから私は、反論のかわりに台帳を開いた。" },
+    { "t": "mono", "text": "三冊ある。生まれた者、死んだ者、まだどちらでもない者。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……三冊目に、あなたの欄を作ります。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "名前は、着いてから書きます。それまでは空けておく。" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/surprise",
+      "text": "……それは、記録として正しいのか。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "正しくありません。でも、私の仕事です。" },
+
+    { "t": "fx", "kind": "shake" },
+    { "t": "se", "id": "alarm" },
+    { "t": "mono", "text": "そのとき、船が鳴った。" },
+
+    { "t": "jump", "to": "act5_sc01" }
+  ]
+}

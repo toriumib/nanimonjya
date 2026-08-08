@@ -1,0 +1,66 @@
+{
+  "id": "act5_sc01",
+  "chapter": "ACT V ／ 減速（第327年）",
+  "bg": "ship_bridge",
+  "bgAge": 9,
+  "bgm": { "id": "deceleration", "fade": 1.0 },
+  "lines": [
+    { "t": "skip28y" },
+    { "t": "skip28y" },
+    { "t": "skip28y" },
+    { "t": "skip28y" },
+    { "t": "skip28y" },
+    { "t": "skip28y" },
+    { "t": "mono", "text": "三百二十七年。" },
+    { "t": "mono", "text": "LHS 1140 の光が、窓を赤く染めている。" },
+    { "t": "mono", "text": "赤色矮星の光は、思っていたよりずっと静かだった。" },
+
+    { "t": "fx", "kind": "shake" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/tired",
+      "text": "磁気セイル、展開率八十二パーセントで止まりました。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/tired",
+      "text": "このままだと減速が足りない。……通過します。" },
+    { "t": "mono", "text": "三百三十年かけて着いて、止まれない。" },
+    { "t": "mono", "text": "彼女がいちばん恐れていたことが、目の前にあった。" },
+
+    { "t": "say", "name": "日比野", "sprite": "hibino/tired",
+      "text": "炉の廃熱を回します。……でも、誰かが手動で弁を開けないと。" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/normal",
+      "text": "第七区画。放射線が強い。ロボットは焼けます。" },
+
+    { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
+      "text": "……うちの子なら、いけます。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
+      "text": "兄の意識を載せた機体です。焼けても、意識は戻せる。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/tired",
+      "text": "本人に、聞いてもらえますか。……私からだと、頼みになってしまう。" },
+
+    { "t": "choice", "options": [
+      { "text": "名前で呼んで、頼む", "jump": "" },
+      { "text": "楠さんと一緒に行く", "jump": "" }
+    ]},
+
+    { "t": "mono", "text": "私は通信を開いて、その機体の名を呼んだ。" },
+    { "t": "mono", "text": "型番ではなく、彼が人間だったころの名前を。" },
+    { "t": "se", "id": "radio" },
+    { "t": "mono", "text": "返事は、ラジオのノイズに混じって届いた。" },
+    { "t": "mono", "text": "「——ひさしぶりに呼ばれた」" },
+
+    { "t": "fx", "kind": "flash" },
+    { "t": "mono", "text": "弁が開いた。" },
+    { "t": "mono", "text": "廃熱がセイルへ流れ、超伝導が戻り、ループが広がる。" },
+    { "t": "mono", "text": "展開率、百パーセント。" },
+
+    { "t": "aff", "char": "kusunoki", "d": 2 },
+    { "t": "aff", "char": "hoshino", "d": 1 },
+    { "t": "aff", "char": "hibino", "d": 1 },
+    { "t": "memtest", "char": "kusunoki", "field": "hobby" },
+    { "t": "memtest", "char": "hibino", "field": "affiliation" },
+
+    { "t": "mono", "text": "船は、止まった。" },
+    { "t": "mono", "text": "四十八・九光年。三百二十七年。" },
+    { "t": "mono", "text": "着いたのだ。" },
+
+    { "t": "jump", "to": "act5_sc02" }
+  ]
+}

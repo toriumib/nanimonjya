@@ -1,0 +1,79 @@
+{
+  "id": "act3_sc02",
+  "chapter": "ACT III ／ 覚醒期をかさねて（第56〜112年）",
+  "bg": "ship_lounge",
+  "bgAge": 2,
+  "bgm": { "id": "long_voyage", "fade": 2.0 },
+  "lines": [
+    { "t": "mono", "text": "二十八年眠って、二年起きる。それを繰り返す。" },
+    { "t": "mono", "text": "起きている二年のあいだに、私たちは暮らしをした。" },
+
+    { "t": "skip28y" },
+    { "t": "bg", "id": "ship_river", "bgAge": 2 },
+    { "t": "mono", "text": "第二覚醒期。水循環プラントには、川がある。" },
+    { "t": "mono", "text": "本物の川ではない。けれど水は流れているし、音もする。" },
+
+    { "t": "say", "name": "星野", "sprite": "hoshino/smile",
+      "text": "この川の水の九十九・七パーセントは、三百年前の誰かの汗だそうです。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/smile",
+      "text": "……ロマンが無いですか？　私は好きですけど。" },
+    { "t": "aff", "char": "hoshino", "d": 1 },
+    { "t": "say", "name": "星野", "sprite": "hoshino/normal",
+      "text": "祖父の連絡先、まだ登録したままなんです。ORB-1140。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/normal",
+      "text": "届くわけないのに、消せなくて。" },
+    { "t": "memtest", "char": "hoshino", "field": "commId" },
+
+    { "t": "skip28y" },
+    { "t": "bg", "id": "ship_food", "bgAge": 3 },
+    { "t": "mono", "text": "第三覚醒期。フードコートの醤油は、まだ同じ味がした。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "継ぎ足しですよ。八十四年ぶんの。" },
+    { "t": "memtest", "char": "shinohara", "field": "hobby" },
+
+    { "t": "skip28y" },
+    { "t": "bg", "id": "ship_karaoke", "bgAge": 4 },
+    { "t": "mono", "text": "第四覚醒期。カラオケの掲示板に、俳句が貼られるようになった。" },
+    { "t": "mono", "text": "詠み人しらず。ぜんぶ、山の句だった。" },
+    { "t": "say", "name": "岩尾", "sprite": "iwao/normal",
+      "text": "……誰が貼ってるんだろうな。" },
+    { "t": "mono", "text": "岩尾玄助は、そう言って目をそらした。" },
+    { "t": "aff", "char": "iwao", "d": 1 },
+    { "t": "memtest", "char": "iwao", "field": "hobby" },
+
+    { "t": "bg", "id": "ship_lounge", "bgAge": 4 },
+    { "t": "mono", "text": "四回目の覚醒期のおわりに、桐生が言った。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "……ひとつ、聞いてもいいですか。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "この航海は、はじめから決まっていたと思いますか。" },
+
+    { "t": "choice", "options": [
+      { "text": "決まっていた、とは思いません", "jump": "" },
+      { "text": "決まっていたとしても、やることは同じでは", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "私は量子屋なのでね。よく聞かれるんですよ。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "「量子力学が運命を否定した」と。……あれは、言いすぎです。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "ベルの不等式が破れて消えたのは、局所実在論のほうだ。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "「近くにこっそり答えが隠してある」という考え方が、消えた。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "決まっているかどうかは、まだ誰にも分かっていません。" },
+
+    { "t": "mono", "text": "彼は少し笑って、こう続けた。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/smile",
+      "text": "だから私は、決まっていないほうに賭けている。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……分からないなら、覚えておくしかないでしょう。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/smile",
+      "text": "ええ。そちらのほうが、よほど実際的だ。" },
+    { "t": "aff", "char": "kiryu", "d": 2 },
+    { "t": "memtest", "char": "kiryu", "field": "school" },
+
+    { "t": "jump", "to": "act4_sc01" }
+  ]
+}

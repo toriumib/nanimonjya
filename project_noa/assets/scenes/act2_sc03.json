@@ -1,0 +1,62 @@
+{
+  "id": "act2_sc03",
+  "chapter": "ACT II ／ 行って、止まれる船",
+  "bg": "engine_bay",
+  "bgAge": 0,
+  "bgm": { "id": "ignition", "fade": 1.4 },
+  "lines": [
+    { "t": "mono", "text": "三百人。あと二百。" },
+    { "t": "mono", "text": "残った問題は、二つあった。行けるか。そして——止まれるか。" },
+
+    { "t": "say", "name": "日比野", "sprite": "hibino/tired",
+      "text": "推力は出ます。光速の十五パーセントまで。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/tired",
+      "text": "……出ちゃうんですよ。それが問題で。" },
+    { "t": "mono", "text": "星野未来。軌道力学。祖父がJAXAの技術者だった人。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/normal",
+      "text": "三百三十年かけて着いて、止まれませんでした。それだけは、絶対に嫌です。" },
+
+    { "t": "mono", "text": "二人は、別々の部屋で行き詰まっていた。" },
+    { "t": "mono", "text": "日比野は炉の前で。星野は軌道図の前で。" },
+
+    { "t": "choice", "options": [
+      { "text": "日比野さんに、星野さんの話をする", "jump": "" },
+      { "text": "星野さんに、日比野さんの話をする", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "日比野さん。星野さんは、磁気セイルで減速すると言っています。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "直径五百キロの超伝導ループを広げて、恒星風を受けると。" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/surprise",
+      "text": "……超伝導。冷やすんですか、それ。" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/normal",
+      "text": "うちの炉、廃熱の捨て場所に困ってるんですけど。" },
+
+    { "t": "fx", "kind": "flash" },
+    { "t": "mono", "text": "——熱。" },
+    { "t": "mono", "text": "片方は捨てたい。片方は冷やしたい。" },
+    { "t": "mono", "text": "同じ船の、別の部屋で。" },
+
+    { "t": "say", "name": "星野", "sprite": "hoshino/surprise",
+      "text": "炉の廃熱を、セイルの冷却系に回す……？" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/smile",
+      "text": "登り窯と同じですよ。捨てる熱なんて、本当は無い。" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/smile",
+      "text": "温度を上げて、待って、信じる。それだけです。" },
+
+    { "t": "aff", "char": "hibino", "d": 2 },
+    { "t": "aff", "char": "hoshino", "d": 2 },
+
+    { "t": "mono", "text": "直接核融合推進と、磁気セイル減速。同時に成立。" },
+    { "t": "mono", "text": "定員は、五百になった。" },
+    { "t": "flag", "set": "capacity_500" },
+
+    { "t": "mono", "text": "その日の夜、全員が同じことをした。" },
+    { "t": "mono", "text": "書きかけの「さよならの手紙」を破って、招待状に書き換えたのだ。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "言っただろう。この数字は、まだ動くと。" },
+
+    { "t": "jump", "to": "act3_sc01" }
+  ]
+}

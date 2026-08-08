@@ -1,0 +1,61 @@
+{
+  "id": "act2_sc02",
+  "chapter": "ACT II ／ 巡るもの",
+  "bg": "greenhouse",
+  "bgAge": 0,
+  "bgm": { "id": "closed_loop", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "百八人。増えた。けれど、まだ足りない。" },
+    { "t": "mono", "text": "次に詰まったのは、窒素だった。" },
+
+    { "t": "say", "name": "橘", "sprite": "tachibana/tired",
+      "text": "循環が閉じない。九十九・二パーセントで頭打ちだ。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "残りの〇・八が、三百三十年で全部抜ける。" },
+    { "t": "mono", "text": "橘宗一郎。閉鎖生態系工学センター。" },
+    { "t": "mono", "text": "「廃棄物は、場所を間違えた資源だ」が信条の人。" },
+
+    { "t": "mono", "text": "彼の机には、小さな盆栽が置かれている。" },
+    { "t": "mono", "text": "妻が育てていたものを引き継いだ、と最初の日に聞いた。" },
+
+    { "t": "choice", "options": [
+      { "text": "奥さんは、どうやって土を作っていたんですか", "jump": "" },
+      { "text": "その盆栽、まだ元気ですね", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "……コンポストだ。生ゴミを、ただ積んで、放っておく。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "温度も湿度も測らない。かき混ぜもしない。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/tired",
+      "text": "俺は何度も言った。管理しろと。数値を取れと。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/tired",
+      "text": "あいつは笑って、放っておけばいいのよ、と。" },
+
+    { "t": "fx", "kind": "flash" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/surprise",
+      "text": "………………放って、おく。" },
+    { "t": "mono", "text": "彼はモニタを見た。制御アルゴリズムが、毎秒ごとに窒素を最適化している。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "最適化しすぎているのか。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "常に正しくあろうとすると、揺れが消える。揺れが消えると、菌が減る。" },
+
+    { "t": "mono", "text": "彼は、制御を外した。" },
+    { "t": "mono", "text": "三か月、ただ放っておいた。" },
+    { "t": "aff", "char": "tachibana", "d": 2 },
+
+    { "t": "mono", "text": "窒素循環、百パーセント。" },
+    { "t": "mono", "text": "定員は、三百になった。" },
+    { "t": "flag", "set": "capacity_300" },
+
+    { "t": "say", "name": "橘", "sprite": "tachibana/smile",
+      "text": "……三十年かかったよ。妻の言っていた意味が分かるまでに。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "妻は地球に置いてきた。もう、いない。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "だから俺は、この船の中で二度と誰も死なせない。" },
+
+    { "t": "jump", "to": "act2_sc03" }
+  ]
+}

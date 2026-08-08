@@ -49,6 +49,13 @@ sealed class ScriptLine {
         );
       case 'flag':
         return LineFlag(s('set'));
+      case 'aff':
+        return LineAffection(
+          charId: s('char'),
+          delta: (j['d'] as num?)?.toInt() ?? 1,
+        );
+      case 'ending':
+        return const LineEnding();
       case 'skip28y':
         return const LineSkip28y();
       case 'jump':
@@ -137,6 +144,25 @@ class LineNameInput extends ScriptLine {
 class LineFlag extends ScriptLine {
   final String set;
   const LineFlag(this.set);
+}
+
+/// 好感度を動かす。
+///
+/// デート中に電話番号や家族の話を聞く、といった
+/// **記憶テスト以外で距離が縮まる場面**に置く（STORY 3.1）。
+class LineAffection extends ScriptLine {
+  final String charId;
+  final int delta;
+  const LineAffection({required this.charId, this.delta = 1});
+}
+
+/// ここで結末を判定して、対応するエンドのシーンへ飛ぶ。
+///
+/// どの結末になるかをシナリオ側に書かないのが要点。
+/// 好感度と記憶率から**そのとき決まる**ので、
+/// 分岐を台本に持たせるとすぐ食い違う。
+class LineEnding extends ScriptLine {
+  const LineEnding();
 }
 
 /// 28年の冷凍睡眠。老化レベルを1つ進める（SPEC 4.8）。

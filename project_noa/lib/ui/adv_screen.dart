@@ -14,6 +14,7 @@ import '../engine/scene_player.dart';
 import '../models/noah_field.dart';
 import '../models/save_data.dart';
 import '../models/scene_script.dart';
+import '../systems/ending.dart';
 import 'backlog_sheet.dart';
 import 'placeholder.dart';
 import 'save_sheet.dart';
@@ -157,7 +158,14 @@ class _AdvScreenState extends State<AdvScreen> {
     if (p == null) return;
 
     if (p.mode == PlayerMode.sceneEnd) {
-      // jump 行の飛び先へ。無ければタイトルへ戻る。
+      // ① 結末が決まっていれば、そのエンドへ。
+      final end = p.endingJump;
+      if (end != null) {
+        p.endingJump = null;
+        await _goEnding(end);
+        return;
+      }
+      // ② jump 行の飛び先へ。無ければタイトルへ戻る。
       final jump = _pendingJump(p);
       if (jump != null) {
         final next = await AssetRepository.instance.loadScene(jump);
@@ -180,6 +188,34 @@ class _AdvScreenState extends State<AdvScreen> {
     final l = p.scene.lines[p.index];
     return l is LineJump ? l.to : null;
   }
+
+  /// 結末のシーンへ入る。ここで1周おわりなので、システムデータも更新する。
+  Future<void> _goEnding(EndingResult end) async {
+    final p = _player!;
+
+    // 最高記憶率とクリア回数はシステムデータ側に積む（SPEC 4.3 / 4.6）。
+    final rate = memoryRate(
+      correct: p.memory.correctCount,
+      totalPairs: totalPairsFor(_cast?.all.length ?? 0),
+    );
+    _system = _system.reportMemoryRate(rate).reportCleared();
+    await SaveManager.instance.writeSystem(_system);
+
+    final scene = await AssetRepository.instance.loadScene(end.ending.sceneId);
+    if (!mounted) return;
+    if (scene == null) {
+      _showSceneEnd();
+      return;
+    }
+    setState(() {
+      _ending = end;
+      p.loadScene(scene);
+    });
+    _onLineShown();
+  }
+
+  /// いま迎えている結末（結末のシーンでだけ入る）。
+  EndingResult? _ending;
 
   Future<void> _autoSave() async {
     final p = _player;
@@ -372,7 +408,8 @@ class _AdvScreenState extends State<AdvScreen> {
                     ),
                   _ => _TextWindow(
                       speaker: p.speaker,
-                      text: p.text.substring(0, _shown.clamp(0, p.text.length)),
+                      text: _fill(p.text)
+                          .substring(0, _shown.clamp(0, _fill(p.text).length)),
                       auto: _auto,
                       onToggleAuto: () {
                         setState(() => _auto = !_auto);
@@ -394,6 +431,24 @@ class _AdvScreenState extends State<AdvScreen> {
     if (p == null) return;
     p.advance();
     await _afterAdvance();
+  }
+
+  /// 差し込み語を埋める。
+  ///
+  /// 結末の本文は「誰と結ばれたか」で変わるが、
+  /// 相手ごとにシーンを書き分けると同じ文章が8本並ぶ。
+  /// `{partner}` `{regret}` を置いておいて、ここで差し替える。
+  String _fill(String src) {
+    if (!src.contains('{')) return src;
+    final e = _ending;
+    final partner = e?.partner;
+    final names = e == null || e.partners.isEmpty
+        ? (partner?.name ?? 'あの人')
+        : e.partners.map((c) => c.name).join('、');
+    return src
+        .replaceAll('{partner}', partner?.name ?? names)
+        .replaceAll('{partners}', names)
+        .replaceAll('{regret}', partner?.regret ?? '');
   }
 
   void _snack(String msg) {

@@ -10,6 +10,7 @@ import 'dart:math';
 import '../models/noah_field.dart';
 import '../models/save_data.dart';
 import '../models/scene_script.dart';
+import '../systems/ending.dart';
 import '../systems/memory_store.dart';
 
 /// いま画面が何を待っているか。
@@ -76,6 +77,10 @@ class ScenePlayer {
   /// 直近の演出・効果音。UI が拾ったら消す。
   String? pendingFx;
   String? pendingSe;
+
+  /// 結末が決まったら入る（LineEnding を通ったとき）。
+  /// UI はこれを見てエンドのシーンへ飛ぶ。
+  EndingResult? endingJump;
 
   ScenePlayer({
     required Scene scene,
@@ -188,6 +193,20 @@ class ScenePlayer {
           _bgAge = age;
         case LineFlag(:final set):
           _flags.add(set);
+        case LineAffection(:final charId, :final delta):
+          _affection[charId] = (_affection[charId] ?? 0) + delta;
+        case LineEnding():
+          // 結末はここで決まる。飛び先は外側（UI）が読んで遷移する。
+          endingJump = resolveEnding(
+            affection: _affection,
+            cast: cast,
+            memoryRate: memoryRate(
+              correct: memory.correctCount,
+              totalPairs: totalPairsFor(cast.all.length),
+            ),
+          );
+          _mode = PlayerMode.sceneEnd;
+          return;
         case LineSkip28y():
           _cycle += 1;
           // 老化は10で頭打ち。背景バリアントが bg_*_age0..10 しかない。
