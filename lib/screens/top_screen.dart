@@ -1,6 +1,11 @@
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'tutorial_play_screen.dart';
+import '../services/custom_roster_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // ロゴ・演出アニメーション
 import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
 import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
@@ -28,6 +33,13 @@ import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 import '../services/app_analytics.dart';
+
+/// 🔁 ホームに「つぎの一歩」を出し直させる合図。
+///
+/// ⚠️ TopScreen の initState は、初回起動のチュートリアルより**先に**走る。
+///    その時点ではまだ「おためし未プレイ」なので、判定が必ず false になる。
+///    チュートリアルを終えた HomeShell 側からここを叩いてもらう。
+final ValueNotifier<int> kHomeNextStepTick = ValueNotifier<int>(0);
 
 // 多言語対応のために追加
 
@@ -170,6 +182,95 @@ class _TopScreenState extends State<TopScreen>
   /// 顔メモ・マイページ・チュートリアル・レビュー・支援を
   /// 同じ見た目の小さなタイルにして並べる。
   /// 縦長のボタンを積むより、ずっと少ない高さで収まる。
+  /// 「つぎは顔メモ」を出すか。登録が1人でもあれば、もう出さない。
+  bool _showNextStep = false;
+  static const String _kNextStepKey = 'nextStepFaceMemoDone';
+
+  Future<void> _refreshNextStep() async {
+    if (kIsWeb) return; // 顔メモの写真登録はモバイル限定
+    final p = await SharedPreferences.getInstance();
+    if (p.getBool(_kNextStepKey) ?? false) return;
+    // おためしを終えた人にだけ。初回起動の1画面目からは出さない。
+    if (await shouldPlayTutorial()) return;
+    await CustomRosterService.instance.load();
+    final empty = CustomRosterService.instance.entries.isEmpty;
+    if (!mounted) return;
+    setState(() => _showNextStep = empty);
+    if (!empty) await p.setBool(_kNextStepKey, true);
+  }
+
+  Future<void> _dismissNextStep() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kNextStepKey, true);
+    if (mounted) setState(() => _showNextStep = false);
+  }
+
+  Widget _nextStepCard() => Container(
+        margin: const EdgeInsets.fromLTRB(4, 4, 4, 10),
+        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE0F7F4), Color(0xFFFFF6D8)],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFF1E8A82), width: 1.6),
+        ),
+        child: Row(
+          children: [
+            const Text('🧑‍🎨', style: TextStyle(fontSize: 32)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('つぎは 顔メモ',
+                      style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF12645E))),
+                  const SizedBox(height: 2),
+                  const Text(
+                    '会社や学校で会った人の顔を似顔絵で作って、\n'
+                    '名前といっしょに覚えられます。',
+                    style: TextStyle(fontSize: 12, height: 1.45),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 34,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        AppAnalytics.modePick('face_memo_nextstep');
+                        await _dismissNextStep();
+                        if (!mounted) return;
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const CustomRosterScreen(
+                                  startAvatar: true)),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E8A82),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        textStyle: const TextStyle(
+                            fontSize: 13.5, fontWeight: FontWeight.w900),
+                      ),
+                      child: const Text('顔をつくってみる →'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'とじる',
+              icon: const Icon(Icons.close, size: 18, color: Colors.black38),
+              onPressed: _dismissNextStep,
+            ),
+          ],
+        ),
+      );
+
   Widget _shortcutTile({
     required String emoji,
     required String label,
@@ -563,6 +664,8 @@ class _TopScreenState extends State<TopScreen>
   void initState() {
     super.initState();
     AppAnalytics.screen('top');
+    _refreshNextStep();
+    kHomeNextStepTick.addListener(_refreshNextStep);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800), // アニメーションの時間
@@ -587,6 +690,7 @@ class _TopScreenState extends State<TopScreen>
 
   @override
   void dispose() {
+    kHomeNextStepTick.removeListener(_refreshNextStep);
     _controller.dispose();
     _bounceController.dispose();
     _giftAd.dispose();
@@ -867,6 +971,14 @@ class _TopScreenState extends State<TopScreen>
               animation: PlayerProfile.instance,
               builder: (context, _) => const GuideTalk(),
             ),
+            // 👉 つぎの一歩。**まだ顔メモを使っていない人にだけ**出す。
+            //
+            // ⚠️ 2026-08 の計測で、下タブに一度でも触った人は
+            //    新規162人のうち17人（10%）しかいなかった。
+            //    1ゲーム遊んで、それ以外の機能を見ないまま消えている。
+            //    タブは「あることに気づかれていない」ので、
+            //    いちばん目に入る場所から名指しで送り込む。
+            if (_showNextStep) _nextStepCard(),
             // 称号バッジ と 🎁無料コイン を横1行に（以前は縦に積んでいた）
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),

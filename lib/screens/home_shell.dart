@@ -58,6 +58,10 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
       if (!mounted) return;
       // 遊び終わったあとに、読むかどうかを本人に選ばせる
       if (needRead) await _offerGuide();
+      // ホームの「つぎは顔メモ」を出し直させる。
+      // TopScreen の initState はここより先に走っているので、
+      // そのままでは「おためし未プレイ」と判定されたままになる。
+      kHomeNextStepTick.value++;
       return;
     }
 
