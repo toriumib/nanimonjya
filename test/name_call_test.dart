@@ -49,9 +49,11 @@ void main() {
   });
 
   group('NameCallGame', () {
-    test('山札は人数×2枚で、2枚ずつ引くと使い切れる', () {
+    test('山札は人数×既定の枚数で、引き切ると使い切れる', () {
+      // ⚠️ 枚数を直書きしない。既定を変えるたびに落ちる。
       final game = makeGame(1);
-      expect(game.totalCards, NameCallGame.peopleCount * 2);
+      expect(game.totalCards,
+          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson);
       var drawn = 0;
       while (!game.isFinished) {
         final round = game.drawRound();
