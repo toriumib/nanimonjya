@@ -30,6 +30,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('memory_tips');
+    AppAnalytics.readOpen('memory_tips');
   }
 
   @override
@@ -160,6 +161,12 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
               controller: _pageController,
               itemCount: pages.length,
               onPageChanged: (i) {
+                // 📊 何ページ目で閉じられるかを見る。全25話あるので、
+                //    開いた数だけでは、どこで飽きたのかが分からない。
+                AppAnalytics.readPage(articleId: 'memory_tips', page: i);
+                if (i == pages.length - 1) {
+                  AppAnalytics.readFinish('memory_tips');
+                }
                 setState(() => _page = i);
                 _countRead();
               },

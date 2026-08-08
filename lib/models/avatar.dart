@@ -31,6 +31,29 @@ class Avatar {
   final int age; // 目安の年齢
   final int height; // 目安の身長(cm)
 
+  /// 📊 別の顔と、いくつの項目が違うか（計測用）。
+  ///
+  /// `const Avatar()`（既定の顔）と比べると、
+  /// **エディタで実際にいじった数**が分かる。0なら開いて何もせず出ている。
+  int diffCount(Avatar other) {
+    var n = 0;
+    if (skin != other.skin) n++;
+    if (faceShape != other.faceShape) n++;
+    if (hair != other.hair) n++;
+    if (hairColor != other.hairColor) n++;
+    if (eyes != other.eyes) n++;
+    if (eyebrows != other.eyebrows) n++;
+    if (nose != other.nose) n++;
+    if (mouth != other.mouth) n++;
+    if (glasses != other.glasses) n++;
+    if (mole != other.mole) n++;
+    if (beard != other.beard) n++;
+    if (gender != other.gender) n++;
+    if (age != other.age) n++;
+    if (height != other.height) n++;
+    return n;
+  }
+
   const Avatar({
     this.skin = 1,
     this.faceShape = 0,

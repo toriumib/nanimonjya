@@ -41,6 +41,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('custom_roster');
+    AppAnalytics.faceMemoOpen(widget.startAvatar ? 'home' : 'tab');
     CustomRosterService.instance.load();
     if (widget.startAvatar) {
       // 一覧を挟まず、そのまま顔づくりへ入る
@@ -51,6 +52,8 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   }
 
   Future<void> _addPhoto(ImageSource source) async {
+    AppAnalytics.faceMemoAddStart(
+        source == ImageSource.camera ? 'camera' : 'photo');
     try {
       final picked =
           await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 80);
@@ -64,6 +67,9 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             builder: (_) => _EntryFormScreen(facePath: picked.path)),
       );
       if (result == null || result.entry.name.trim().isEmpty) return;
+      AppAnalytics.faceMemoAdded(
+          kind: source == ImageSource.camera ? 'camera' : 'photo',
+          fieldsFilled: _filledCount(result.entry));
       await CustomRosterService.instance.add(
         sourcePath: picked.path,
         draft: result.entry,
@@ -84,6 +90,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   /// 特徴（メガネ・ほくろ・髪型）を選んで顔を組み立てれば、
   /// 写真が無くても顔と名前を結びつけて覚えられる。
   Future<void> _addAvatar() async {
+    AppAnalytics.faceMemoAddStart('avatar');
     final avatar = await Navigator.push<Avatar>(
       context,
       MaterialPageRoute(builder: (_) => const AvatarEditorScreen()),
@@ -94,11 +101,28 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
       MaterialPageRoute(builder: (_) => _EntryFormScreen(avatar: avatar)),
     );
     if (result == null || result.entry.name.trim().isEmpty) return;
+    AppAnalytics.faceMemoAdded(
+        kind: 'avatar', fieldsFilled: _filledCount(result.entry));
     await CustomRosterService.instance.add(
       draft: result.entry.copyWith(avatar: avatar.encode()),
       cardSourcePath: result.cardPath,
     );
     Sfx.instance.coin();
+  }
+
+  /// 📊 18項目のうち、いくつ埋まったか。
+  ///
+  /// 名前しか入れない人が多いのか、全部埋める人がいるのかで、
+  /// フォームを削るべきかどうかが決まる。
+  /// ⚠️ id と画像パスは「入力した項目」ではないので数えない。
+  static int _filledCount(CustomEntry e) {
+    const skip = {'id', 'imagePath', 'avatar', 'cardImagePath'};
+    var n = 0;
+    e.toJson().forEach((k, v) {
+      if (skip.contains(k)) return;
+      if (v is String && v.trim().isNotEmpty) n++;
+    });
+    return n;
   }
 
   /// 登録済みの人を開いて、項目を見る／直す。

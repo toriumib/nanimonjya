@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
+import 'services/app_analytics.dart';
 import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
 import 'services/bgm.dart'; // ホーム/ゲーム/リザルトのBGM
 import 'services/push_service.dart'; // 既存ユーザーへのお知らせプッシュ
@@ -15,7 +16,6 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/app_open_ad_helper.dart';
-import 'services/rewarded_interstitial_helper.dart';
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
@@ -30,6 +30,8 @@ import 'l10n/app_localizations.dart'; // ★追加: 生成されるファイル�
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // ⏱ 初回起動の時刻を控える（初回ゲーム開始までの秒数を測るため）
+  AppAnalytics.rememberFirstOpen();
   if (!kIsWeb) {
     // Crashlytics: 未捕捉のFlutterエラー/非同期エラーを自動送信（Web非対応）
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -38,14 +40,20 @@ Future<void> main() async {
       return true;
     };
     MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
-    InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
+    // ⚠️ **起動時に全画面広告を先読みしない。**
+    //    2026-08 のレポートで、インタースティシャルは 56ロード/7表示、
+    //    リワードインタースティシャルは 14ロード/0表示だった。
+    //    起動しただけで読むと、ゲームを終えずに離脱した人のぶんが
+    //    まるごと空振りになる。空振りはマッチ率と単価を下げる。
+    //    いまは「出す見込みが立ってから読む」に変えてある
+    //    （インタースティシャル＝あと1プレイで出る時点、
+    //      リワードインタースティシャル＝よみものを開いた時点）。
     // 🚪 アプリ起動広告は**いったん止めている**。
     //    枠（/9282156275）も実装（services/app_open_ad_helper.dart）も
     //    あるので、再開したくなったら次の1行を戻すだけでよい。
     //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
     //    ほかの手を整えてから判断する。
     // AppOpenAdHelper.instance.start();
-    RewardedInterstitialHelper.instance.load();
     PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み

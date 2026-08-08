@@ -31,6 +31,10 @@ class RewardedInterstitialHelper {
   void load() {
     if (!available || _loading || _ad != null) return;
     _loading = true;
+    // ⚠️ 起動時には読まない。よみものを開いた時点で初めて読む。
+    //    2026-08 は 14ロード/0表示で、1円も生まずに在庫だけ消費していた。
+    AppAnalytics.adLoadRequested(
+        format: 'rewarded_interstitial', placement: 'article');
     RewardedInterstitialAd.load(
       adUnitId: AdIds.rewardedInterstitial,
       request: const AdRequest(),
@@ -83,10 +87,16 @@ class RewardedInterstitialHelper {
   }) async {
     final ad = _ad;
     if (ad == null) {
+      AppAnalytics.adSkipped(
+          format: 'rewarded_interstitial',
+          placement: placement,
+          reason: 'not_loaded');
       load();
       return false;
     }
     _ad = null;
+    AppAnalytics.adShown(
+        format: 'rewarded_interstitial', placement: placement);
     AppAnalytics.adRewardPrompt(placement);
     var earned = false;
     ad.fullScreenContentCallback = FullScreenContentCallback(

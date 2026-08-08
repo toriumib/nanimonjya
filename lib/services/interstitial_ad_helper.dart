@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ad_ids.dart';
+import 'app_analytics.dart';
 import 'app_open_ad_helper.dart';
 import 'player_profile.dart';
 
@@ -34,6 +35,8 @@ class InterstitialAdHelper {
   void load() {
     if (!available || _loading || _ad != null) return;
     _loading = true;
+    AppAnalytics.adLoadRequested(
+        format: 'interstitial', placement: 'result');
     InterstitialAd.load(
       adUnitId: AdIds.interstitial,
       request: const AdRequest(),
@@ -88,10 +91,21 @@ class InterstitialAdHelper {
       );
       await prefs.setInt(_lastShownKey, now);
       AppOpenAdHelper.instance.suspended = true;
+      AppAnalytics.adShown(format: 'interstitial', placement: 'result');
       await ad.show();
     } else {
-      // まだ回数前 or 広告未準備（未準備なら読み込んでおき、次の機会に出す）
-      if (plays >= playsPerAd) load();
+      // ⚠️ **あと1プレイで出る**ところまで来てから読む。
+      //    起動時に読んでいたころは 56ロード/7表示だった。
+      //    ゲームを終えずに離脱した人のぶんが全部空振りになっていた。
+      if (plays >= playsPerAd - 1) {
+        load();
+      }
+      if (plays >= playsPerAd) {
+        AppAnalytics.adSkipped(
+            format: 'interstitial',
+            placement: 'result',
+            reason: tooSoon ? 'cooldown' : 'not_loaded');
+      }
     }
     await prefs.setInt(_prefsKey, plays);
   }

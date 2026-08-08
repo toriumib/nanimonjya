@@ -114,9 +114,11 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // タブはどれも「ホーム」なので、切り替えたらホームBGMに戻す。
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
-          AppAnalytics.featureOpen(const [
-            'namecall', 'training', 'shop', 'read', 'story', 'profile'
-          ][i]);
+          AppAnalytics.featureOpen(
+            const ['namecall', 'training', 'shop', 'read', 'story', 'profile']
+                [i],
+            from: 'tab',
+          );
           Bgm.instance.playHome();
           setState(() => _index = i);
         },

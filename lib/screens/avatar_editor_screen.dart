@@ -216,7 +216,12 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, _a),
+                  onPressed: () {
+                    // いじった項目数を残す。0なら既定の顔のまま出ている＝
+                    // エディタが使われていないのと同じなので、そこを見る。
+                    AppAnalytics.avatarEditorDone(_a.diffCount(const Avatar()));
+                    Navigator.pop(context, _a);
+                  },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                     backgroundColor: const Color(0xFF3A7BD5),
