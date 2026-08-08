@@ -183,7 +183,8 @@ class _BodyPainter extends CustomPainter {
     canvas.save();
     canvas.translate(cx - headSize / 2, headTop);
     canvas.scale(headSize / 100.0);
-    _AvatarPainter(a, background: false).paint(canvas, const Size(100, 100));
+    _AvatarPainter(a, background: false, withShoulders: false)
+        .paint(canvas, const Size(100, 100));
     canvas.restore();
 
     // 杖（かなり年配のときだけ）
@@ -228,7 +229,12 @@ class _AvatarPainter extends CustomPainter {
   final Avatar a;
   final bool background;
 
-  _AvatarPainter(this.a, {this.background = true});
+  /// 首と肩を描くか。
+  /// 全身表示（[AvatarBodyView]）はこの下に自前の胴体を描くので、
+  /// ここで肩まで描くと二重になる。そのときだけ false にする。
+  final bool withShoulders;
+
+  _AvatarPainter(this.a, {this.background = true, this.withShoulders = true});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -241,16 +247,37 @@ class _AvatarPainter extends CustomPainter {
     final hairColor = _agedHair(_hairColors[a.hairColor % _hairColors.length]);
 
     if (background) {
+      // 平らな一色だと切り絵のように見えるので、淡いグラデーションと
+      // 後光を敷いて、顔が浮き上がるようにする。
       canvas.drawRect(
         const Rect.fromLTWH(0, 0, 100, 100),
-        Paint()..color = const Color(0xFFEFF4FB),
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF7FAFF), Color(0xFFDDE8F5)],
+          ).createShader(const Rect.fromLTWH(0, 0, 100, 100)),
+      );
+      canvas.drawCircle(
+        const Offset(50, 54),
+        40,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.85),
+              Colors.white.withValues(alpha: 0.0),
+            ],
+          ).createShader(
+              Rect.fromCircle(center: const Offset(50, 54), radius: 40)),
       );
     }
 
+    if (withShoulders) _drawNeckAndShoulders(canvas, skin);
     _drawBackHair(canvas, hairColor);
     _drawFace(canvas, skin);
     _drawEars(canvas, skin);
     _drawFrontHair(canvas, hairColor);
+    _drawHairShine(canvas, hairColor);
     _drawEyebrows(canvas);
     _drawEyes(canvas);
     _drawFeminineTouch(canvas);
@@ -283,15 +310,82 @@ class _AvatarPainter extends CustomPainter {
     }
   }
 
+  /// 首と肩。顔だけが宙に浮いて見えるのを防ぐ。
+  void _drawNeckAndShoulders(Canvas canvas, Color skin) {
+    final face = _faceRect().outerRect;
+    // 首（あごの下に少しだけ影を落とす）
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(face.center.dx - 9, face.bottom - 12, 18, 24),
+        const Radius.circular(6),
+      ),
+      Paint()..color = _shade(skin, 0.10),
+    );
+    // 肩（服）。性別で色を変えて、全身表示と印象をそろえる。
+    final cloth = switch (a.gender) {
+      1 => const Color(0xFF4A6FA5),
+      2 => const Color(0xFFB5678F),
+      3 => const Color(0xFF6A8F6A),
+      _ => const Color(0xFF6E7A8A),
+    };
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(20, 88, 60, 30),
+        const Radius.circular(16),
+      ),
+      Paint()..color = cloth,
+    );
+  }
+
+  /// 色を暗くする（影づくり用）。
+  static Color _shade(Color c, double amount) =>
+      Color.lerp(c, const Color(0xFF6B4A32), amount) ?? c;
+
   void _drawFace(Canvas canvas, Color skin) {
     final r = _faceRect();
-    canvas.drawRRect(r, Paint()..color = skin);
+    // 肌はうっすら上が明るく、下（あご側）が暗い。これだけで丸みが出る。
     canvas.drawRRect(
       r,
       Paint()
-        ..color = _lineColor.withValues(alpha: 0.35)
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.lerp(skin, Colors.white, 0.18) ?? skin,
+            skin,
+            _shade(skin, 0.12),
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ).createShader(r.outerRect),
+    );
+    canvas.drawRRect(
+      r,
+      Paint()
+        ..color = _lineColor.withValues(alpha: 0.28)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4,
+        ..strokeWidth = 1.3,
+    );
+  }
+
+  /// 髪のつや。1本入れるだけで「塗り絵」感がかなり減る。
+  void _drawHairShine(Canvas canvas, Color color) {
+    // ぼうずと、前髪をほとんど描かない型には入れない
+    if (a.hair == 0) return;
+    final face = _faceRect().outerRect;
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(face.center.dx - 6, face.top + 3),
+        width: 26,
+        height: 12,
+      ),
+      3.5,
+      2.2,
+      false,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.30)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.6,
     );
   }
 
@@ -575,6 +669,7 @@ class _AvatarPainter extends CustomPainter {
           canvas.drawCircle(c, 4.2, Paint()..color = Colors.white);
           canvas.drawCircle(c, 4.2, stroke..strokeWidth = 1.2);
           canvas.drawCircle(c, 2.4, fill);
+          _catchlight(canvas, c, 2.4);
         case 5: // ぱっちり
           canvas.drawOval(
               Rect.fromCenter(center: c, width: 10, height: 8),
@@ -582,10 +677,21 @@ class _AvatarPainter extends CustomPainter {
           canvas.drawOval(Rect.fromCenter(center: c, width: 10, height: 8),
               stroke..strokeWidth = 1.4);
           canvas.drawCircle(c, 2.8, fill);
+          _catchlight(canvas, c, 2.8);
         default: // ふつう
           canvas.drawCircle(c, 2.8, fill);
+          _catchlight(canvas, c, 2.8);
       }
     }
+  }
+
+  /// 瞳のハイライト。これが入るだけで目が生きて見える。
+  void _catchlight(Canvas canvas, Offset eye, double pupil) {
+    canvas.drawCircle(
+      eye.translate(-pupil * 0.35, -pupil * 0.4),
+      pupil * 0.38,
+      Paint()..color = Colors.white.withValues(alpha: 0.9),
+    );
   }
 
   void _drawEyebrows(Canvas canvas) {

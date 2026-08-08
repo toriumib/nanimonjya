@@ -126,58 +126,105 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                 ),
               ),
               const Divider(height: 1),
+              // 🗂 3つのグループに分ける。
+              //    以前は14項目が1本の長いスクロールに並んでいて、
+              //    どこまで見たか分からず最後まで届かなかった。
+              //    「特徴 → 顔だち → その人のこと」の順で、
+              //    覚える手がかりになるものから決められるようにする。
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
-                  children: [
-                    // 覚える手がかりになるものを先に置く。
-                    // 肌や輪郭より、メガネ・ほくろのほうが思い出しやすい。
-                    _picker('👓 メガネ', kGlassesJa, _a.glasses,
-                        (i) => _set(_a.copyWith(glasses: i))),
-                    _picker('⚫ ほくろ', kMoleJa, _a.mole,
-                        (i) => _set(_a.copyWith(mole: i))),
-                    _picker('💇 髪型', kHairJa, _a.hair,
-                        (i) => _set(_a.copyWith(hair: i))),
-                    _picker('🧔 ひげ', kBeardJa, _a.beard,
-                        (i) => _set(_a.copyWith(beard: i))),
-                    _swatches('🎨 髪の色', _a.hairColor, kHairColorJa.length,
-                        (i) => _set(_a.copyWith(hairColor: i)),
-                        labels: kHairColorJa),
-                    _picker('🙂 輪郭', kFaceShapeJa, _a.faceShape,
-                        (i) => _set(_a.copyWith(faceShape: i))),
-                    _picker('👀 目', kEyesJa, _a.eyes,
-                        (i) => _set(_a.copyWith(eyes: i))),
-                    _picker('✏️ まゆ', kEyebrowsJa, _a.eyebrows,
-                        (i) => _set(_a.copyWith(eyebrows: i))),
-                    _picker('👃 鼻', kNoseJa, _a.nose,
-                        (i) => _set(_a.copyWith(nose: i))),
-                    _picker('👄 口', kMouthJa, _a.mouth,
-                        (i) => _set(_a.copyWith(mouth: i))),
-                    _swatches('🖐 肌の色', _a.skin, Avatar.skinCount,
-                        (i) => _set(_a.copyWith(skin: i))),
-                    const SizedBox(height: 6),
-                    // 絵には出ないが、思い出す手がかりになるもの
-                    _picker('🚻 性別', kGenderJa, _a.gender,
-                        (i) => _set(_a.copyWith(gender: i))),
-                    _slider('🎂 年齢のめやす', '${_a.age}歳', _a.age.toDouble(),
-                        Avatar.minAge, Avatar.maxAge,
-                        (v) => setState(() => _a = _a.copyWith(age: v))),
-                    _slider('📏 身長のめやす', '${_a.height}cm',
-                        _a.height.toDouble(), Avatar.minHeight, Avatar.maxHeight,
-                        (v) => setState(() => _a = _a.copyWith(height: v))),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, _a),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        backgroundColor: const Color(0xFF3A7BD5),
-                        foregroundColor: Colors.white,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w900),
+                child: DefaultTabController(
+                  length: 3,
+                  child: Column(
+                    children: [
+                      const TabBar(
+                        labelColor: Color(0xFF2B5CA5),
+                        unselectedLabelColor: Colors.black45,
+                        indicatorColor: Color(0xFF3A7BD5),
+                        labelStyle: TextStyle(
+                            fontSize: 12.5, fontWeight: FontWeight.w900),
+                        tabs: [
+                          Tab(text: '👓 特徴'),
+                          Tab(text: '🙂 顔だち'),
+                          Tab(text: '📋 その人のこと'),
+                        ],
                       ),
-                      child: const Text('この顔で決定'),
-                    ),
-                  ],
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            // ① 覚える手がかりになるもの。
+                            //    肌や輪郭より、メガネ・ほくろのほうが
+                            //    言葉にしやすく、思い出す取っかかりになる。
+                            _tabList([
+                              _picker('👓 メガネ', kGlassesJa, _a.glasses,
+                                  (i) => _set(_a.copyWith(glasses: i))),
+                              _picker('⚫ ほくろ', kMoleJa, _a.mole,
+                                  (i) => _set(_a.copyWith(mole: i))),
+                              _picker('💇 髪型', kHairJa, _a.hair,
+                                  (i) => _set(_a.copyWith(hair: i))),
+                              _picker('🧔 ひげ', kBeardJa, _a.beard,
+                                  (i) => _set(_a.copyWith(beard: i))),
+                              _swatches('🎨 髪の色', _a.hairColor,
+                                  kHairColorJa.length,
+                                  (i) => _set(_a.copyWith(hairColor: i)),
+                                  labels: kHairColorJa),
+                            ]),
+                            // ② 顔のつくり
+                            _tabList([
+                              _picker('🙂 輪郭', kFaceShapeJa, _a.faceShape,
+                                  (i) => _set(_a.copyWith(faceShape: i))),
+                              _picker('👀 目', kEyesJa, _a.eyes,
+                                  (i) => _set(_a.copyWith(eyes: i))),
+                              _picker('✏️ まゆ', kEyebrowsJa, _a.eyebrows,
+                                  (i) => _set(_a.copyWith(eyebrows: i))),
+                              _picker('👃 鼻', kNoseJa, _a.nose,
+                                  (i) => _set(_a.copyWith(nose: i))),
+                              _picker('👄 口', kMouthJa, _a.mouth,
+                                  (i) => _set(_a.copyWith(mouth: i))),
+                              _swatches('🖐 肌の色', _a.skin, Avatar.skinCount,
+                                  (i) => _set(_a.copyWith(skin: i))),
+                            ]),
+                            // ③ 絵にも出るが、思い出す手がかりでもあるもの
+                            _tabList([
+                              _picker('🚻 性別', kGenderJa, _a.gender,
+                                  (i) => _set(_a.copyWith(gender: i))),
+                              _slider(
+                                  '🎂 年齢のめやす',
+                                  '${_a.age}歳',
+                                  _a.age.toDouble(),
+                                  Avatar.minAge,
+                                  Avatar.maxAge,
+                                  (v) => setState(
+                                      () => _a = _a.copyWith(age: v))),
+                              _slider(
+                                  '📏 身長のめやす',
+                                  '${_a.height}cm',
+                                  _a.height.toDouble(),
+                                  Avatar.minHeight,
+                                  Avatar.maxHeight,
+                                  (v) => setState(
+                                      () => _a = _a.copyWith(height: v))),
+                            ]),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // 決定ボタンはタブの外に固定する。
+              // タブの中に置くと、タブごとに出たり消えたりしてしまう。
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, _a),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: const Color(0xFF3A7BD5),
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w900),
+                  ),
+                  child: const Text('この顔で決定'),
                 ),
               ),
             ],
@@ -188,6 +235,12 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
   }
 
   // ── パーツ ──
+
+  /// タブ1枚ぶんの中身。
+  Widget _tabList(List<Widget> children) => ListView(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        children: children,
+      );
 
   Widget _card({required Widget child}) => Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -245,11 +298,15 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _label(title),
-          Row(
+          // ⚠️ Row だと、色数を増やしたときや狭い画面ではみ出す。
+          //    Wrap にして折り返させる。
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
             children: [
               for (var i = 0; i < count; i++)
                 Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                  padding: EdgeInsets.zero,
                   child: GestureDetector(
                     onTap: () => onPick(i),
                     child: Column(

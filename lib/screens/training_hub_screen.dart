@@ -589,7 +589,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                               );
                             },
                             icon: const Icon(Icons.face_retouching_natural),
-                            label: const Text('🧑‍🎨 会社・学校の人を似顔絵でおぼえる'),
+                            label: const Text('🧑‍🎨 顔メモをつくる（会社・学校の人）'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF8A5AC2),
                               foregroundColor: Colors.white,

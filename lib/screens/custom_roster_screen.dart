@@ -15,6 +15,7 @@ import '../widgets/face_view.dart';
 import 'avatar_editor_screen.dart';
 import 'name_call_screen.dart';
 import 'recall_training_screen.dart';
+import 'character_deck_screen.dart'; // 🎴 出演のON/OFF
 import 'study_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -205,7 +206,23 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
 
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(),
-      appBar: AppBar(title: Text(m.tabMemorize)),
+      appBar: AppBar(
+        title: Text(m.tabMemorize),
+        actions: [
+          // 🎴 登録した人は、そのまま対戦にも出せる。
+          //    どこで出演のON/OFFを切り替えるのか分からなかったので、
+          //    顔メモからキャラデッキへ直接行けるようにする。
+          IconButton(
+            tooltip: m.deckTitle,
+            icon: const Icon(Icons.style_rounded),
+            onPressed: () {
+              Sfx.instance.pop();
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const CharacterDeckScreen()));
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddSheet,
         icon: const Icon(Icons.add_a_photo),
@@ -272,6 +289,39 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     final people = entries.map((e) => e.toPerson()).toList();
     return Column(
       children: [
+        // 🎴 登録した人は、ふつうの「なまえがお」にも出演する。
+        //    黙って混ざると「知らない顔が出た」と驚くので、先に伝える。
+        InkWell(
+          onTap: () {
+            Sfx.instance.pop();
+            Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => const CharacterDeckScreen()));
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF6FF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF9CC9F0), width: 1.4),
+            ),
+            child: const Row(
+              children: [
+                Text('🎴', style: TextStyle(fontSize: 20)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'ここで登録した人は、ふつうの対戦にも出てきます。\n'
+                    '出す・出さないはキャラデッキで切り替えられます。',
+                    style: TextStyle(fontSize: 11.5, height: 1.45),
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Color(0xFF2B5CA5)),
+              ],
+            ),
+          ),
+        ),
         Row(
           children: [
             Expanded(

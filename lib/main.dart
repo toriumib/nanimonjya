@@ -17,6 +17,7 @@ import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/app_open_ad_helper.dart';
 import 'services/rewarded_interstitial_helper.dart';
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
+import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
 import 'services/interstitial_ad_helper.dart'; // 3プレイに1回のリザルト全画面広告
@@ -49,6 +50,10 @@ Future<void> main() async {
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
+  // 🧑‍🎨 顔メモは出演プールに混ざるので、ゲームを始める前に読んでおく。
+  //    以前は顔メモ画面とキャラデッキ画面でしか読んでおらず、
+  //    その2画面を開かずに対戦を始めると登録した人が出てこなかった。
+  await CustomRosterService.instance.load();
   // ※ゲーム中に recordMeeting/record を呼ぶので、遊び始める前に必ず読んでおく
   //   （読む前に書くと、あとから load() が上書きして記録が消える）
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視

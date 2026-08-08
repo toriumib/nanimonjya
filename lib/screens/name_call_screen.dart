@@ -21,6 +21,7 @@ import '../services/notify_prompt.dart';
 import '../services/review_prompt.dart';
 import '../services/app_analytics.dart';
 import '../services/online_match_service.dart';
+import '../services/custom_roster_service.dart'; // 顔メモの人も出演プールに入れる
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/double_coins_button.dart';
@@ -230,25 +231,30 @@ class _NameCallScreenState extends State<NameCallScreen> {
         ? widget.online!.peopleCount.clamp(2, NameCallGame.maxPeople)
         : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
     // オンラインは両プレイヤーで顔が一致する必要があるため基本16人プールのまま。
-    // オフライン/ひとりは購入済みキャラも出演プールに加える。
-    final charAssets = _isOnline
+    // オフライン/ひとりは購入済みキャラと、**顔メモで登録した人**も出演プールに加える。
+    // （以前はキャラデッキに「自分で登録した人」の欄があるのに、
+    //   実際の出演プールには入っておらず、ONにしても出てこなかった）
+    final facePool = _isOnline
         ? null
-        : applyDeckFilter(
-            [
-              ...kCharImageAssets,
-              ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
+        : buildFacePool(
+            unlockedIds: PlayerProfile.instance.unlockedCharacters,
+            excluded: PlayerProfile.instance.deckExcluded,
+            customFaces: [
+              for (final e in CustomRosterService.instance.entries)
+                e.toFaceRef(),
             ],
-            PlayerProfile.instance.deckExcluded,
           );
-    // 🎴 デッキで絞った結果が必要人数より少ないと、生成器は基本12人へ
+    // 🎴 デッキで絞った結果が必要人数より少ないと、生成器は基本の顔ぶれへ
     //    フォールバックしてしまい「OFFにしたキャラが出てくる」ことになる。
     //    デッキの意思を優先し、出演人数のほうをデッキの数に合わせる。
     final effectiveCount =
-        charAssets == null ? count : min(count, charAssets.length);
+        facePool == null ? count : min(count, facePool.length);
     final people = _isCustom
         ? ([...widget.customPeople!]..shuffle(_rng))
-        : generateImagePeople(effectiveCount,
-            ja: ja, random: _rng, charAssets: charAssets);
+        : (facePool == null
+            ? generateImagePeople(effectiveCount, ja: ja, random: _rng)
+            : generatePeopleFromFaces(effectiveCount,
+                faces: facePool, random: _rng));
     _game = NameCallGame(
       people: people,
       rng: _rng,

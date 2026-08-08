@@ -1142,7 +1142,7 @@ class _TopScreenState extends State<TopScreen>
                                   emoji: '🧑‍🎨',
                                   // 「顔メモ」だけでは何のための機能か分からず
                                   // 押されなかった。使う場面を名前に入れる。
-                                  label: '会社・学校の人',
+                                  label: '顔メモ',
                                   analyticsId: 'face_memo',
                                   color: const Color(0xFF1E8A82),
                                   onTap: () => Navigator.push(

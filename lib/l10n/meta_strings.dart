@@ -905,10 +905,14 @@ This tab is where you get stronger on your own.
       : 'Two cards appear at once. Recall both for a double take!';
 
   // 📸 自分の名簿（もらった名刺・人物メモ）
-  String get tabMemorize => ja ? '会社・学校の人' : 'Work & School';
+  // 🧑‍🎨 名前は「顔メモ」で統一する。
+  //    以前は入口が「顔メモ」なのに開くと「自分の名簿」と出ていて、
+  //    同じ機能が2つあるように見えていた。
+  //    用途（会社・学校で会った人）は、見出しのカッコで補う。
+  String get tabMemorize => ja ? '顔メモ' : 'Face Notes';
   String get customTitle => ja
-      ? '📇 会社・学校の人をおぼえる'
-      : '📸 People at work & school';
+      ? '🧑‍🎨 顔メモ（会社・学校の人）'
+      : '🧑‍🎨 Face Notes (work & school)';
   String get customDesc => ja
       ? 'もらった名刺と顔写真を登録して、そのまま覚える練習や対戦に使えます。'
           '名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・'
@@ -919,7 +923,7 @@ This tab is where you get stronger on your own.
           'You can also keep company, birthday, hometown, socials and free notes. '
           'Tap a person to view or edit later.';
   String get customMobileOnly => ja
-      ? '''📇 この「自分の名簿・人物メモ」は、Google Play版でご利用いただけます。
+      ? '''📇 この「顔メモ」の写真登録は、Google Play版でご利用いただけます。
 
 もらった名刺と顔写真を登録して、名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・自分との関係・電話番号・メール・X・Instagram・LINE ID・Facebook・自由記入メモの18項目を残せます。名刺を撮ると会社名や氏名を自動で読み取り、空欄だけ埋めます。
 

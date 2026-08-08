@@ -183,6 +183,21 @@ class CustomEntry {
         cardImage: cardImagePath,
       );
 
+  /// 🎴 キャラデッキ・出演プールで使う顔の参照。
+  ///
+  /// ⚠️ [deckKey] に画像パスを使ってはいけない。
+  ///    似顔絵だけで登録した人は `imagePath` が空文字なので、
+  ///    パスをキーにすると**登録した全員が同じキーに潰れる**
+  ///    （1人OFFにすると似顔絵の人が全員消える、という壊れ方をする）。
+  ///    登録IDから作った `custom:<id>` なら必ず一意になる。
+  FaceRef toFaceRef() => FaceRef(
+        deckKey: 'custom:$id',
+        kind: imagePath.isNotEmpty ? FaceKind.file : FaceKind.avatar,
+        face: imagePath.isNotEmpty
+            ? imagePath
+            : (avatar.isEmpty ? const Avatar().encode() : avatar),
+      );
+
   /// 入力済みの項目（ラベル, 値）を表示順に並べて返す。空欄は除く。
   List<MapEntry<String, String>> filledFieldsJa() {
     final all = <String, String>{
