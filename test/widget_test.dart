@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:nanimonjya/l10n/meta_strings.dart';
+import 'package:nanimonjya/widgets/combo_badge.dart';
 import 'package:nanimonjya/widgets/emphasis_text.dart';
 import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/person.dart';
@@ -148,5 +149,39 @@ void main() {
       expect(m.customDesc.contains('**'), isFalse);
       expect(m.tutPlayStart.contains('**'), isFalse);
     }
+  });
+
+  group('ComboBadge', () {
+    Widget wrap(int n) => MaterialApp(home: Scaffold(body: ComboBadge(combo: n)));
+
+    testWidgets('1連続以下では何も出さない', (t) async {
+      for (final n in [0, 1]) {
+        await t.pumpWidget(wrap(n));
+        expect(find.textContaining('れんぞく'), findsNothing, reason: 'combo=$n');
+      }
+    });
+
+    testWidgets('2連続から出る', (t) async {
+      await t.pumpWidget(wrap(2));
+      await t.pumpAndSettle();
+      expect(find.text('2 れんぞく'), findsOneWidget);
+    });
+
+    testWidgets('5連続から見た目と文言が変わる', (t) async {
+      await t.pumpWidget(wrap(4));
+      await t.pumpAndSettle();
+      expect(find.text('4 れんぞく'), findsOneWidget);
+
+      await t.pumpWidget(wrap(5));
+      await t.pumpAndSettle();
+      // 🔥 が付く＝「熱い」表示に切り替わっている
+      expect(find.text('🔥 5 れんぞく！'), findsOneWidget);
+    });
+
+    testWidgets('しきい値は定数と一致している', (t) async {
+      // ⚠️ ここを緩めると毎回出て、ただの正解表示になる
+      expect(ComboBadge.minToShow, 2);
+      expect(ComboBadge.hotAt, 5);
+    });
   });
 }

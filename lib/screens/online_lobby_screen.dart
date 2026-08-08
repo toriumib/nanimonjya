@@ -72,6 +72,9 @@ class _OnlineLobbyScreenState extends State<OnlineLobbyScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('online_lobby');
+    // 🌐 online_match_end が0件だったのが「入っていない」のか
+    //    「終わらない」のかを分けるため、入口を数える。
+    AppAnalytics.onlineLobbyOpen('lobby');
   }
 
   @override

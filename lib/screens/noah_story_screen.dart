@@ -121,6 +121,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       _line = 0;
       switch (_phase) {
         case _Phase.setup:
+          AppAnalytics.storyStart(); // story_progress の分母
           _startGame();
         case _Phase.prologue:
           _phase = _Phase.whyNames;

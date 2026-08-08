@@ -117,6 +117,64 @@ class AppAnalytics {
         'people': people,
       });
 
+  /// 🚪 プレイ中にアプリの外へ出た（ホームボタン・別アプリ）。
+  ///
+  /// ⚠️ **これが無いと「飽きた」と「落ちた」が区別できない。**
+  ///    2026-08 のデータは game_start 229 に対し、完了90・中断37 で、
+  ///    **102件がどちらでもなかった**。中断（[gameExit]）は dispose で
+  ///    撃っているので、アプリ内で画面を離れたぶんは拾えている。
+  ///    残る102件は「アプリごと消えた」ぶん。
+  ///
+  /// ここを撃つと切り分けられる:
+  /// - `game_background` あり → **自分で外に出た＝飽きた・用事ができた**
+  /// - どちらも無い          → **落ちた**
+  ///
+  /// [card] は何枚目で出たか。ここが特定の枚数に集中していれば、
+  /// 「その辺で飽きる」という設計の問題。
+  static void gameBackground({
+    required String mode,
+    required int progressPct,
+    required int card,
+    required int totalCards,
+  }) =>
+      _log('game_background', {
+        'mode': mode,
+        'progress_pct': progressPct,
+        'card': card,
+        'total_cards': totalCards,
+      });
+
+  /// 外に出たあと、戻ってきた。[awaySeconds] は離れていた秒数。
+  /// 戻ってこない人は、この差分で分かる。
+  static void gameResume({required String mode, required int awaySeconds}) =>
+      _log('game_resume', {'mode': mode, 'away_seconds': awaySeconds});
+
+  /// 🎴 キャラデッキを開いた。[from] は face_memo/shop/profile。
+  static void deckOpen(String from) => _log('deck_open', {'from': from});
+
+  /// デッキの出演ON/OFFを変えた。作ったアバターが使われているかを見る。
+  static void deckToggle({required int enabled, required int total}) =>
+      _log('deck_toggle', {'enabled': enabled, 'total': total});
+
+  /// 🌐 オンラインの待合室に入った。[kind] は friend/random/rank/turn。
+  ///
+  /// ⚠️ `online_match_end` は実装済みだが2026-08 は0件だった。
+  ///    「対戦が終わらない」のか「そもそも入っていない」のかを
+  ///    分けるために、入口を数える。
+  static void onlineLobbyOpen(String kind) =>
+      _log('online_lobby_open', {'kind': kind});
+
+  /// 待合室から、対戦が始まらないまま出た。[waitedSeconds] は待った秒数。
+  static void onlineLobbyLeave({
+    required String kind,
+    required int waitedSeconds,
+  }) =>
+      _log('online_lobby_leave',
+          {'kind': kind, 'waited_seconds': waitedSeconds});
+
+  /// 🚀 ものがたりを始めた。`story_progress` の分母になる。
+  static void storyStart() => _log('story_start');
+
   // ── 広告（視聴率の分析用）──
   // [placement] は 'shop' / 'shop_short_of_coins' / 'home_gift' /
   // 'result_double' / 'profile'。どこから見られたのかを必ず入れる。

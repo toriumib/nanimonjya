@@ -24,6 +24,7 @@ import '../services/online_match_service.dart';
 import '../services/custom_roster_service.dart'; // 顔メモの人も出演プールに入れる
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/combo_badge.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/face_view.dart';
 import '../widgets/game_ui.dart';
@@ -109,7 +110,22 @@ enum _Phase {
   reveal
 }
 
-class _NameCallScreenState extends State<NameCallScreen> {
+class _NameCallScreenState extends State<NameCallScreen>
+    with WidgetsBindingObserver {
+  /// 🚪 プレイ中にアプリの外へ出た時刻。戻ってきた秒数を測るために持つ。
+  ///
+  /// ⚠️ **「飽きた」と「落ちた」を分けるために要る。**
+  ///    dispose の [AppAnalytics.gameExit] はアプリ内で画面を離れたときしか
+  ///    走らない。ホームボタンで外に出られると何も残らないので、
+  ///    2026-08 は 229試合のうち102件が行方不明になっていた。
+  DateTime? _leftAt;
+
+  /// 🔥 連続正解の数。まちがえた／時間切れで0に戻る。
+  int _combo = 0;
+
+  /// この試合の最高連続数。結果画面で見せる。
+  int _bestCombo = 0;
+
   late final Random _rng =
       widget.online != null ? Random(widget.online!.seed) : Random();
   late final NameCallGame _game;
@@ -226,6 +242,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
     final count = _isOnline
         ? widget.online!.peopleCount.clamp(2, NameCallGame.maxPeople)
@@ -319,7 +336,28 @@ class _NameCallScreenState extends State<NameCallScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: _modeName,
+        progressPct: _game.progressPct,
+        card: _game.consumedCards,
+        totalCards: _game.totalCards,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: _modeName,
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // 📉 完走せずに画面を出た＝離脱。どこまで進んでいたかと一緒に記録する。
     // （_finishGame まで行った場合は 'completed' を撃ってあるので二重に撃たない）
     if (!_finished) {
@@ -609,9 +647,20 @@ class _NameCallScreenState extends State<NameCallScreen> {
     _quizShownAt = null;
     if (correct) {
       _quizCorrect += 1;
+      _combo += 1;
+      if (_combo > _bestCombo) _bestCombo = _combo;
       Sfx.instance.correct();
-      HapticFeedback.lightImpact();
+      // 🔥 続くほど手ごたえを強くする。同じ反応の繰り返しは飽きる。
+      if (_combo >= 5) {
+        HapticFeedback.heavyImpact();
+        Sfx.instance.get();
+      } else if (_combo >= 3) {
+        HapticFeedback.mediumImpact();
+      } else {
+        HapticFeedback.lightImpact();
+      }
     } else {
+      _combo = 0; // 途切れる。ここが惜しさになる
       Sfx.instance.wrong();
       HapticFeedback.mediumImpact();
     }
@@ -874,6 +923,19 @@ class _NameCallScreenState extends State<NameCallScreen> {
             ),
           ),
         ],
+        // 📏 ゲーム全体の進み具合。
+        //
+        // ⚠️ **60枚あるのに「あと何枚か」が分からなかった。**
+        //    画面にあった進捗バーは回答の残り時間で、山札とは無関係。
+        //    終わりが見えないと、途中で飽きて閉じられる。
+        //    2026-08 は 229試合のうち102件が行方不明だった。
+        // 山札を触っている間だけ出す。命名中・結果では出さない。
+        bottom: (_phase == _Phase.round || _phase == _Phase.roundResult)
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(22),
+                child: _deckProgress(),
+              )
+            : null,
       ),
       body: SafeArea(
         child: Column(
@@ -1296,6 +1358,45 @@ class _NameCallScreenState extends State<NameCallScreen> {
     );
   }
 
+  /// 📏 山札の進み具合。「のこり◯枚」を必ず数字でも出す。
+  /// バーだけだと、あと何回押せば終わるのかが伝わらない。
+  Widget _deckProgress() {
+    final total = _game.totalCards;
+    final done = _game.consumedCards.clamp(0, total);
+    final left = total - done;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(end: total == 0 ? 0 : done / total),
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOut,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 6,
+                  backgroundColor: Colors.white24,
+                  color: const Color(0xFFFFC02E),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            left > 0 ? 'のこり$left枚' : 'ラスト！',
+            style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
   // クイズパネル（ひとり／オンライン）
   Widget _quizPanel(MetaStrings m) {
     return Column(
@@ -1312,6 +1413,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
           ),
         ),
         const SizedBox(height: 10),
+        ComboBadge(combo: _combo),
         Text(m.whoIsThis,
             style:
                 const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
@@ -1737,7 +1839,7 @@ class _NameCallScreenState extends State<NameCallScreen> {
                   children: [
                     Text('🃏 ${_cardsWon[0]}/${_game.totalCards}',
                         style: const TextStyle(fontWeight: FontWeight.w900)),
-                    Text('🎉 ${m.ryoudoriLabel}: $_ryoudoriCount',
+                    Text('🔥 さいこう $_bestCombo れんぞく',
                         style: const TextStyle(fontWeight: FontWeight.w900)),
                     Text(
                         '🎯 ${_quizTotal == 0 ? 0 : _quizCorrect * 100 ~/ _quizTotal}%',

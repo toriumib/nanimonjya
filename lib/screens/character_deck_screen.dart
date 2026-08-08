@@ -61,6 +61,8 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('character_deck');
+    // 🎴 作ったアバターがここまで届いているかを見る（2026-08 は計測ゼロ）
+    AppAnalytics.deckOpen('unknown');
     // 🌐 Web でも似顔絵の顔メモは使えるので、ここで kIsWeb を見ない。
     //    （写真の登録だけがモバイル限定）
     CustomRosterService.instance.load();
