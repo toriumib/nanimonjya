@@ -71,6 +71,98 @@ class _TopScreenState extends State<TopScreen>
   }
 
 
+  /// 👥🎴 出てくる人数と、1人あたりの枚数を決めるスライダー。
+  ///
+  /// ⚠️ ホームには置かない。遊ぶ前に設定が2つ並んでいると、
+  ///    「まず何を押せばいいのか」が分からないまま離脱する。
+  ///    遊びかたを選んだあと（ボトムシートの中）で聞く。
+  ///
+  /// [setSheetState] はボトムシート側の setState。
+  /// シートの中で動かしたスライダーをその場に反映するために渡してもらう。
+  Widget _gameSettings(MetaStrings m, StateSetter setSheetState) {
+    void update(VoidCallback f) {
+      setSheetState(f);
+      setState(f); // ホーム側にも覚えさせて、次に開いたとき同じ値にする
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          m.peopleCountTitle,
+          style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF2B5CA5)),
+        ),
+        Row(
+          children: [
+            Text(
+              m.peopleCountValue(_peopleCount),
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2B5CA5)),
+            ),
+            Expanded(
+              child: Slider(
+                value: _peopleCount.toDouble(),
+                min: NameCallGame.minSelectableCount.toDouble(),
+                max: NameCallGame.maxSelectableCount.toDouble(),
+                divisions: NameCallGame.maxSelectableCount -
+                    NameCallGame.minSelectableCount,
+                label: m.peopleCountValue(_peopleCount),
+                onChanged: (v) => update(() => _peopleCount = v.round()),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          m.peopleCountHint(_peopleCount),
+          style: const TextStyle(fontSize: 11, color: Colors.black54),
+        ),
+        const SizedBox(height: 6),
+        // 🎴 1人あたりの枚数。
+        //    2枚＝命名1回＋想起1回で終わり。
+        //    増やすと同じ顔に何度も会うので、
+        //    間隔をあけた復習に近づいて定着しやすい。
+        Text(
+          m.copiesTitle,
+          style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF2B5CA5)),
+        ),
+        Row(
+          children: [
+            Text(
+              m.copiesValue(_copies),
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2B5CA5)),
+            ),
+            Expanded(
+              child: Slider(
+                value: _copies.toDouble(),
+                min: NameCallGame.minCopiesPerPerson.toDouble(),
+                max: NameCallGame.maxCopiesPerPerson.toDouble(),
+                divisions: NameCallGame.maxCopiesPerPerson -
+                    NameCallGame.minCopiesPerPerson,
+                label: m.copiesValue(_copies),
+                onChanged: (v) => update(() => _copies = v.round()),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          m.copiesHint(_peopleCount * _copies, _copies - 1),
+          style: const TextStyle(fontSize: 11, color: Colors.black54),
+        ),
+      ],
+    );
+  }
+
   /// 🧭 ホーム下部のまとめ導線1つぶん。
   ///
   /// 顔メモ・マイページ・チュートリアル・支援を同じ見た目の小さなタイルにして、
@@ -288,16 +380,25 @@ class _TopScreenState extends State<TopScreen>
     ];
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => SafeArea(
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // 👥🎴 ここでも人数と枚数を決められるようにしておく。
+              //    ホームから外したぶん、遊びかたを選んだ先に必ず置く。
+              _gameSettings(m, setSheetState),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 14),
               Text(m.cpuPickTitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -370,6 +471,8 @@ class _TopScreenState extends State<TopScreen>
             ],
           ),
         ),
+          ),
+        ),
       ),
     );
   }
@@ -377,42 +480,68 @@ class _TopScreenState extends State<TopScreen>
   /// みんなで対戦（なまえがお）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
     Sfx.instance.pop();
+    final m = MetaStrings.of(context);
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              for (final n in [2, 3, 4]) ...[
-                if (n > 2) const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => NameCallScreen(
-                            humanPlayers: n,
-                            peopleCount: _peopleCount,
-                            copiesPerPerson: _copies,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 👥🎴 遊ぶ中身をここで決める（ホームには置かない）
+                  _gameSettings(m, setSheetState),
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 14),
+                  const Text(
+                    '何人であそぶ？',
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      for (final n in [2, 3, 4]) ...[
+                        if (n > 2) const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(sheetContext);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => NameCallScreen(
+                                    humanPlayers: n,
+                                    peopleCount: _peopleCount,
+                                    copiesPerPerson: _copies,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE8663C),
+                              foregroundColor: Colors.white,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text('$n人'),
                           ),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE8663C),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text('$n人'),
+                      ],
+                    ],
                   ),
-                ),
-              ],
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -863,40 +992,9 @@ class _TopScreenState extends State<TopScreen>
                       clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
-                          // ヘッダー帯（グラデーション）
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF4ECDC4), Color(0xFF3AB6C9)],
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  m.nameCallTitle,
-                                  style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white),
-                                ),
-                                const SizedBox(height: 2),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 18),
-                                  child: Text(
-                                    m.nameCallCatch,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontSize: 11.5,
-                                        height: 1.4,
-                                        color: Color(0xFFEAFFFC)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // 🗑 ヘッダー帯（「なまえがお」＋キャッチコピー）は外した。
+                          //    すぐ上のロゴが同じことを言っていて二重だったうえ、
+                          //    遊ぶボタンが下へ押し出されていた。
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                             child: Column(
@@ -905,105 +1003,12 @@ class _TopScreenState extends State<TopScreen>
                                 // 遊ぶ前に3つも設定を選ばせていて、どれを選べば
                                 // いいか分からないまま離脱する原因になっていた。
                                 // ルールは「出たとき命名」1本にする。
-                                // 登場人数。既定は6人（まず1ゲーム終わらせてもらう）。
-                                // 選択UIが無く常に12人だったため、初回が長すぎて
-                                // 完走できない人が多かった。
                                 //
-                                // 数字だけだと「プレイ人数」と紛らわしいので、
-                                // 何の数なのかを見出しで明示する。
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    m.peopleCountTitle,
-                                    style: const TextStyle(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF2B5CA5)),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                // 4〜16人をスライダーで。3択のチップだと
-                                // 「4人で軽く」も「16人でがっつり」も選べなかった。
-                                Row(
-                                  children: [
-                                    Text(
-                                      m.peopleCountValue(_peopleCount),
-                                      style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFF2B5CA5)),
-                                    ),
-                                    Expanded(
-                                      child: Slider(
-                                        value: _peopleCount.toDouble(),
-                                        min: NameCallGame.minSelectableCount
-                                            .toDouble(),
-                                        max: NameCallGame.maxSelectableCount
-                                            .toDouble(),
-                                        divisions:
-                                            NameCallGame.maxSelectableCount -
-                                                NameCallGame.minSelectableCount,
-                                        label: m.peopleCountValue(_peopleCount),
-                                        onChanged: (v) => setState(
-                                            () => _peopleCount = v.round()),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  m.peopleCountHint(_peopleCount),
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.black54),
-                                ),
-                                const SizedBox(height: 8),
-                                // 🎴 1人あたりの枚数。
-                                //    2枚＝命名1回＋想起1回で終わり。
-                                //    増やすと同じ顔に何度も会うので、
-                                //    間隔をあけた復習に近づいて定着しやすい。
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    m.copiesTitle,
-                                    style: const TextStyle(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF2B5CA5)),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      m.copiesValue(_copies),
-                                      style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFF2B5CA5)),
-                                    ),
-                                    Expanded(
-                                      child: Slider(
-                                        value: _copies.toDouble(),
-                                        min: NameCallGame.minCopiesPerPerson
-                                            .toDouble(),
-                                        max: NameCallGame.maxCopiesPerPerson
-                                            .toDouble(),
-                                        divisions:
-                                            NameCallGame.maxCopiesPerPerson -
-                                                NameCallGame.minCopiesPerPerson,
-                                        label: m.copiesValue(_copies),
-                                        onChanged: (v) => setState(
-                                            () => _copies = v.round()),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  m.copiesHint(
-                                      _peopleCount * _copies, _copies - 1),
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.black54),
-                                ),
-                                const SizedBox(height: 10),
+                                // 👥🎴 出てくる人数・1人あたりの枚数のスライダーも
+                                //    ここから外し、遊びかたを選んだあとの
+                                //    ボトムシート（_gameSettings）へ移した。
+                                //    ホームに設定が並んでいると、最初に押すべき
+                                //    ボタンが埋もれてしまう。
                                 // 📖 ルールをいつでも見直せるボタン。
                                 // ⚠️ ボタン自身が「ルール」と表示するので、
                                 //    横にラベルを足さないこと（以前

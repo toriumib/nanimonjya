@@ -91,14 +91,12 @@ GuideLine pickGuideLine({
   GuideLine nana(String t) => GuideLine(ja ? 'ナナちゃん' : 'Nana', _nanaAsset, t);
   GuideLine hana(String t) => GuideLine(ja ? 'はなちゃん' : 'Hana', _hanaAsset, t);
 
-  // ① まだ一度も遊んでいない人には、まず1回終わらせてもらう
-  if (profile.totalGames == 0) {
-    return nana(ja
-        ? 'はじめまして！まずは1ゲームだけ、いっしょにやってみよ。4人からで大丈夫だよ。'
-        : "Hi! Let's just finish one game together — four faces is plenty to start.");
-  }
+  // ⚠️ 初回の「はじめまして！まずは1ゲームだけ〜」は外した。
+  //    はじめて開いた人にいちばん見せたいのは遊ぶボタンで、
+  //    そこへ説明を重ねると読まずに素通りされる。
+  //    遊びかたはチュートリアルとルールで足りる。
 
-  // ② 復習どきの人がいる。いちばん行動につながるので最優先
+  // ① 復習どきの人がいる。いちばん行動につながるので最優先
   if (dueCount > 0) {
     return hana(ja
         ? 'きのう覚えた$dueCount人、そろそろ忘れかけのころ。いま思い出すと、いちばん残るよ。'
