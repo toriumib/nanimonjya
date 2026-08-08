@@ -14,7 +14,7 @@ import 'tutorial_screen.dart';
 import 'tutorial_play_screen.dart';
 
 /// アプリのルート: 下部タブでモードを切り替えるシェル。
-/// 1. なまえコール（メイン） 2. ビジネス特訓 3. ショップ 4. よみもの 5. マイページ
+/// 1. なまえがお（メイン） 2. ビジネス特訓 3. ショップ 4. よみもの 5. マイページ
 /// ※ ペアさがしはタブから外したが、一人特訓の土台として画面は生きている。
 ///   マイページから引き続き遊べる。
 class HomeShell extends StatefulWidget {
@@ -96,7 +96,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
       body: IndexedStack(
         index: _index,
         children: [
-          const TopScreen(), // なまえコール（メイン）
+          const TopScreen(), // なまえがお（メイン）
           // active を渡す: IndexedStack は全タブを最初に組み立てるので、
           // 「開かれたかどうか」を渡さないと初回説明が起動時に出てしまう
           TrainingHubScreen(active: _index == 1), // ビジネス特訓
@@ -133,13 +133,16 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             icon: const Text('🛍', style: TextStyle(fontSize: 22)),
             label: m.tabShop,
           ),
-          NavigationDestination(
-            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
-            label: m.tabStory,
-          ),
+          // ⚠️ ここは children の並び（index 3 = よみもの、4 = ものがたり）と
+          //    そろえること。以前ラベルだけ逆になっていて、
+          //    「ものがたり」を押すと読み物が開く状態になっていた。
           NavigationDestination(
             icon: const Text('📚', style: TextStyle(fontSize: 22)),
             label: m.tabRead,
+          ),
+          NavigationDestination(
+            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
+            label: m.tabStory,
           ),
           NavigationDestination(
             icon: const Text('🏆', style: TextStyle(fontSize: 22)),

@@ -23,7 +23,7 @@ import '../widgets/banner_ad_slot.dart';
 /// オンライン対戦の待合室。待ち時間には記憶術Tipsをローテ表示。
 ///
 /// [game] で遊び方が変わる。
-/// - `namecall` … なまえコール（フレンド＝**1台で遊ぶときと同じルール**）
+/// - `namecall` … なまえがお（フレンド＝**1台で遊ぶときと同じルール**）
 /// - `pairs` … ペアさがしの同時レース
 /// - `rank` … 🏆 ランクマッチ（知らない人との早押し。設定は選ばせない）
 /// - `turnpairs` … 🔁 記憶術トレーニングのターン制対戦
@@ -60,7 +60,7 @@ class _OnlineLobbyScreenState extends State<OnlineLobbyScreen> {
           OnlineMatchService.defaultOnlinePeople)
       .clamp(NameCallGame.minSelectableCount, NameCallGame.maxSelectableCount);
 
-  /// なまえコールだけが人数を選べる（ペアさがし系はペア数固定、
+  /// なまえがおだけが人数を選べる（ペアさがし系はペア数固定、
   /// ランクは条件をそろえない相手と当たるため固定）。
   bool get _peopleSelectable => widget.game == 'namecall';
 

@@ -211,8 +211,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _reminderCard(m, profile),
             const SizedBox(height: 16),
-            _devModeCard(m, profile),
-            const SizedBox(height: 16),
             _bgmCard(m, profile),
             const SizedBox(height: 16),
             _homeMusicCard(m, profile),
@@ -220,6 +218,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _resultMusicCard(m, profile),
             const SizedBox(height: 16),
             _supportCard(m),
+            const SizedBox(height: 16),
+            // 🛠 開発者モードはいちばん下。
+            //    ふだん使う設定より先に出てくると、押す場所を間違えやすい。
+            _devModeCard(m, profile),
             const SizedBox(height: 24),
           ],
         ),
@@ -1379,8 +1381,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 await p.selectBgm(b.asset);
                 Sfx.instance.pop();
-                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする
-                Bgm.instance.restartGameBgm();
+                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする。
+                // ⚠️ ここで restartGameBgm() を呼んではいけない。
+                //    マイページは「ホームのタブ」なので、ゲーム用の場面に
+                //    切り替わってしまい、タブを移った瞬間にホームの曲へ戻る。
+                //    選ぶたびに違う曲が鳴って、順番に流れているように見える。
+                Bgm.instance.preview(b.asset);
               },
               child: Text(m.select),
             );
@@ -1452,8 +1458,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () async {
                         await p.selectHomeBgm(o.key);
                         Sfx.instance.pop();
-                        // 選んだ曲をその場で鳴らして確認できるようにする
-                        Bgm.instance.playHome();
+                        // ホームの曲はいまこの画面で鳴っているものなので、
+                        // その場で本当に差し替える（試聴ではなく本番）。
+                        await Bgm.instance.restartCurrent();
                       },
                       child: Text(m.select),
                     ),
@@ -1495,9 +1502,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: const Color(0xFFD7F5D7),
                     )
                   : OutlinedButton(
-                      onPressed: () {
-                        p.selectResultBgm(o.key);
+                      onPressed: () async {
+                        await p.selectResultBgm(o.key);
                         Sfx.instance.pop();
+                        // 結果画面の曲も、選んだらすぐ聴けるようにする
+                        // （鳴らないと選べたのか分からない）。
+                        Bgm.instance.preview(o.key);
                       },
                       child: Text(m.select),
                     ),

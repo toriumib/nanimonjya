@@ -21,7 +21,7 @@ import '../widgets/store_cta.dart';
 import '../widgets/banner_ad_slot.dart';
 
 /// ローカル対戦（1台で2〜4人）の結果画面。獲得数のランキングを表示する。
-/// [nameCall] がtrueなら「なまえコール」（単位は枚、再戦もなまえコール）。
+/// [nameCall] がtrueなら「なまえがお」（単位は枚、再戦もなまえがお）。
 class LocalResultScreen extends StatefulWidget {
   final List<int> pairsWon; // index=プレイヤー番号
   final int level;
@@ -32,7 +32,7 @@ class LocalResultScreen extends StatefulWidget {
   final int peopleCount;
 
   /// 📇 この試合に出てきた人たち。結果で「誰が誰だったか」を見せる。
-  /// なまえコールは各自が名前をつけるので、[Person.name] ではなく
+  /// なまえがおは各自が名前をつけるので、[Person.name] ではなく
   /// つけられた名前を入れたコピーを渡すこと。
   final List<Person> people;
 

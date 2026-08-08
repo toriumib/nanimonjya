@@ -10,7 +10,7 @@ import 'dart:math';
 enum FaceKind { svg, asset, file, avatar }
 
 /// 「人物」1人分。顔（画像）・名前・趣味を持つ。
-/// なまえコールでは名前はプレイヤーがつけるので [name] は使わない場合もある。
+/// なまえがおでは名前はプレイヤーがつけるので [name] は使わない場合もある。
 class Person {
   final String face; // 画像パス（svg/画像アセット/ファイル）
   final FaceKind kind;
@@ -77,7 +77,7 @@ const List<String> kFaceAssets = [
   'assets/images/faces/face12.svg',
 ];
 
-/// フリー素材のキャラ画像一覧（12種）。なまえコール用。
+/// フリー素材のキャラ画像一覧（12種）。なまえがお用。
 const List<String> kCharImageAssets = [
   'assets/images/char1.jpg',
   'assets/images/char2.jpg',
@@ -159,8 +159,8 @@ List<Person> generatePeople(
   });
 }
 
-/// なまえコール用: フリー素材のキャラ画像で人物を生成する。
-/// なまえコールは名前をプレイヤーがつけるので name はプレースホルダ。
+/// なまえがお用: フリー素材のキャラ画像で人物を生成する。
+/// なまえがおは名前をプレイヤーがつけるので name はプレースホルダ。
 List<Person> generateImagePeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();

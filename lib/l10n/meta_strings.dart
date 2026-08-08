@@ -123,7 +123,7 @@ class MetaStrings {
   String get shareInvite =>
       ja ? '招待リンクを送る' : 'Send invite link';
   String shareInviteText(String code, String link) => ja
-      ? 'なまえコールで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
+      ? 'なまえがおで対戦しよう！🎮\n合言葉: $code\n下のリンクからそのまま入れるよ👇\n$link'
       : "Let's battle in Name Call! 🎮\nRoom code: $code\nTap to join 👇\n$link";
 
   // 離脱
@@ -301,10 +301,10 @@ class MetaStrings {
   String get shareOnX => ja ? 'Xで自慢する' : 'Brag on X';
   // 称号入りでシェア（バズりやすい煽り文＋絵文字）
   String shareWin(int players, int score) => ja
-      ? '【$titleForShare】なまえコールのCPU対戦で勝利！🏆 $score点で無双した😎\nキミは顔と名前、覚えられる？👇'
+      ? '【$titleForShare】なまえがおのCPU対戦で勝利！🏆 $score点で無双した😎\nキミは顔と名前、覚えられる？👇'
       : '[$titleForShare] Beat the CPU in Name Call! 🏆 Crushed it with $score pts 😎\nCan you match the faces to the names? 👇';
   String sharePlayed(int players, int topScore) => ja
-      ? '【$titleForShare】なまえコールで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
+      ? '【$titleForShare】なまえがおで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
       : "[$titleForShare] Training my name-memory in Name Call! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
   String get shareHashtag =>
       ja ? '#名前を覚えよう #顔と名前の記憶トレ' : '#NameCall #NameMemoryTraining';
@@ -578,7 +578,7 @@ class MetaStrings {
       ? 'この合言葉を友だちに送ってね（入力してもらうと対戦開始）'
       : 'Send this code to your friend to start the match';
   String shareCodeText(String code) => ja
-      ? 'なまえコールで対戦しよう！🏷️\nアプリのオンライン対戦で合言葉「$code」を入力してね！'
+      ? 'なまえがおで対戦しよう！🏷️\nアプリのオンライン対戦で合言葉「$code」を入力してね！'
       : 'Race me in Name Call! 🏷️\nEnter room code "$code" in Online Match!';
   String get roomNotFound => ja
       ? 'その合言葉のへやが見つかりませんでした'
@@ -627,7 +627,7 @@ class MetaStrings {
       ja ? '第$i問 / $n問' : 'Q$i of $n';
   String get rankTook => ja ? '⚡ 先取！' : '⚡ You got it!';
   String get rankTaken => ja ? '😢 とられた…' : '😢 Too slow…';
-  String get rankMissed => ja ? '❌ おてつき' : '❌ Wrong';
+  String get rankMissed => ja ? '❌ ちがった' : '❌ Wrong';
   String get rankNobody => ja ? 'だれも取れなかった' : 'Nobody got it';
   String get rankWaitingJudge => ja ? '判定中…' : 'Judging…';
   String get rankReadyWait => ja ? '相手を待っています…' : 'Waiting for your opponent…';
@@ -651,8 +651,8 @@ class MetaStrings {
   String get turnOpponentLeft =>
       ja ? '相手がいなくなりました' : 'Your opponent left';
 
-  // 📣 メインモード「なまえコール」
-  String get nameCallTitle => ja ? '📣 なまえコール' : '📣 Name Call';
+  // 📣 メインモード「なまえがお」
+  String get nameCallTitle => ja ? '📣 なまえがお' : '📣 Name Call';
   String get namingDecide => ja ? 'これにする！' : 'Name it!';
   // 📖 名簿を見て覚える画面（おまかせ命名の確認＋命名中の暗記）
   String get rosterReviewTitle =>
@@ -733,11 +733,11 @@ class MetaStrings {
   String get secretNamePlaceholder => ja ? '🗣 みんなの名前' : '🗣 Your name';
   // 🏋️ 名刺覚えタブの初回説明。
   //    ここは仕事で人の名前を覚えたい大人が使う場所なので、
-  //    なまえコール側のひらがな中心の文体ではなく漢字混じりの文にする。
+  //    なまえがお側のひらがな中心の文体ではなく漢字混じりの文にする。
   String get trainingIntroTitle =>
       ja ? 'ここは一人で練習する場所です' : 'This is your solo practice room!';
   String get trainingIntroBody => ja
-      ? '''なまえコールが皆で遊ぶゲームなのに対して、
+      ? '''なまえがおが皆で遊ぶゲームなのに対して、
 ここは一人で腕を上げるための場所です。
 
 🖇 線結び … 顔から名前へ指で線を引いて結びます。全員結んだ時点で答え合わせです。
@@ -768,7 +768,7 @@ This tab is where you get stronger on your own.
       ;
   String get realCardTrainingButton =>
       ja ? '名刺・顔写真を登録する' : 'Register cards & faces';
-  String get tabNameCall => ja ? 'なまえコール' : 'Name Call';
+  String get tabNameCall => ja ? 'なまえがお' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
   String get tabTraining => ja ? '名刺覚え' : 'Card Memory';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
@@ -780,12 +780,12 @@ This tab is where you get stronger on your own.
           '② つけた名前は「名簿」にひみつで記録（終了までみられない）\n'
           '③ 本編ではランダムにカードが登場\n'
           '④ 名前を思い出せたら1枚ゲット！（2枚同時のときは両方言えたら2枚）\n'
-          '⑤ 思い出せないと没収…。獲得枚数がいちばん多い人の勝ち！'
+          '⑤ 思い出せなかったカードは 取れずに流れます。獲得枚数がいちばん多い人の勝ち！'
       : '① Look at every face and give each one a name\n'
           '② Names are sealed in a hidden roster until the end\n'
           '③ Two random cards appear each round\n'
           '④ Recall both names = sweep both cards! One name = one card\n'
-          '⑤ Miss both and they are discarded. Most cards wins!';
+          '⑤ Cards you cannot recall simply pass by. Most cards wins!';
   String namingProgress(int n, int total) =>
       ja ? '$n人目 / $total人：この子に名前をつけよう！' : 'Person $n of $total: give them a name!';
   String namingTurnPlayer(String p) =>
@@ -801,7 +801,7 @@ This tab is where you get stronger on your own.
   String get whoIsThis => ja ? 'この子のなまえは？' : 'What did you name them?';
   String get ryoudori => ja ? '🎉 2枚ゲット！' : '🎉 Both cards!';
   String get katadori => ja ? '✨ 1枚ゲット！' : '✨ Got one card!';
-  String get missAll => ja ? '💦 おてつき…2枚とも没収' : '💦 Missed… cards discarded';
+  String get missAll => ja ? '💦 ざんねん…どちらも取れなかった' : '💦 Missed — neither card';
   String get rosterReveal => ja ? '📖 名簿公開！' : '📖 Roster revealed!';
   String get rosterRevealDesc => ja
       ? 'きみがつけた名前はこちら。おぼえてた？'
@@ -921,7 +921,7 @@ This tab is where you get stronger on your own.
 
 もらった名刺と顔写真を登録して、名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・自分との関係・電話番号・メール・X・Instagram・LINE ID・Facebook・自由記入メモの18項目を残せます。名刺を撮ると会社名や氏名を自動で読み取り、空欄だけ埋めます。
 
-登録した名簿は、そのまま思い出し訓練やなまえコールの出題に使えます。
+登録した名簿は、そのまま思い出し訓練やなまえがおの出題に使えます。
 
 写真の保存を端末内で行う機能のため、ブラウザ版では動きません。入力した内容が外部へ送信されることはありません。'''
       : '''📇 My Roster is available on the Google Play version.
@@ -1021,7 +1021,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get deckHeadline =>
       ja ? 'ゲームに出てくる顔ぶれを決めよう' : 'Choose who shows up in your games';
   String get deckDesc => ja
-      ? 'タップでON／OFF。OFFにしたキャラはなまえコールと名刺覚えに出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
+      ? 'タップでON／OFF。OFFにしたキャラはなまえがおと名刺覚えに出てこなくなります。買ったキャラや登録した写真は自動でデッキに入ります。'
       : 'Tap to toggle. Characters turned off will not appear in Name Call or Business Training. Purchased characters and your own photos join automatically.';
   String deckActiveCount(int n) => ja ? '✅ 出演中 $n人' : '✅ $n in the deck';
   String get deckTooFew =>
@@ -1284,7 +1284,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get weeklyLearnedZero =>
       ja ? '📅 今週はまだ0人。1回あそぼう！' : '📅 None yet this week — play once!';
   String get storeHint => ja
-      ? '買ったキャラは「なまえコール」と「名刺覚え」に登場します。'
+      ? '買ったキャラは「なまえがお」と「名刺覚え」に登場します。'
       : 'Bought characters show up in Name Call and Card Memory.';
   String get storeBuyConfirm => ja ? 'このキャラを仲間にする？' : 'Add this character?';
   // 試合・特訓のあとのショップ誘導
@@ -1344,7 +1344,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? 'アプリ全体の色あいが変わります。毎回目に入るごちそう。'
       : 'Recolors the whole app — you’ll see it every time.';
   String get storeCharsDesc => ja
-      ? 'なまえコールと名刺覚えに登場する人が増えます。'
+      ? 'なまえがおと名刺覚えに登場する人が増えます。'
       : 'Adds more people to Name Call and Card Memory.';
   // 🔔 練習リマインド
   // 🔁 日をまたいだ復習（間隔をあけた再テスト）
@@ -1427,7 +1427,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get tabRead => ja ? 'よみもの' : 'Read';
   String get tabStory => ja ? 'ものがたり' : 'Story';
   // 📖 ルールブック（いつでも見直せるルール一覧）
-  String get rulebookTitle => ja ? '📖 ルールブック' : '📖 Rulebook';
+  String get rulebookTitle => ja ? '📖 ルール' : '📖 Rules';
   /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。
   String get rulebookShort => ja ? 'ルール' : 'Rules';
   String get rulebookRead => ja ? '読み上げる' : 'Read aloud';
@@ -1477,7 +1477,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       case 'pairs':
         return ja ? 'ペアさがし' : 'Pair Hunt';
       default:
-        return ja ? 'なまえコール（メイン）' : 'Name Call (main)';
+        return ja ? 'なまえがお（メイン）' : 'Name Call (main)';
     }
   }
 
@@ -1523,7 +1523,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
             : '''Solo mode. You and the CPU compete for cards.\n\n1. Each new character is given a name (auto)\n2. When they appear again, pick the right name from four\n3. Answer correctly before the CPU to win the card\n4. Too slow or wrong, and the CPU takes it\n\n🤖 Difficulty changes how many people you memorize before answering.\n${_cpuTableEn()}\nEasy: memorize 1, answer right away. Oni: memorize 4, then answer all 4.\n\n🪙 Coins = per correct answer + perfect bonus + win bonus.''';
       case 'onlineFriend':
         return ja
-            ? '''友だちと オンラインで あそぶ なまえコール。\n1台で あそぶときと **同じルール**です。\n\n① 合言葉（6文字）を つくって 友だちに おくる\n② 友だちが 合言葉を いれると スタート\n\n👥 出てくる人数は **部屋をつくった人**が きめる。\n　 その人数が そのまま 相手の画面にも 出るので、\n　 ふたりとも 同じ顔ぶれ・同じ順番で あそべます。\n\n③ カードが 1まいずつ 出てくる（出たとき命名）\n④ はじめて出た人には アプリが 名前をつける\n⑤ また出てきたら 4つの中から えらぶ\n\n🏆 かくとく枚数が 多い方の勝ち（同じなら タイム）。\n通話は いりません。それぞれの スマホで 同時に すすみます。\n\n🎲 ランダムマッチは、**同じ人数を えらんだ人**と当たります。'''
+            ? '''友だちと オンラインで あそぶ なまえがお。\n1台で あそぶときと **同じルール**です。\n\n① 合言葉（6文字）を つくって 友だちに おくる\n② 友だちが 合言葉を いれると スタート\n\n👥 出てくる人数は **部屋をつくった人**が きめる。\n　 その人数が そのまま 相手の画面にも 出るので、\n　 ふたりとも 同じ顔ぶれ・同じ順番で あそべます。\n\n③ カードが 1まいずつ 出てくる（出たとき命名）\n④ はじめて出た人には アプリが 名前をつける\n⑤ また出てきたら 4つの中から えらぶ\n\n🏆 かくとく枚数が 多い方の勝ち（同じなら タイム）。\n通話は いりません。それぞれの スマホで 同時に すすみます。\n\n🎲 ランダムマッチは、**同じ人数を えらんだ人**と当たります。'''
             : '''Name Call with a friend online — the same rules as one-phone play.\n\n1. Create a 6-character room code and send it\n2. They enter it and the match starts\n\n👥 The host picks how many faces, and the guest gets exactly the same setup, so you both see the same people in the same order.\n\n3. Cards appear one at a time (name-as-you-go)\n4. New faces are named automatically\n5. When they return, pick from four choices\n\n🏆 Most cards wins (time breaks ties). No voice chat needed.\n🎲 Random match pairs you with someone who picked the same number.''';
       case 'rank':
         return ja

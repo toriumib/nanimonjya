@@ -65,7 +65,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
       ],
       PlayerProfile.instance.deckExcluded,
     );
-    // ⚠️ generateImagePeople は name が空文字（なまえコールは各自が命名する
+    // ⚠️ generateImagePeople は name が空文字（なまえがおは各自が命名する
     //    仕様のため）。線むすびは名前を表示して結ぶので、名前が入る
     //    generateRecallPeople を使う。
     // デッキが少ないときは出演人数をデッキに合わせる（基本12人への

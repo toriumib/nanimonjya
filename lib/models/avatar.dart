@@ -51,7 +51,7 @@ class Avatar {
   // ── パーツの数（エディタのページ送りと、値の丸めに使う）──
   static const int skinCount = 5;
   static const int faceShapeCount = 4;
-  static const int hairCount = 8;
+  static const int hairCount = 14;
   static const int hairColorCount = 6;
   static const int eyesCount = 6;
   static const int eyebrowsCount = 4;
@@ -209,6 +209,12 @@ const List<String> kHairJa = [
   'ウェーブ',
   'オールバック',
   'つむじが立った髪',
+  'ツインテール',
+  'おだんご',
+  'マッシュ',
+  'パーマ',
+  'サイド分け',
+  'ぱっつん',
 ];
 const List<String> kHairColorJa = ['黒', 'こげ茶', '茶', '金', '赤茶', '白髪まじり'];
 const List<String> kEyesJa = ['ふつう', 'たれ目', 'つり目', '細い目', 'まるい目', 'ぱっちり'];

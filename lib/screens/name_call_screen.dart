@@ -33,7 +33,7 @@ import 'match_game_screen.dart' show PlatformDispatcherLocale, CpuLevel;
 import 'online_result_screen.dart';
 import 'rulebook_screen.dart';
 
-/// メインモード「なまえコール」。
+/// メインモード「なまえがお」。
 ///
 /// 1. 命名フェーズ: 全員の顔に順番に名前をつける（名簿はひみつ）
 ///    ※カスタム名簿（自分の写真）で遊ぶ場合は名前つき済みなのでスキップ

@@ -10,7 +10,7 @@ import 'face_view.dart';
 /// 次に活かしようがなかった。最後に顔と名前をもう一度そろえて見せる。
 /// これ自体が、間隔をあけた復習の1回にもなる。
 ///
-/// 名前が空の [Person]（なまえコール用の生成器は name が空）を渡しても
+/// 名前が空の [Person]（なまえがお用の生成器は name が空）を渡しても
 /// 意味がないので、名前が入っているものだけを渡すこと。
 /// [people] が空なら何も描かない。
 class RosterRevealCard extends StatelessWidget {

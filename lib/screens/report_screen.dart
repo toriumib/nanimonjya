@@ -6,7 +6,7 @@ import '../widgets/themed_background.dart';
 
 /// 📊 成績レポート。
 ///
-/// CPU対戦・なまえコール・名刺記憶の3モードを、
+/// CPU対戦・なまえがお・名刺記憶の3モードを、
 /// **速さ（⚡）・正確性（🎯）・定着率（🧠）** の3指標で並べて見せる。
 ///
 /// 速さと正確性だけだと反射神経の記録になってしまう。
@@ -85,7 +85,7 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'CPU対戦・なまえコール・名刺記憶を\nあそぶとここに成績がたまります。',
+                'CPU対戦・なまえがお・名刺記憶を\nあそぶとここに成績がたまります。',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, height: 1.6),
               ),

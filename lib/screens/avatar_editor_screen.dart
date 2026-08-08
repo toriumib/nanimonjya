@@ -68,7 +68,13 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                 child: Row(
                   children: [
                     AvatarView(avatar: _a, size: 108, radius: 18),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 10),
+                    // 🧍 全身。身長・年齢を動かした結果がここに出る。
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: AvatarBodyView(avatar: _a, height: 108),
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

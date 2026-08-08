@@ -319,7 +319,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
           child: Text(m.customRecallQuizButton),
         ),
         const SizedBox(height: 10),
-        // オフライン対戦（この名簿でなまえコール）: 2〜4人でみんなで
+        // オフライン対戦（この名簿でなまえがお）: 2〜4人でみんなで
         ElevatedButton(
           onPressed: () => _startCustomBattle(people),
           style: ElevatedButton.styleFrom(

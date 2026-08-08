@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
 import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
-import 'name_call_screen.dart'; // メインモード「なまえコール」
+import 'name_call_screen.dart'; // メインモード「なまえがお」
 import 'cpu_entry_screen.dart'; // CPU対戦まえの参戦演出
 import 'match_game_screen.dart' show CpuLevel;
 import 'custom_roster_screen.dart'; // おぼえる（自分の写真）
@@ -16,14 +16,12 @@ import '../services/player_profile.dart';
 import '../models/cpu_difficulty.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
-import '../models/cpu_rank.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
 import '../services/sfx.dart'; // タップ音
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'rulebook_screen.dart'; // 📖 いつでも見直せるルールブック
-import 'memory_tips_screen.dart'; // 名前の覚え方（記憶術の読み物）
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/banner_ad_slot.dart';
@@ -73,51 +71,95 @@ class _TopScreenState extends State<TopScreen>
   }
 
 
-  /// 🏆 段位・📅 今週の記録・🎁 今日のキャラ を1行にまとめたホームの状態表示。
+  /// 🧭 ホーム下部のまとめ導線1つぶん。
+  ///
+  /// 顔メモ・マイページ・チュートリアル・支援を同じ見た目の小さなタイルにして、
+  /// 2列に並べる。縦長のボタンを積むより、ずっと少ない高さで収まる。
+  Widget _shortcutTile({
+    required String emoji,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool highlight = false,
+  }) {
+    return Material(
+      color: highlight ? const Color(0xFFFFF3D0) : Colors.white.withValues(alpha: 0.85),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Sfx.instance.pop();
+          onTap();
+        },
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+                color: color.withValues(alpha: highlight ? 0.9 : 0.45),
+                width: highlight ? 2.2 : 1.6),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: color),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 📅 今週の記録・🎁 今日のキャラ をまとめたホームの状態表示。
   Widget _homeStatusRow(BuildContext context) {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
-    final rank = cpuRankForRating(p.cpuRating);
     return Column(
       children: [
         Row(
           children: [
-            // 🏆 段位（クラロワのトロフィーにあたるもの）
-            Expanded(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE6B54A), width: 2),
-                ),
-                child: Row(
-                  children: [
-                    Text(rank.emoji, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(m.ja ? rank.nameJa : rank.nameEn,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF8A6A1E))),
-                          Text('${p.cpuRating}',
-                              style: const TextStyle(
-                                  fontSize: 11, color: Colors.black54)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
+            // 🏆 段位（「一人前」などの称号）はホームから外した。
+            //    ホームは「今日なにをするか」を出す場所で、
+            //    格付けを見せる場所ではない。段位はマイページで見られる。
+            // Expanded(
+            //   child: Container(
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            //     decoration: BoxDecoration(
+            //       color: Colors.white.withValues(alpha: 0.92),
+            //       borderRadius: BorderRadius.circular(14),
+            //       border: Border.all(color: const Color(0xFFE6B54A), width: 2),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         Text(rank.emoji, style: const TextStyle(fontSize: 20)),
+            //         const SizedBox(width: 6),
+            //         Expanded(
+            //           child: Column(
+            //             crossAxisAlignment: CrossAxisAlignment.start,
+            //             children: [
+            //               Text(m.ja ? rank.nameJa : rank.nameEn, ...),
+            //               Text('${p.cpuRating}', ...),
+            //             ],
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             // 🎁 今日のキャラガチャ
             Expanded(
               child: ElevatedButton(
@@ -151,26 +193,28 @@ class _TopScreenState extends State<TopScreen>
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        // 📅 今週おぼえた人数（社会人向けの実感）
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(12),
+        // 📅 今週おぼえた人数。
+        // ⚠️ 0人のときは何も出さない。「今週はまだ0人」は、
+        //    これから遊ぼうとしている人に冷たいだけで役に立たない。
+        if (p.weeklyLearned > 0) ...[
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              m.weeklyLearnedLabel(p.weeklyLearned),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2B5CA5)),
+            ),
           ),
-          child: Text(
-            p.weeklyLearned > 0
-                ? m.weeklyLearnedLabel(p.weeklyLearned)
-                : m.weeklyLearnedZero,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF2B5CA5)),
-          ),
-        ),
+        ],
       ],
     );
   }
@@ -330,7 +374,7 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
-  /// みんなで対戦（なまえコール）の人数を選んでスタート
+  /// みんなで対戦（なまえがお）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {
     Sfx.instance.pop();
     showModalBottomSheet<void>(
@@ -796,7 +840,7 @@ class _TopScreenState extends State<TopScreen>
               opacity: _animation,
               child: Column(
                 children: [
-                  // ★メインモード「なまえコール」カード★
+                  // ★メインモード「なまえがお」カード★
                   Builder(builder: (context) {
                     final m = MetaStrings.of(context);
                     return Container(
@@ -960,18 +1004,14 @@ class _TopScreenState extends State<TopScreen>
                                       fontSize: 11, color: Colors.black54),
                                 ),
                                 const SizedBox(height: 10),
-                                // 📖 ルールをいつでも見直せる丸ボタン
-                                Row(
+                                // 📖 ルールをいつでも見直せるボタン。
+                                // ⚠️ ボタン自身が「ルール」と表示するので、
+                                //    横にラベルを足さないこと（以前
+                                //    「ルール」「ルールブック」が並んで出ていた）。
+                                const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const RulebookButton(
-                                        focus: RuleTopic.nameCall),
-                                    const SizedBox(width: 8),
-                                    Text(m.rulebookTitle,
-                                        style: const TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFF2B5CA5))),
+                                    RulebookButton(focus: RuleTopic.nameCall),
                                   ],
                                 ),
                                 const SizedBox(height: 14),
@@ -1060,31 +1100,8 @@ class _TopScreenState extends State<TopScreen>
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                // 📸 自分の写真で覚える・対戦
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    Sfx.instance.pop();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              const CustomRosterScreen()),
-                                    );
-                                  },
-                                  icon: const Text('📸',
-                                      style: TextStyle(fontSize: 16)),
-                                  label: Text(m.customTitle),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF1E8A82),
-                                    side: const BorderSide(
-                                        color: Color(0xFF4ECDC4), width: 2),
-                                    minimumSize: const Size.fromHeight(46),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                ),
+                                // 📸 顔メモ（自分の写真・アバター）は
+                                //    下の「まとめ導線」へ移した。
                               ],
                             ),
                           ),
@@ -1092,112 +1109,81 @@ class _TopScreenState extends State<TopScreen>
                       ),
                     );
                   }),
-                  const SizedBox(height: 24),
-                  // ★マイページ・戦績（トロフィー）への大きな導線★
+                  const SizedBox(height: 14),
+                  // 🧭 まとめ導線。
+                  //
+                  // 以前はここから下に、マイページの大きなボタン・読み物・
+                  // チュートリアル・支援ボタンが縦にずらっと並んでいて、
+                  // 遊ぶボタンがスクロールの下に隠れていた。
+                  // 2列のタイルにして、1画面に収まる高さにしている。
+                  //
+                  // ※読み物は下タブ（📚よみもの）から開けるので、ここには置かない。
                   AnimatedBuilder(
                     animation: PlayerProfile.instance,
                     builder: (context, _) {
-                      final canClaim =
-                          PlayerProfile.instance.canClaimDaily;
-                      return OutlinedButton.icon(
-                        onPressed: () {
-                          Sfx.instance.pop();
-                          _openProfile();
-                        },
-                        icon: const Icon(Icons.emoji_events, size: 22),
-                        label: Text(
-                          canClaim
-                              ? MetaStrings.of(context).dailyBonus
-                              : MetaStrings.of(context).profileTitle,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFB8860B),
-                          backgroundColor: Colors.white.withOpacity(0.8),
-                          side: const BorderSide(
-                            color: Color(0xFFFFB300),
-                            width: 2.5,
+                      final canClaim = PlayerProfile.instance.canClaimDaily;
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _shortcutTile(
+                                  emoji: '🧑‍🎨',
+                                  label: '顔メモ',
+                                  color: const Color(0xFF1E8A82),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const CustomRosterScreen()),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _shortcutTile(
+                                  emoji: canClaim ? '🎁' : '🏆',
+                                  label: canClaim
+                                      ? MetaStrings.of(context).dailyBonus
+                                      : MetaStrings.of(context).profileTitle,
+                                  color: const Color(0xFFB8860B),
+                                  highlight: canClaim,
+                                  onTap: _openProfile,
+                                ),
+                              ),
+                            ],
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 14,
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _shortcutTile(
+                                  emoji: '👧👦',
+                                  label: MetaStrings.of(context).howToPlay,
+                                  color: const Color(0xFF1E7BA6),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const TutorialScreen()),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _shortcutTile(
+                                  emoji: '☕',
+                                  label: localizations.buyMeACoffee,
+                                  color: const Color(0xFFBB6B2A),
+                                  onTap: _launchBuyMeACoffee,
+                                ),
+                              ),
+                            ],
                           ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                        ),
+                        ],
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
-                  // ※ランキング導線は旧オンラインレーティング前提のためv2.0.0で撤去
-                  //   （新ルールのランキングを実装したら復活させる）
-                  // 📚 名前の覚え方（記憶術の読み物）
-                  TextButton.icon(
-                    onPressed: () {
-                      Sfx.instance.pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MemoryTipsScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Text('📚', style: TextStyle(fontSize: 18)),
-                    label: Text(MetaStrings.of(context).memoryTipsTitle),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFB4326E),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  // あそびかた（チュートリアル）ボタン
-                  TextButton.icon(
-                    onPressed: () {
-                      Sfx.instance.pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TutorialScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Text('👧👦', style: TextStyle(fontSize: 18)),
-                    label: Text(MetaStrings.of(context).howToPlay),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF1E7BA6),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  // 📮 ご意見・不具合の窓口はマイページへ移した。
-                  //    ホームが縦に長く、遊ぶボタンがスクロールの下に
-                  //    隠れていたため。困ったときに探す場所はマイページで足りる。
-                  const SizedBox(height: 8),
-                  // Buy Me a Coffee ボタン
-                  TextButton.icon(
-                    onPressed: _launchBuyMeACoffee,
-                    icon: const Text('☕', style: TextStyle(fontSize: 20)),
-                    label: Text(localizations.buyMeACoffee),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFBB6B2A),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),

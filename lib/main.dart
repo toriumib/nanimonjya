@@ -169,7 +169,7 @@ class MyApp extends StatelessWidget {
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
         Bgm.routeObserver, // ホームBGMの停止・再開に使う
       ],
-      title: '名前を覚えよう：なまえコール', // アプリタイトル (デフォルト値)
+      title: '名前を覚えよう：なまえがお', // アプリタイトル (デフォルト値)
       theme: _buildTheme(accent),
       home: const HomeShell(),
       debugShowCheckedModeBanner: false,

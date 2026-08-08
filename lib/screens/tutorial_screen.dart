@@ -114,7 +114,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           points: ja
               ? [
                   '顔と名前をおぼえる ゲームだよ',
-                  'メインは「なまえコール」',
+                  'メインは「なまえがお」',
                   'ひとりでも、みんなでも あそべる',
                 ]
               : [
@@ -260,7 +260,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           guideAsset: 'assets/images/supporters/cheer_girl.svg',
           guideName: ja ? 'ナナちゃん' : 'Nana',
           // 💼 ここだけは仕事で使う人向けなので、漢字混じりの大人の文章にする。
-          //    ほかのページは子どもも一緒に遊ぶ「なまえコール」の説明なので
+          //    ほかのページは子どもも一緒に遊ぶ「なまえがお」の説明なので
           //    ひらがな中心のまま。
           title: ja ? '💼 一人のときは「名刺覚え」' : '🖇 Alone? Card Memory',
           points: ja
@@ -305,6 +305,30 @@ class _TutorialScreenState extends State<TutorialScreen> {
               : 'In Friend match the host picks how many faces, and the guest gets the same. See 📖 Rules for details.',
           illustration: '🌐',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFFFF6D8)],
+        ),
+        // 🚀 ものがたりモードは「覚えること」がそのまま物語を動かす。
+        //    遊び方のページの最後に置いて、ひと通り分かった人に紹介する。
+        _TutorialPage(
+          guideEmoji: '👧',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
+          guideName: ja ? 'ナナちゃん' : 'Nana',
+          title: ja ? '🚀 ものがたりモード' : '🚀 Story Mode',
+          points: ja
+              ? [
+                  '📇 出会った人から 名刺をもらって 名前と趣味を きく',
+                  '🧠 また会ったとき 3つの中から えらんで 思い出す',
+                  '💞 覚えているほど なかよくなって 結末が かわる',
+                ]
+              : [
+                  '📇 Meet people and receive their cards',
+                  '🧠 Recall their name and hobby from 3 choices',
+                  '💞 The more you remember, the better the ending',
+                ],
+          note: ja
+              ? '太陽がふくらんだ 遠い未来。地球をはなれる 船にのって、49光年さきの星をめざす お話です。覚えた人の数だけ、いっしょに行ける人が ふえていきます。'
+              : 'A story set in the far future: board a ship bound for a star 49 light-years away. The more names you remember, the more people can come along.',
+          illustration: '🚀',
+          gradient: const [Color(0xFF0B1020), Color(0xFF12203C)],
         ),
       ];
 
@@ -416,7 +440,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
         title: Text(ja ? 'あそびかたを とじる？' : 'Close the guide?'),
         content: Text(ja
             ? 'とちゅうまで 読んだところは おぼえてあるよ。\n'
-                'あとで 📖ルールブック から いつでも 読めます。'
+                'あとで 📖ルール から いつでも 読めます。'
             : 'Your place is saved. You can read it any time from the 📖 Rulebook.'),
         actions: [
           TextButton(

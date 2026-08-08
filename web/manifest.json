@@ -1,6 +1,6 @@
 {
-    "name": "名前を覚えよう：なまえコール",
-    "short_name": "なまえコール",
+    "name": "名前を覚えよう：なまえがお",
+    "short_name": "なまえがお",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF9EC",

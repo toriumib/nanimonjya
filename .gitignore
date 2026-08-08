@@ -52,3 +52,4 @@ android/app/key.properties
 
 # Node (Cloud Functions)
 node_modules/
+.vercel
