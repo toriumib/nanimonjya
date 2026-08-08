@@ -160,9 +160,9 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             ListTile(
               leading: const Icon(Icons.face_retouching_natural,
                   color: Color(0xFF8A5AC2)),
-              title: const Text('顔メモをつくる（アバター）'),
+              title: const Text('似顔絵をつくる（写真が無いとき）'),
               subtitle: const Text(
-                  '写真が無くてもOK。メガネ・ほくろ・髪型で特徴を残せます',
+                  '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます',
                   style: TextStyle(fontSize: 11.5)),
               onTap: () {
                 Navigator.pop(sheetContext);

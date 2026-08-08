@@ -905,8 +905,10 @@ This tab is where you get stronger on your own.
       : 'Two cards appear at once. Recall both for a double take!';
 
   // 📸 自分の名簿（もらった名刺・人物メモ）
-  String get tabMemorize => ja ? '自分の名簿' : 'Memorize';
-  String get customTitle => ja ? '📇 自分の名簿・人物メモ' : '📸 My Roster';
+  String get tabMemorize => ja ? '会社・学校の人' : 'Work & School';
+  String get customTitle => ja
+      ? '📇 会社・学校の人をおぼえる'
+      : '📸 People at work & school';
   String get customDesc => ja
       ? 'もらった名刺と顔写真を登録して、そのまま覚える練習や対戦に使えます。'
           '名前・読み方・ニックネーム・性別・誕生日・会社名・役職・職業・出身・住所・'

@@ -389,8 +389,7 @@ class _TopScreenState extends State<TopScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setSheetState) => SafeArea(
+      builder: (sheetContext) => SafeArea(
           child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
@@ -398,12 +397,11 @@ class _TopScreenState extends State<TopScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 👥🎴 ここでも人数と枚数を決められるようにしておく。
-              //    ホームから外したぶん、遊びかたを選んだ先に必ず置く。
-              _gameSettings(m, setSheetState),
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 14),
+              // 👥🎴 CPU戦では人数・枚数を選ばせない。
+              //    難易度ごとに「覚える人数」と「持ち時間」が決まっていて
+              //    （models/cpu_difficulty.dart が一次情報）、
+              //    そこへ別の人数設定を重ねると報酬とつり合わなくなる。
+              //    選ぶのは難易度ひとつだけにする。
               Text(m.cpuPickTitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -476,9 +474,7 @@ class _TopScreenState extends State<TopScreen>
             ],
           ),
         ),
-          ),
-        ),
-      ),
+      )),
     );
   }
 
@@ -1144,7 +1140,9 @@ class _TopScreenState extends State<TopScreen>
                               Expanded(
                                 child: _shortcutTile(
                                   emoji: '🧑‍🎨',
-                                  label: '顔メモ',
+                                  // 「顔メモ」だけでは何のための機能か分からず
+                                  // 押されなかった。使う場面を名前に入れる。
+                                  label: '会社・学校の人',
                                   analyticsId: 'face_memo',
                                   color: const Color(0xFF1E8A82),
                                   onTap: () => Navigator.push(
