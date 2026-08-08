@@ -1,0 +1,121 @@
+{
+  "_note": "SPEC 4.1。科学者16人＋土倉源三＝17人。3択の誤答肢はここの実データから作る（ランダムダミー禁止）。",
+  "_fields": ["name", "affiliation", "hobby", "commId", "school"],
+  "characters": [
+    {
+      "id": "hibino", "name": "日比野 楓", "reading": "ひびの かえで",
+      "affiliation": "量子推進研究所", "hobby": "陶芸",
+      "commId": "NH-0421", "school": "京大工学部・山岳部",
+      "regret": "父に「ただいま」を言えなかった",
+      "cast": 1, "romance": true, "color": "0xFFE8663C", "emoji": "🔥"
+    },
+    {
+      "id": "kiryu", "name": "桐生 悟", "reading": "きりゅう さとる",
+      "affiliation": "量子意識研究所", "hobby": "囲碁",
+      "commId": "QZ-1024", "school": "東大理学部・哲学副専攻",
+      "regret": "姉の「一緒に碁を打とう」を断り続けた",
+      "cast": 1, "romance": true, "color": "0xFF5AC8E8", "emoji": "⚛️"
+    },
+    {
+      "id": "mizuhara", "name": "水原 紗耶香", "reading": "みずはら さやか",
+      "affiliation": "宇宙発生生物学研究所", "hobby": "メダカ飼育",
+      "commId": "BIO-2236", "school": "東北大・海洋生物学",
+      "regret": "祖母のぬか床を次の誰かに渡せなかった",
+      "cast": 1, "romance": true, "color": "0xFF7ACB8A", "emoji": "🧬"
+    },
+    {
+      "id": "tachibana", "name": "橘 宗一郎", "reading": "たちばな そういちろう",
+      "affiliation": "閉鎖生態系工学センター", "hobby": "盆栽",
+      "commId": "ECO-0707", "school": "北大農学部",
+      "regret": "妻と「二人の庭」を作る約束",
+      "cast": 1, "romance": true, "color": "0xFF4E9A51", "emoji": "🌿"
+    },
+    {
+      "id": "hoshino", "name": "星野 未来", "reading": "ほしの みらい",
+      "affiliation": "相模原宇宙航行力学研究所", "hobby": "星空撮影",
+      "commId": "ORB-1140", "school": "東大理学部・天文部",
+      "regret": "祖父に本当の星空を見せたかった",
+      "cast": 2, "romance": true, "color": "0xFF6C7BE8", "emoji": "🛰️"
+    },
+    {
+      "id": "iwao", "name": "岩尾 玄助", "reading": "いわお げんすけ",
+      "affiliation": "惑星科学研究所", "hobby": "登山と俳句",
+      "commId": "TER-0050", "school": "東大理学部・地質学科",
+      "regret": "故郷の山に最後に登れなかった",
+      "cast": 2, "romance": true, "color": "0xFF9A7B4F", "emoji": "🪨"
+    },
+    {
+      "id": "kusunoki", "name": "楠 玲", "reading": "くすのき れい",
+      "affiliation": "ノア・システムズ局", "hobby": "ラジオ修理",
+      "commId": "ROB-0093", "school": "東工大・制御工学",
+      "regret": "兄のラジオを最後まで直せなかった",
+      "cast": 2, "romance": true, "color": "0xFFB06BC8", "emoji": "🤖"
+    },
+    {
+      "id": "shirakawa", "name": "白川 冬也", "reading": "しらかわ とうや",
+      "affiliation": "宇宙医学研究所", "hobby": "マラソン",
+      "commId": "MED-0310", "school": "慶應医学部",
+      "regret": "患者に「大丈夫」と言えなかった",
+      "cast": 2, "romance": true, "color": "0xFF4FA3D1", "emoji": "🩺"
+    },
+
+    {
+      "id": "mikami", "name": "三隅 千歳", "reading": "みすみ ちとせ",
+      "affiliation": "материалы工学研究室", "hobby": "編み物",
+      "commId": "MAT-0812", "school": "阪大工学部・材料",
+      "regret": "娘のゆいに、船の話をまだしていない",
+      "cast": 3, "romance": false, "color": "0xFFD08AA8", "emoji": "🧶"
+    },
+    {
+      "id": "arase", "name": "荒瀬 一徹", "reading": "あらせ いってつ",
+      "affiliation": "推進機構造部", "hobby": "溶接",
+      "commId": "STR-0330", "school": "室蘭工大・機械",
+      "regret": "師匠の最後の仕事を継げなかった",
+      "cast": 3, "romance": false, "color": "0xFF8A8F98", "emoji": "🔧"
+    },
+    {
+      "id": "utsumi", "name": "内海 螢", "reading": "うつみ ほたる",
+      "affiliation": "海洋モデリング室", "hobby": "潜水",
+      "commId": "SEA-1104", "school": "東海大・海洋",
+      "regret": "最後にもう一度、本物の海に潜りたかった",
+      "cast": 3, "romance": false, "color": "0xFF3FA9C9", "emoji": "🌊"
+    },
+    {
+      "id": "kanzaki", "name": "神崎 遼", "reading": "かんざき りょう",
+      "affiliation": "放射線防護研究室", "hobby": "写経",
+      "commId": "RAD-0619", "school": "京大原子核工学",
+      "regret": "弟に謝れないまま送り出した",
+      "cast": 3, "romance": false, "color": "0xFF9C6BB0", "emoji": "☢️"
+    },
+    {
+      "id": "tobe", "name": "戸部 果林", "reading": "とべ かりん",
+      "affiliation": "航法ソフトウェア班", "hobby": "アナログゲーム",
+      "commId": "NAV-0207", "school": "名大情報",
+      "regret": "友人と作りかけたゲームを完成させていない",
+      "cast": 3, "romance": false, "color": "0xFFE0A44C", "emoji": "🎲"
+    },
+    {
+      "id": "shinohara", "name": "篠原 恭平", "reading": "しのはら きょうへい",
+      "affiliation": "栄養化学研究室", "hobby": "出汁と発酵",
+      "commId": "NUT-0525", "school": "広島大・生物生産",
+      "regret": "店をたたむとき、常連に挨拶できなかった",
+      "cast": 3, "romance": false, "color": "0xFFC9954A", "emoji": "🍲"
+    },
+    {
+      "id": "oguri", "name": "小栗 澪", "reading": "おぐり みお",
+      "affiliation": "音響・居住環境室", "hobby": "チェロ",
+      "commId": "ACO-0918", "school": "藝大・音響",
+      "regret": "師のホールが取り壊される日に立ち会えなかった",
+      "cast": 3, "romance": false, "color": "0xFF7E6BC8", "emoji": "🎻"
+    },
+
+    {
+      "id": "tsuchikura", "name": "土倉 源三", "reading": "とくら げんぞう",
+      "affiliation": "プロジェクト・ノア統括本部", "hobby": "ゴルフ",
+      "commId": "NOA-0001", "school": "横浜・戸塚生まれ",
+      "regret": "名刺を一枚も刷らなかった",
+      "cast": 0, "romance": false, "color": "0xFFD4A24C", "emoji": "🏛️",
+      "_note": "恋愛対象外。名刺を持たない。第4幕で名前が消える。真ルートの鍵。"
+    }
+  ]
+}

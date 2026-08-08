@@ -1,0 +1,32 @@
+name: project_noa
+description: "PROJECT NOA — 東戸塚・49光年の約束（記憶記録型ADV）"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.5.1      # 状態管理（SPEC 2章）
+  shared_preferences: ^2.5.3    # コンフィグ・システムデータ
+  path_provider: ^2.1.5         # セーブスロット（JSONファイル）
+  audioplayers: ^6.1.0          # BGM/SE
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    # 📦 シナリオとキャラは JSON に置く（Dart に埋め込まない）。
+    #    文章を足すのにコードを触らずに済み、差分も読みやすい。
+    - assets/characters.json
+    - assets/scenes/
+    # 画像・音声は無くても動く（engine/placeholder.dart が吸収する）
+    - assets/images/bg/
+    - assets/images/sprite/
