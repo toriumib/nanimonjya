@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // ロゴ・演出アニメーション
 import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
-import 'package:google_fonts/google_fonts.dart'; // ロゴ専用フォント
 import 'package:url_launcher/url_launcher.dart'; // Buy Me a Coffee のリンクを開くため
 import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'name_call_screen.dart'; // メインモード「なまえがお」
@@ -901,7 +900,14 @@ class _TopScreenState extends State<TopScreen>
                                 strokeWidth: 7,
                                 strokeColor: Colors.white,
                                 maxLines: 1,
-                                style: GoogleFonts.mochiyPopOne(
+                                // 🅰 同梱フォント。
+                                // ⚠️ 以前は GoogleFonts.mochiyPopOne() で
+                                //    **実行時にダウンロード**していた。
+                                //    圏外だと fonts.gstatic.com の名前解決に
+                                //    失敗して例外になり、ホーム画面は誰もが
+                                //    通るので Crashlytics が埋まっていた。
+                                style: TextStyle(
+                                  fontFamily: 'MochiyPopOne',
                                   fontSize: 34,
                                   color: homeTheme.titleColor,
                                   letterSpacing: 0.5,

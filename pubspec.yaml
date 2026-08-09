@@ -34,7 +34,11 @@ dependencies:
   firebase_crashlytics: ^4.1.0  # クラッシュレポート（Web非対応、kIsWebガード必須）
   flutter_local_notifications: ^18.0.1  # デイリーボーナスのリマインド通知
   timezone: ^0.10.0  # 通知の毎日スケジュール用
-  google_fonts: ^6.2.1  # ロゴ・本文フォントの刷新
+  # ⚠️ **google_fonts は外した。** 実行時に fonts.gstatic.com へ
+  #    取りにいくので、圏外だと SocketException を投げる。
+  #    それを FlutterError 経由で「致命的」として記録していたため、
+  #    Crashlytics のクラッシュの大半がこれで埋まっていた（2026-08）。
+  #    ロゴのフォントは assets/fonts に同梱してある。
   flutter_animate: ^4.5.0  # ポップな演出アニメーション
   in_app_review: ^2.0.9  # ストアレビュー依頼
   image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
@@ -82,6 +86,13 @@ flutter:
           weight: 400
         - asset: assets/fonts/ZenMaruGothic-Bold.ttf
           weight: 700
+    # 🅰 ロゴ専用。**ロゴに出る文字だけに絞ってある**（5.16MB → 25KB）。
+    #    絞りかたは tools/subset_logo_font.py を見ること。
+    #    ⚠️ ロゴの文言を変えたら、フォントも作り直す。
+    #       入っていない字は豆腐（□）になる。
+    - family: MochiyPopOne
+      fonts:
+        - asset: assets/fonts/MochiyPopOne-Logo.ttf
 
 flutter_icons:
   ios: true

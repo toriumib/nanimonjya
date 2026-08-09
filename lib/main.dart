@@ -1,7 +1,6 @@
 import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // アプリ全体のフォント刷新
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_shell.dart'; // タブシェル（ホーム）
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +31,20 @@ Future<void> main() async {
   AppAnalytics.rememberFirstOpen();
   if (!kIsWeb) {
     // Crashlytics: 未捕捉のFlutterエラー/非同期エラーを自動送信（Web非対応）
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    //
+    // ⚠️ **フレームワークのエラーを「致命的」として記録しない。**
+    //    以前は recordFlutterFatalError にしていたが、これは
+    //    「アプリが死んだ」という意味ではなく、ただの分類。
+    //    実際には FlutterError.onError が呼ばれてもアプリは動き続ける。
+    //
+    //    2026-08、Crashlytics のクラッシュのほぼ全部が
+    //    「google_fonts が圏外でフォントを取りにいって失敗した」だった。
+    //    アプリは落ちていないのに、クラッシュ率が66%まで落ちて見えていた。
+    //    **本物のクラッシュがこのノイズに埋もれる**ので、分類を分ける。
+    //
+    //    致命的として送るのは、下の PlatformDispatcher で拾う
+    //    「本当に捕まえられなかった非同期エラー」だけにする。
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
