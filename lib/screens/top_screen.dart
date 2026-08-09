@@ -762,6 +762,75 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
+  /// 📱 Google Play バッジ。ランク＋特訓の代わりにWeb版ホームの目立つ位置へ。
+  Widget _playStoreBadge() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1A8C4A), width: 2.5),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0E6B35), Color(0xFF1A8C4A)],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x44000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _launchPlayReview,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Text('▶',
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('GET IT ON',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFA5D6B4),
+                            letterSpacing: 1.5,
+                          )),
+                      const Text('Google Play',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.1,
+                          )),
+                      Text('アプリのほうがサクサク動きます',
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: Color(0xE6FFFFFF),
+                              height: 1.3)),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.open_in_new,
+                    size: 15, color: Color(0x88FFFFFF)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// 🌐 Web版で言語を切り替えるボタン（日 / EN）。
   Widget _webLocaleToggle() {
     if (!kIsWeb) return const SizedBox.shrink();
@@ -1098,9 +1167,13 @@ class _TopScreenState extends State<TopScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
+                  // 🌐 Web: ランク/特訓の代わりにGoogle Playバッジ
+                  // 📱 それ以外: ランクマッチ＋ビジネス特訓
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
+                    child: kIsWeb
+                        ? _playStoreBadge()
+                        : Row(
                       children: [
                         Expanded(child: _gradientButton(
                           label: m.rankButtonCompact,
@@ -1142,88 +1215,8 @@ class _TopScreenState extends State<TopScreen>
                   // 🧠 名前を覚えるコツ（横スクロール）
                   _memoryTipsRow(m),
                   const SizedBox(height: 6),
-                  // 🌐 Web版はここにGoogle Playダウンロード＋管理リンク
+                  // 🌐 Web版はここに管理リンク
                   if (kIsWeb) ...[
-                    // 📱 Google Playでダウンロード
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: const Color(0xFF1A8C4A), width: 2.5),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0E6B35), Color(0xFF1A8C4A)],
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x44000000),
-                              blurRadius: 8,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _launchPlayReview,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  const Text('▶',
-                                      style: TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white)),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'GET IT ON',
-                                          style: TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFFA5D6B4),
-                                            letterSpacing: 1.5,
-                                          ),
-                                        ),
-                                        const Text(
-                                          'Google Play',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            height: 1.1,
-                                          ),
-                                        ),
-                                        Text(
-                                          'アプリのほうがサクサク動きます',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: const Color(0xE6FFFFFF),
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(Icons.open_in_new,
-                                      size: 15, color: Color(0x88FFFFFF)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     // 🔒 🔗 管理ページ（プライバシー・プレスキット）
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
