@@ -13,17 +13,17 @@ import '../services/sfx.dart';
 ///
 /// | ID | 種類 | 内容 |
 /// |----|------|------|
-/// | `coins_500` | 消費型 | 500コイン |
-/// | `coins_1200` | 消費型 | 1200コイン（お得） |
-/// | `coins_3000` | 消費型 | 3000コイン（いちばんお得） |
-/// | `remove_ads` | 非消費型 | 広告を完全に消す（買い切り） |
+/// | `coins-500` | 消費型 | 500コイン |
+/// | `coins-1200` | 消費型 | 1200コイン（お得） |
+/// | `coins-3000` | 消費型 | 3000コイン（いちばんお得） |
+/// | `remove-ads` | 非消費型 | 広告を完全に消す（買い切り） |
 /// | `premium` | 非消費型 | プレミアム（広告除去＋全キャラ＋殿堂全記事＋2000コイン） |
 ///
 /// ## 使い方
 ///
 /// ```dart
 /// await IapService.instance.init();
-/// IapService.instance.buy('coins_500');
+/// IapService.instance.buy('coins-500');
 /// ```
 ///
 /// Web では課金は動かない（kIsWeb ガード）。Android と iOS で動作する。
@@ -46,10 +46,10 @@ class IapService {
   bool get available => !kIsWeb;
 
   /// 商品IDの定数（Google Play Console に登録するIDと一致させる）
-  static const productCoins500 = 'coins_500';
-  static const productCoins1200 = 'coins_1200';
-  static const productCoins3000 = 'coins_3000';
-  static const productRemoveAds = 'remove_ads';
+  static const productCoins500 = 'coins-500';
+  static const productCoins1200 = 'coins-1200';
+  static const productCoins3000 = 'coins-3000';
+  static const productRemoveAds = 'remove-ads';
   static const productPremium = 'premium';
 
   /// すべての商品ID
@@ -127,7 +127,7 @@ class IapService {
   }
 
   /// 購入をリストアする（機種変更時の復元）。
-  /// 非消費型（remove_ads, premium）だけが対象。
+  /// 非消費型（remove-ads, premium）だけが対象。
   Future<void> restore() async {
     if (!available || _restoring) return;
     _restoring = true;
