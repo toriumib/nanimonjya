@@ -661,6 +661,12 @@ class _TopScreenState extends State<TopScreen>
     }
   }
 
+  /// 🌐 Web管理ページを開く（プライバシーポリシー / プレスキット）
+  Future<void> _openWebPage(String path) async {
+    final uri = Uri.parse('https://web-sigma-drab-72.vercel.app$path');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   void _openProfile() {
     Navigator.push(
       context,
@@ -1101,7 +1107,65 @@ class _TopScreenState extends State<TopScreen>
                   // 🧠 名前を覚えるコツ（横スクロール）
                   _memoryTipsRow(m),
                   const SizedBox(height: 6),
-                  // ⭐ Google Play レビュー
+                  // 🌐 Web版はここにGoogle Playダウンロード＋管理リンク
+                  if (kIsWeb) ...[
+                    // 📱 Androidアプリをダウンロード
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: JuicyButton(
+                        onTap: _launchPlayReview,
+                        colors: const [Color(0xFF1A8C4A), Color(0xFF0E6B35)],
+                        height: 44,
+                        radius: 12,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('📱', style: TextStyle(fontSize: 18)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Get Android App — Better Experience',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.open_in_new, size: 16, color: Colors.white70),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // 🔒 🔗 管理ページ（プライバシー・プレスキット）
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          _miniChip(
+                            emoji: '🔒',
+                            label: 'Privacy',
+                            color: const Color(0xFF555555),
+                            onTap: () => _openWebPage('/privacy.html'),
+                          ),
+                          _miniChip(
+                            emoji: '📰',
+                            label: 'Press Kit',
+                            color: const Color(0xFF555555),
+                            onTap: () => _openWebPage('/presskit.html'),
+                          ),
+                          _miniChip(
+                            emoji: '☕',
+                            label: 'Support',
+                            color: const Color(0xFFBB6B2A),
+                            onTap: () => _launchBuyMeACoffee(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // ⭐ Google Play レビュー (モバイルのみ)
+                  if (!kIsWeb) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: JuicyButton(
@@ -1126,6 +1190,7 @@ class _TopScreenState extends State<TopScreen>
                       ),
                     ),
                   ),
+                  ],
                   const SizedBox(height: 2),
                 ],
               ),

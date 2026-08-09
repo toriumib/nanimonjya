@@ -189,8 +189,10 @@ class Bgm {
         _current = key;
         await _player.play();
       } catch (e) {
-        // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行し、
-        // 最初のタップで鳴らし直せるよう印をつける。
+        // Webの自動再生ブロックや、曲ファイルが無い場合。
+        // それまで鳴っていた曲を止めてから印をつける。
+        // （stopに失敗しても構わない。次にタップでかけ直す。）
+        try { await _player.stop(); } catch (_) {}
         _current = null;
         _blocked = true;
         debugPrint('BGM play failed ($key): $e');

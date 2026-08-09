@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
@@ -33,6 +34,11 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     // 🎵 ホームのBGM（魔王魂「ハルジオン」）。
     // ブラウザは操作前の自動再生を止めるので、Webでは最初のタップ以降に鳴る。
     Bgm.instance.playHome();
+    if (kIsWeb) {
+      // Webはランディングから即ホーム。チュートリアルはスキップ。
+      markTutorialPlayed();
+      markTutorialDone();
+    }
     _maybeShowTutorial();
   }
 

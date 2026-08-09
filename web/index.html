@@ -179,7 +179,6 @@
   </style>
 </head>
 <body>
-  <!-- SEO content — replaced by Flutter app when JS loads -->
   <div id="seo-content">
     <!-- English -->
     <h1>PetaName: Never Forget a Name Again</h1>
@@ -238,6 +237,16 @@
       </p>
     </div>
   </div>
+
+  <script>
+    // Hide SEO content immediately once Flutter loads this script.
+    // Crawlers get the full HTML; real users never see the flash.
+    // Runs before Flutter's JS because it's placed first in body.
+    (function() {
+      var el = document.getElementById('seo-content');
+      if (el) el.style.display = 'none';
+    })();
+  </script>
 
   <!-- Smart App Banner: nudges Android users to the Play Store -->
   <div id="app-banner">
