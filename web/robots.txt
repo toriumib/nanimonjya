@@ -1,0 +1,12 @@
+Sitemap: https://petaname.web.app/sitemap.xml
+
+User-agent: *
+Allow: /
+Disallow: /firebase-messaging-sw.js
+
+# Crawl-delay for friendly bots
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /

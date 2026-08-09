@@ -1,13 +1,23 @@
 {
-    "name": "名前を覚えよう：なまえがお",
-    "short_name": "なまえがお",
+    "name": "PetaName — Face & Name Memory Training",
+    "short_name": "PetaName",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF9EC",
     "theme_color": "#3A7BD5",
-    "description": "顔と名前の記憶トレーニング！人の名前を覚えるのが苦手な人のための神経衰弱ゲーム",
+    "description": "Face and name memory training game. Never forget a name again — train with real faces, backed by cognitive science.",
+    "lang": "en",
     "orientation": "portrait-primary",
-    "prefer_related_applications": false,
+    "prefer_related_applications": true,
+    "related_applications": [
+        {
+            "platform": "play",
+            "url": "https://play.google.com/store/apps/details?id=com.nanimonjya",
+            "id": "com.nanimonjya"
+        }
+    ],
+    "categories": ["education", "games", "health"],
+    "screenshots": [],
     "icons": [
         {
             "src": "icons/Icon-192.png",
