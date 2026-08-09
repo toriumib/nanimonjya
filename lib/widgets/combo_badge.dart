@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'celebration.dart' show kPopFont;
+
 /// 🔥 連続正解のバッジ。
 ///
 /// ■ なぜ要るか
@@ -48,10 +50,10 @@ class ComboBadge extends StatelessWidget {
         ),
         child: Text(
           hot ? '🔥 $combo れんぞく！' : '$combo れんぞく',
+          // お祝いの文字は全部おなじ書体にそろえる。ここだけ本文書体だと
+          // 「ごほうび」に見えない。
           style: const TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w900,
-              color: Colors.white),
+              fontFamily: kPopFont, fontSize: 14, color: Colors.white),
         ),
       ),
     );

@@ -93,6 +93,10 @@ flutter:
     - family: MochiyPopOne
       fonts:
         - asset: assets/fonts/MochiyPopOne-Logo.ttf
+    # 🎉 お祝い演出専用の極太。こちらも出す文言の字だけ。
+    - family: DelaGothicOne
+      fonts:
+        - asset: assets/fonts/DelaGothicOne-Pop.ttf
 
 flutter_icons:
   ios: true

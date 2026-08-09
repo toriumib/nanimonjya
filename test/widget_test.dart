@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:nanimonjya/l10n/meta_strings.dart';
+import 'package:nanimonjya/widgets/celebration.dart';
 import 'package:nanimonjya/widgets/combo_badge.dart';
 import 'package:nanimonjya/widgets/emphasis_text.dart';
 import 'package:nanimonjya/models/character_catalog.dart';
@@ -182,6 +183,51 @@ void main() {
       // ⚠️ ここを緩めると毎回出て、ただの正解表示になる
       expect(ComboBadge.minToShow, 2);
       expect(ComboBadge.hotAt, 5);
+    });
+  });
+
+  group('お祝い演出', () {
+    testWidgets('カード獲得の帯は文字を出す', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: GetBanner(text: 'カードゲット！'))));
+      await t.pump(const Duration(milliseconds: 300));
+      expect(find.text('カードゲット！'), findsOneWidget);
+    });
+
+    testWidgets('帯は操作を邪魔しない', (t) async {
+      // ⚠️ お祝いの上からボタンが押せなくなると、テンポが死ぬ
+      var tapped = false;
+      await t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Stack(children: [
+            Center(
+                child: ElevatedButton(
+                    onPressed: () => tapped = true, child: const Text('押す'))),
+            const Positioned.fill(child: GetBanner(text: 'カードゲット！')),
+          ]),
+        ),
+      ));
+      await t.pump(const Duration(milliseconds: 300));
+      await t.tap(find.text('押す'));
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('勝利演出は文字と紙吹雪を出す', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: VictoryBurst(text: 'クリア！'))));
+      await t.pump(const Duration(milliseconds: 300));
+      expect(find.text('クリア！'), findsOneWidget);
+      expect(find.byType(Confetti), findsOneWidget);
+      await t.pump(const Duration(seconds: 2)); // 後始末まで流す
+    });
+
+    testWidgets('数字は0から目標まで上がる', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: CountUpText(value: 60))));
+      await t.pump(); // 開始直後は0
+      expect(find.text('0'), findsOneWidget);
+      await t.pump(const Duration(milliseconds: 900));
+      expect(find.text('60'), findsOneWidget);
     });
   });
 }

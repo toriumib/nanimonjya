@@ -1,50 +1,80 @@
 # -*- coding: utf-8 -*-
-"""🅰 ロゴ用フォントを、必要な文字だけに絞って書き出す。
+"""🅰 画面に出す文字だけに絞ったフォントを作る。
 
 ■ なぜ要るか
-ロゴ（ホーム画面のタイトル）は Mochiy Pop One という書体で出している。
-以前は `google_fonts` パッケージで**実行時に fonts.gstatic.com から
-ダウンロード**していたが、圏外だと名前解決に失敗して例外になる。
-ホーム画面は全員が通るので、Crashlytics がこれ1件で埋まっていた。
+日本語フォントは全字入りで数MBある。使うのが十数文字でも、
+そのまま同梱すると容量を食う（音声を19MB削った意味が消える）。
+**出す文字だけ**に絞れば数十KBで済む。
 
-同梱すれば起きない。ただし日本語フォントは全字入りで **5.16MB** ある。
-ロゴに出るのは数文字なので、**その文字だけに絞る**（約25KB）。
+以前はロゴを `google_fonts` で**実行時にダウンロード**していたが、
+圏外だと fonts.gstatic.com の名前解決に失敗して例外になり、
+Crashlytics がそれ1件で埋まっていた。同梱すれば起きない。
 
 ■ 使いかた
-
   pip install fonttools
   python tools/subset_logo_font.py
 
-  → assets/fonts/MochiyPopOne-Logo.ttf を作り直す
+  → assets/fonts/ に絞りこんだ .ttf を書き出す
 
-■ ⚠️ ロゴの文言を変えたら、必ずこれを回すこと
+■ ⚠️ 出す文言を変えたら、必ずこれを回すこと
 入っていない文字は**豆腐（□）**になる。
-文字は `lib/l10n/app_jp.arb` / `app_en.arb` の `appTitle` から取っている。
+ロゴの文字は arb の `appTitle` から自動で拾うが、
+**お祝いの文言は下の [CELEBRATION_TEXT] に手で書く**。
 
 ■ ライセンス
-Mochiy Pop One は SIL Open Font License 1.1。
-サブセット（改変）と再配布が認められている。
-ライセンス文は `assets/fonts/OFL-MochiyPopOne.txt` に同梱すること。
+どちらも SIL Open Font License 1.1。サブセット（改変）と再配布が
+認められている。ライセンス文を `assets/fonts/OFL-*.txt` に同梱すること。
 """
 
 import json
 import os
-import re
-import sys
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-OUT = os.path.join(ROOT, 'assets', 'fonts', 'MochiyPopOne-Logo.ttf')
-LICENSE_OUT = os.path.join(ROOT, 'assets', 'fonts', 'OFL-MochiyPopOne.txt')
+FONTS = os.path.join(ROOT, 'assets', 'fonts')
+BASE = 'https://raw.githubusercontent.com/google/fonts/main/ofl/'
 
-BASE = ('https://raw.githubusercontent.com/google/fonts/main/ofl/'
-        'mochiypopone/')
+# 英数字と記号。入れても数百バイトなので、まとめて入れておく。
+#
+# ⚠️ **全角の記号を忘れないこと。** 日本語のUIでは「！」「？」は全角で書く。
+#    半角の `!` だけ入れていて、画面には `！` を出していたため、
+#    そこだけ豆腐（□）になっていた。
+COMMON = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+          'abcdefghijklmnopqrstuvwxyz'
+          '0123456789 !?%.,:/+-×'
+          '！？％．，：・ー〜（）「」、。…'
+          '　')  # 全角スペース
 
-# ロゴ以外にも使いたくなったとき用の予備。英数字は入れても数百バイト。
-EXTRA = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-         'abcdefghijklmnopqrstuvwxyz'
-         '0123456789 !?・ー〜')
+# 🎉 お祝い演出に出る文字。
+#
+# ⚠️ **ここに無い文字は豆腐になる。**
+#    celebration.dart や name_call_screen.dart の文言を変えたら追記すること。
+CELEBRATION_TEXT = (
+    'カードゲット'
+    'れんぞく'
+    'すごい'
+    'かんぺき'
+    'クリア'
+    'おめでとう'
+    'がゲット'
+    'ぜんぶ正解'
+    'あなたの勝ち'
+    'ひきわけ'
+    'さいこう'
+    'ラスト'
+    'まい'
+    'のこり'
+    'P'
+)
+
+# family名 → (googleフォントのディレクトリ, ファイル名, 出力名, 文字)
+TARGETS = {
+    'MochiyPopOne': ('mochiypopone', 'MochiyPopOne-Regular.ttf',
+                     'MochiyPopOne-Logo.ttf', None),  # None = arb から拾う
+    'DelaGothicOne': ('delagothicone', 'DelaGothicOne-Regular.ttf',
+                      'DelaGothicOne-Pop.ttf', CELEBRATION_TEXT),
+}
 
 
 def logo_texts():
@@ -55,34 +85,25 @@ def logo_texts():
         if not os.path.exists(path):
             continue
         with open(path, encoding='utf-8') as f:
-            # arb にはコメント用の `@` キーが混ざるので json で読む
             data = json.load(f)
-        title = data.get('appTitle')
-        if title:
-            out.append(title)
-    return out
+        if data.get('appTitle'):
+            out.append(data['appTitle'])
+    return ''.join(out)
 
 
-def main():
-    try:
-        from fontTools import subset
-    except ImportError:
-        raise SystemExit('fonttools がない。 pip install fonttools')
+def build(family, dirname, srcname, outname, text):
+    from fontTools import subset
 
-    titles = logo_texts()
-    if not titles:
-        raise SystemExit('appTitle が見つからない')
-    chars = ''.join(sorted(set(''.join(titles) + EXTRA)))
-    print('ロゴの文字:', ' / '.join(titles))
-    print('入れる字数:', len(chars))
-
-    src = os.path.join(HERE, '.MochiyPopOne-Regular.ttf')
+    src = os.path.join(HERE, f'.{srcname}')
     if not os.path.exists(src):
-        print('元フォントを取得中…')
-        urllib.request.urlretrieve(BASE + 'MochiyPopOne-Regular.ttf', src)
-    if not os.path.exists(LICENSE_OUT):
-        urllib.request.urlretrieve(BASE + 'OFL.txt', LICENSE_OUT)
+        print(f'  元フォントを取得中… {srcname}')
+        urllib.request.urlretrieve(BASE + dirname + '/' + srcname, src)
 
+    license_out = os.path.join(FONTS, f'OFL-{family}.txt')
+    if not os.path.exists(license_out):
+        urllib.request.urlretrieve(BASE + dirname + '/OFL.txt', license_out)
+
+    chars = ''.join(sorted(set((text or logo_texts()) + COMMON)))
     opts = subset.Options()
     opts.layout_features = ['*']
     opts.notdef_outline = True
@@ -91,13 +112,23 @@ def main():
     sub = subset.Subsetter(options=opts)
     sub.populate(text=chars)
     sub.subset(font)
-    subset.save_font(font, OUT, opts)
+    out = os.path.join(FONTS, outname)
+    subset.save_font(font, out, opts)
 
-    before = os.path.getsize(src)
-    after = os.path.getsize(OUT)
-    print(f'{before:,} → {after:,} バイト（{before / after:.0f}分の1）')
-    print('書き出した:', OUT)
+    before, after = os.path.getsize(src), os.path.getsize(out)
+    print(f'  {family}: {len(chars)}字 / '
+          f'{before:,} → {after:,} バイト（{before // after}分の1）')
+
+
+def main():
+    try:
+        import fontTools  # noqa: F401
+    except ImportError:
+        raise SystemExit('fonttools がない。 pip install fonttools')
+    for family, (d, src, out, text) in TARGETS.items():
+        build(family, d, src, out, text)
+    print('できた:', FONTS)
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

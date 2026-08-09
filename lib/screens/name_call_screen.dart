@@ -24,6 +24,7 @@ import '../services/online_match_service.dart';
 import '../services/custom_roster_service.dart'; // 顔メモの人も出演プールに入れる
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
+import '../widgets/celebration.dart';
 import '../widgets/combo_badge.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/face_view.dart';
@@ -119,6 +120,16 @@ class _NameCallScreenState extends State<NameCallScreen>
   ///    走らない。ホームボタンで外に出られると何も残らないので、
   ///    2026-08 は 229試合のうち102件が行方不明になっていた。
   DateTime? _leftAt;
+
+  /// 🎉 いま出しているお祝いの帯。null なら出さない。
+  ///
+  /// ⚠️ **中身が変わったことをアニメに伝えるため、key に使う値を添える。**
+  ///    同じ文字が続けて出たとき、key が同じだと跳ね直さない。
+  ({String text, List<Color> colors, int id})? _banner;
+  int _bannerSeq = 0;
+
+  /// 🏆 勝ったときのフラッシュと紙吹雪を出しているか。
+  bool _victory = false;
 
   /// 🖐 審判ボタンの連打よけ。直前のタップ時刻。
   ///
@@ -691,7 +702,16 @@ class _NameCallScreenState extends State<NameCallScreen>
       }
       final gained = _roundHits.where((h) => h).length;
       _cardsWon[0] += gained;
-      if (gained > 0) Sfx.instance.get(); // 🎴 カードが手に入った音
+      if (gained > 0) {
+        Sfx.instance.get(); // 🎴 カードが手に入った音
+        // 🔥 連続しているときは、そちらを見せる。ただの獲得より嬉しい
+        _showBanner(
+          _combo >= 3 ? '$_combo れんぞく！' : 'カードゲット！',
+          _combo >= 3
+              ? const [Color(0xFFFF3D6A), Color(0xFFFFC02E)]
+              : const [Color(0xFFFF6A3D), Color(0xFFFFC02E)],
+        );
+      }
       // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
       //    プレイヤーのおてつきは没収せず、誰の点にもならない。
       if (_isCpu && _cpuTookRound) _cardsWon[1] += 1;
@@ -714,6 +734,11 @@ class _NameCallScreenState extends State<NameCallScreen>
       _cardsWon[player] += 1;
       Sfx.instance.get(); // 🎴 カードが手に入った音
       HapticFeedback.lightImpact();
+      // 誰が取ったかを、その人の色で出す
+      _showBanner(
+        widget.humanPlayers <= 1 ? 'カードゲット！' : 'P${player + 1} がゲット！',
+        _playerColors(player),
+      );
     } else {
       Sfx.instance.wrong();
       // 📛 原作のルール: 誰も名前を正確に思い出せなかったら、
@@ -753,6 +778,17 @@ class _NameCallScreenState extends State<NameCallScreen>
     _endRound();
   }
 
+  /// 🎉 お祝いの帯を出す。0.9秒で勝手に消える。
+  void _showBanner(String text, List<Color> colors) {
+    _bannerSeq += 1;
+    final id = _bannerSeq;
+    setState(() => _banner = (text: text, colors: colors, id: id));
+    Future.delayed(const Duration(milliseconds: 900), () {
+      // あいだに次の帯が出ていたら、そちらを消さない
+      if (mounted && _banner?.id == id) setState(() => _banner = null);
+    });
+  }
+
   void _endRound() {
     setState(() => _phase = _Phase.roundResult);
     Future.delayed(const Duration(milliseconds: 1500), () {
@@ -763,7 +799,14 @@ class _NameCallScreenState extends State<NameCallScreen>
   // ─────────────── 終了 ───────────────
 
   Future<void> _finishGame() async {
-    setState(() => _phase = _Phase.reveal);
+    setState(() {
+      _phase = _Phase.reveal;
+      _victory = true;
+    });
+    // ⚠️ 1.5秒で消す。ここが長いと次の1回に入る前に閉じられる。
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _victory = false);
+    });
     _finished = true;
     // 📊 成績レポートに1回ぶんとして保存する（審判方式は個人の記録が取れないので除く）
     if (!_isReferee) {
@@ -959,7 +1002,9 @@ class _NameCallScreenState extends State<NameCallScreen>
             : null,
       ),
       body: SafeArea(
-        child: Column(
+        child: Stack(
+          children: [
+            Column(
           children: [
             Expanded(
               child: switch (_phase) {
@@ -978,10 +1023,35 @@ class _NameCallScreenState extends State<NameCallScreen>
                 child: AdWidget(ad: _bannerAd!),
               ),
           ],
+            ),
+            // 🎉 お祝いは上に重ねるだけ。操作は止めない（IgnorePointer）
+            if (_banner != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 96,
+                child: Center(
+                  child: GetBanner(
+                    key: ValueKey(_banner!.id),
+                    text: _banner!.text,
+                    colors: _banner!.colors,
+                  ),
+                ),
+              ),
+            if (_victory) const VictoryBurst(text: 'クリア！'),
+          ],
         ),
       ),
     );
   }
+
+  /// プレイヤーごとの色。帯とボタンで同じ色を使う。
+  List<Color> _playerColors(int i) => const [
+        [Color(0xFF3A7BD5), Color(0xFF62B6FF)],
+        [Color(0xFFE8663C), Color(0xFFFFA26B)],
+        [Color(0xFF2E9E5B), Color(0xFF7BE0C8)],
+        [Color(0xFF8A5AC2), Color(0xFFC49BFF)],
+      ][i % 4];
 
   Widget _buildNaming(MetaStrings m) {
     final namerIndex =
