@@ -762,6 +762,40 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
+  /// 🌐 Web版で言語を切り替えるボタン（日 / EN）。
+  Widget _webLocaleToggle() {
+    if (!kIsWeb) return const SizedBox.shrink();
+    return AnimatedBuilder(
+      animation: PlayerProfile.instance,
+      builder: (context, _) {
+        final ja =
+            PlayerProfile.instance.webLocaleCode != 'en'; // null or 'ja' → 日本語
+        return GestureDetector(
+          onTap: () {
+            Sfx.instance.pop();
+            PlayerProfile.instance.setWebLocale(ja ? 'en' : 'ja');
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xEEFFFFFF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFBCC8E0)),
+            ),
+            child: Text(
+              ja ? '🇯🇵 日本語' : '🇺🇸 English',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF2B5CA5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -787,6 +821,7 @@ class _TopScreenState extends State<TopScreen>
             children: [
               const Positioned.fill(child: SeasonalDecor()),
               Positioned(top: 8, right: 8, child: _topBar()),
+              Positioned(top: 8, left: 8, child: _webLocaleToggle()),
               Column(
                 children: [
                   const SizedBox(height: 6),

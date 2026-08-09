@@ -91,6 +91,14 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  /// 🌐 Web版で保存された言語コードを Locale に変換。
+  /// null のときは端末の言語に従う。
+  static Locale? _webLocaleOf(String? code) => switch (code) {
+    'en' => const Locale('en'),
+    'ja' => const Locale('ja'),
+    _ => null,
+  };
+
   // 選択中のきせかえテーマの accent 色でアプリ全体のテーマを組み立てる
   ThemeData _buildTheme(Color accent) {
     // 丸みのあるポップな書体をアプリ全体のデフォルトに（fontFamily未指定のTextへ自動継承される）
@@ -204,6 +212,9 @@ class MyApp extends StatelessWidget {
       home: const HomeShell(),
       debugShowCheckedModeBanner: false,
 
+      // 🌐 Web版で言語を切り替えられるようにする。
+      //    webLocaleCode が null なら端末の言語に従う。
+      locale: _webLocaleOf(PlayerProfile.instance.webLocaleCode),
       // ★ここから追加: 多言語対応の設定★
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -95,6 +95,20 @@ class PlayerProfile extends ChangeNotifier {
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
 
+  /// 🌐 Web版で選んだ言語（nullなら端末の言語に従う）。
+  /// shared_preferences に保存して次回も引き継ぐ。
+  String? _webLocaleCode;
+  String? get webLocaleCode => _webLocaleCode;
+  Future<void> setWebLocale(String? code) async {
+    _webLocaleCode = code;
+    if (code == null) {
+      await _prefs?.remove('webLocale');
+    } else {
+      await _prefs?.setString('webLocale', code);
+    }
+    notifyListeners();
+  }
+
   /// 🎁 今日のキャラガチャを引いた日（yyyy-mm-dd）。
   /// 「1日1回タダで1体引ける」という戻ってくる理由を作るための仕組み。
   /// コインを貯めないと何も起きない状態だと、買うほど遊んでいない人が
@@ -239,6 +253,7 @@ class PlayerProfile extends ChangeNotifier {
     _refreshMissions();
     selectedHomeBgm = bgm.home;
     selectedResultBgm = bgm.result;
+    _webLocaleCode = p.getString('webLocale'); // null = 端末の言語に従う
     _loaded = true;
     _refreshDailyState();
   }
