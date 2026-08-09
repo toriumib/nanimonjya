@@ -131,6 +131,9 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// 🏆 勝ったときのフラッシュと紙吹雪を出しているか。
   bool _victory = false;
 
+  /// ✨ 正解した瞬間の金キラ演出。カードの位置を中心に出す。
+  int _sparkleKey = 0;
+
   /// 🖐 審判ボタンの連打よけ。直前のタップ時刻。
   ///
   /// ⚠️ **連打すると名前が付け直されていた。**
@@ -670,6 +673,8 @@ class _NameCallScreenState extends State<NameCallScreen>
       _combo += 1;
       if (_combo > _bestCombo) _bestCombo = _combo;
       Sfx.instance.correct();
+      // ✨ 正解の瞬間に金キラ演出
+      _sparkleKey += 1;
       // 🔥 続くほど手ごたえを強くする。同じ反応の繰り返しは飽きる。
       if (_combo >= 5) {
         HapticFeedback.heavyImpact();
@@ -1055,7 +1060,49 @@ class _NameCallScreenState extends State<NameCallScreen>
                 ),
               ),
             if (_victory) VictoryBurst(text: m.clearVictory),
+            // ✨ 正解の瞬間に金キラ
+            if (_sparkleKey > 0)
+              _NameCallScreenState.goldSparkle(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// ✨ 正解したときの金キラエフェクト。0.6秒で消える。
+  static Widget goldSparkle(BuildContext context) {
+    return IgnorePointer(
+      child: Center(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+          builder: (_, t, child) {
+            final scale = 0.5 + t * 2.0;
+            final fade = (1 - t).clamp(0.0, 1.0);
+            return Opacity(
+              opacity: fade,
+              child: Transform.scale(
+                scale: scale,
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Color(0x44FFD700),
+                  Color(0x22FFC02E),
+                  Color(0x00FFA500),
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -1700,23 +1747,43 @@ class _NameCallScreenState extends State<NameCallScreen>
               ? const Color(0xFF2E9E5B)
               : const Color(0xFF8A9AA8);
     }
+    final gold = color == const Color(0xFFE8A400) || color == const Color(0xFF2E9E5B);
     return Expanded(
       child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: 26, fontWeight: FontWeight.w900, color: color),
-        )
-            .animate()
-            .fadeIn(duration: 180.ms)
-            .scale(
-              begin: const Offset(0.6, 0.6),
-              end: const Offset(1, 1),
-              duration: 420.ms,
-              curve: Curves.elasticOut,
-            ),
-      ),
+        child: gold
+            ? ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFFFFC02E), Color(0xFFFF6A3D), Color(0xFFFFC02E)],
+                ).createShader(bounds),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(offset: Offset(0, 2), blurRadius: 4, color: Color(0x66000000)),
+                      Shadow(offset: Offset(0, 0), blurRadius: 14, color: Color(0x44FFD700)),
+                    ],
+                  ),
+                ),
+              )
+            : Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 26, fontWeight: FontWeight.w900, color: color),
+              ),
+      )
+          .animate()
+          .fadeIn(duration: 180.ms)
+          .scale(
+            begin: const Offset(0.6, 0.6),
+            end: const Offset(1, 1),
+            duration: 420.ms,
+            curve: Curves.elasticOut,
+          ),
     );
   }
 
@@ -1749,6 +1816,8 @@ class _NameCallScreenState extends State<NameCallScreen>
     // カードの内側の余白（12*2）を引いた残りが顔に使える。
     // 1枚のときは命名画面（_faceSize）とそろう。
     final faceSize = cardWidth - 24;
+    // ✨ 正解したカードは金色に光らせる
+    final won = done && ok;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       width: cardWidth,
@@ -1770,6 +1839,12 @@ class _NameCallScreenState extends State<NameCallScreen>
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
+          if (won)
+            BoxShadow(
+              color: const Color(0xFFFFC02E).withValues(alpha: 0.55),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
         ],
       ),
       child: Column(
@@ -1787,7 +1862,9 @@ class _NameCallScreenState extends State<NameCallScreen>
                         : (_roundHits[i] ? '⭕' : '❌'))
                     : '？'),
             style: TextStyle(
-                fontSize: single ? 18 : 14, fontWeight: FontWeight.w900),
+                fontSize: single ? 18 : 14,
+                fontWeight: FontWeight.w900,
+                color: won ? const Color(0xFFB8860B) : null),
             overflow: TextOverflow.ellipsis,
           ),
         ],
