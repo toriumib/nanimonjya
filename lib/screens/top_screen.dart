@@ -1144,30 +1144,82 @@ class _TopScreenState extends State<TopScreen>
                   const SizedBox(height: 6),
                   // 🌐 Web版はここにGoogle Playダウンロード＋管理リンク
                   if (kIsWeb) ...[
-                    // 📱 Androidアプリをダウンロード
+                    // 📱 Google Playでダウンロード
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: JuicyButton(
-                        onTap: _launchPlayReview,
-                        colors: const [Color(0xFF1A8C4A), Color(0xFF0E6B35)],
-                        height: 44,
-                        radius: 12,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('📱', style: TextStyle(fontSize: 18)),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Get Android App — Better Experience',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: const Color(0xFF1A8C4A), width: 2.5),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0E6B35), Color(0xFF1A8C4A)],
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x44000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _launchPlayReview,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  const Text('▶',
+                                      style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'GET IT ON',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFFA5D6B4),
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Google Play',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            height: 1.1,
+                                          ),
+                                        ),
+                                        Text(
+                                          'アプリのほうがサクサク動きます',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: const Color(0xE6FFFFFF),
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.open_in_new,
+                                      size: 15, color: Color(0x88FFFFFF)),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.open_in_new, size: 16, color: Colors.white70),
-                          ],
+                          ),
                         ),
                       ),
                     ),
