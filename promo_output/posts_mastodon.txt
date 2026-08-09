@@ -10,7 +10,7 @@ It has:
 Every mechanic is backed by memory research:
 Retrieval practice beats re-reading. (Roediger & Karpicke, 2006)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 === Post 2 ===
 5 people in this room. You remember 1 name. The other 4? Nope.
@@ -24,7 +24,7 @@ It has:
 Every mechanic is backed by memory research:
 Names are uniquely hard — the Baker paradox. (McWeeny et al., 1987)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 === Post 3 ===
 Coworker: 'Hey, you remember me, right?' You: '...Of course!' (You don't.)
@@ -38,7 +38,7 @@ It has:
 Every mechanic is backed by memory research:
 Self-reference boosts memory. Connect their name to YOUR life. (Rogers, 1977)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 === Post 4 ===
 New job = 30 new names. Your brain: 'I'll remember 3. Take it or leave it.'
@@ -52,7 +52,7 @@ It has:
 Every mechanic is backed by memory research:
 Saying it out loud helps. The 'production effect.' (MacLeod et al., 2010)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 === Post 5 ===
 The most awkward 2 seconds in the world: '...what was your name again?'
@@ -66,5 +66,5 @@ It has:
 Every mechanic is backed by memory research:
 Sleep consolidates name memories. (Staresina, 2024, TiCS)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 

@@ -9,7 +9,7 @@ It has:
 Every mechanic is backed by memory research:
 Retrieval practice beats re-reading. (Roediger & Karpicke, 2006)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 ---
 
@@ -24,7 +24,7 @@ It has:
 Every mechanic is backed by memory research:
 Names are uniquely hard — the Baker paradox. (McWeeny et al., 1987)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 ---
 
@@ -39,4 +39,4 @@ It has:
 Every mechanic is backed by memory research:
 Self-reference boosts memory. Connect their name to YOUR life. (Rogers, 1977)
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/

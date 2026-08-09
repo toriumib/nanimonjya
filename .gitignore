@@ -69,3 +69,10 @@ emulator_screenshot.png
 enable_hyperv.bat
 enable_hyperv.ps1
 install_hyperv.ps1
+check_vms.ps1
+create_kali_vm.ps1
+create_vm.ps1
+disable_hyperv.bat
+
+# SNS認証情報（パスワードを含むためコミット禁止）
+scripts/.auto_poster_config.json

@@ -1,11 +1,11 @@
 # PetaName Launch Promotion Guide
-Generated: 2026-08-09 22:50
+Generated: 2026-08-09 23:27
 
 ## Quick Links
-- Web: https://petaname.web.app/
+- Web: https://web-sigma-drab-72.vercel.app/
 - Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya
-- Press Kit: https://petaname.web.app/presskit.html
-- Privacy Policy: https://petaname.web.app/privacy.html
+- Press Kit: https://web-sigma-drab-72.vercel.app/presskit.html
+- Privacy Policy: https://web-sigma-drab-72.vercel.app/privacy.html
 
 ## Launch Checklist
 
@@ -64,7 +64,7 @@ PetaName is different:
 It's free on Android & Web, with no account required.
 Data stays on-device.
 
-Press kit: https://petaname.web.app/presskit.html
+Press kit: https://web-sigma-drab-72.vercel.app/presskit.html
 Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya
 
 Would you be interested in trying it out?
@@ -88,7 +88,7 @@ Kengo Abe
 - アバター作成機能／オンライン対戦／SF物語モード
 - 無料・アカウント不要・データは端末内保存
 
-プレスキット: https://petaname.web.app/presskit.html
+プレスキット: https://web-sigma-drab-72.vercel.app/presskit.html
 Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya
 
 ぜひご確認いただけますと幸いです。

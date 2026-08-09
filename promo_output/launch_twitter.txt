@@ -10,7 +10,7 @@ Free on Android & Web. Link in bio.
 
 📸 Face Memo — log real people. Build avatars. Train with their faces.
 
-Try it: petaname.web.app
+Try it: web-sigma-drab-72.vercel.app
 
 ---
 
@@ -50,4 +50,4 @@ Meet → forget → 'nice to see you *person whose name I definitely know*'
 
 📇 Business card OCR — snap a card, auto-fill the profile.
 
-Try it: petaname.web.app
+Try it: web-sigma-drab-72.vercel.app

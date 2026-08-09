@@ -52,7 +52,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_FILE = PROJECT_ROOT / "scripts" / ".auto_poster_config.json"
 CALENDAR_FILE = PROJECT_ROOT / "promo_output" / "content_calendar.json"
 
-APP_URL = "https://petaname.web.app/"
+APP_URL = "https://web-sigma-drab-72.vercel.app/"
 PLAY_URL = "https://play.google.com/store/apps/details?id=com.nanimonjya"
 
 # ─── 投稿プール ───

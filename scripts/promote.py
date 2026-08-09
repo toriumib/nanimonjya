@@ -23,7 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "promo_output"
 
 APP_NAME = "PetaName"
-APP_URL = "https://petaname.web.app/"
+APP_URL = "https://web-sigma-drab-72.vercel.app/"
 PLAY_URL = "https://play.google.com/store/apps/details?id=com.nanimonjya"
 TAGLINE = "Never forget a name again."
 TECH_TAGLINE = "Face & name memory training backed by cognitive science."
@@ -67,7 +67,7 @@ SCIENCE_BITES = [
 
 CTAS = [
     "Free on Android & Web. Link in bio.",
-    "Try it: petaname.web.app",
+    "Try it: web-sigma-drab-72.vercel.app",
     "Google Play: 'PetaName' (com.nanimonjya)",
     "No account needed. Free. Web + Android.",
     "Download free on Google Play →",

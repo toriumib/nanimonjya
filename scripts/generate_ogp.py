@@ -159,7 +159,7 @@ def main():
     # Bottom bar
     bar_h = 56
     draw.rectangle([0, H - bar_h, W, H], fill=(20, 40, 75, 235))
-    url_text = "petaname.web.app   -   Get it on Google Play"
+    url_text = "web-sigma-drab-72.vercel.app   -   Get it on Google Play"
     bbox = draw.textbbox((0, 0), url_text, font=font_url)
     tw = bbox[2] - bbox[0]
     draw.text(

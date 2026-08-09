@@ -1,4 +1,4 @@
-Sitemap: https://petaname.web.app/sitemap.xml
+Sitemap: https://web-sigma-drab-72.vercel.app/sitemap.xml
 
 User-agent: *
 Allow: /

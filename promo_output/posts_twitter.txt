@@ -10,7 +10,7 @@ Free on Android & Web. Link in bio.
 
 📸 Face Memo — log real people. Build avatars. Train with their faces.
 
-Try it: petaname.web.app
+Try it: web-sigma-drab-72.vercel.app
 
 === Post 3 ===
 Coworker: 'Hey, you remember me, right?' You: '...Of course!' (You don't.)

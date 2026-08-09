@@ -11,7 +11,7 @@ It uses:
 
 You can upload photos of real colleagues, classmates, or clients and the app builds memory games around them.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 #professionaldevelopment #networking #memory #softskills
 
@@ -28,7 +28,7 @@ It uses:
 
 You can upload photos of real colleagues, classmates, or clients and the app builds memory games around them.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 #professionaldevelopment #networking #memory #softskills
 
@@ -45,7 +45,7 @@ It uses:
 
 You can upload photos of real colleagues, classmates, or clients and the app builds memory games around them.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 #professionaldevelopment #networking #memory #softskills
 
@@ -62,7 +62,7 @@ It uses:
 
 You can upload photos of real colleagues, classmates, or clients and the app builds memory games around them.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 #professionaldevelopment #networking #memory #softskills
 
@@ -79,7 +79,7 @@ It uses:
 
 You can upload photos of real colleagues, classmates, or clients and the app builds memory games around them.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
 #professionaldevelopment #networking #memory #softskills
 
@@ -94,5 +94,5 @@ PetaName has a 'Business Recall' mode that simulates exactly this:
 Wrong answers come back tomorrow (spaced repetition).
 You can import real business cards via OCR.
 
-Free on Android & Web: https://petaname.web.app/
+Free on Android & Web: https://web-sigma-drab-72.vercel.app/
 
