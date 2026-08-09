@@ -145,6 +145,7 @@ class Bgm {
   /// ゲーム中のBGM（プレイヤーが選んだ曲）をループ再生する。
   Future<void> playGame() {
     _mode = _BgmMode.game;
+    _current = null; // 強制切替：場面が変わったら必ず新しい曲を読み込む
     return _play(assetKey(PlayerProfile.instance.selectedBgm));
   }
 
@@ -152,6 +153,7 @@ class Bgm {
   /// いなかったため、ここで使う。
   Future<void> playResult() {
     _mode = _BgmMode.result;
+    _current = null; // 強制切替：場面が変わったら必ず新しい曲を読み込む
     return _play(assetKey(resultAsset()));
   }
 
@@ -172,7 +174,6 @@ class Bgm {
   Future<void> _play(String key, {double volume = 0.35}) {
     return _serialize(() async {
       // 🔇 マイページでBGMを切っている人には何も鳴らさない。
-      // （効果音は別設定なので、ここでは止めない）
       if (!PlayerProfile.instance.bgmEnabled) {
         _current = null;
         try {
@@ -180,21 +181,29 @@ class Bgm {
         } catch (_) {}
         return;
       }
+      // 同じ曲がすでに鳴っていれば何もしない（ホームの二重再生防止）。
+      // playGame/playResult はあらかじめ _current = null してから呼ぶので
+      // 場面切替ではこのチェックを通らない。
       if (_current == key && _player.playing) return;
       try {
-        await _player.stop();
+        // Web では stop() と setAsset() を分けると状態が壊れることがある。
+        // just_audio の setAsset は自動で現在のソースを解放するので、
+        // stop を明示的に呼ばなくても問題ない（呼ぶとむしろ race の元になる）。
         await _player.setAsset(key);
         await _player.setLoopMode(LoopMode.one);
         await _player.setVolume(volume);
         _current = key;
+        _blocked = false;
         await _player.play();
       } catch (e) {
-        // Webの自動再生ブロックや、曲ファイルが無い場合。
-        // それまで鳴っていた曲を止めてから印をつける。
-        // （stopに失敗しても構わない。次にタップでかけ直す。）
-        try { await _player.stop(); } catch (_) {}
+        // Webの自動再生ブロックや曲ファイルが無い場合。
+        // プレイヤーを明示的にリセットして次回の再生に備える。
         _current = null;
         _blocked = true;
+        try {
+          await _player.stop();
+          await _player.setAsset(key); // 次の play で assets が解決済みになるよう先読み
+        } catch (_) {}
         debugPrint('BGM play failed ($key): $e');
       }
     });
