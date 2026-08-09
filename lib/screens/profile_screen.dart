@@ -1476,12 +1476,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _resultMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
-    // ⚠️ シャイニングスターは kBgmCatalog に入れたので、
-    //    ここで足すと二重に並ぶ。アンロック済みの曲だけを出す。
-    final options = kBgmCatalog
-        .where((b) => p.unlockedBgm.contains(b.asset))
-        .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn))
-        .toList();
+    // 🎲 既定は「おまかせ」。選ぶとその曲だけが鳴る。
+    final options = <MapEntry<String, String>>[
+      MapEntry(kResultBgmRandom,
+          ja ? 'おまかせ（勝利の行進曲から）' : 'Shuffle (victory marches)'),
+      ...kBgmCatalog
+          .where((b) => p.unlockedBgm.contains(b.asset))
+          .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
+    ];
     return _sectionCard(
       title: '🎺 ${m.resultMusic}',
       child: Column(

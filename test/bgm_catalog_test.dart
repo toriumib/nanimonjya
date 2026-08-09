@@ -24,14 +24,29 @@ void main() {
       }
     });
 
-    test('各場面の既定曲は、無料で持っている', () {
+    test('勝利でランダムに引く曲は、すべて無料で持っている', () {
+      for (final a in kVictoryRandomPool) {
+        expect(kFreeBgmAssets, contains(a), reason: a);
+        expect(isKnownBgm(a), isTrue, reason: a);
+      }
+    });
+
+    test('各場面の既定は、無料で持っているか「おまかせ」', () {
+      // ⚠️ 既定は「おまかせ」という**ファイル名ではない値**になりうる。
+      //    その場合は、引かれる側のプールが無料であればよい。
       expect(kFreeBgmAssets, contains(kDefaultGameBgmAsset));
-      expect(kFreeBgmAssets, contains(kDefaultResultBgmAsset));
       expect(kFreeBgmAssets, contains(kHomeBgmAsset));
+      expect(
+        kDefaultResultBgmAsset == kResultBgmRandom ||
+            kFreeBgmAssets.contains(kDefaultResultBgmAsset),
+        isTrue,
+      );
     });
 
     test('ランダムの目印は、曲のファイル名とぶつからない', () {
       expect(isKnownBgm(kHomeBgmRandom), isFalse);
+      expect(isKnownBgm(kResultBgmRandom), isFalse);
+      expect(kHomeBgmRandom, isNot(kResultBgmRandom));
     });
 
     test('カタログの曲は、すべて assets/audio に実在する', () {
@@ -85,7 +100,7 @@ void main() {
       );
       expect(s.unlocked, containsAll(kFreeBgmAssets));
       expect(s.game, kDefaultGameBgmAsset);
-      expect(s.result, kDefaultResultBgmAsset);
+      expect(s.result, kDefaultResultBgmAsset); // 勝利もおまかせ
       expect(s.home, kHomeBgmRandom); // 既定はおまかせ
     });
 
@@ -104,10 +119,22 @@ void main() {
       final s = migrateBgmSelection(
         savedUnlocked: const [],
         savedGame: null,
-        savedResult: null,
+        savedResult: kResultBgmRandom,
         savedHome: kHomeBgmRandom,
       );
       expect(s.home, kHomeBgmRandom);
+      expect(s.result, kResultBgmRandom);
+    });
+
+    test('勝利の曲を1つ選んだら、その曲のまま', () {
+      // 「設定したらその曲だけが流れる」を守れているか
+      final s = migrateBgmSelection(
+        savedUnlocked: const [],
+        savedGame: null,
+        savedResult: 'victory_pomp.mp3',
+        savedHome: null,
+      );
+      expect(s.result, 'victory_pomp.mp3');
     });
   });
 }

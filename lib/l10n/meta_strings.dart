@@ -1427,10 +1427,16 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   //    録音そのものがパブリックドメインとして公開されている。
   //    表示は義務ではないが、提供元の希望なので出す。
   String get bgmCredit => ja
-      ? '楽曲提供: 魔王魂／クラシック曲はパブリックドメイン'
-          '（運命の演奏: Skidmore College orchestra via Musopen）'
-      : 'Music: MaouDamashii / classical tracks are public domain '
-          '(Symphony No.5 performed by Skidmore College orchestra via Musopen)';
+      ? '楽曲提供: 魔王魂／クラシック曲はパブリックドメイン
+'
+          '運命の演奏: Skidmore College orchestra（Musopen）
+'
+          '威風堂々の演奏: United States Army Band'
+      : 'Music: MaouDamashii / classical tracks are public domain
+'
+          'Symphony No.5: Skidmore College orchestra (Musopen)
+'
+          'Pomp and Circumstance: United States Army Band';
   String get shopEquipped => ja ? '装備中' : 'Equipped';
   String get shopEquip => ja ? '使う' : 'Equip';
   String get shopTry => ja ? '試し聞き' : 'Preview';

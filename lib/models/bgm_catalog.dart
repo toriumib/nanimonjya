@@ -47,7 +47,32 @@ const List<BgmItem> kBgmCatalog = [
   BgmItem('shining_star.mp3', 'シャイニングスター', 'Shining Star', 0),
   // --- 魔王魂（クレジット表記が必要） ---
   BgmItem('19_12345.mp3', '12345', '12345', 0, needsCredit: true),
+  // --- 🏆 勝利のとき用（20秒に切り出した行進曲） ---
+  BgmItem('victory_pomp.mp3', '威風堂々', 'Pomp and Circumstance', 0),
+  BgmItem('victory_beethoven.mp3', '運命（勝利版）', 'Symphony No.5 (victory)', 0),
+  BgmItem('victory_gunkan.mp3', '軍艦マーチ', 'Warship March', 0),
+  BgmItem('victory_march.mp3', '義勇軍進行曲', 'March of the Volunteers', 0),
 ];
+
+/// 🏆 勝ったときにランダムで流す曲。
+///
+/// [kResultBgmRandom] が選ばれているとき、この中から毎回引く。
+///
+/// ⚠️ **ここに載せる曲は [kFreeBgmAssets] にも入れること。**
+///    買っていない曲が勝手に鳴ってしまう。
+///
+/// ⚠️ 曲を減らしたいときは、この配列から外すだけでよい。
+///    カタログから消す必要はない（設定で個別に選べる状態は残る）。
+const List<String> kVictoryRandomPool = [
+  'victory_pomp.mp3',
+  'victory_beethoven.mp3',
+  'victory_gunkan.mp3',
+  'victory_march.mp3',
+];
+
+/// リザルトの曲に「おまかせ」を選んだときの目印。
+/// これのときは [kVictoryRandomPool] から毎回引く。
+const String kResultBgmRandom = 'random_victory';
 
 /// 🎁 最初から使える曲。
 ///
@@ -56,8 +81,10 @@ const List<BgmItem> kBgmCatalog = [
 const List<String> kFreeBgmAssets = [
   'for_siciliano.mp3', // ホームの既定（ランダムの片方）
   'beethoven_5th.mp3', // ホームの既定（ランダムの片方）
-  'shining_star.mp3', // リザルトの既定
+  'shining_star.mp3',
   '19_12345.mp3',
+  // 🏆 勝利のとき用
+  ...kVictoryRandomPool,
 ];
 
 /// クレジット表記が必要な提供元があるか。
@@ -79,8 +106,8 @@ String resolveBgm(String saved, String fallback) =>
 /// 🎮 試合中の既定曲。
 const String kDefaultGameBgmAsset = 'for_siciliano.mp3';
 
-/// 🏆 リザルトの既定曲。オーナー指定でシャイニングスター。
-const String kDefaultResultBgmAsset = 'shining_star.mp3';
+/// 🏆 リザルトの既定。**おまかせ**（勝利曲からランダム）。
+const String kDefaultResultBgmAsset = kResultBgmRandom;
 
 /// 🏠 ホーム画面で流す曲。
 ///
@@ -141,21 +168,26 @@ BgmSelection migrateBgmSelection({
   final unlocked = savedUnlocked.where(isKnownBgm).toSet()
     ..addAll(kFreeBgmAssets);
 
+  // ⚠️ fallback が 'random…' のときは、ファイル名として検査しない。
   String pick(String? saved, String fallback) {
+    if (saved == fallback) return fallback;
     final v = resolveBgm(saved ?? fallback, fallback);
     return unlocked.contains(v) ? v : fallback;
   }
 
-  // 🎲 ホームだけは 'random' という**ファイル名ではない値**を取りうる。
+  // 🎲 ホームとリザルトは 'random…' という**ファイル名ではない値**を取りうる。
   //    先に見分けないと、カタログに無いとして弾かれてしまう。
   final home = (savedHome == kHomeBgmRandom)
       ? kHomeBgmRandom
       : pick(savedHome, kHomeBgmRandom);
+  final result = (savedResult == kResultBgmRandom)
+      ? kResultBgmRandom
+      : pick(savedResult, kDefaultResultBgmAsset);
 
   return BgmSelection(
     unlocked: unlocked,
     game: pick(savedGame, kDefaultGameBgmAsset),
-    result: pick(savedResult, kDefaultResultBgmAsset),
+    result: result,
     home: home,
   );
 }

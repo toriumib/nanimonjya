@@ -148,7 +148,21 @@ class Bgm {
   /// いなかったため、ここで使う。
   Future<void> playResult() {
     _mode = _BgmMode.result;
-    return _play(assetKey(PlayerProfile.instance.selectedResultBgm));
+    return _play(assetKey(resultAsset()));
+  }
+
+  /// 🏆 勝ったときに鳴らす曲。
+  ///
+  /// 設定が [kResultBgmRandom] のときは [kVictoryRandomPool] から引く。
+  /// **設定で1曲を選んだら、その曲だけが鳴る。**
+  ///
+  /// ⚠️ ホーム（[homeAsset]）とちがって、**毎回引き直してよい**。
+  ///    リザルトは試合が終わるたびに1回だけ鳴る場面なので、
+  ///    同じ曲が続くより、毎回変わるほうが嬉しい。
+  String resultAsset() {
+    final chosen = PlayerProfile.instance.selectedResultBgm;
+    if (chosen != kResultBgmRandom) return chosen;
+    return kVictoryRandomPool[_rng.nextInt(kVictoryRandomPool.length)];
   }
 
   Future<void> _play(String key, {double volume = 0.35}) {
