@@ -157,6 +157,7 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 ## コード修正からリリースまでの手順
 
 コードを変更したら、必ずこの順で進める。**次のステップに進む前に問題があれば必ず直してからにすること。**
+**すべてのステップを連続で実行し、途中で止めない。**
 
 ### 1. 静的チェック
 
@@ -164,11 +165,15 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 flutter analyze
 ```
 
+エラー/警告があれば修正する。info のみならOK。
+
 ### 2. テスト
 
 ```bash
 flutter test
 ```
+
+全261テスト通過が必須。1件でも落ちたら修正。
 
 ### 3. WebビルドとVercelデプロイ
 
@@ -177,15 +182,85 @@ flutter build web --release
 cd build/web && npx vercel --prod
 ```
 
-`build/web/.vercel/project.json` がビルドで消えた場合は DEPLOY.md の手順で復元する。
+`build/web/.vercel/project.json` がビルドで消えた場合は `DEPLOY.md` の手順で復元する。
 
-### 4. コミット＆プッシュ
+### 4. AABビルド（Android）
 
 ```bash
-git add -A && git commit -m "..." && git push
+powershell.exe -ExecutionPolicy Bypass -File scripts/bump_and_build.ps1
+```
+
+出力: `build/app/outputs/bundle/release/app-release.aab`
+versionCode が自動で +1 される。Google Play Console にアップロードするときはこの AAB を使う。
+AAB はエミュレータに直接インストールできない。エミュレータで確認する場合は `flutter build apk --release` で APK をビルドし `adb install` する。
+
+### 5. エミュレータ確認（任意）
+
+```bash
+# APK ビルド
+flutter build apk --release
+
+# エミュレータ起動（起動済みなら不要）
+emulator -avd Pixel_6a_API_35 -no-boot-anim &
+
+# インストール
+adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk
+
+# 起動
+adb -s emulator-5554 shell monkey -p com.nanimonjya -c android.intent.category.LAUNCHER 1
+
+# スクリーンショット
+adb -s emulator-5554 exec-out screencap -p > emu_home.png
+```
+
+### 6. Google Play リリースノート作成
+
+`RELEASE_NOTES_vX.X.X.md` に日英両方で書く。
+- 「**サマリ**:」の後に行うことの全体的な要約を一文で
+- 「**変更点**:」に行ったことの箇条書き（日本語）
+- 「**Changes**:」に英語の箇条書き
+
+### 7. コミット＆プッシュ
+
+```bash
+git add -A
+git commit -m "〜を直す / 〜を追加"
+git push
 ```
 
 コミットメッセージは日本語・一文で「何を直したか」を書く。
+**コミット前に `git status` で意図しないファイルが入っていないか確認する。**
+AAB や APK のビルド成果物は `.gitignore` されているはずだが、万が一ステージングに入っていたら `git reset` で外す。
+
+### 8. Google Play Console へのアップロード
+
+1. https://play.google.com/console を開く
+2. アプリ「ペタネーム」(com.nanimonjya) を選択
+3. 左メニュー「リリース」→「本番環境」
+4. 「新しいリリースを作成」
+5. AAB をアップロード（`build/app/outputs/bundle/release/app-release.aab`）
+6. リリースノート（ja / en）を貼り付け
+7. 「リリースを審査に送信」
+
+### 9. Vercel 本番確認
+
+デプロイ後に表示される Production URL（`https://web-sigma-drab-72.vercel.app`）をブラウザで開き、ホーム画面が正しく表示されることを確認する。
+
+### 一発実行（ステップ1〜7）
+
+```bash
+flutter analyze && \
+flutter test && \
+flutter build web --release && \
+cd build/web && npx vercel --prod && \
+cd ../.. && \
+powershell.exe -ExecutionPolicy Bypass -File scripts/bump_and_build.ps1 && \
+git add -A && \
+git commit -m "〜を直す" && \
+git push
+```
+
+⚠️ 途中でエラーが出たら、そこで止めて修正。最後まで通ったら Google Play Console へアップロード。
 
 ---
 

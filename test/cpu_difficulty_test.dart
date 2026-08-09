@@ -134,13 +134,12 @@ void main() {
   });
 
   group('登場人数', () {
-    test('既定は12人×5枚（山札60枚）、スライダーは4〜15', () {
-      // オーナー指定で、定番のカードゲームと同じ構成にしてある。
-      // ⚠️ 完走率とのトレードオフがある値。name_call.dart の注意書きを読むこと。
-      expect(NameCallGame.peopleCount, 12);
+    test('既定は6人×5枚（山札30枚）、スライダーは4〜15', () {
+      // 2026-08 の完走率改善で12→6に引き下げ。name_call.dart 参照。
+      expect(NameCallGame.peopleCount, 6);
       expect(NameCallGame.defaultCopiesPerPerson, 5);
       expect(
-          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson, 60);
+          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson, 30);
       expect(NameCallGame.minSelectableCount, 4);
       expect(NameCallGame.maxSelectableCount, 15);
       // 既定が選べる範囲に収まっているか（ここがずれると初期値が clamp される）

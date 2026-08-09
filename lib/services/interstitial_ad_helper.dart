@@ -13,16 +13,16 @@ class InterstitialAdHelper {
   InterstitialAdHelper._();
   static final InterstitialAdHelper instance = InterstitialAdHelper._();
 
-  static const int playsPerAd = 3; // 何プレイごとに全画面広告を出すか
+  static const int playsPerAd = 2; // 何プレイごとに全画面広告を出すか
   static const String _prefsKey = 'playsSinceInterstitial';
 
   /// 🚦 前に出してから、最低これだけ間をあける（秒）。
   ///
-  /// 「3プレイに1回」だけだと、短い試合を続けざまに終えたときに
+  /// 「2プレイに1回」だけだと、短い試合を続けざまに終えたときに
   /// 全画面広告が立て続けに出る。全画面はいちばん嫌われやすい形なので、
   /// **回数**と**時間**の両方で止める（フリークエンシーキャップ）。
   /// 出しすぎて遊ぶのをやめられたら、その先の広告収入ごと失う。
-  static const int minIntervalSeconds = 90;
+  static const int minIntervalSeconds = 60;
   static const String _lastShownKey = 'interstitialLastShownMs';
 
   InterstitialAd? _ad;

@@ -75,30 +75,24 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
 
   /// 遊んだあとに「あそびかたを読む？」と一度だけ聞く。
   Future<void> _offerGuide() async {
-    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final m = MetaStrings.of(context);
     final read = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFFFFF8E6),
-        title: Text(ja ? 'ほかの あそびかたも あるよ' : 'There is more to play'),
+        title: Text(m.offerGuideTitle),
         content: Text(
-          ja
-              ? 'みんなで あそぶ・顔メモ・名刺覚え・ものがたり。\n'
-                  '5分くらいで ぜんぶ わかるよ。\n\n'
-                  'あとから ホームの 📖ルール でも 読めます。'
-              : 'Play together, Face Notes, Card Memory, Story.\n'
-                  'About 5 minutes to see it all.\n\n'
-                  'You can also read it later from 📖 Rules.',
+          m.offerGuideBody,
           style: const TextStyle(height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(ja ? 'あとで' : 'Later'),
+            child: Text(m.offerGuideLater),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(ja ? '読む' : 'Read'),
+            child: Text(m.offerGuideRead),
           ),
         ],
       ),

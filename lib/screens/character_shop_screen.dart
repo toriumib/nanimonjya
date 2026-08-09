@@ -4,6 +4,7 @@ import '../l10n/meta_strings.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
+import '../models/knowledge_shop.dart';
 import '../models/person.dart';
 import '../models/shop_items.dart';
 import '../services/app_analytics.dart';
@@ -249,6 +250,11 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
+                    // 🧠 記憶の殿堂（コインで買うプレミアム読み物）
+                    _sectionHeader(m.shopKnowledgeTitle, m.shopKnowledgeDesc),
+                    for (final a in kKnowledgeArticles)
+                      _knowledgeRow(m, p, a),
+                    const SizedBox(height: 20),
                     // 🎉 ほめボイス（気分が良くなる系）
                     _sectionHeader(m.shopVoicesTitle, m.shopVoicesDesc),
                     for (final v in kPraiseVoices)
@@ -460,6 +466,133 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       ),
     );
     if (go == true && mounted) await _watchAd();
+  }
+
+  /// 🧠 知識記事の行。買ってなければ買うボタン、買ってあれば読むボタン。
+  Widget _knowledgeRow(MetaStrings m, PlayerProfile p, KnowledgeArticle a) {
+    final owned = p.hasArticle(a.id);
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Text(a.emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a.title(ja),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 2),
+                  Text(a.source(ja).split('\n').first,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            owned
+                ? ElevatedButton(
+                    onPressed: () => _readArticle(a),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4ECDC4),
+                    ),
+                    child: Text(m.shopKnowledgeRead(a.title(ja)),
+                        style: const TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w900)),
+                  )
+                : ElevatedButton(
+                    onPressed: p.coins >= a.cost
+                        ? () => _buyKnowledge(a)
+                        : () {
+                            AppAnalytics.shopBlockedByCoins(
+                                category: 'knowledge',
+                                itemId: a.id,
+                                shortBy: a.cost - p.coins);
+                            _offerAdForCoins(m, a.cost);
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8A5AC2),
+                    ),
+                    child: Text(
+                      '🪙${a.cost}',
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _buyKnowledge(KnowledgeArticle a) async {
+    final m = MetaStrings.of(context);
+    final p = PlayerProfile.instance;
+    if (p.coins < a.cost) return;
+    final ok = await p.unlockArticle(a.id, a.cost);
+    if (ok) {
+      AppAnalytics.shopPurchase(
+          category: 'knowledge', itemId: a.id, cost: a.cost, method: 'coins');
+      Sfx.instance.reward();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(m.storeBoughtKnowledge),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _readArticle(KnowledgeArticle a) async {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    Sfx.instance.pop();
+    AppAnalytics.featureOpen('knowledge_${a.id}', from: 'shop');
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(a.title(ja),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(a.body(ja),
+                  style: const TextStyle(fontSize: 13.5, height: 1.65)),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F0F0),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(a.source(ja),
+                    style: const TextStyle(
+                        fontSize: 10.5,
+                        color: Color(0xFF666666),
+                        height: 1.5)),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(ja ? 'とじる' : 'Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _voiceRow(MetaStrings m, PlayerProfile p, PraiseVoice v) {

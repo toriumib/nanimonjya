@@ -895,6 +895,16 @@ This tab is where you get stronger on your own.
   String copiesHint(int total, int recalls) => ja
       ? '全部で$total枚。1人につき$recalls回 名前を答えます（多いほど覚えやすい）'
       : '$total cards total — you answer each person $recalls time(s)';
+  /// おおよその所要時間。totalCards = people × copiesPerPerson
+  String estimatedTime(int people, int copies) {
+    final total = people * copies;
+    final minutes = (total * 4 / 60).ceil();
+    if (ja) {
+      return '⏱ 約$minutes分（$people人×$copies枚 = ${total}枚）';
+    } else {
+      return '⏱ ~$minutes min ($people × $copies = $total cards)';
+    }
+  }
   String get peopleCountTitle =>
       ja ? '👥 出てくるキャラの数' : '👥 How many characters appear';
   String peopleCountHint(int n) => ja
@@ -1588,5 +1598,122 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
             : '''The main game — play with friends on one phone.\n\n1. Cards appear one at a time\n2. Name each newcomer out loud, then tap "We named it!"\n3. When a named character returns, everyone shouts the name\n4. Tap the button (P1, P2...) of whoever said it first\n5. If nobody remembers, tap "Nobody knew..."\n\n🏆 When the cards run out, whoever collected the most wins!''';
     }
   }
+
+  // ── ホーム画面（top_screen）のコンパクト表記 ──
+  String settingsChip(int players, int people, int copies) => ja
+      ? '$players人・$peopleキャラ・$copies枚'
+      : '${players}P · $people chars · $copies cards';
+  String get partyButtonLabel =>
+      ja ? '🎉 みんなで対戦（1台）' : '🎉 Party (1 phone)';
+  String get partyButtonHint => ja
+      ? 'いちばん人気！友だちと名前を呼びあおう'
+      : 'Most popular! Call out names with friends';
+  String get cpuButtonCompact => ja ? '🤖 CPUと対戦' : '🤖 Play vs CPU';
+  String get onlineButtonCompact => ja ? '🌐 オンライン' : '🌐 Online';
+  String get rankButtonCompact => ja ? '🏆 ランク' : '🏆 Ranked';
+  String get trainingButtonCompact =>
+      ja ? '🏋️ ビジネス特訓' : '🏋️ Business Training';
+  String get nextStepTitle => ja ? 'つぎは 顔メモ' : 'Next: Face Notes';
+  String get nextStepBody => ja
+      ? '会社や学校で会った人の顔を似顔絵で作って、\n名前といっしょに覚えられます。'
+      : 'Create a face for people you meet at work or school,\nand memorize them with their names.';
+  String get nextStepButton => ja ? '顔をつくってみる →' : 'Create a face →';
+  String get closeLabel => ja ? 'とじる' : 'Close';
+  String get howManyPlayers => ja ? '何人であそぶ？' : 'How many players?';
+  String get myPageTooltip => ja ? 'マイページ' : 'My Page';
+  String get tutorialLabel => ja ? 'チュートリアル' : 'Tutorial';
+  String get reviewLabel => ja ? 'レビューする' : 'Review';
+
+  // ── なまえコール画面（name_call_screen）のUI文言 ──
+  String get cardGetBanner => ja ? 'カードゲット！' : 'Card Get!';
+  String comboBanner(int n) => ja ? '$n れんぞく！' : '$n combo!';
+  String playerGotBanner(int p) => ja ? 'P$p がゲット！' : 'P$p got it!';
+  String get nobodyRecalled => ja
+      ? 'だれも思い出せなかったので、名前をつけ直します'
+      : 'Nobody recalled — renaming';
+  String get clearVictory => ja ? 'クリア！' : 'Clear!';
+  String cardsLeft(int n) => ja ? 'のこり$n枚' : '$n cards left';
+  String get lastCardLabel => ja ? 'ラスト！' : 'Last!';
+  String bestComboLabel(int n) => ja ? 'さいこう $n れんぞく' : 'Best: $n combo';
+
+  // ── ホームシェル（home_shell）の初回案内 ──
+  String get offerGuideTitle =>
+      ja ? 'ほかの あそびかたも あるよ' : 'There is more to play';
+  String get offerGuideBody => ja
+      ? 'みんなで あそぶ・顔メモ・名刺覚え・ものがたり。\n'
+          '5分くらいで ぜんぶ わかるよ。\n\n'
+          'あとから ホームの 📖ルール でも 読めます。'
+      : 'Play together, Face Notes, Card Memory, Story.\n'
+          'About 5 minutes to see it all.\n\n'
+          'You can also read it later from 📖 Rules.';
+  String get offerGuideLater => ja ? 'あとで' : 'Later';
+  String get offerGuideRead => ja ? '読む' : 'Read';
+  String get playReviewLabel => ja ? '⭐ 評価する' : '⭐ Rate app';
+  String get watchAdGetChar => ja ? '📺 動画でキャラGET' : '📺 Ad → Char';
+  String get faceMemoCardTitle => ja
+      ? '🧑‍🎨 顔メモ — 会った人を忘れない'
+      : '🧑‍🎨 Face Notes — Never forget a face';
+  String get faceMemoCardBody => ja
+      ? '写真か似顔絵で顔をつくって名前を登録。そのまま覚える練習や対戦ができるよ。'
+      : 'Create a face from a photo or avatar, add a name, then study or play with them.';
+  String get faceMemoCardButton => ja ? '顔をつくってみる' : 'Create a face';
+  String get faceMemoStudyButton => ja ? '登録した人をおぼえる' : 'Study your people';
+  String faceMemoCardHint(int count) => ja
+      ? (count > 0 ? '📋 ${count}人登録ずみ → タップで開く' : 'タップして顔を登録しよう')
+      : (count > 0 ? '📋 $count registered → tap to open' : 'Tap to create a face');
+  String get rulebookLabel => ja ? '📖 ルール' : '📖 Rules';
+  String get faceMemoLabel => ja ? '🧑‍🎨 顔メモ' : '🧑‍🎨 Face Notes';
+  String get supportLabel => ja ? '☕ 支援' : '☕ Support';
+  // 🧠 記憶の殿堂（コインで買うプレミアム読み物）
+  String get shopKnowledgeTitle =>
+      ja ? '🧠 記憶の殿堂 — コインで脳科学を読む' : '🧠 Memory Hall — Brain science for coins';
+  String get shopKnowledgeDesc => ja
+      ? '名前記憶・脳科学のとっておきの知識。1記事ずつコインでアンロック。'
+      : 'Premium brain science & memory insights. Unlock one article at a time with coins.';
+  String shopKnowledgeRead(String title) =>
+      ja ? '📖 $title を読む' : '📖 Read $title';
+  String get shopKnowledgeOwned => ja ? '✅ 読める' : '✅ Readable';
+  String get storeBoughtKnowledge => ja
+      ? '🧠 知識を手に入れた！タップで読めるよ'
+      : '🧠 Knowledge unlocked! Tap to read.';
+  String loginCharProgress(int days, int needed, String emoji) => ja
+      ? '$emoji あと${needed - days}日で新キャラ解放'
+      : '$emoji ${needed - days} more days to unlock a new character';
+  String get exitDialogTitle => ja ? 'もう行っちゃうの？' : 'Leaving already?';
+  String get exitDialogBody => ja
+      ? '明日も来ると、連続ログインが続いて\nボーナスが大きくなるよ！🪙'
+      : 'Come back tomorrow to keep your\nlogin streak and bonus coins! 🪙';
+  String get exitDialogStay => ja ? 'もう少しあそぶ' : 'Stay a bit longer';
+  String get exitDialogLeave => ja ? 'とじる' : 'Close';
+  String get ruleSummary => ja
+      ? '💡 ルール：出会った人に名前をつける → もう一度会ったら思い出して答える'
+      : '💡 How to: Name each new face → Recall the name when they return';
+  String get viewFullRules => ja ? '📖 くわしく見る' : '📖 Full rules';
+  String weeklyStatsLine(int learned, int streak) {
+    if (ja) {
+      final parts = <String>[];
+      if (streak > 1) parts.add('🔥 ${streak}日連続');
+      if (learned > 0) parts.add('📅 今週${learned}人おぼえた');
+      if (parts.isEmpty) parts.add('今日も名前を覚えよう！');
+      return parts.join('  ');
+    } else {
+      final parts = <String>[];
+      if (streak > 1) parts.add('🔥 ${streak}-day streak');
+      if (learned > 0) parts.add('📅 $learned learned this week');
+      if (parts.isEmpty) parts.add('Let\'s learn some names today!');
+      return parts.join('  ');
+    }
+  }
+  String characterJoined(String emoji) => ja
+      ? '$emoji が仲間になった！'
+      : '$emoji joined your party!';
+  String get memoryTipHeader => ja ? '🧠 名前を覚えるコツ' : '🧠 Name memory tips';
+  String get otherGamesHeader => ja ? '🎮 ほかのあそびかた' : '🎮 More ways to play';
+  String get otherGamesBody => ja
+      ? 'ビジネス特訓（名刺覚え）・ペアさがし・ものがたり・読みものは 下のタブからどうぞ'
+      : 'Business Training, Pair Hunt, Story, and Reading — tap the tabs below';
+  String get playReviewButton => ja
+      ? '⭐ Google Play で評価する'
+      : '⭐ Rate on Google Play';
 
 }
