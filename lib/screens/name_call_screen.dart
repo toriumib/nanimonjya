@@ -732,8 +732,11 @@ class _NameCallScreenState extends State<NameCallScreen>
     _lastClaimAt = now;
     if (player >= 0) {
       _cardsWon[player] += 1;
-      Sfx.instance.get(); // 🎴 カードが手に入った音
-      HapticFeedback.lightImpact();
+      // 🔊 誰かが取った瞬間は、**1台をみんなで見ている場面**。
+      //    小さい音だと気づかれないので、獲得音にコインを重ねて厚くする。
+      Sfx.instance.get();
+      Sfx.instance.coin();
+      HapticFeedback.mediumImpact();
       // 誰が取ったかを、その人の色で出す
       _showBanner(
         widget.humanPlayers <= 1 ? 'カードゲット！' : 'P${player + 1} がゲット！',
@@ -803,11 +806,25 @@ class _NameCallScreenState extends State<NameCallScreen>
       _phase = _Phase.reveal;
       _victory = true;
     });
+    // 📖 みんなで／オンラインは、このあと専用の結果画面がある。
+    //    そこへ行く前に「名簿公開！おぼえてた？」をもう1枚挟むと、
+    //    結果を見るまでにタップが1回増える。**そのまま結果へ送る。**
+    //    ⚠️ ひとり／CPU はこの画面が結果そのものなので飛ばさない。
+    if (_isOnline || _isLocalMulti) {
+      Future.delayed(const Duration(milliseconds: 1300), () {
+        if (mounted) _goToResult();
+      });
+    }
     // ⚠️ 1.5秒で消す。ここが長いと次の1回に入る前に閉じられる。
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) setState(() => _victory = false);
     });
     _finished = true;
+    // 🎵 **勝利の曲はどのモードでも鳴らす。**
+    //    以前は「ひとり／CPU」の枝の中でしか呼んでおらず、
+    //    みんなで（1台）とオンラインでは、直前の曲が鳴り続けていた。
+    //    Web で「結果になってもシチリアーノのまま」だったのはこれ。
+    Bgm.instance.playResult();
     // 📊 成績レポートに1回ぶんとして保存する（審判方式は個人の記録が取れないので除く）
     if (!_isReferee) {
       await MemoryStats.instance.finishSession(StatMode.nameCall);
@@ -877,9 +894,6 @@ class _NameCallScreenState extends State<NameCallScreen>
           _newAchievements = newly;
         });
       }
-      // ひとりプレイはリザルト画面を経由せずこの画面で終わるため、
-      // 他モードで呼んでいる全画面広告とリザルト曲がここだけ抜けていた。
-      Bgm.instance.playResult();
       InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回
       if (_quizTotal > 0 && _quizCorrect == _quizTotal) {
         maybeAskReview(minGames: 0); // 全問正解の好タイミングでレビュー依頼
@@ -1045,6 +1059,14 @@ class _NameCallScreenState extends State<NameCallScreen>
     );
   }
 
+  /// 🖼 顔を出す大きさ。命名でも想起でも**同じ値**を使う。
+  ///
+  /// ⚠️ 固定値にすると狭い端末で溢れる。画面幅から入る大きさを出す。
+  static double _faceSize(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    return ((w - 48).clamp(140.0, 260.0)) - 24;
+  }
+
   /// プレイヤーごとの色。帯とボタンで同じ色を使う。
   List<Color> _playerColors(int i) => const [
         [Color(0xFF3A7BD5), Color(0xFF62B6FF)],
@@ -1082,7 +1104,11 @@ class _NameCallScreenState extends State<NameCallScreen>
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: const Color(0xFFD8E4F0), width: 2),
             ),
-            child: FaceView(person: _namingPerson, size: 140, radius: 18),
+            // 🖼 **思い出すときと同じ大きさで見せる。**
+            //    命名のときだけ小さいと、同じ顔でも印象が変わって
+            //    「さっきの人だ」と気づきにくい。
+            child: FaceView(
+                person: _namingPerson, size: _faceSize(context), radius: 18),
           ),
           const SizedBox(height: 14),
           TextField(
@@ -1195,7 +1221,8 @@ class _NameCallScreenState extends State<NameCallScreen>
                     offset: Offset(0, 5)),
               ],
             ),
-            child: FaceView(person: _inlinePerson!, size: 150, radius: 18),
+            child: FaceView(
+                person: _inlinePerson!, size: _faceSize(context), radius: 18),
           )
               .animate(key: ValueKey(_inlinePerson))
               .fadeIn(duration: 240.ms)
@@ -1561,12 +1588,7 @@ class _NameCallScreenState extends State<NameCallScreen>
 
   // 審判パネル（オフライン対戦）: 一斉に名前を呼び、早かった人のボタンを押す
   Widget _refereePanel(MetaStrings m) {
-    const colors = [
-      [Color(0xFF5B9BE8), Color(0xFF3A7BD5)],
-      [Color(0xFFF08A5D), Color(0xFFE8663C)],
-      [Color(0xFF56BE82), Color(0xFF2E9E5B)],
-      [Color(0xFFA57AD8), Color(0xFF8A5AC2)],
-    ];
+    // 色は _playerColors に一本化した（帯とボタンで同じ色にするため）
     return Column(
       children: [
         Text(
@@ -1584,29 +1606,32 @@ class _NameCallScreenState extends State<NameCallScreen>
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
         const SizedBox(height: 10),
+        // 🖐 **押しやすさが最優先の場所。**
+        //    1台をみんなで囲んで、早い者勝ちで指が飛んでくる。
+        //    小さいと押し間違える。人数が少ないほど1つを大きく取る。
         Expanded(
           child: GridView.count(
-            crossAxisCount: 2,
-            childAspectRatio: 2.4,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
+            crossAxisCount: widget.humanPlayers <= 2 ? 1 : 2,
+            childAspectRatio: widget.humanPlayers <= 2 ? 4.2 : 2.0,
+            mainAxisSpacing: 14,
+            crossAxisSpacing: 14,
             children: [
               for (var i = 0; i < widget.humanPlayers; i++)
                 JuicyButton(
                   onTap: () => _claim(i),
-                  colors: colors[i],
+                  colors: _playerColors(i),
                   height: double.infinity,
                   child: Text(
                     widget.humanPlayers <= 1
                         ? m.soloGot
                         : m.playerGot('P${i + 1}'),
                     style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
+                        fontFamily: kPopFont,
+                        fontSize: 26,
                         color: Colors.white,
                         shadows: [
                           Shadow(
-                              offset: Offset(0, 1.5), color: Color(0x55000000)),
+                              offset: Offset(0, 2), color: Color(0x66000000)),
                         ]),
                   ),
                 ),
@@ -1703,7 +1728,8 @@ class _NameCallScreenState extends State<NameCallScreen>
         ? (screenW - 48).clamp(140.0, 260.0)
         : ((screenW - 60) / 2).clamp(110.0, 190.0);
     final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
-    // カードの内側の余白（12*2）と、名前の行ぶんを引いた残りが顔に使える
+    // カードの内側の余白（12*2）を引いた残りが顔に使える。
+    // 1枚のときは命名画面（_faceSize）とそろう。
     final faceSize = cardWidth - 24;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),

@@ -186,7 +186,7 @@ class MetaStrings {
   String get nameThisChar =>
       ja ? '✏️ このコに名前をつけよう！' : '✏️ Give this one a name!';
   String get nameHint => ja ? 'へんな名前ほど覚えやすい！' : 'The weirder, the better!';
-  String get decideName => ja ? 'なづける！' : 'Name it!';
+  String get decideName => ja ? 'この名前にする！' : 'Name it!';
   String get whatWasTheName =>
       ja ? '⚡ このコの名前は…！？（CPUより先に！）' : '⚡ What was the name?! (Beat the CPU!)';
   String cpuTook(String name, int n) => ja
@@ -676,11 +676,14 @@ class MetaStrings {
   String get memorizedNext => ja ? '暗記した！つぎへ' : 'Memorized — next!';
   String get namingMemorize => ja ? 'ここまでの名簿を見る' : 'Review names so far';
 
-  String get nameCallAsYouGoTitle => ja ? '📣 なづけコール' : '📣 Name-as-you-go';
+  // ⚠️ 表示名は「なまえコール」で統一する。
+  //    以前ここだけ「なづけコール」で、ホームの導線と画面の見出しが
+  //    食い違っていた。
+  String get nameCallAsYouGoTitle => ja ? '📣 なまえコール' : '📣 Name-as-you-go';
 
   // 出たとき命名: 初登場はその場で命名（無得点）、再登場で想起して獲得
   String get newComer => ja ? '✨ はじめまして！名前をつけてね' : '✨ New face! Give a name';
-  String get namedSoFar => ja ? 'なづけ済み' : 'Named';
+  String get namedSoFar => ja ? '名前をつけた' : 'Named';
   String get asYouGoHint => ja
       ? '💡 はじめて出た子には名前をつけ、もう一度出てきたら思い出して答えよう！'
       : '💡 Name each new face — when it appears again, recall the name!';
@@ -1429,10 +1432,14 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get bgmCredit => ja
       ? '楽曲提供: 魔王魂／クラシック曲はパブリックドメイン\n'
           '運命の演奏: Skidmore College orchestra（Musopen）\n'
-          '威風堂々の演奏: United States Army Band'
+          '威風堂々: United States Army Band\n'
+          '義勇軍進行曲: United States Navy Band\n'
+          '軍艦行進曲: 海上自衛隊東京音楽隊（防衛省）'
       : 'Music: MaouDamashii / classical tracks are public domain\n'
           'Symphony No.5: Skidmore College orchestra (Musopen)\n'
-          'Pomp and Circumstance: United States Army Band';
+          'Pomp and Circumstance: United States Army Band\n'
+          'March of the Volunteers: United States Navy Band\n'
+          'Warship March: JMSDF Tokyo Band (Japan MoD)';
   String get shopEquipped => ja ? '装備中' : 'Equipped';
   String get shopEquip => ja ? '使う' : 'Equip';
   String get shopTry => ja ? '試し聞き' : 'Preview';
