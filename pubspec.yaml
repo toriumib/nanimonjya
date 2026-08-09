@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+155
+version: 2.5.0+156
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -53,6 +53,7 @@ dependencies:
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
   characters: ^1.4.0
+  in_app_purchase: ^3.2.3
 
 
 dev_dependencies:

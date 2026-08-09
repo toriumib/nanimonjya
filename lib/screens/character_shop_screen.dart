@@ -16,6 +16,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/iap_service.dart'; // 💰 課金
 import 'character_deck_screen.dart';
 
 /// 🛍 キャラクターショップ。
@@ -215,8 +216,13 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                         style: const TextStyle(
                             fontSize: 11.5, color: Colors.black54)),
                     const SizedBox(height: 16),
-                    // 💳 広告除去（買い切り）
+                    // 💳 旧課金の広告除去（すでに購入済みの人へのお礼）
                     _removeAdsCard(m, p),
+                    // 💰 課金アイテム（コインパック・広告除去・プレミアム）
+                    if (IapService.instance.available) ...[
+                      const SizedBox(height: 20),
+                      _iapSection(m, p),
+                    ],
                     const SizedBox(height: 20),
                     // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
                     _sectionHeader(m.storeMore, m.storeCharsDesc),
@@ -292,14 +298,205 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   }
 
   /// 💳 広告除去（買い切り）のカード。
-  ///
-  /// Play が Billing Library 8.0.0 以降を必須化したが、対応版の
-  /// in_app_purchase は Dart 3.10 以上（Flutter 3.35+）を要求し、
-  /// 本プロジェクトの Flutter 3.32 では解決できない。
-  /// アップデート自体が承認されなくなるため、課金機能はいったん取り下げた。
-  ///
-  /// **すでに購入した人の権利は残す**: adsRemoved は端末に保存されたままで、
-  /// バナー・全画面広告の抑制もそのまま効く。ここではお礼だけ出す。
+  /// 💰 課金セクション（コインパック・広告除去・プレミアム）。
+  Widget _iapSection(MetaStrings m, PlayerProfile p) {
+    final iap = IapService.instance;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sectionHeader(m.iapCoinsTitle, m.iapCoinsDesc),
+        _iapCoinsRow(m, p),
+        const SizedBox(height: 16),
+        _sectionHeader(m.iapRemoveAdsTitle, m.iapRemoveAdsDesc),
+        _iapRemoveAdsRow(m, p),
+        const SizedBox(height: 16),
+        _sectionHeader(m.iapPremiumTitle, m.iapPremiumDesc),
+        _iapPremiumRow(m, p),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () async {
+            await iap.restore();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(
+                  m.ja ? '購入の復元を試みました' : 'Restore attempted',
+                )),
+              );
+            }
+          },
+          child: Text(m.iapRestore, style: const TextStyle(fontSize: 12)),
+        ),
+      ],
+    );
+  }
+
+  Widget _iapProductCard({
+    required String id,
+    required String label,
+    required String desc,
+    required Color color,
+    required VoidCallback onBuy,
+    bool owned = false,
+    String? badge,
+  }) {
+    final iap = IapService.instance;
+    final price = iap.priceFor(id);
+    final m = MetaStrings.of(context);
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              width: 48, height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(badge ?? '🪙', style: const TextStyle(fontSize: 22)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(label,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w900)),
+                      if (badge != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF3D6A),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(badge,
+                              style: const TextStyle(
+                                  fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(desc,
+                      style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            owned
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green),
+                    ),
+                    child: Text(m.iapOwned,
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w900, color: Colors.green)),
+                  )
+                : ElevatedButton(
+                    onPressed: onBuy,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text(
+                      price.isNotEmpty ? '$price' : m.iapBuy,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _iapCoinsRow(MetaStrings m, PlayerProfile p) {
+    return Column(
+      children: [
+        _iapProductCard(
+          id: IapService.productCoins500,
+          label: '500 🪙',
+          desc: m.ja ? '基本パック' : 'Basic pack',
+          color: const Color(0xFF3A7BD5),
+          onBuy: () => _doIap(IapService.productCoins500),
+        ),
+        const SizedBox(height: 6),
+        _iapProductCard(
+          id: IapService.productCoins1200,
+          label: '1200 🪙',
+          desc: m.ja ? 'お得パック' : 'Value pack',
+          color: const Color(0xFF6E44A8),
+          badge: 'お得',
+          onBuy: () => _doIap(IapService.productCoins1200),
+        ),
+        const SizedBox(height: 6),
+        _iapProductCard(
+          id: IapService.productCoins3000,
+          label: '3000 🪙',
+          desc: m.ja ? '最大お得パック' : 'Best value',
+          color: const Color(0xFFE8A400),
+          badge: m.ja ? 'いちばんお得' : 'BEST',
+          onBuy: () => _doIap(IapService.productCoins3000),
+        ),
+      ],
+    );
+  }
+
+  Widget _iapRemoveAdsRow(MetaStrings m, PlayerProfile p) {
+    return _iapProductCard(
+      id: IapService.productRemoveAds,
+      label: m.iapRemoveAdsTitle,
+      desc: m.iapRemoveAdsDesc,
+      color: const Color(0xFF4ECDC4),
+      badge: '💎',
+      owned: p.adsRemoved,
+      onBuy: p.adsRemoved ? () {} : () => _doIap(IapService.productRemoveAds),
+    );
+  }
+
+  Widget _iapPremiumRow(MetaStrings m, PlayerProfile p) {
+    return _iapProductCard(
+      id: IapService.productPremium,
+      label: m.iapPremiumTitle,
+      desc: m.iapPremiumDesc,
+      color: const Color(0xFFFFB300),
+      badge: '👑',
+      owned: p.adsRemoved, // premium も adsRemoved を立てるので目安
+      onBuy: () => _doIap(IapService.productPremium),
+    );
+  }
+
+  Future<void> _doIap(String id) async {
+    final m = MetaStrings.of(context);
+    AppAnalytics.shopItemTapped(
+      category: 'iap', itemId: id, cost: 0, affordable: true,
+    );
+    final ok = await IapService.instance.buy(id);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+          m.ja ? '購入を開始できませんでした。時間をおいてお試しください。'
+              : 'Could not start purchase. Please try again later.',
+        )),
+      );
+    }
+  }
+
+  /// 💳 広告除去済みのユーザーへのお礼カード（すでに購入済みの人のみ表示）。
   Widget _removeAdsCard(MetaStrings m, PlayerProfile p) {
     if (!p.adsRemoved) return const SizedBox.shrink();
     return Container(

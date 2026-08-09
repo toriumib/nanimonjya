@@ -1676,6 +1676,32 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get storeBoughtKnowledge => ja
       ? '🧠 知識を手に入れた！タップで読めるよ'
       : '🧠 Knowledge unlocked! Tap to read.';
+  // 💰 課金（コインパック・広告除去・プレミアム）
+  String get iapCoinsTitle => ja ? '💰 コインを買う' : '💰 Buy Coins';
+  String get iapCoinsDesc => ja
+      ? 'コインを増やしてキャラや知識をアンロック！'
+      : 'Get more coins to unlock characters and knowledge!';
+  String get iapRemoveAdsTitle => ja ? '💎 広告を消す（買い切り）' : '💎 Remove Ads (one-time)';
+  String get iapRemoveAdsDesc => ja
+      ? 'バナー・全画面・動画広告がすべて消えます。アプリがより快適に。'
+      : 'Banners, interstitials, and video ads are all gone. Clean experience.';
+  String get iapPremiumTitle => ja ? '👑 プレミアム（全部入り）' : '👑 Premium (All-in-One)';
+  String get iapPremiumDesc => ja
+      ? '広告除去＋全キャラ＋全知識記事＋コイン2000枚。いちばんお得！'
+      : 'No ads + All characters + All articles + 2000 coins. Best value!';
+  String get iapBuy => ja ? '買う' : 'Buy';
+  String get iapOwned => ja ? '✅ 購入済み' : '✅ Purchased';
+  String get iapPurchased => ja
+      ? '🎉 購入ありがとうございます！'
+      : '🎉 Thank you for your purchase!';
+  String get iapRestore => ja ? '購入を復元' : 'Restore Purchases';
+  String get iapRestoring => ja ? '復元中…' : 'Restoring…';
+  String get iapNotAvailable => ja
+      ? '課金はスマホアプリでご利用いただけます'
+      : 'Purchases available in the mobile app';
+  String iapBonusLabel(String bonusPercent) => ja
+      ? '（$bonusPercent%お得）'
+      : '($bonusPercent% extra)';
   String loginCharProgress(int days, int needed, String emoji) => ja
       ? '$emoji あと${needed - days}日で新キャラ解放'
       : '$emoji ${needed - days} more days to unlock a new character';
