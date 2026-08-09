@@ -46,7 +46,7 @@ class _StoryScreenState extends State<StoryScreen> {
       final saved = p.getInt(storyLineKey(widget.chapter.id)) ?? 0;
       if (!mounted || saved <= 0) return;
       setState(() => _index = saved.clamp(0, widget.chapter.scenes.length - 1));
-    });
+    }).catchError((_) {});
   }
 
   Future<void> _next() async {

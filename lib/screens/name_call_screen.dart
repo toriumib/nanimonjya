@@ -1439,7 +1439,11 @@ class _NameCallScreenState extends State<NameCallScreen>
 
   Widget _buildRound(MetaStrings m) {
     final resultPhase = _phase == _Phase.roundResult;
-    return Padding(
+    // 🖼 顔は大きいほうがいいが、**下のボタンを押し出してはいけない。**
+    //    幅だけで決めると、審判パネル（P1/P2）が画面の外へ出て
+    //    押せなくなる（実際に一度そうなった）。高さからも上限を出す。
+    return LayoutBuilder(builder: (context, box) {
+      return Padding(
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
@@ -1451,7 +1455,7 @@ class _NameCallScreenState extends State<NameCallScreen>
             children: [
               for (var i = 0; i < _round.length; i++) ...[
                 if (i > 0) const SizedBox(width: 14),
-                _roundCard(i, resultPhase, m),
+                _roundCard(i, resultPhase, m, box.maxHeight),
               ],
             ],
           )
@@ -1473,7 +1477,8 @@ class _NameCallScreenState extends State<NameCallScreen>
             Expanded(child: _quizPanel(m)),
         ],
       ),
-    );
+      );
+    });
   }
 
   /// 📏 山札の進み具合。「のこり◯枚」を必ず数字でも出す。
@@ -1606,37 +1611,59 @@ class _NameCallScreenState extends State<NameCallScreen>
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
         const SizedBox(height: 10),
-        // 🖐 **押しやすさが最優先の場所。**
-        //    1台をみんなで囲んで、早い者勝ちで指が飛んでくる。
-        //    小さいと押し間違える。人数が少ないほど1つを大きく取る。
+        // 🖐 **押しやすさが最優先の場所。** 「P1正解」「P2正解」…を
+        //    **横並び**に置く。1台をみんなで囲んで、早い者勝ちで
+        //    指が四方から飛んでくるので、横に並んでいたほうが
+        //    それぞれの持ち場（画面の自分側）に近く押しやすい。
+        //
+        // ⚠️ **幅を固定値で決めないこと。** 人数が増えるほど1つあたりの
+        //    幅が狭くなるので、文字サイズも合わせて縮める。
+        //    さらに FittedBox で「入らなければ縮める」の保険をかける
+        //    （4人でも文字が枠からはみ出さない）。
         Expanded(
-          child: GridView.count(
-            crossAxisCount: widget.humanPlayers <= 2 ? 1 : 2,
-            childAspectRatio: widget.humanPlayers <= 2 ? 4.2 : 2.0,
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 14,
-            children: [
-              for (var i = 0; i < widget.humanPlayers; i++)
-                JuicyButton(
-                  onTap: () => _claim(i),
-                  colors: _playerColors(i),
-                  height: double.infinity,
-                  child: Text(
-                    widget.humanPlayers <= 1
-                        ? m.soloGot
-                        : m.playerGot('P${i + 1}'),
-                    style: const TextStyle(
-                        fontFamily: kPopFont,
-                        fontSize: 26,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                              offset: Offset(0, 2), color: Color(0x66000000)),
-                        ]),
+          child: LayoutBuilder(builder: (context, box) {
+            final n = widget.humanPlayers;
+            const gap = 10.0;
+            final fontSize = n <= 2
+                ? 24.0
+                : n == 3
+                    ? 19.0
+                    : 16.0;
+            return Row(
+              children: [
+                for (var i = 0; i < n; i++) ...[
+                  if (i > 0) const SizedBox(width: gap),
+                  Expanded(
+                    child: JuicyButton(
+                      onTap: () => _claim(i),
+                      colors: _playerColors(i),
+                      height: double.infinity,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.humanPlayers <= 1
+                                ? m.soloGot
+                                : m.playerGot('P${i + 1}'),
+                            style: TextStyle(
+                                fontFamily: kPopFont,
+                                fontSize: fontSize,
+                                color: Colors.white,
+                                shadows: const [
+                                  Shadow(
+                                      offset: Offset(0, 2),
+                                      color: Color(0x66000000)),
+                                ]),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-            ],
-          ),
+                ],
+              ],
+            );
+          }),
         ),
         // ⚠️ ここを詰めないこと。P1/P2 のすぐ下にあると、連打した指が
         //    そのまま当たって名前が振り直される。物理的に離しておく。
@@ -1708,7 +1735,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     );
   }
 
-  Widget _roundCard(int i, bool resultPhase, MetaStrings m) {
+  Widget _roundCard(int i, bool resultPhase, MetaStrings m, double maxH) {
     final person = _round[i];
     final claimed = i < _roundClaimer.length;
     final answered = i < _roundHits.length;
@@ -1724,9 +1751,15 @@ class _NameCallScreenState extends State<NameCallScreen>
     //    2枚のときは「(幅 - 余白) / 2」が上限。
     final single = _round.length == 1;
     final screenW = MediaQuery.of(context).size.width;
-    final maxCard = single
+    final byWidth = single
         ? (screenW - 48).clamp(140.0, 260.0)
         : ((screenW - 60) / 2).clamp(110.0, 190.0);
+    // ⚠️ **高さからも上限を出す。**
+    //    得点欄・見出し・ボタンにも場所が要る。カードに使ってよいのは
+    //    残り高さの半分くらいまで。ここを見ないと、P1/P2 のボタンが
+    //    画面の外へ押し出されて押せなくなる。
+    final byHeight = (maxH * 0.38).clamp(110.0, 260.0);
+    final maxCard = byWidth < byHeight ? byWidth : byHeight;
     final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
     // カードの内側の余白（12*2）を引いた残りが顔に使える。
     // 1枚のときは命名画面（_faceSize）とそろう。

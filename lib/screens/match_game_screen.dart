@@ -64,7 +64,8 @@ class _CardData {
   _CardData(this.person, this.isFace);
 }
 
-class _MatchGameScreenState extends State<MatchGameScreen> {
+class _MatchGameScreenState extends State<MatchGameScreen>
+    with WidgetsBindingObserver {
   // オンライン時は共有seedで両端末に同一の盤面を作る
   late final Random _rng =
       widget.online != null ? Random(widget.online!.seed) : Random();
@@ -93,6 +94,8 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   int _matches = 0; // ペア成立回数
   int _streak = 0;
   int _bestStreak = 0;
+  bool _finished = false;
+  DateTime? _leftAt;
   final List<int> _decisionTimes = []; // 1枚目→2枚目の判断時間(ms)
   DateTime? _firstFlipAt;
   late final DateTime _startedAt;
@@ -124,6 +127,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startedAt = DateTime.now();
     final ja = PlatformDispatcherLocale.isJa;
     // 🖼 顔はフリー素材の実写にする（SVGのイラスト顔だと、実生活で
@@ -156,7 +160,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           MemoryStats.instance
               .recordMeeting(itemKey: MemoryStats.keyOf(face: p.face, name: p.name));
         }
-      });
+      }).catchError((_) {}); // SharedPreferences の読み取り失敗は握りつぶして続行
     }
     if (_isOnline) {
       // 両端末で共通の締切（サーバー時刻基準）からおぼえタイムを計算
@@ -240,12 +244,50 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: _modeName,
+        reason: 'quit',
+        progressPct: _progressPct,
+        people: _people.length,
+      );
+    }
     _memorizeTimer?.cancel();
     _cpuTimer?.cancel();
     _bannerAd?.dispose();
-    // リザルト画面が先に鳴らし始めていたら止めない
     Bgm.instance.stopGame();
     super.dispose();
+  }
+
+  int get _progressPct {
+    if (_phase == _Phase.memorize) return 0;
+    final matched = _cards.where((c) => c.matched).length;
+    return _cards.isEmpty ? 0 : matched * 100 ~/ _cards.length;
+  }
+
+  int get _currentCard => _cards.where((c) => c.matched || c.revealed).length;
+
+  int get _totalCards => _cards.length;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: _modeName,
+        progressPct: _progressPct,
+        card: _currentCard,
+        totalCards: _totalCards,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: _modeName,
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
   }
 
   // ─────────────── フェーズ遷移 ───────────────
@@ -298,6 +340,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
 
   void _goToResult() {
     if (_phase == _Phase.finished) return;
+    _finished = true;
     _phase = _Phase.finished;
     _cpuTimer?.cancel();
     if (_vsCpu) MemoryStats.instance.finishSession(StatMode.cpu);
@@ -309,6 +352,12 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
       topScore: _vsCpu || _isLocalMulti
           ? _pairsWon.reduce(max)
           : _soloScore(avgMs),
+    );
+    AppAnalytics.gameExit(
+      mode: _modeName,
+      reason: 'completed',
+      progressPct: 100,
+      people: _people.length,
     );
     if (_isOnline) {
       final session = widget.online!;
@@ -577,7 +626,13 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
-    return Scaffold(
+    final canPop = _phase == _Phase.finished;
+    return PopScope(
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmQuit();
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(
           _vsCpu
@@ -615,7 +670,7 @@ class _MatchGameScreenState extends State<MatchGameScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildMemorize(MetaStrings m) {

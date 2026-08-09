@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
@@ -45,8 +46,11 @@ class Bgm {
   Future<void> _chain = Future<void>.value();
 
   Future<void> _serialize(Future<void> Function() action) {
-    final next = _chain.then((_) => action()).catchError((Object e) {
+    final next = _chain.then((_) => action()).catchError((Object e, StackTrace s) {
       debugPrint('BGM op failed: $e');
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(e, s);
+      }
     });
     _chain = next;
     return next;

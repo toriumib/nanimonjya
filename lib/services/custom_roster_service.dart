@@ -140,12 +140,19 @@ class CustomEntry {
   /// 旧データ（v1: 名前だけ / v2: ＋会社・肩書・電話・メール）から読めるように、
   /// **無いキーはすべて既定値**にする。ここを崩すと既存ユーザーの名簿が消える。
   factory CustomEntry.fromJson(Map<String, dynamic> j) {
-    String s(String key) => (j[key] as String?) ?? '';
+    String s(String key) => (j[key] is String) ? j[key] as String : '';
+    // 必須フィールドが欠けているJSONは破損とみなし、空エントリで復旧する
+    final id = j['id'] is String ? j['id'] as String : '';
+    final imagePath = j['imagePath'] is String ? j['imagePath'] as String : '';
+    final name = j['name'] is String ? j['name'] as String : '';
+    if (id.isEmpty || name.isEmpty) {
+      throw FormatException('CustomEntry.fromJson: missing required field');
+    }
     return CustomEntry(
-      id: j['id'] as String,
-      imagePath: j['imagePath'] as String,
+      id: id,
+      imagePath: imagePath,
       avatar: s('avatar'),
-      name: j['name'] as String,
+      name: name,
       company: s('company'),
       title: s('title'),
       phone: s('phone'),
@@ -377,8 +384,9 @@ class CustomRosterService extends ChangeNotifier {
   }
 
   Future<void> remove(String id) async {
-    final entry =
-        _entries.firstWhere((e) => e.id == id, orElse: () => throw 'not found');
+    final idx = _entries.indexWhere((e) => e.id == id);
+    if (idx < 0) return; // すでに削除済みなら何もしない
+    final entry = _entries[idx];
     _deleteQuietly(entry.imagePath);
     _deleteQuietly(entry.cardImagePath);
     _entries = _entries.where((e) => e.id != id).toList();

@@ -55,7 +55,8 @@ class _Card {
   const _Card(this.person, this.isFace);
 }
 
-class _TurnPairsScreenState extends State<TurnPairsScreen> {
+class _TurnPairsScreenState extends State<TurnPairsScreen>
+    with WidgetsBindingObserver {
   late final Random _rng = Random(widget.session.seed);
   late final List<Person> _people;
   late final List<_Card> _cards;
@@ -78,6 +79,8 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
   Timer? _readyTimeout;
   bool _sending = false;
   bool _reported = false;
+  bool _finished = false;
+  DateTime? _leftAt;
 
   /// 盤面は「積んだ手を先頭から再生した結果」。得点も手番も別々に持たない。
   TurnPairsState get _state => replayTurnPairs(
@@ -96,6 +99,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
     // 🌐 盤面が一致しないと成立しないので、購入キャラもデッキ編集も混ぜない
     _people = generatePeople(
@@ -115,7 +119,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
         MemoryStats.instance.recordMeeting(
             itemKey: MemoryStats.keyOf(face: p.face, name: p.name));
       }
-    });
+    }).catchError((_) {});
 
     widget.session.moves.addListener(_onMoves);
     widget.session.opponentResult.addListener(_onOpponentResult);
@@ -132,6 +136,15 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: 'turn_pairs',
+        reason: 'quit',
+        progressPct: _progressPct,
+        people: _people.length,
+      );
+    }
     widget.session.moves.removeListener(_onMoves);
     widget.session.opponentResult.removeListener(_onOpponentResult);
     widget.session.readyCount.removeListener(_onReadyChanged);
@@ -140,6 +153,33 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
     _catchUp?.cancel();
     Bgm.instance.stopGame();
     super.dispose();
+  }
+
+  int get _progressPct {
+    if (_phase == _Phase.memorize) return 0;
+    if (_phase == _Phase.readyWait) return 5;
+    final matched = _state.matched.length;
+    return _cards.isEmpty ? 50 : 5 + matched * 90 ~/ _cards.length;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: 'turn_pairs',
+        progressPct: _progressPct,
+        card: _settled.length,
+        totalCards: _cards.length,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: 'turn_pairs',
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
   }
 
   /// おぼえタイムを進める。
@@ -260,10 +300,17 @@ class _TurnPairsScreenState extends State<TurnPairsScreen> {
   Future<void> _finish() async {
     if (_reported) return;
     _reported = true;
+    _finished = true;
     setState(() => _phase = _Phase.finished);
     await MemoryStats.instance.finishSession(StatMode.cpu);
     final mine = _state.scores[widget.session.myPlayerIndex];
     AppAnalytics.gameEnd(mode: 'turn_pairs', topScore: mine);
+    AppAnalytics.gameExit(
+      mode: 'turn_pairs',
+      reason: 'completed',
+      progressPct: 100,
+      people: _people.length,
+    );
     await PlayerProfile.instance.addWeeklyLearned(mine);
     final elapsedMs = DateTime.now()
         .difference(widget.session.startedAt)

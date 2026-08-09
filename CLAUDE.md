@@ -154,6 +154,41 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - 日本語Windows環境: PowerShellでのファイル読み書きは .NET の UTF8Encoding を明示（Get/Set-ContentはUTF-8を破壊する）
 - フォント: ロゴ=Mochiy Pop One、本文=Zen Maru Gothic（google_fonts経由）
 
+## コード修正からリリースまでの手順
+
+コードを変更したら、必ずこの順で進める。**次のステップに進む前に問題があれば必ず直してからにすること。**
+
+### 1. 静的チェック
+
+```bash
+flutter analyze
+```
+
+### 2. テスト
+
+```bash
+flutter test
+```
+
+### 3. WebビルドとVercelデプロイ
+
+```bash
+flutter build web --release
+cd build/web && npx vercel --prod
+```
+
+`build/web/.vercel/project.json` がビルドで消えた場合は DEPLOY.md の手順で復元する。
+
+### 4. コミット＆プッシュ
+
+```bash
+git add -A && git commit -m "..." && git push
+```
+
+コミットメッセージは日本語・一文で「何を直したか」を書く。
+
+---
+
 ## 残タスク（要ユーザー対応）
 - デプロイ済みの旧Cloud Functions（generateSimilarNames/synthesizeSpeech/startGameOnPlayerCount）の削除: `firebase login` 後に `firebase deploy --only functions --force`（ローカルの `function/index.js` は空にしてある）
 - App Check強制化はFirebaseコンソール作業（v2.1.0が行き渡ってから）

@@ -15,6 +15,7 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/app_open_ad_helper.dart';
+import 'services/interstitial_ad_helper.dart';
 import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
@@ -63,7 +64,8 @@ Future<void> main() async {
     //    あるので、再開したくなったら次の1行を戻すだけでよい。
     //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
     //    ほかの手を整えてから判断する。
-    // AppOpenAdHelper.instance.start();
+    AppOpenAdHelper.instance.start();
+    InterstitialAdHelper.instance.load(); // 起動時にインタースティシャルを先読み
     PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み

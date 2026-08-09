@@ -56,7 +56,8 @@ enum _Step {
   reward,
 }
 
-class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
+class _TutorialPlayScreenState extends State<TutorialPlayScreen>
+    with WidgetsBindingObserver {
   static const int _rewardCoins = 100;
 
   final Random _rng = Random();
@@ -68,10 +69,13 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
   bool _wrongOnce = false;
   int _cardsWon = 0;
   bool _granted = false;
+  bool _finished = false;
+  DateTime? _leftAt;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
     _people = generateImagePeople(2, ja: ja, random: _rng);
     final pool = [...kCommonSurnames]..shuffle(_rng);
@@ -80,6 +84,49 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
       surnameWithHonorific(pool[1], ja),
     ];
     AppAnalytics.gameStart(mode: 'tutorial_play', players: 1);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: 'tutorial_play',
+        reason: 'quit',
+        progressPct: _progressPct,
+        people: 2,
+      );
+    }
+    super.dispose();
+  }
+
+  int get _progressPct => switch (_step) {
+        _Step.intro => 0,
+        _Step.nameFirst => 15,
+        _Step.nameSecond => 30,
+        _Step.recall => 50,
+        _Step.won => 80,
+        _Step.reward => 100,
+      };
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: 'tutorial_play',
+        progressPct: _progressPct,
+        card: _cardsWon,
+        totalCards: 2,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: 'tutorial_play',
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
   }
 
   void _next(_Step s) {
@@ -112,15 +159,29 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen> {
   Future<void> _finish() async {
     if (_granted) return;
     _granted = true;
+    _finished = true;
     await PlayerProfile.instance.grantBonusCoins(_rewardCoins);
     await markTutorialPlayed();
     AppAnalytics.gameEnd(mode: 'tutorial_play', topScore: _cardsWon);
+    AppAnalytics.gameExit(
+      mode: 'tutorial_play',
+      reason: 'completed',
+      progressPct: 100,
+      people: 2,
+    );
     Sfx.instance.reward();
     if (!mounted) return;
     setState(() => _step = _Step.reward);
   }
 
   Future<void> _skip() async {
+    _finished = true;
+    AppAnalytics.gameExit(
+      mode: 'tutorial_play',
+      reason: 'quit',
+      progressPct: _progressPct,
+      people: 2,
+    );
     await markTutorialPlayed();
     if (mounted) Navigator.of(context).pop();
   }

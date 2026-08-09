@@ -94,17 +94,17 @@ class InterstitialAdHelper {
       AppAnalytics.adShown(format: 'interstitial', placement: 'result');
       await ad.show();
     } else {
-      // ⚠️ **あと1プレイで出る**ところまで来てから読む。
-      //    起動時に読んでいたころは 56ロード/7表示だった。
-      //    ゲームを終えずに離脱した人のぶんが全部空振りになっていた。
-      if (plays >= playsPerAd - 1) {
-        load();
-      }
+      // あと1プレイで出る、またはもう出るはずの段階でまだ読めていない
+      load();
       if (plays >= playsPerAd) {
+        // 広告の準備ができていない・クールダウン中 → カウンタを進めず次回に持ち越す。
+        // ここで plays を保存すると、次回起動時にも _ad が null なのに
+        // plays だけが増え続けてしまう（SharedPreferencesは永続だが _ad はメモリ）
         AppAnalytics.adSkipped(
             format: 'interstitial',
             placement: 'result',
             reason: tooSoon ? 'cooldown' : 'not_loaded');
+        plays = playsPerAd; // 進めずにここで止める
       }
     }
     await prefs.setInt(_prefsKey, plays);
