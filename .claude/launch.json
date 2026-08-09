@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "url": "http://localhost:8080",
+      "port": 8080
+    },
+    {
+      "name": "vercel",
+      "url": "https://web-sigma-drab-72.vercel.app"
+    }
+  ]
+}
