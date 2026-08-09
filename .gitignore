@@ -60,3 +60,12 @@ node_modules/
 key.jks
 *.jks
 *.keystore
+
+# エミュレータのスクリーンショット（デバッグ用）
+emu_*.png
+emulator_screenshot.png
+
+# Hyper-V セットアップスクリプト（環境依存）
+enable_hyperv.bat
+enable_hyperv.ps1
+install_hyperv.ps1
