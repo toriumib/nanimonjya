@@ -45,7 +45,7 @@ import sys
 import time
 import urllib.request
 import urllib.error
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -228,7 +228,7 @@ def post_bluesky(handle: str, app_password: str, text: str, image_path: str = No
         "repo": did,
         "record": {
             "text": text,
-            "createdAt": datetime.utcnow().isoformat() + "Z",
+            "createdAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         },
     }
 
