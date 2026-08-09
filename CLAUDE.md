@@ -268,3 +268,56 @@ git push
 - デプロイ済みの旧Cloud Functions（generateSimilarNames/synthesizeSpeech/startGameOnPlayerCount）の削除: `firebase login` 後に `firebase deploy --only functions --force`（ローカルの `function/index.js` は空にしてある）
 - App Check強制化はFirebaseコンソール作業（v2.1.0が行き渡ってから）
 - `firestore.rules` はデプロイ済みのまま変更していない（新オンラインは既存ルールの範囲内で動作する設計）。`funnyNames`/`rankings` のルールは残っているが実害なし
+
+---
+
+## 🔥 カイゼンタスクリスト (2026-08-10 調査)
+
+### 優先度: 今すぐ（バグ修正）
+
+#### BGM
+- [ ] **B1: `_unlockBgmByAd`が`restartGameBgm()`を呼んでいるバグ** — `character_shop_screen.dart:953` を `restartCurrent()` に修正。広告解除後ショップ内でゲームBGMが鳴り出す不整合
+- [ ] **B4: `profile_screen`のdisposeが`stop()`を無条件呼び出し** — タブ間で一瞬無音になる。`stopHome()`に変更
+- [ ] **B2: `selectResultBgm`の'19_12345.mp3'ハードコード除外を定数化**
+- [ ] **B3: `selectResultBgm`に`kResultBgmRandom`の早期リターンを追加**
+- [ ] **B5: `flutter clean`で削除済み音声8ファイル(~19MB)をbuildから除去**
+
+#### Analytics
+- [ ] **A5: `deck_open('unknown')`のfromパラメータを正しく設定** — face_memo/shop/profileのいずれか
+- [ ] **A6: `online_lobby_open`にlobby種別(friend/random/rank/turn)を渡す**
+- [ ] **A1: `deck_toggle`イベントを実装** — character_deck_screenのON/OFF切替時に発火
+- [ ] **A2: `online_lobby_leave`イベントを実装** — online_lobby_screenのdisposeで発火
+- [ ] **A3: `cognitive_info_screen`に`screen()`を追加**
+- [ ] **A4: `rulebook_screen`に`screen()`を追加**
+- [ ] **A7: App Open Adの分析イベント(load/show/skip)を追加**
+- [ ] **A8: Banner Adの分析イベント(load/show)を追加**
+
+#### L10n
+- [ ] **L3: AppLocalizationsJaの5つの未翻訳文字列を修正** — roomNotFound, roomFull, roomInGame, alreadyJoined, errorJoiningRoom に日本語訳を追加
+
+### 優先度: 次（機能強化）
+
+#### ストーリーモード「太陽系外脱出」(SFギャルゲー)
+- [ ] **S1: Noahストーリーの英語翻訳** — `noah_story.dart`(753行)の全ダイアログ・ナレーション・クイズ・エンディングを英訳
+- [ ] **S2: ストーリー画面UIの多言語化** — `noah_story_screen.dart`のハードコード日本語(設定/エンディング表示等)をMetaStrings化
+- [ ] **S3: 従来ストーリー(Nana&Hana)の英語翻訳** — `story.dart`の全チャプター・シーンを英訳
+- [ ] **S4: 従来ストーリー画面UIの多言語化** — `story_screen.dart`のハードコード日本語をMetaStrings化
+- [ ] **S5: 新エピソード追加** — 太陽系外脱出テーマの新チャプター
+
+#### 多国籍対応
+- [ ] **L4: MetaStringsをbool jaから言語コードベースにリファクタ** — 3言語目以降の追加を可能にする
+- [ ] **L5: top_screenのハードコード日本語をMetaStrings化** (`'もっと読む →'`等)
+- [ ] **L6: 新言語追加** — 優先度の高い言語（中国語・韓国語・スペイン語など）のarb追加
+
+#### 顔メモ多国籍対応
+- [ ] **F1: custom_roster_screenのフィールドラベル多言語化**
+- [ ] **F2: 名前フィールドの多言語入力対応**（英語名・中国語名などの入力バリデーション）
+- [ ] **F3: TTS音声の多言語対応確認** — `speech.dart`がja/en以外の言語に対応できるか検証
+
+### 優先度: 低（長期改善）
+
+#### Analytics
+- [ ] **A9: FirebaseAnalyticsObserverの整理** — 全画面が手動screen()を呼ぶならObserverは不要
+
+#### L10n
+- [ ] **arbとMetaStringsの統合を検討** — 現在2系統ある翻訳システムを1つに統合

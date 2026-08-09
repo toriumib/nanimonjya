@@ -429,9 +429,13 @@ const List<NoahLine> kNoahPrologue = [
       '水素を使い切った星は膨らみ、空の三分の一を占めていた。'
       '水星と金星はもう無い。'),
   NoahLine(NoahVoice.narration,
-      '地球はかろうじて呑まれずにいるが、地表は鉛が溶ける温度になった。'),
+      '地球はかろうじて呑まれずにいるが、地表は鉛が溶ける温度になった。'
+      '海だった場所は、燐光を放つ溶岩の平原に変わっている。'),
   NoahLine(NoahVoice.narration,
-      '人類は、横浜・戸塚区大池町の地下三キロに潜っている。'),
+      '人類は、横浜・戸塚区大池町の地下三キロに潜っている。'
+      '最後の七十二万人が、かつてゴルフ場だった地面の下で肩を寄せ合っていた。'),
+  NoahLine(NoahVoice.narration,
+      'きみもその一人だ。地上の光も、風も、もう知らない。'),
   NoahLine(NoahVoice.director, 'よく集まってくれた。', who: '所長'),
   NoahLine(NoahVoice.director,
       'ここは昔、ゴルフ場だった。十八ホール、七十万平方メートル。'
@@ -446,6 +450,9 @@ const List<NoahLine> kNoahPrologue = [
   NoahLine(NoahVoice.director,
       '光の十五パーセントで、三百三十年。眠りながら渡る。', who: '所長'),
   NoahLine(NoahVoice.narration, 'ざわめき。誰かが息を吸う音。'),
+  NoahLine(NoahVoice.narration,
+      '三百三十年。江戸開府から、きみたちの生まれるずっと前まで。'
+      'そのあいだ、船はただの金属の塊になって星のあいだを滑る。'),
   NoahLine(NoahVoice.director, 'ただし、ひとつ問題がある。', who: '所長'),
   NoahLine(NoahVoice.director,
       '長期の冷凍睡眠から覚めると、記憶が欠ける。'
@@ -454,9 +461,46 @@ const List<NoahLine> kNoahPrologue = [
   NoahLine(NoahVoice.director, '人の、名前だ。', who: '所長'),
   NoahLine(NoahVoice.narration,
       '船には五百人が乗る。目覚めたとき、隣が誰か分からない五百人。'),
+  NoahLine(NoahVoice.narration,
+      '「誰か」のままだと、ひとは集団になれない。'
+      '名前を失った五百人は、五百の孤独だ。'),
   NoahLine(NoahVoice.director,
       'だから君たちの仕事は、研究だけじゃない。', who: '所長'),
   NoahLine(NoahVoice.director, '覚えることだ。名前を。全員ぶん。', who: '所長'),
+  NoahLine(NoahVoice.narration, '誰かが、小さく息を吐いた。'),
+  NoahLine(NoahVoice.narration, '五百の名前——それは、五百の命の輪郭だ。'),
+];
+
+/// 🥶 無視されるシーン。名前を覚える意味を、体で知る。
+///
+/// 五百人のオリエンテーション。全員が名札をつけている。
+/// 主人公は話しかけようとするが、誰にも気づかれない。
+/// ——名前を呼ばれないと、人はいないのと同じなのだと、そのとき思い知る。
+/// そのあと、ただ一人だけが振り返ってくれる。
+const List<NoahLine> kNoahColdShoulder = [
+  NoahLine(NoahVoice.narration, 'オリエンテーション。五百人が、旧テニスコートの広間に集まっている。'),
+  NoahLine(NoahVoice.narration,
+      '全員が名札をつけていた。ここでは名前が、その人のすべてだ。'),
+  NoahLine(NoahVoice.player, '（……隣の人に、話しかけてみよう）'),
+  NoahLine(NoahVoice.player, 'あの、どの研究班ですか'),
+  NoahLine(NoahVoice.narration, '返事はなかった。相手は、だれか別の人と話している。'),
+  NoahLine(NoahVoice.player, '……すみません、'),
+  NoahLine(NoahVoice.narration,
+      '今度は、声が届かなかった。広間のざわめきが、ひとりの言葉を埋める。'),
+  NoahLine(NoahVoice.narration,
+      '五百人のなかで、誰にも気づかれない。'
+      '背中を誰かが押す。誰も、こちらを向かない。'),
+  NoahLine(NoahVoice.narration,
+      '——名前を呼ばれないと、人は消えたも同然なのだと、そのとき知った。'),
+  NoahLine(NoahVoice.narration,
+      'だから、なのか。全員の名前を覚えなければいけない理由が、'
+      'ようやくからだの奥に落ちた。'),
+  NoahLine(NoahVoice.narration, '忘れられることは、無視されることだ。'),
+  NoahLine(NoahVoice.narration, 'そのあと。一人が、振り返った。'),
+  NoahLine(NoahVoice.chara, '……さっき、話しかけてた？ ごめん、気づかなくて'),
+  NoahLine(NoahVoice.narration,
+      '——そのひとことが、妙に胸の奥に残った。'
+      '見つけてもらえた、というあたたかさが。'),
 ];
 
 /// 名刺交換の前口上。
@@ -477,27 +521,40 @@ const List<NoahLine> kNoahBeforeSleep = [
   NoahLine(NoahVoice.narration,
       'テニスコートの壁に、誰かが爪で「また明日」と刻んでいた。'),
   NoahLine(NoahVoice.narration, 'その下に、また誰かが同じ言葉を刻む。'),
-  NoahLine(NoahVoice.narration, '順番に、全員が。'),
+  NoahLine(NoahVoice.narration, '順番に、全員が。五百の「また明日」が壁を埋めた。'),
+  NoahLine(NoahVoice.narration,
+      '地球に、明日は来ない。それでも、誰かが刻んだ言葉を、'
+      '誰かがなぞる。その連なりが、集団というものだ。'),
   NoahLine(NoahVoice.player, '……三百三十年後の「また明日」か'),
   NoahLine(NoahVoice.narration,
       '十八番グリーンが割れ、箱舟「ノア」がせり上がる。'),
   NoahLine(NoahVoice.narration,
-      '大池の水が霧になって噴き上がり、蒸気の幕が音を吸った。'),
+      '大池の水が霧になって噴き上がり、蒸気の幕が音を吸った。'
+      'ゴルフ場は、発射の熱でいちど玻璃になった。'
+      'それもすぐ、宇宙の黒に溶ける。'),
   NoahLine(NoahVoice.director,
       '本日のホール、パー4。グリーンまでの距離——四十九光年。', who: '所長'),
-  NoahLine(NoahVoice.narration, 'ポッドの蓋が閉じる。'),
+  NoahLine(NoahVoice.narration, 'ポッドの蓋が閉じる。冷たい眠りが、きみを包む。'),
+  NoahLine(NoahVoice.narration, '次に目を開けたとき——覚えていられるだろうか。'),
 ];
 
 /// 目覚め。ここから記憶テストが始まる。
 const List<NoahLine> kNoahAwake = [
   NoahLine(NoahVoice.narration, '——三百三十年。'),
-  NoahLine(NoahVoice.narration, '蓋が開く。冷たい空気。'),
-  NoahLine(NoahVoice.narration, '天井が見える。自分の名前は、言える。'),
+  NoahLine(NoahVoice.narration,
+      '蓋が開く。冷たい空気。細胞が、ひとつずつ起きていく。'),
+  NoahLine(NoahVoice.narration,
+      '天井が見える。日付が表示されている。自分の名前は、言える。'),
+  NoahLine(NoahVoice.narration,
+      '「また明日」と刻んだ壁は、どこにもない。'),
   NoahLine(NoahVoice.player, '（……じゃあ、あの人は？）'),
   NoahLine(NoahVoice.narration, '隣のポッドから、誰かが起き上がる。'),
+  NoahLine(NoahVoice.narration,
+      '顔は、見覚えがある。でも——名前が、すぐに出てこない。'),
 ];
 
 /// 減速危機。全員が同時に動く場面。
+/// 通信が錯綜するなか、主人公の声は一度、誰にも届かない。
 const List<NoahLine> kNoahClimax = [
   NoahLine(NoahVoice.narration, '減速フェーズ、開始。'),
   NoahLine(NoahVoice.narration,
@@ -506,6 +563,16 @@ const List<NoahLine> kNoahClimax = [
   NoahLine(NoahVoice.narration, 'セイル展開——七十三パーセントで停止。'),
   NoahLine(NoahVoice.chara, '窓は四分。四分で開く'),
   NoahLine(NoahVoice.chara, '融合炉の出力、ぜんぶセイルに回す'),
+  NoahLine(NoahVoice.player, '第三区画の温度、上がりすぎてます！'),
+  NoahLine(NoahVoice.narration, '誰も、返事をしない。'),
+  NoahLine(NoahVoice.narration, '——ちがう。聞こえていないのは、こちらの声だけじゃない。'),
+  NoahLine(NoahVoice.narration, '全員が全員に叫んでいる。通信が、悲鳴の束になっている。'),
+  NoahLine(NoahVoice.narration, 'また、五百人のなかで、ひとりだ。'),
+  NoahLine(NoahVoice.player, '……第三区画、冷媒を回してください！'),
+  NoahLine(NoahVoice.chara, '聞こえた。第三、冷媒まわす'),
+  NoahLine(NoahVoice.narration, 'その一声で、肩の力が抜けた。'),
+  NoahLine(NoahVoice.narration, '——オリエンテーションのときと、同じだ。'),
+  NoahLine(NoahVoice.narration, 'ひとりが気づいてくれれば、それで、また立てる。'),
   NoahLine(NoahVoice.chara, 'ロボット群を船外へ。全員、帰す'),
   NoahLine(NoahVoice.chara, '生態系を最小消費に。命は、守る'),
   NoahLine(NoahVoice.chara, '右舷、三度だけ傾けろ。熱がもたない'),

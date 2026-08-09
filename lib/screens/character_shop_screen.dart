@@ -950,7 +950,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final playedNow = await _rewardAd.showOrQueue(onReward: () async {
       await p.unlockBgm(b.asset, 0); // 広告視聴分なのでコインは引かない
       await p.selectBgm(b.asset);
-      Bgm.instance.restartGameBgm();
+      Bgm.instance.restartCurrent();
       Sfx.instance.reward();
       if (mounted) {
         ScaffoldMessenger.of(context)

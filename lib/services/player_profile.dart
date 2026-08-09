@@ -922,16 +922,16 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// リザルト画面の曲を選択（シャイニングスター or アンロック済みクラシック曲）
-  /// 🏠 ホーム/試合前の曲を選ぶ。既定曲は未購入でも選べる。
+  /// 🏠 ホーム/試合前の曲を選ぶ。既定曲・おまかせは未購入でも選べる。
   Future<void> selectHomeBgm(String asset) async {
-    if (asset != kHomeBgmAsset && !unlockedBgm.contains(asset)) return;
+    if (asset != kHomeBgmAsset && asset != kHomeBgmRandom && !unlockedBgm.contains(asset)) return;
     selectedHomeBgm = asset;
     await _persist();
     notifyListeners();
   }
 
   Future<void> selectResultBgm(String asset) async {
-    if (asset != '19_12345.mp3' && !unlockedBgm.contains(asset)) return;
+    if (asset != kDefaultResultBgmAsset && !unlockedBgm.contains(asset)) return;
     selectedResultBgm = asset;
     await _persist();
     notifyListeners();

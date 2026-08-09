@@ -31,6 +31,7 @@ enum _Phase {
   setup, // 性別・恋愛対象を選ぶ
   prologue, // 序章
   whyNames, // なぜ名前なのか（物語の主題）
+  coldShoulder, // 🥶 無視されるシーン
   beforeMeeting, // 名刺交換の前口上
   meet, // 名刺をもらう
   beforeSleep, // 出発前夜
@@ -82,6 +83,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   List<NoahLine> get _script => switch (_phase) {
         _Phase.prologue => kNoahPrologue,
         _Phase.whyNames => kNoahWhyNames,
+        _Phase.coldShoulder => kNoahColdShoulder,
         _Phase.beforeMeeting => kNoahBeforeMeeting,
         _Phase.beforeSleep => kNoahBeforeSleep,
         _Phase.awake => kNoahAwake,
@@ -126,6 +128,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.prologue:
           _phase = _Phase.whyNames;
         case _Phase.whyNames:
+          _phase = _Phase.coldShoulder;
+        case _Phase.coldShoulder:
           _phase = _Phase.beforeMeeting;
         case _Phase.beforeMeeting:
           _phase = _Phase.meet;

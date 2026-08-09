@@ -57,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     // 試聴で鳴らした曲をマイページから出るときに止める
-    Bgm.instance.stop();
+    Bgm.instance.stopHome();
     _rewardAd.dispose();
     super.dispose();
   }
