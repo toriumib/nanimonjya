@@ -214,9 +214,61 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
 }
 
 /// 買った記事の本文。
-class _ArticleReaderScreen extends StatelessWidget {
+/// 📖 記事1本を読む画面。
+///
+/// 📊 **どこまで読まれたかを測る。**
+///    2026-08 の時点で、プレミアム記事にはイベントが1つも無く、
+///    「読まれていない」のか「測っていない」のか区別できなかった。
+///    無料の読み物（memory_tips）はページ送りなので `read_page` に
+///    ページ番号を載せているが、こちらは1本のスクロールなので
+///    **読み進めた割合**を4段階で撃つ。
+class _ArticleReaderScreen extends StatefulWidget {
   final PremiumArticle article;
   const _ArticleReaderScreen({required this.article});
+
+  @override
+  State<_ArticleReaderScreen> createState() => _ArticleReaderScreenState();
+}
+
+class _ArticleReaderScreenState extends State<_ArticleReaderScreen> {
+  final _scroll = ScrollController();
+
+  /// もう撃った区切り（25/50/75/100）。同じところで何度も撃たない。
+  final _sent = <int>{};
+
+  PremiumArticle get article => widget.article;
+
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.readOpen(article.id);
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final max = _scroll.position.maxScrollExtent;
+    // 画面に収まりきる短い記事は、開いた時点で読み切ったとみなす
+    final pct = max <= 0 ? 100 : (_scroll.offset / max * 100).round();
+    for (final mark in const [25, 50, 75, 100]) {
+      if (pct >= mark && _sent.add(mark)) {
+        if (mark == 100) {
+          AppAnalytics.readFinish(article.id);
+        } else {
+          AppAnalytics.readPage(articleId: article.id, page: mark);
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // 短くてスクロールが要らない記事は、リスナーが一度も動かない。
+    // 閉じるときに一度だけ判定する。
+    _onScroll();
+    _scroll.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +281,7 @@ class _ArticleReaderScreen extends StatelessWidget {
           decoration:
               BoxDecoration(gradient: LinearGradient(colors: article.gradient)),
           child: ListView(
+            controller: _scroll,
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
             children: [
               Text(article.title(m.ja),
