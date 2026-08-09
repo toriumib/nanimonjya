@@ -120,6 +120,14 @@ class _NameCallScreenState extends State<NameCallScreen>
   ///    2026-08 は 229試合のうち102件が行方不明になっていた。
   DateTime? _leftAt;
 
+  /// 🖐 審判ボタンの連打よけ。直前のタップ時刻。
+  ///
+  /// ⚠️ **連打すると名前が付け直されていた。**
+  ///    P1/P2 を素早く押したあと、指が「だれも思い出せなかった」に
+  ///    当たると、その場で名前が振り直される（出たとき命名のルール）。
+  ///    覚えたばかりの名前が勝手に変わるので、いちばん困る誤操作だった。
+  DateTime? _lastClaimAt;
+
   /// 🔥 連続正解の数。まちがえた／時間切れで0に戻る。
   int _combo = 0;
 
@@ -696,6 +704,12 @@ class _NameCallScreenState extends State<NameCallScreen>
   // ── 呼んで判定: 早かったプレイヤーをタップ、-1=だれも思い出せなかった ──
   void _claim(int player) {
     if (_phase != _Phase.round) return;
+    // 🖐 連打よけ。400ms は「意図した2回目」には十分で、
+    //    指が滑って続けて当たるぶんは弾ける長さ。
+    final now = DateTime.now();
+    final last = _lastClaimAt;
+    if (last != null && now.difference(last).inMilliseconds < 400) return;
+    _lastClaimAt = now;
     if (player >= 0) {
       _cardsWon[player] += 1;
       Sfx.instance.get(); // 🎴 カードが手に入った音
@@ -706,6 +720,13 @@ class _NameCallScreenState extends State<NameCallScreen>
       // そのカードに**あらためて新しい名前をつけて**ゲームを続ける。
       // （出たとき命名のときだけ。まとめて命名は名簿が決まっているので対象外）
       if (widget.nameAsYouGo && _round.isNotEmpty) {
+        // 黙って命名画面へ飛ぶと「なぜ戻された？」になる。理由を出す。
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 1600),
+            content: Text('だれも思い出せなかったので、名前をつけ直します'),
+          ));
         final card = _round[_answering];
         _game.roster.remove(card); // 古い名前を捨てて付け直す
         // 付け直した名前をあとで試せるよう、山札に戻す
@@ -1522,7 +1543,9 @@ class _NameCallScreenState extends State<NameCallScreen>
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        // ⚠️ ここを詰めないこと。P1/P2 のすぐ下にあると、連打した指が
+        //    そのまま当たって名前が振り直される。物理的に離しておく。
+        const SizedBox(height: 28),
         JuicyButton(
           onTap: () => _claim(-1),
           colors: const [Color(0xFFF2F4F7), Color(0xFFDCE3EC)],
@@ -1598,10 +1621,20 @@ class _NameCallScreenState extends State<NameCallScreen>
     final active = !resultPhase && i == _answering;
     final ok = _isReferee ? (claimed && _roundClaimer[i] >= 0) : (answered && _roundHits[i]);
     final done = _isReferee ? claimed : answered;
-    // 1枚だけのラウンドは大きく表示（見やすさ・タップしやすさ向上）
+    // 🖼 顔は大きいほうがいい。**顔を覚えるゲームなので、顔が主役。**
+    //    以前は2枚並ぶと92pxしかなく、誰なのか見分けづらかった。
+    //
+    // ⚠️ 固定値で大きくすると、狭い端末で横に溢れる。
+    //    画面幅から入る大きさを出して、そこで頭打ちにする。
+    //    2枚のときは「(幅 - 余白) / 2」が上限。
     final single = _round.length == 1;
-    final faceSize = single ? 148.0 : 92.0;
-    final cardWidth = single ? 190.0 : 128.0;
+    final screenW = MediaQuery.of(context).size.width;
+    final maxCard = single
+        ? (screenW - 48).clamp(140.0, 260.0)
+        : ((screenW - 60) / 2).clamp(110.0, 190.0);
+    final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
+    // カードの内側の余白（12*2）と、名前の行ぶんを引いた残りが顔に使える
+    final faceSize = cardWidth - 24;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       width: cardWidth,
