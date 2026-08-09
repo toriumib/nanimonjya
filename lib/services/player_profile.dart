@@ -38,13 +38,17 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> stampDates = {};
   static const int _maxStamps = 90;
   Set<String> unlockedAchievements = {};
-  Set<String> unlockedBgm = {'op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3'}; // デフォルトBGMは最初から解放
-  String selectedBgm = '08_burning_heart.mp3';
+  /// ⚠️ **既定値は必ず [kFreeBgmAssets] から取ること。**
+  ///    2026-08 に曲を8つ消したとき、ここが削除対象のファイル名の
+  ///    ままだったため、そのまま出していれば全員が無音になっていた。
+  Set<String> unlockedBgm = {...kFreeBgmAssets};
+  String selectedBgm = kDefaultGameBgmAsset;
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
-  String selectedResultBgm = '19_12345.mp3'; // リザルト画面の曲
+  String selectedResultBgm = kDefaultResultBgmAsset; // リザルト画面の曲
   /// 🏠 ホーム/試合前の曲。3場面（ホーム・試合中・リザルト）をそれぞれ選べる。
-  String selectedHomeBgm = kHomeBgmAsset;
+  /// 既定は [kHomeBgmRandom]（シチリアーノか運命をランダム）。
+  String selectedHomeBgm = kHomeBgmRandom;
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
   String nickname = ''; // ランキング表示名
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
@@ -162,14 +166,16 @@ class PlayerProfile extends ChangeNotifier {
     bestSessionStreak = p.getInt('bestSessionStreak') ?? 0;
     lastLoginDate = p.getString('lastLoginDate') ?? '';
     unlockedAchievements = (p.getStringList('achievements') ?? []).toSet();
-    unlockedBgm =
-        (p.getStringList('unlockedBgm') ?? ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']).toSet();
-    // 各場面の既定曲は最初から鳴らせるようにしておく
-    unlockedBgm.addAll(const ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']);
-    selectedBgm = p.getString('selectedBgm') ?? '08_burning_heart.mp3';
-    if (!unlockedBgm.contains(selectedBgm)) {
-      selectedBgm = '08_burning_heart.mp3';
-    }
+    // 🎵 **消した曲を選んだままの人を救う。**（migrateBgmSelection のコメント参照）
+    //    ホーム・リザルトの設定はこの下でも読むので、まとめてここで直す。
+    final bgm = migrateBgmSelection(
+      savedUnlocked: p.getStringList('unlockedBgm') ?? const [],
+      savedGame: p.getString('selectedBgm'),
+      savedResult: p.getString('selectedResultBgm'),
+      savedHome: p.getString('selectedHomeBgm'),
+    );
+    unlockedBgm = bgm.unlocked;
+    selectedBgm = bgm.game;
     unlockedThemes = (p.getStringList('unlockedThemes') ?? ['sunny']).toSet();
     unlockedThemes.add('sunny');
     selectedTheme = p.getString('selectedTheme') ?? 'sunny';
@@ -231,17 +237,8 @@ class PlayerProfile extends ChangeNotifier {
     missionOnline = p.getInt('missionOnline') ?? 0;
     missionClaimed = (p.getStringList('missionClaimed') ?? []).toSet();
     _refreshMissions();
-    selectedHomeBgm = p.getString('selectedHomeBgm') ?? kHomeBgmAsset;
-    if (selectedHomeBgm != kHomeBgmAsset &&
-        !unlockedBgm.contains(selectedHomeBgm)) {
-      selectedHomeBgm = kHomeBgmAsset;
-    }
-    selectedResultBgm = p.getString('selectedResultBgm') ?? '19_12345.mp3';
-    // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
-    if (selectedResultBgm != '19_12345.mp3' &&
-        !unlockedBgm.contains(selectedResultBgm)) {
-      selectedResultBgm = '19_12345.mp3';
-    }
+    selectedHomeBgm = bgm.home;
+    selectedResultBgm = bgm.result;
     _loaded = true;
     _refreshDailyState();
   }

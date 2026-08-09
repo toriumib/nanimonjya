@@ -1422,9 +1422,15 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? 'ゲーム中に流れる曲。コインで買うか、動画1本でも解放できます。'
       : 'In-game music. Buy with coins, or unlock with one video.';
   String get unlockByAd => ja ? '🎬 動画で解放' : '🎬 Free via video';
+  // 🎵 ⚠️ 曲を足したら、ここも足すこと。
+  //    「運命」の演奏は Skidmore College orchestra（Musopen 経由）で、
+  //    録音そのものがパブリックドメインとして公開されている。
+  //    表示は義務ではないが、提供元の希望なので出す。
   String get bgmCredit => ja
       ? '楽曲提供: 魔王魂／クラシック曲はパブリックドメイン'
-      : 'Music: MaouDamashii / classical tracks are public domain';
+          '（運命の演奏: Skidmore College orchestra via Musopen）'
+      : 'Music: MaouDamashii / classical tracks are public domain '
+          '(Symphony No.5 performed by Skidmore College orchestra via Musopen)';
   String get shopEquipped => ja ? '装備中' : 'Equipped';
   String get shopEquip => ja ? '使う' : 'Equip';
   String get shopTry => ja ? '試し聞き' : 'Preview';

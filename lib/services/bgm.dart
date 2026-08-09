@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
@@ -99,9 +101,36 @@ class Bgm {
   Future<void> playHome() {
     _mode = _BgmMode.home;
     // 🏠 ホームの曲はマイページで選べる（3場面それぞれ設定できる）
-    return _play(assetKey(PlayerProfile.instance.selectedHomeBgm),
-        volume: 0.22);
+    return _play(assetKey(homeAsset()), volume: 0.22);
   }
+
+  /// いまホームで鳴らすべき曲。
+  ///
+  /// 🎲 設定が [kHomeBgmRandom] のときは [kHomeRandomPool] から引く。
+  /// 毎回おなじ曲だと起動のたびに同じ体験になるので、既定はこちら。
+  ///
+  /// ⚠️ **同じ曲を引き直したときに鳴らし直さない。**
+  ///    [_play] は同じアセットなら何もしないので、タブを行き来しても
+  ///    曲が頭から鳴り直すことはない。逆に、別の曲を引くと切り替わる。
+  ///    なので**曲を選ぶのは「ホームBGMが止まっているとき」だけ**にする。
+  ///    そうしないとタブを押すたびに曲がガチャガチャ変わる。
+  String homeAsset() {
+    final chosen = PlayerProfile.instance.selectedHomeBgm;
+    if (chosen != kHomeBgmRandom) return chosen;
+    // すでにプールの曲が鳴っているなら、それを続ける
+    final playing = _current;
+    if (playing != null) {
+      for (final a in kHomeRandomPool) {
+        if (playing == assetKey(a)) return a;
+      }
+    }
+    _homePick ??= kHomeRandomPool[_rng.nextInt(kHomeRandomPool.length)];
+    return _homePick!;
+  }
+
+  /// この起動で引いたホームの曲。アプリを開き直すと引き直す。
+  String? _homePick;
+  final Random _rng = Random();
 
   /// ホームBGMだけを止める（ゲーム画面が先に鳴らし始めていたら何もしない）。
   Future<void> stopHome() async {

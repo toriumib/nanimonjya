@@ -1429,11 +1429,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _homeMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
     final options = <MapEntry<String, String>>[
-      // 既定曲は買っていなくても常に選べる
-      MapEntry(kHomeBgmAsset, ja ? 'シチリアーノ（既定）' : 'Siciliano (default)'),
+      // 🎲 既定。起動のたびにシチリアーノか運命を引く
+      MapEntry(kHomeBgmRandom,
+          ja ? 'おまかせ（シチリアーノ / 運命）' : 'Shuffle (Siciliano / Fate)'),
       ...kBgmCatalog
-          .where((b) =>
-              b.asset != kHomeBgmAsset && p.unlockedBgm.contains(b.asset))
+          .where((b) => p.unlockedBgm.contains(b.asset))
           .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
     ];
     return _sectionCard(
@@ -1476,13 +1476,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _resultMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
-    // 選択肢: シャイニングスター（常時）＋BGMショップでアンロック済みの曲
-    final options = <MapEntry<String, String>>[
-      MapEntry('shining_star.mp3', ja ? 'シャイニングスター' : 'Shining Star'),
-      ...kBgmCatalog
-          .where((b) => p.unlockedBgm.contains(b.asset))
-          .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
-    ];
+    // ⚠️ シャイニングスターは kBgmCatalog に入れたので、
+    //    ここで足すと二重に並ぶ。アンロック済みの曲だけを出す。
+    final options = kBgmCatalog
+        .where((b) => p.unlockedBgm.contains(b.asset))
+        .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn))
+        .toList();
     return _sectionCard(
       title: '🎺 ${m.resultMusic}',
       child: Column(
