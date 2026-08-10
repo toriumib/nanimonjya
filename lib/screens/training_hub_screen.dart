@@ -10,6 +10,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
+import '../services/custom_roster_service.dart';
 import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
 import 'line_match_screen.dart';
@@ -361,6 +362,9 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                     );
                   },
                 ),
+                // 💼 WhoWas — ビジネスパーソン向け顔記憶。名刺→想起。
+                _whoWasCard(m),
+                const SizedBox(height: 16),
                 _card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -712,6 +716,211 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 💼 WhoWas — ビジネス向け: 名刺を撮って顔と名前を覚える。
+  /// 「会議前に5分でおさらい」を目指す導線。
+  Widget _whoWasCard(MetaStrings m) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('💼',
+                  style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(m.ja ? 'WhoWas — 名刺を覚える' : 'WhoWas — Remember faces',
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white)),
+                    Text(m.ja
+                        ? '「この人だれだっけ？」にもう言わせない'
+                        : 'Never say "who was that?" again',
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            height: 1.3,
+                            color: Color(0xFFA0B4D0))),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFC02E),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(m.ja ? 'NEW' : 'NEW',
+                    style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1A1A2E))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // 3ステップの説明
+          Row(
+            children: [
+              _stepBadge('1', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '写真を撮るか名刺を読み取る' : 'Scan a card or take a photo',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _stepBadge('2', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '5分のクイズで顔と名前を覚える' : '5-min quiz to lock in the face & name',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _stepBadge('3', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '会議の前におさらい通知が届く' : 'Get a refresher before your meeting',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Sfx.instance.fanfare();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const CustomRosterScreen(startAvatar: true)),
+                    );
+                  },
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: Text(m.ja ? '📸 名刺・顔を登録' : '📸 Register card & face',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5AD1FF),
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Sfx.instance.fanfare();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => RecallTrainingScreen(
+                              level: 1,
+                              fields: const {RecallField.name, RecallField.company},
+                              people: CustomRosterService.instance.toPeople())),
+                    );
+                  },
+                  icon: const Icon(Icons.quiz, size: 18),
+                  label: Text(m.ja ? '🧠 いますぐおさらい' : '🧠 Quick review now',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 📅 カレンダー連携ティーザー
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D1B33),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF2A3A5A)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today,
+                    size: 16, color: Color(0xFF5AD1FF)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                      m.ja
+                          ? '📅 近日: カレンダー連携で会議前に自動おさらい'
+                          : '📅 Coming soon: auto-refresher before meetings',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFF8899BB))),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepBadge(String text, Color color) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: color)),
     );
   }
 
