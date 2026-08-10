@@ -211,9 +211,15 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       _memorizeTimer = Timer.periodic(
           const Duration(milliseconds: 500), (_) => _tickOnlineMemorize());
     } else {
-      // おぼえタイム: CPUリコールバトルは1人3秒、カード対戦は1ペア3秒
+      // おぼえタイム: 難しいほど短い（鬼は一瞬で覚えきれないプレッシャー）
       _memorizeLeft = _vsCpu
-          ? _recallPeople * 3
+          ? switch (widget.cpuLevel!) {
+              CpuLevel.easy => 12,
+              CpuLevel.normal => 9,
+              CpuLevel.hard => 6,
+              CpuLevel.oni => 4,
+              _ => 9,
+            }
           : _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
       _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
         if (!mounted) { t.cancel(); return; }
@@ -407,7 +413,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       : p.name;
 
   void _answerRecall(String choice) {
-    if (_recallAnswerLocked) return;
+    if (_recallAnswerLocked || _recallQueue.isEmpty) return;
     _recallAnswerLocked = true;
     final target = _recallQueue[_recallQueueIdx];
     final ja = PlatformDispatcherLocale.isJa;
@@ -425,36 +431,27 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       Sfx.instance.wrong();
     }
     _recallPicked = choice;
+    // 正解した人はキューから消える。まちがえても次の人へ（一度きりの勝負）
+    _recallQueue.removeAt(_recallQueueIdx);
     setState(() {});
 
-    Future.delayed(const Duration(milliseconds: 700), () {
+    Future.delayed(const Duration(milliseconds: 650), () {
       if (!mounted) return;
-      if (correct) {
-        // 正解ならその人は消える。残りを次のキューに
-        _recallQueue.removeAt(_recallQueueIdx);
-        if (_recallQueue.isEmpty) {
-          _finishCpuRecall();
-          return;
-        }
-        // まだ残っている人のうち、プレイヤーがまだ正解してない人→優先
-        final remaining = _recallQueue
-            .where((p) => !_playerDone.contains(p.face))
-            .toList();
-        if (remaining.isEmpty) {
-          _finishCpuRecall();
-          return;
-        }
-        _recallQueueIdx = remaining.length > 1
-            ? _recallQueue.indexOf(remaining[_rng.nextInt(remaining.length)])
-            : _recallQueue.indexOf(remaining.first);
-      } else {
-        // 不正解ならその人はキューの最後に回る
-        final missed = _recallQueue.removeAt(_recallQueueIdx);
-        _recallQueue.add(missed);
-        _recallQueueIdx = _recallQueue.length - 1;
-        // 次の人へ（いなければ最初から）
-        if (_recallQueueIdx >= _recallQueue.length) _recallQueueIdx = 0;
+      if (_recallQueue.isEmpty) {
+        _finishCpuRecall();
+        return;
       }
+      // まだプレイヤーが正解してない人が残っていればランダムで次の出題
+      final remaining = _recallQueue
+          .where((p) => !_playerDone.contains(p.face))
+          .toList();
+      if (remaining.isEmpty) {
+        _finishCpuRecall();
+        return;
+      }
+      _recallQueueIdx = remaining.length > 1
+          ? _recallQueue.indexOf(remaining[_rng.nextInt(remaining.length)])
+          : _recallQueue.indexOf(remaining.first);
       _recallPicked = null;
       _recallAnswerLocked = false;
       _buildRecallChoices(_recallQueue[_recallQueueIdx]);
