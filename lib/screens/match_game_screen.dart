@@ -25,7 +25,7 @@ import 'home_shell.dart';
 import 'training_report_screen.dart';
 
 /// CPU対戦の強さ。CPUの「カード記憶力」と「思考時間」を決める。
-enum CpuLevel { easy, normal, hard, oni }
+enum CpuLevel { easy, normal, hard, oni, god }
 
 /// ペタネームのコアゲーム: 顔カード×名前カードの神経衰弱。
 ///
@@ -161,6 +161,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
         CpuLevel.normal => 'normal',
         CpuLevel.hard => 'hard',
         CpuLevel.oni => 'oni',
+        CpuLevel.god => 'god',
         _ => 'easy',
       },
     );
@@ -171,6 +172,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       CpuLevel.normal => 3,
       CpuLevel.hard => 5,
       CpuLevel.oni => 10,
+      CpuLevel.god => 15,
       _ => 3,
     };
     // 🖼 顔はフリー素材の実写にする
@@ -218,6 +220,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
               CpuLevel.normal => 9,
               CpuLevel.hard => 6,
               CpuLevel.oni => 4,
+              CpuLevel.god => 2,
               _ => 9,
             }
           : _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
@@ -466,6 +469,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       CpuLevel.normal => (2000, 0.60, 2400),
       CpuLevel.hard => (1400, 0.78, 1800),
       CpuLevel.oni => (800, 0.92, 1200),
+      CpuLevel.god => (500, 0.98, 800),
     };
     _cpuRecallTimer?.cancel();
     _cpuRecallTimer = Timer.periodic(Duration(milliseconds: intervalMs), (_) {
@@ -744,6 +748,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       CpuLevel.normal => 0.55,
       CpuLevel.hard => 0.75,
       CpuLevel.oni => 0.92,
+      CpuLevel.god => 0.98,
     };
     if (_rng.nextDouble() < chance) _cpuMemory.add(index);
   }
@@ -753,6 +758,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
         CpuLevel.normal => 1000,
         CpuLevel.hard => 850,
         CpuLevel.oni => 700,
+        CpuLevel.god => 450,
       };
 
   void _scheduleCpuMove() {
@@ -922,6 +928,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                       CpuLevel.normal => Icons.star_half,
                       CpuLevel.hard => Icons.star,
                       CpuLevel.oni => Icons.whatshot,
+                      CpuLevel.god => Icons.bolt,
                     },
                     color: const Color(0xFFE8A400), size: 24),
                 ],

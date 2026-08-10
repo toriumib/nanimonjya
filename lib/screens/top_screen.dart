@@ -388,6 +388,7 @@ class _TopScreenState extends State<TopScreen>
       Color(0xFF3A7BD5),
       Color(0xFFE8663C),
       Color(0xFF8A5AC2),
+      Color(0xFFFFD700),
     ];
     final rows = [
       for (final (i, lv) in [
@@ -395,6 +396,7 @@ class _TopScreenState extends State<TopScreen>
         CpuLevel.normal,
         CpuLevel.hard,
         CpuLevel.oni,
+        CpuLevel.god,
       ].indexed)
         (lv, cpuDifficultyOf(lv), colors[i]),
     ];

@@ -271,18 +271,20 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
         final profile = PlayerProfile.instance;
         final rank = cpuRankForRating(profile.cpuRating);
         final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
+        final godUnlocked = profile.cpuOniWins >= 3;
 
         Widget cpuButton(String label, CpuLevel level, Color color,
             {bool locked = false}) {
+          final lockedHint = level == CpuLevel.god
+              ? m.godLockedHint(3) // 鬼に3勝
+              : m.oniLockedHint(kOniUnlockRating);
           return ElevatedButton(
             onPressed: locked ? null : () => _start(cpu: level),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               minimumSize: const Size.fromHeight(44),
             ),
-            child: Text(locked
-                ? '$label 🔒 ${m.oniLockedHint(kOniUnlockRating)}'
-                : label),
+            child: Text(locked ? '$label 🔒 $lockedHint' : label),
           );
         }
 
@@ -329,6 +331,10 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               const SizedBox(height: 8),
               cpuButton(m.cpuOni, CpuLevel.oni, const Color(0xFFC62828),
                   locked: !oniUnlocked),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuGod, CpuLevel.god,
+                  const Color(0xFFFFD700),
+                  locked: !godUnlocked),
             ],
           ),
         );

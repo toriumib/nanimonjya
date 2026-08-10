@@ -439,6 +439,10 @@ class MetaStrings {
 
   // 🧠 CPU段位・一人特訓モード（認知トレーニング）
   String get cpuOni => ja ? '👹 おに' : '👹 Oni';
+  String get cpuGod => ja ? '⚡ かみ' : '⚡ God';
+  String godLockedHint(int rating) => ja
+      ? 'かみモードはレート$rating以上で開放'
+      : 'Unlocked at rate $rating';
   String get cpuRankLabel => ja ? 'CPU段位' : 'CPU Rank';
   String get cpuRatingLabel => ja ? 'レーティング' : 'Rating';
   String oniLockedHint(int rating) => ja
@@ -832,6 +836,8 @@ This tab is where you get stronger on your own.
         return ja ? 'つよい' : 'Hard';
       case 'oni':
         return ja ? '鬼' : 'Oni';
+      case 'god':
+        return ja ? '神' : 'God';
       default:
         return ja ? 'ふつう' : 'Normal';
     }

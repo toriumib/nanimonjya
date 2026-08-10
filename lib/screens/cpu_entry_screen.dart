@@ -43,6 +43,7 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     CpuLevel.normal: [Color(0xFF3A7BD5), Color(0xFF17408B)],
     CpuLevel.hard: [Color(0xFFE8663C), Color(0xFF9C2F10)],
     CpuLevel.oni: [Color(0xFF8A5AC2), Color(0xFF3D1E6B)],
+    CpuLevel.god: [Color(0xFFFFD700), Color(0xFF8B0000)],
   };
 
   @override
