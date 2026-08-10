@@ -459,13 +459,14 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     _recallQueue.removeAt(_recallQueueIdx);
     setState(() {});
 
-    Future.delayed(const Duration(milliseconds: 650), () {
+    // 正解=短く光らせてから次へ、まちがい=即次
+    final delay = correct ? 400 : 0;
+    Future.delayed(Duration(milliseconds: delay), () {
       if (!mounted) return;
       if (_recallQueue.isEmpty) {
         _finishCpuRecall();
         return;
       }
-      // まだプレイヤーが正解してない人が残っていればランダムで次の出題
       final remaining = _recallQueue
           .where((p) => !_playerDone.contains(p.face))
           .toList();
