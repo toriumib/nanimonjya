@@ -407,25 +407,22 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   void _buildRecallChoices(Person target) {
     final ja = PlatformDispatcherLocale.isJa;
     final answer = target.name;
-    // 全登場人物の名前 + 実名プールから常に4択以上に補充
+    // 4択: 正解 + 他の登場人物 + 足りなければ実名プールから補充
     final names = <String>{answer};
     for (final p in _people) {
       names.add(p.name);
     }
-    // 足りなければcommonNamePoolから補充
     final filler = commonNamePool(ja).map((n) => formatNameForLocale(n, ja));
     for (final n in filler) {
-      if (names.length >= max(6, _people.length + 3)) break;
+      if (names.length >= 4) break;
       names.add(n);
     }
     final all = [...names]..shuffle(_rng);
-    // 正解が先頭に来ないようにする
-    if (all.first == answer) all.shuffle(_rng);
-    if (all.first == answer) {
-      // どうしても先頭なら最後と入れ替え
+    if (all.length > 1 && all.first == answer) {
       final tmp = all[0]; all[0] = all.last; all[all.length - 1] = tmp;
     }
-    _recallChoices = all;
+    _recallChoices = all.take(4).toList()..shuffle(_rng);
+    if (!_recallChoices.contains(answer)) _recallChoices[_rng.nextInt(4)] = answer;
   }
 
   void _answerRecall(String choice) {
