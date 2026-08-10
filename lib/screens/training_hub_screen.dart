@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/historical_figures.dart';
 import '../models/person.dart';
 import '../services/review_queue.dart';
 import '../services/sfx.dart';
@@ -589,9 +590,45 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                               );
                             },
                             icon: const Icon(Icons.face_retouching_natural),
-                            label: const Text('🧑‍🎨 顔メモをつくる（会社・学校の人）'),
+                            label: Text(MetaStrings.of(context).ja
+                                ? '🧑‍🎨 顔メモをつくる（会社・学校の人）'
+                                : '🧑‍🎨 Create Face Note (Work/School)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF8A5AC2),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(48),
+                              textStyle: const TextStyle(
+                                  fontSize: 14.5, fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // 📚 歴史上の人物
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Sfx.instance.pop();
+                              final people = generateHistoricalPeople(
+                                  ja: MetaStrings.of(context).ja);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => RecallTrainingScreen(
+                                        level: 1,
+                                        fields: {
+                                          RecallField.name,
+                                          RecallField.company,
+                                        },
+                                        people: people)),
+                              );
+                            },
+                            icon: const Icon(Icons.school_rounded),
+                            label: Text(MetaStrings.of(context).ja
+                                ? '📚 歴史上の人物をおぼえる'
+                                : '📚 Learn Historical Figures'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B4513),
                               foregroundColor: Colors.white,
                               minimumSize: const Size.fromHeight(48),
                               textStyle: const TextStyle(

@@ -773,7 +773,7 @@ This tab is where you get stronger on your own.
       ja ? '名刺・顔写真を登録する' : 'Register cards & faces';
   String get tabNameCall => ja ? 'なまえがお' : 'Name Call';
   String get tabPairs => ja ? 'ペアさがし' : 'Pair Hunt';
-  String get tabTraining => ja ? '名刺覚え' : 'Card Memory';
+  String get tabTraining => ja ? '名刺覚え' : 'Biz Training';
   String get tabMyPage => ja ? 'マイページ' : 'My Page';
   String get nameCallCatch => ja
       ? 'みんなに名前をつけて、あとで思い出す。顔と名前をむすびつけて覚えよう！'

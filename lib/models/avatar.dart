@@ -248,3 +248,45 @@ const List<String> kGlassesJa = ['なし', '丸メガネ', '四角メガネ', '�
 const List<String> kMoleJa = ['なし', '左ほお', '右ほお', '口もと', '目の下'];
 const List<String> kBeardJa = ['なし', '口ひげ', 'あごひげ', '無精ひげ'];
 const List<String> kGenderJa = ['指定なし', '男性', '女性', 'その他'];
+
+// ── English labels ──
+const List<String> kSkinEn = ['Fair', 'Light', 'Tan', 'Brown', 'Dark'];
+const List<String> kFaceShapeEn = ['Oval', 'Round', 'Square', 'Slim'];
+const List<String> kHairEn = [
+  'Bald', 'Short', 'Short crop', 'Long', 'Ponytail', 'Wavy',
+  'Slicked back', 'Spiky', 'Twin tails', 'Bun', 'Mushroom cut', 'Perm',
+  'Side part', 'Blunt bangs',
+];
+const List<String> kHairColorEn = ['Black', 'Dark brown', 'Brown', 'Blonde', 'Auburn', 'Greying'];
+const List<String> kEyesEn = ['Normal', 'Droopy', 'Upturned', 'Narrow', 'Round', 'Wide'];
+const List<String> kEyebrowsEn = ['Normal', 'Thick', 'Thin', 'Angled'];
+const List<String> kNoseEn = ['Normal', 'Small', 'Tall'];
+const List<String> kMouthEn = ['Normal', 'Smiling', 'Frowning', 'Small', 'Large'];
+const List<String> kGlassesEn = ['None', 'Round glasses', 'Square glasses', 'Thin glasses', 'Sunglasses'];
+const List<String> kMoleEn = ['None', 'Left cheek', 'Right cheek', 'Near mouth', 'Under eye'];
+const List<String> kBeardEn = ['None', 'Mustache', 'Goatee', 'Stubble'];
+const List<String> kGenderEn = ['Unspecified', 'Male', 'Female', 'Other'];
+
+/// Locale-aware label getters.
+String skinLabel(int i, bool ja) => (ja ? kSkinJa : kSkinEn)[i.clamp(0, kSkinJa.length - 1)];
+String faceShapeLabel(int i, bool ja) => (ja ? kFaceShapeJa : kFaceShapeEn)[i.clamp(0, kFaceShapeJa.length - 1)];
+String hairLabel(int i, bool ja) => (ja ? kHairJa : kHairEn)[i.clamp(0, kHairJa.length - 1)];
+String hairColorLabel(int i, bool ja) => (ja ? kHairColorJa : kHairColorEn)[i.clamp(0, kHairColorJa.length - 1)];
+String eyesLabel(int i, bool ja) => (ja ? kEyesJa : kEyesEn)[i.clamp(0, kEyesJa.length - 1)];
+String eyebrowsLabel(int i, bool ja) => (ja ? kEyebrowsJa : kEyebrowsEn)[i.clamp(0, kEyebrowsJa.length - 1)];
+String noseLabel(int i, bool ja) => (ja ? kNoseJa : kNoseEn)[i.clamp(0, kNoseJa.length - 1)];
+String mouthLabel(int i, bool ja) => (ja ? kMouthJa : kMouthEn)[i.clamp(0, kMouthJa.length - 1)];
+String glassesLabel(int i, bool ja) => (ja ? kGlassesJa : kGlassesEn)[i.clamp(0, kGlassesJa.length - 1)];
+String moleLabel(int i, bool ja) => (ja ? kMoleJa : kMoleEn)[i.clamp(0, kMoleJa.length - 1)];
+String beardLabel(int i, bool ja) => (ja ? kBeardJa : kBeardEn)[i.clamp(0, kBeardJa.length - 1)];
+String genderLabel(int i, bool ja) => (ja ? kGenderJa : kGenderEn)[i.clamp(0, kGenderJa.length - 1)];
+
+/// 特徴を日本語または英語でリストにする。
+List<String> features(Avatar a, bool ja) {
+  final out = <String>[];
+  if (a.glasses > 0) out.add(glassesLabel(a.glasses, ja));
+  if (a.mole > 0) out.add(moleLabel(a.mole, ja));
+  if (a.hair > 0) out.add(hairLabel(a.hair, ja));
+  if (a.beard > 0) out.add(beardLabel(a.beard, ja));
+  return out;
+}

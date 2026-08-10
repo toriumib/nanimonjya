@@ -303,9 +303,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const Text('🙂', style: TextStyle(fontSize: 24))),
               ),
             ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'コインとキャラが もらえます',
+              MetaStrings.of(context).ja ? 'コインとキャラが もらえます' : 'Earn coins & characters',
               textAlign: TextAlign.right,
               style: TextStyle(
                   fontSize: 11.5,
@@ -454,7 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.auto_stories_rounded),
-              label: const Text('📖 ストーリー'),
+              label: Text(MetaStrings.of(context).ja ? '📖 ストーリー' : '📖 Story'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7A5AC2),
                 foregroundColor: Colors.white,
@@ -477,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.rocket_launch_rounded),
-              label: const Text('🚀 プロジェクト・ノア'),
+              label: Text(MetaStrings.of(context).ja ? '🚀 プロジェクト・ノア' : '🚀 Project Noah'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1D3A6B),
                 foregroundColor: Colors.white,
@@ -501,7 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.insights_rounded),
-              label: const Text('📊 成績レポート'),
+              label: Text(MetaStrings.of(context).ja ? '📊 成績レポート' : '📊 Stats Report'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2E9E5B),
                 foregroundColor: Colors.white,

@@ -145,7 +145,10 @@ class _StudyScreenState extends State<StudyScreen> {
                 FaceView(person: _current, size: 200, radius: 18),
                 const SizedBox(height: 12),
                 Text(
-                  _revealed ? _current.name : 'タップで名前をひょうじ',
+                  _revealed ? _current.name
+                      : (MetaStrings.of(context).ja
+                          ? 'タップで名前をひょうじ'
+                          : 'Tap to reveal name'),
                   style: TextStyle(
                     fontSize: _revealed ? 26 : 14,
                     fontWeight: FontWeight.w900,
