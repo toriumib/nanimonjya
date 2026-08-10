@@ -185,4 +185,20 @@ prevention. Consult a healthcare provider for any concerning symptoms.
 
 
 Free to play (ads included; some items unlockable via rewarded video or coins).
+
+---
+
+## v2.5.0 Update (August 2026)
+
+New additions reflected in the listing above:
+
+- 📚 Historical Figures — 15 great figures (Oda Nobunaga, Darwin, Marie Curie, Galileo, Tesla...)
+  with avatar portraits and business-card-style profiles
+- 💼 WhoWas integration — snap a business card, memorize the face and name, review before meetings
+  (built into the Business Training tab)
+- 🌐 Full English localization — every screen, story, and game mode now bilingual (JP/EN)
+- 🚀 Project Noah story fully translated to English (all 4 endings)
+- 🇺🇸 English name pool for gacha naming (US SSA top 100)
+- 🎵 BGM fixes — music now plays reliably on all platforms
+- ✨ Gold sparkle effects on correct answers in Name Call
 ```

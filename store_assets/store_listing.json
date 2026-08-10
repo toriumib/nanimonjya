@@ -1,0 +1,25 @@
+{
+  "_how_to_import": "Google Play Console > ストアの掲載情報 > 編集する言語を選択 > AIで翻訳をインポート > このJSONの値を各言語フィールドにコピペするか、CSVとして保存してインポート",
+  "_last_updated": "2026-08-10",
+  "_app_version": "2.5.0",
+  "_version_code": 161,
+
+  "app_name": {
+    "max_chars": 30,
+    "ja": "ペタネーム - 顔と名前の記憶トレ",
+    "en": "PetaName - Face & Name Memory"
+  },
+
+  "short_description": {
+    "max_chars": 80,
+    "ja": "顔はわかるのに名前が出てこない——をゲームで解決。名刺を覚えて会議前に5分おさらい。",
+    "en": "Never forget a face or name again. Memory training game backed by cognitive science."
+  },
+
+  "full_description": {
+    "max_chars": 4000,
+    "ja": "「顔はわかるのに、名前が出てこない」\n\nそんな経験、一度や二度ではありませんよね。\nペタネームは、顔と名前を覚えるための無料の記憶トレーニングアプリです。\n認知科学の研究にもとづいた方法で、ゲームを遊びながら自然に名前を覚えられるようになります。\n\n■■ 遊びかた ■■\n\n📣 なまえコール（メインモード）\n登場するキャラクターに名前をつけて、再登場したら思い出す——シンプルだけど奥が深いモードです。ひとりでCPUと対戦、友達と1台でワイワイ、オンラインで全国の人と同時レース。\n\n🧠 名刺覚え（ビジネス特訓）\n名刺を持った相手が自己紹介。少し時間を置いてから「この人だれだっけ？」に答えます。会社名・肩書・電話番号まで項目を増やせて、実際の営業や採用面接の前にぴったり。名刺を撮る→覚える→会議前におさらい——WhoWas機能を内蔵しています。\n\n📚 歴史上の人物をおぼえる\n織田信長、ダーウィン、キュリー夫人ほか15名の偉人の顔と名前と業績を名刺形式で覚えられます。アバターで顔を再現しているので写真の著作権問題もクリア。\n\n🃏 ペアさがし\n顔カードと名前カードの神経衰弱。覚えたあとに思い出す「記憶の筋トレ」に最適です。\n\n📖 ものがたり（SFストーリー）\n「プロジェクト・ノア」——太陽が赤色巨星になった遠い未来。横浜から49光年先の惑星を目指す箱舟の中で、8人の科学者の名前を覚えていくSFノベルゲーム。覚えた数で結末が変わります。日英完全対応。\n\n■■ こんな人におすすめ ■■\n・新入社員や取引先の名前がなかなか覚えられない\n・会議の前に「この人だれだっけ」と焦る\n・営業・採用・MRなど人と会う仕事をしている\n・就活でたくさんの人に会う前に準備したい\n・記憶力を鍛えたい（脳トレ）\n・歴史上の人物を楽しく覚えたい\n\n■■ アプリの特徴 ■■\n✅ 完全無料で遊べます（追加キャラなど任意の課金あり）\n✅ 日英完全対応（日本語・英語）\n✅ 音声読み上げで名前を耳からも覚えられる\n✅ 学習指導要領の歴史上の人物を収録\n✅ オフラインでも遊べます\n✅ 実在の名刺と顔写真を登録して自分専用の問題集に（モバイル版限定）\n✅ 広告表示は控えめ。プレイのじゃまになりません\n\n■■ 認知科学の裏付け ■■\nこのアプリの記憶トレーニングは、以下のような研究にもとづいています：\n・声に出すと言葉が残りやすい（MacLeod 2010 産出効果）\n・思い出す練習が最も効く（Roediger & Karpicke 2006 テスト効果）\n・名前だけが特に覚えにくい（McWeeny 1987 ベイカー錯誤）\n・意味をつけると記憶に残る（Craik & Tulving 1975 処理水準）\n\nさあ、はじめましょう。もう「顔はわかるのに名前が出てこない」とは言わせません。",
+
+    "en": "\"I know the face, but the name just won't come to me.\"\n\nSound familiar? You're not alone. PetaName is a free memory training app that helps you remember faces and names—using methods backed by cognitive science research. Play a game, and let your brain do the rest.\n\n■■ How to Play ■■\n\n📣 Name Call (Main Mode)\nName each character as they appear, then recall their name when they return. Simple yet deep. Play solo against the CPU, gather friends around one phone, or race online with players nationwide.\n\n🧠 Card Memory (Biz Training)\nCharacters introduce themselves with a business card. After a short break, answer: \"Who was that?\" Add fields like company name, title, and phone number—perfect prep for sales calls, interviews, and conferences. Snap a business card → memorize → review before the meeting. The WhoWas feature is built right in.\n\n📚 Historical Figures\nLearn the faces, names, and achievements of 15 great figures—including Oda Nobunaga, Darwin, Marie Curie, and more. All portraits are rendered as avatars, so there are zero photo copyright concerns.\n\n🃏 Pair Hunt\nClassic memory matching with face cards and name cards. The perfect \"memory gym\" workout after you've learned the names.\n\n📖 Story Mode (Sci-Fi Novel Game)\n\"Project Noah\" — The distant future. The sun has become a red giant. Aboard an ark departing Yokohama for a planet 49 light-years away, you must learn the names of eight scientists. Your choices and what you remember change the ending. Fully bilingual (Japanese / English).\n\n■■ Who Is This For? ■■\n・Anyone who struggles with new coworkers' or clients' names\n・Sales reps, recruiters, and anyone who meets lots of people\n・Job seekers preparing for networking events\n・Students who want to memorize historical figures\n・Brain training enthusiasts\n・Anyone who's ever panicked before a meeting thinking \"who was that person again?\"\n\n■■ Features ■■\n✅ Completely free to play (optional in-app purchases for extra characters)\n✅ Fully bilingual — Japanese & English\n✅ Text-to-speech reads names aloud for audio reinforcement\n✅ Historical figures from Japanese & world history included\n✅ Works offline — train anywhere\n✅ Upload real business cards and face photos to create your own study deck (mobile only)\n✅ Unobtrusive ads that don't interrupt gameplay\n\n■■ Backed by Science ■■\nThe memory training in this app draws on established research:\n・Speaking a word aloud improves recall (MacLeod 2010 — the Production Effect)\n・Active recall beats passive review (Roediger & Karpicke 2006 — the Testing Effect)\n・Names are uniquely hard to remember (McWeeny 1987 — the Baker/Baker Paradox)\n・Deep processing strengthens memory (Craik & Tulving 1975 — Levels of Processing)\n\nReady? Let's make sure you never have to say \"I know the face, but...\" again."
+  }
+}

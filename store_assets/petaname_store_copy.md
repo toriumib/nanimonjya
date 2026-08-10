@@ -88,7 +88,16 @@ Unlock extra characters with coins earned from play, or from free reward videos.
 Note: This app is not a medical device or treatment program. It does not
 guarantee improvement of memory or cognitive function; results vary.
 
-## リリースノート（v2.3.0）
+## リリースノート（v2.5.0）
+
+・📚 歴史上の人物15名を追加（織田信長、ダーウィン、キュリー夫人、ガリレオ、テスラ他）。アバターで顔を再現、名刺形式で業績も覚えられる
+・💼 名刺覚えタブにWhoWas機能を統合——名刺を撮って顔と名前を覚え、会議前におさらい
+・🌐 英語ローカライズ完備——全画面・全ストーリー・全ゲームモードが日英対応
+・🚀 プロジェクト・ノア（SFストーリー）英語版完成、4結末すべて翻訳
+・🇺🇸 英語モードでは名前ガチャがUS人名トップ100（James, Mary他）から出題
+・🎵 BGMの安定再生を修正（全プラットフォーム）
+・✨ なまえコール正解時に金キラ演出を追加（コンボ10以上で👑キングコンボ）
+・🌐 Web版に日英切替ボタン・Google Playバッジを常設
 
 ・「とっくん」を「ビジネス特訓」に改名。名刺を差し出す演出・音声つき自己紹介で、
 　会社名・肩書・連絡先も覚えられる実践的な記憶特訓に
