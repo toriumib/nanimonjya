@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
+import '../models/cpu_persona.dart';
 import '../models/person.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
@@ -54,7 +55,7 @@ class MatchGameScreen extends StatefulWidget {
   State<MatchGameScreen> createState() => _MatchGameScreenState();
 }
 
-enum _Phase { memorize, playing, hobbyQuiz, finished }
+enum _Phase { memorize, playing, hobbyQuiz, nameReview, finished }
 
 class _CardData {
   final Person person;
@@ -100,6 +101,14 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   DateTime? _firstFlipAt;
   late final DateTime _startedAt;
 
+  // 🤖 CPUの人格
+  late final CpuPersona _cpuPersona;
+  String? _cpuQuip; // いま表示している口癖
+  int _cpuQuipsSaid = 0;
+  // 🤖 CPUが取ったペア（おさらい用）
+  final List<Person> _cpuPairsWon = [];
+  final List<Person> _playerPairsWon = [];
+
   // 趣味クイズ（一人特訓のレベル3以上）
   final List<Person> _quizTargets = [];
   int _quizIndex = 0;
@@ -129,6 +138,16 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _startedAt = DateTime.now();
+    // 🤖 CPU対戦のときは個性ある対戦相手をランダムで選ぶ
+    _cpuPersona = pickCpuPersona(
+      switch (widget.cpuLevel) {
+        CpuLevel.easy => 'easy',
+        CpuLevel.normal => 'normal',
+        CpuLevel.hard => 'hard',
+        CpuLevel.oni => 'oni',
+        _ => 'easy',
+      },
+    );
     final ja = PlatformDispatcherLocale.isJa;
     // 🖼 顔はフリー素材の実写にする（SVGのイラスト顔だと、実生活で
     //    人の顔を覚える練習にならないため）。
@@ -299,7 +318,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   }
 
   void _finishBoard() {
-    // 盤面クリア。一人特訓のレベル3+は趣味クイズへ、それ以外は結果へ。
+    // 一人特訓のレベル3+は趣味クイズへ
     if (_isSolo && widget.level >= 3) {
       _quizTargets
         ..clear()
@@ -308,6 +327,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       _quizCorrect = 0;
       _prepareQuizChoices();
       setState(() => _phase = _Phase.hobbyQuiz);
+      return;
+    }
+    // 🤖 CPU対戦は名前おさらいを表示
+    if (_vsCpu) {
+      setState(() => _phase = _Phase.nameReview);
       return;
     }
     _goToResult();
@@ -477,6 +501,13 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     }
     if (isMatch) {
       _resolving = true;
+      // 🤖 CPUが取ったペアを記録（おさらい用）
+      if (_vsCpu && byCpu) {
+        _cpuPairsWon.add(a.person);
+        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid);
+        _cpuQuipsSaid += 1;
+      }
+      if (_vsCpu && !byCpu) _playerPairsWon.add(a.person);
       Future.delayed(const Duration(milliseconds: 450), () {
         if (!mounted) return;
         setState(() {
@@ -496,7 +527,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
           Sfx.instance.correct();
           if (_isOnline) widget.online!.reportProgress(_matches);
         } else {
-          Sfx.instance.wrong(); // 相手に取られた合図
+          Sfx.instance.wrong();
+          // CPUの口癖を2秒で消す
+          Future.delayed(const Duration(milliseconds: 1800), () {
+            if (mounted) setState(() => _cpuQuip = null);
+          });
         }
         if (_cards.every((c) => c.matched)) {
           Future.delayed(const Duration(milliseconds: 600), () {
@@ -657,6 +692,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
               child: switch (_phase) {
                 _Phase.memorize => _buildMemorize(m),
                 _Phase.hobbyQuiz => _buildHobbyQuiz(m),
+                _Phase.nameReview => _buildNameReview(m),
                 _ => _buildBoard(m),
               },
             ),
@@ -678,6 +714,48 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
+          // 🤖 CPU対戦の相手表示
+          if (_vsCpu) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFF8FC0), width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 28)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_cpuPersona.name,
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w900,
+                                color: Color(0xFFE8663C))),
+                        Text('${m.ja ? '趣味' : 'Hobby'}: ${_cpuPersona.hobby}',
+                            style: const TextStyle(
+                                fontSize: 11.5, color: Color(0xFF6A5A6A))),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    switch (widget.cpuLevel!) {
+                      CpuLevel.easy => Icons.star_border,
+                      CpuLevel.normal => Icons.star_half,
+                      CpuLevel.hard => Icons.star,
+                      CpuLevel.oni => Icons.whatshot,
+                    },
+                    color: const Color(0xFFE8A400), size: 24),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -691,7 +769,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    m.memorizePrompt,
+                    _vsCpu
+                        ? (m.ja
+                            ? '${_cpuPersona.name}と対戦。顔と名前を覚えてね！'
+                            : 'vs ${_cpuPersona.name}. Remember faces & names!')
+                        : m.memorizePrompt,
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w900),
                   ),
@@ -786,35 +868,195 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     );
   }
 
-  Widget _buildBoard(MetaStrings m) {
-    const cols = 4;
+  // 🤖 CPU対戦後の名前おさらい
+  Widget _buildNameReview(MetaStrings m) {
+    final won = _pairsWon[0] >= _pairsWon[1];
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
       child: Column(
         children: [
-          if (_vsCpu)
-            _scoreBar(m)
-          else if (_isLocalMulti)
-            _localBar(m)
-          else if (_isOnline)
-            _onlineBar(m)
-          else
-            _soloBar(m),
-          const SizedBox(height: 10),
+          // 勝敗 + CPUリアクション
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: won
+                    ? const [Color(0xFFFFC02E), Color(0xFFFF6A3D)]
+                    : const [Color(0xFF8A5AC2), Color(0xFF5A3A8E)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 36)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        won
+                            ? (m.ja ? 'あなたの勝ち！' : 'You win!')
+                            : (m.ja ? '${_cpuPersona.name}の勝ち' : '${_cpuPersona.name} wins'),
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        won ? _cpuPersona.loseLine : _cpuPersona.winLine,
+                        style: const TextStyle(fontSize: 13, color: Color(0xEEFFFFFF), height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            m.ja ? '👀 登場した人をおさらいしよう' : '👀 Let\'s review who appeared',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cols,
+                crossAxisCount: 2,
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
-                childAspectRatio: 0.72,
+                childAspectRatio: 2.2,
               ),
-              itemCount: _cards.length,
-              itemBuilder: (context, i) => _buildCard(_cards[i], i),
+              itemCount: _people.length,
+              itemBuilder: (context, i) {
+                final p = _people[i];
+                final playerWon = _playerPairsWon.any((pp) => pp.face == p.face);
+                final cpuWon = _cpuPairsWon.any((pp) => pp.face == p.face);
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: playerWon
+                          ? const Color(0xFF2E9E5B)
+                          : cpuWon
+                              ? const Color(0xFF8A5AC2)
+                              : const Color(0xFFD8E4F0),
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      FaceView(person: p, size: 46, radius: 10),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(p.name,
+                                style: const TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w900)),
+                            Text(p.hobby,
+                                style: const TextStyle(fontSize: 10.5, color: Colors.black54),
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      ),
+                      if (playerWon)
+                        const Text('✅', style: TextStyle(fontSize: 16))
+                      else if (cpuWon)
+                        const Text('🤖', style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: _goToResult,
+            icon: const Text('🪙', style: TextStyle(fontSize: 16)),
+            label: Text(m.ja ? '結果を見る' : 'See results',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3A7BD5),
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(48),
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
+    );
+  }
+
+  Widget _buildBoard(MetaStrings m) {
+    const cols = 4;
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              if (_vsCpu)
+                _scoreBar(m)
+              else if (_isLocalMulti)
+                _localBar(m)
+              else if (_isOnline)
+                _onlineBar(m)
+              else
+                _soloBar(m),
+              const SizedBox(height: 10),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: cols,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: _cards.length,
+                  itemBuilder: (context, i) => _buildCard(_cards[i], i),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 🤖 CPUの口癖吹き出し
+        if (_vsCpu && _cpuQuip != null)
+          Positioned(
+            top: 52,
+            left: 0, right: 0,
+            child: Center(
+              child: AnimatedOpacity(
+                opacity: _cpuQuip != null ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3D6),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE8A400)),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2)),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 16)),
+                      const SizedBox(width: 6),
+                      Text('${_cpuPersona.name}「$_cpuQuip」',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900,
+                              color: Color(0xFF5A4A1E))),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -851,7 +1093,10 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       children: [
         chip('😀 ${m.you}', _pairsWon[0], _turn == 0, const Color(0xFF3A7BD5)),
         const SizedBox(width: 10),
-        chip('🤖 ${m.cpuLabel}', _pairsWon[1], _turn == 1,
+        chip(
+            '${_cpuPersona.emoji} ${_cpuPersona.name}',
+            _pairsWon[1],
+            _turn == 1,
             const Color(0xFF8A5AC2)),
       ],
     );
