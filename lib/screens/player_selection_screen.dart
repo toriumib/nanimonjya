@@ -189,7 +189,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               border: Border.all(color: const Color(0xFFE8663C), width: 2),
             ),
             child: Text(
-              '$n人',
+              m.ja ? '$n人' : '${n}P',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w900,

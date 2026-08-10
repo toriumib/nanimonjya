@@ -28,6 +28,14 @@ extension StatModeLabel on StatMode {
         StatMode.businessCard => '名刺記憶',
       };
 
+  String get labelEn => switch (this) {
+        StatMode.cpu => 'CPU Battle',
+        StatMode.nameCall => 'Name Call',
+        StatMode.businessCard => 'Biz Card Quiz',
+      };
+
+  String label(bool ja) => ja ? labelJa : labelEn;
+
   String get emoji => switch (this) {
         StatMode.cpu => '🤖',
         StatMode.nameCall => '📣',

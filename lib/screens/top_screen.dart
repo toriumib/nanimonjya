@@ -552,7 +552,7 @@ class _TopScreenState extends State<TopScreen>
                               padding:
                                   const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            child: Text('$n人'),
+                            child: Text(m.ja ? '$n人' : '${n}P'),
                           ),
                         ),
                       ],
