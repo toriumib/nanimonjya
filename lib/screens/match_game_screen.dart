@@ -227,7 +227,6 @@ class _MatchGameScreenState extends State<MatchGameScreen>
               CpuLevel.hard => 6,
               CpuLevel.oni => 4,
               CpuLevel.god => 2,
-              _ => 9,
             }
           : _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
       _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -433,7 +432,6 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     if (_recallAnswerLocked || _recallQueue.isEmpty) return;
     _recallAnswerLocked = true;
     final target = _recallQueue[_recallQueueIdx];
-    final ja = PlatformDispatcherLocale.isJa;
     final correct = choice == target.name;
     final shownAt = _recallShownAt;
     if (shownAt != null) {
