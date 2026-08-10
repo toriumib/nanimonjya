@@ -813,7 +813,9 @@ class _TopScreenState extends State<TopScreen>
                             color: Colors.white,
                             height: 1.1,
                           )),
-                      Text('アプリのほうがサクサク動きます',
+                      Text(MetaStrings.of(context).ja
+                          ? 'アプリのほうがサクサク動きます'
+                          : 'Smoother experience on mobile',
                           style: const TextStyle(
                               fontSize: 10,
                               color: Color(0xE6FFFFFF),

@@ -214,6 +214,9 @@ NoahCharacter? noahCharacterById(String id) {
 enum NoahField { name, affiliation, hobby, commId, school }
 
 extension NoahFieldLabel on NoahField {
+  String question(bool ja) => ja ? questionJa : questionEn;
+  String label(bool ja) => ja ? labelJa : labelEn;
+
   /// 「〜は？」の見出し。
   String get questionJa => switch (this) {
         NoahField.name => 'この人の名前は？',
@@ -223,12 +226,28 @@ extension NoahFieldLabel on NoahField {
         NoahField.school => 'この人の学生時代は？',
       };
 
+  String get questionEn => switch (this) {
+        NoahField.name => 'What is their name?',
+        NoahField.affiliation => 'What is their field?',
+        NoahField.hobby => 'What is their hobby?',
+        NoahField.commId => 'What is their comm ID?',
+        NoahField.school => 'Where did they study?',
+      };
+
   String get labelJa => switch (this) {
         NoahField.name => '名前',
         NoahField.affiliation => '所属',
         NoahField.hobby => '趣味',
         NoahField.commId => '通信ID',
         NoahField.school => '学生時代',
+      };
+
+  String get labelEn => switch (this) {
+        NoahField.name => 'Name',
+        NoahField.affiliation => 'Field',
+        NoahField.hobby => 'Hobby',
+        NoahField.commId => 'Comm ID',
+        NoahField.school => 'School',
       };
 
   String valueOf(NoahCharacter c) => switch (this) {
@@ -390,10 +409,19 @@ class NoahLine {
 enum NoahGender { male, female, none }
 
 extension NoahGenderLabel on NoahGender {
+  String label(bool ja) => ja ? labelJa : labelEn;
+  String pronoun(bool ja) => ja ? pronounJa : pronounEn;
+
   String get labelJa => switch (this) {
         NoahGender.male => '男性',
         NoahGender.female => '女性',
         NoahGender.none => 'どちらでもない',
+      };
+
+  String get labelEn => switch (this) {
+        NoahGender.male => 'Male',
+        NoahGender.female => 'Female',
+        NoahGender.none => 'Neither',
       };
 
   /// 主人公の一人称。
@@ -402,16 +430,30 @@ extension NoahGenderLabel on NoahGender {
         NoahGender.female => 'わたし',
         NoahGender.none => 'じぶん',
       };
+
+  String get pronounEn => switch (this) {
+        NoahGender.male => 'I',
+        NoahGender.female => 'I',
+        NoahGender.none => 'I',
+      };
 }
 
 /// 恋愛対象の絞り込み。
 enum NoahPreference { men, women, all }
 
 extension NoahPreferenceLabel on NoahPreference {
+  String label(bool ja) => ja ? labelJa : labelEn;
+
   String get labelJa => switch (this) {
         NoahPreference.men => '男性',
         NoahPreference.women => '女性',
         NoahPreference.all => 'どちらも',
+      };
+
+  String get labelEn => switch (this) {
+        NoahPreference.men => 'Men',
+        NoahPreference.women => 'Women',
+        NoahPreference.all => 'All',
       };
 
   List<NoahCharacter> filter(List<NoahCharacter> all) => switch (this) {
@@ -743,11 +785,16 @@ const List<NoahLine> kNoahBeforeResult = [
 
 // ── 3択のときのセリフ ────────────────────────────────
 
-/// 出題のときに相手が言うこと。
-///
-/// 「この人の名前は？」だけだと問題集になってしまう。
-/// 相手のほうから話しかけてくる形にして、
-/// **人に向かって思い出している**手ざわりを出す。
+String noahAskLine(NoahCharacter c, NoahField field, bool first, bool ja) =>
+    ja ? noahAskLineJa(c, field, first) : noahAskLineEn(c, field, first);
+String noahHitLine(NoahCharacter c, bool ja) =>
+    ja ? noahHitLineJa(c) : noahHitLineEn(c);
+String noahMissLine(NoahCharacter c, String picked, bool ja) =>
+    ja ? noahMissLineJa(c, picked) : noahMissLineEn(c, picked);
+String noahGreetLine(NoahCharacter c, bool ja) =>
+    ja ? noahGreetLineJa(c) : noahGreetLineEn(c);
+
+/// 出題のときに相手が言うこと（Ja）。
 String noahAskLineJa(NoahCharacter c, NoahField field, bool first) {
   switch (field) {
     case NoahField.name:
@@ -765,55 +812,257 @@ String noahAskLineJa(NoahCharacter c, NoahField field, bool first) {
   }
 }
 
-/// 正解したとき。相手ごとに少し口ぶりを変える。
-String noahHitLineJa(NoahCharacter c) {
-  switch (c.id) {
-    case 'hibino':
-      return '「……覚えてたんだ。うれしい。窯の火みたいだね、そういうの」';
-    case 'kiryu':
-      return '「正解。三百三十年、よく持ちましたね、その記憶」';
-    case 'mizuhara':
-      return '「よかった。わたし、忘れられてたらどうしようって」';
-    case 'tachibana':
-      return '「ありがとう。……なんだ、そんなに嬉しいものなんだな、呼ばれるのは」';
-    case 'hoshino':
-      return '「合格！ じゃあ次の星空、一緒に撮りに行こう」';
-    case 'iwao':
-      return '「ほう。……わしの名を覚えとる若いのがおるとはな」';
-    case 'kusunoki':
-      return '「へえ。ちゃんと届いてたんだ、わたしの声」';
-    case 'shirakawa':
-      return '「上出来だ。……記憶が残ってるなら、蘇生は成功だな」';
-    default:
-      return '「……覚えていてくれたんだ」';
+String noahAskLineEn(NoahCharacter c, NoahField field, bool first) {
+  switch (field) {
+    case NoahField.name:
+      return first
+          ? 'Hey, you\'re awake… So, do you remember me?'
+          : 'Long time. Can you remember my name?';
+    case NoahField.affiliation:
+      return 'So, can you tell me what my field was?';
+    case NoahField.hobby:
+      return 'Before we left, I told you what I love to do. Remember?';
+    case NoahField.commId:
+      return 'My comm ID — did you keep it registered?';
+    case NoahField.school:
+      return 'Where I went to school. We talked about it that night, remember?';
   }
 }
 
-/// まちがえたとき。責めない。**別の人と混ざっている**ことを示す。
+String noahHitLineJa(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino': return '「……覚えてたんだ。うれしい。窯の火みたいだね、そういうの」';
+    case 'kiryu': return '「正解。三百三十年、よく持ちましたね、その記憶」';
+    case 'mizuhara': return '「よかった。わたし、忘れられてたらどうしようって」';
+    case 'tachibana': return '「ありがとう。……なんだ、そんなに嬉しいものなんだな、呼ばれるのは」';
+    case 'hoshino': return '「合格！ じゃあ次の星空、一緒に撮りに行こう」';
+    case 'iwao': return '「ほう。……わしの名を覚えとる若いのがおるとはな」';
+    case 'kusunoki': return '「へえ。ちゃんと届いてたんだ、わたしの声」';
+    case 'shirakawa': return '「上出来だ。……記憶が残ってるなら、蘇生は成功だな」';
+    default: return '「……覚えていてくれたんだ」';
+  }
+}
+
+String noahHitLineEn(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino': return '"…You remembered. That makes me happy. It\'s like the fire in a kiln."';
+    case 'kiryu': return '"Correct. You held onto that memory for 330 years. Impressive."';
+    case 'mizuhara': return '"Oh, thank goodness. I was so afraid you\'d forgotten."';
+    case 'tachibana': return '"Thank you. I didn\'t know… being called by name could feel this good."';
+    case 'hoshino': return '"That\'s right! Let\'s go photograph the next starry sky together."';
+    case 'iwao': return '"Well now. A young one who remembers this old man\'s name."';
+    case 'kusunoki': return '"Huh. So my voice really did reach you."';
+    case 'shirakawa': return '"Well done. If your memory survived… the revival was a success."';
+    default: return '"…You remembered."';
+  }
+}
+
 String noahMissLineJa(NoahCharacter c, String picked) {
   return '「ううん、それは——たぶん、別の人の話。$picked、って言ったよね」';
 }
 
-/// 出会いのとき、名刺を渡しながら言うこと。
+String noahMissLineEn(NoahCharacter c, String picked) {
+  return '"No, that\'s… someone else. You said "$picked", didn\'t you?"';
+}
+
 String noahGreetLineJa(NoahCharacter c) {
   switch (c.id) {
-    case 'hibino':
-      return '「日比野です。炉をやってます。……よろしく」';
-    case 'kiryu':
-      return '「桐生です。意識の研究を。名前、覚えるの得意ですか？」';
-    case 'mizuhara':
-      return '「水原です。うちの子たち——受精卵カプセルの担当です」';
-    case 'tachibana':
-      return '「橘です。空気と水を回してます。あなたが吸ってるぶんも」';
-    case 'hoshino':
-      return '「星野未来です。未来って書いてミライ。祖父がつけました」';
-    case 'iwao':
-      return '「岩尾。山と、この星の地面を見とる」';
-    case 'kusunoki':
-      return '「楠です。ロボット担当。困ったら呼んでください」';
-    case 'shirakawa':
-      return '「白川です。あなたを眠らせて、起こす係です」';
-    default:
-      return '「${c.name}です。よろしく」';
+    case 'hibino': return '「日比野です。炉をやってます。……よろしく」';
+    case 'kiryu': return '「桐生です。意識の研究を。名前、覚えるの得意ですか？」';
+    case 'mizuhara': return '「水原です。うちの子たち——受精卵カプセルの担当です」';
+    case 'tachibana': return '「橘です。空気と水を回してます。あなたが吸ってるぶんも」';
+    case 'hoshino': return '「星野未来です。未来って書いてミライ。祖父がつけました」';
+    case 'iwao': return '「岩尾。山と、この星の地面を見とる」';
+    case 'kusunoki': return '「楠です。ロボット担当。困ったら呼んでください」';
+    case 'shirakawa': return '「白川です。あなたを眠らせて、起こす係です」';
+    default: return '「${c.name}です。よろしく」';
   }
 }
+
+String noahGreetLineEn(NoahCharacter c) {
+  switch (c.id) {
+    case 'hibino': return '"I\'m Hibino. I work on the reactor. …Nice to meet you."';
+    case 'kiryu': return '"Kiryu. I study consciousness. Are you good with names?"';
+    case 'mizuhara': return '"Mizuhara. I look after these little ones — the embryo capsules."';
+    case 'tachibana': return '"Tachibana. I manage the air and water. Including what you\'re breathing now."';
+    case 'hoshino': return '"Hoshino Mirai. "Mirai" means future — my grandfather chose it."';
+    case 'iwao': return '"Iwao. I study mountains. And the ground of our new planet."';
+    case 'kusunoki': return '"Kusunoki. I\'m with the robots. Call me if anything breaks."';
+    case 'shirakawa': return '"Shirakawa. I\'m the one who puts you to sleep, and wakes you up."';
+    default: return '"I\'m ${c.name}. Nice to meet you."';
+  }
+}
+
+// ── English story scene lists ─────────────────────────────
+
+const _d = NoahVoice.director; const _n = NoahVoice.narration;
+const _p = NoahVoice.player; const _c = NoahVoice.chara;
+
+List<NoahLine> _en(List<NoahLine> jp) => jp; // placeholder, will be replaced with actual English
+
+/// 🌐 Locale-aware story line picker.
+List<NoahLine> noahStoryLines(bool ja, List<NoahLine> jaLines, List<NoahLine> enLines) =>
+    ja ? jaLines : enLines;
+
+const List<NoahLine> kNoahPrologueEn = [
+  NoahLine(_n, 'Year five billion twenty-six.'),
+  NoahLine(_n, 'The sun is red.'),
+  NoahLine(_n, 'The star, having burned through its hydrogen, has swelled to fill a third of the sky. Mercury and Venus are gone.'),
+  NoahLine(_n, 'Earth has barely escaped being swallowed—but its surface has reached temperatures that melt lead. The oceans have become plains of phosphorescent lava.'),
+  NoahLine(_n, 'Humanity lives three kilometers underground, beneath the town of Totsuka, Yokohama. The last 720,000 souls crowd together under what was once a golf course.'),
+  NoahLine(_n, 'You are one of them. You have never known the light or wind of the surface.'),
+  NoahLine(_d, 'Thank you for coming.', who: 'Director'),
+  NoahLine(_d, 'This place was a golf course. Eighteen holes, seven hundred thousand square meters. Flat, with water, with roads. Perfect for a launch site.', who: 'Director'),
+  NoahLine(_d, 'We dug a silo beneath the 18th green.', who: 'Director'),
+  NoahLine(_d, 'Our destination: LHS 1140 b, forty-nine light-years away. A super-Earth orbiting a red dwarf. It has water.', who: 'Director'),
+  NoahLine(_p, 'Forty-nine light-years… How long will it take?'),
+  NoahLine(_d, 'Fifteen percent of light speed. Three hundred and thirty years. We will sleep through the journey.', who: 'Director'),
+  NoahLine(_n, 'A murmur. Someone draws a sharp breath.'),
+  NoahLine(_n, 'Three hundred and thirty years. From the founding of Edo to long before your birth. All that time, the ship will be nothing but a metal shell coasting between the stars.'),
+  NoahLine(_d, 'There is, however, a problem.', who: 'Director'),
+  NoahLine(_d, 'After prolonged cryosleep, memory degrades. And what goes first—', who: 'Director'),
+  NoahLine(_d, 'Is names.', who: 'Director'),
+  NoahLine(_n, 'Five hundred people will board this ship. Five hundred people who will not know who stands beside them when they wake.'),
+  NoahLine(_n, '"Someone" is not enough to form a community. Five hundred without names is five hundred isolates.'),
+  NoahLine(_d, 'So your job is not just research.', who: 'Director'),
+  NoahLine(_d, 'Your job is to remember. Names. Everyone\'s.', who: 'Director'),
+  NoahLine(_n, 'Someone exhaled quietly.'),
+  NoahLine(_n, 'Five hundred names—the outlines of five hundred lives.'),
+];
+
+const List<NoahLine> kNoahColdShoulderEn = [
+  NoahLine(_n, 'Orientation. Five hundred people fill the old tennis court hall.'),
+  NoahLine(_n, 'Everyone wears a name tag. Here, your name is everything you are.'),
+  NoahLine(_p, '(…Maybe I should try talking to the person next to me.)'),
+  NoahLine(_p, 'Hey, what research department are you in?'),
+  NoahLine(_n, 'No answer. They\'re already deep in conversation with someone else.'),
+  NoahLine(_p, '…Excuse me—'),
+  NoahLine(_n, 'This time, your voice doesn\'t even land. The noise of the hall swallows a single person\'s words whole.'),
+  NoahLine(_n, 'Five hundred people, and no one notices you. Someone bumps your shoulder. No one turns around.'),
+  NoahLine(_n, '—That\'s when you understand. Without a name, a person might as well not exist.'),
+  NoahLine(_n, 'So that\'s why. The reason you have to learn everyone\'s name finally sinks in, not in your head but in your body.'),
+  NoahLine(_n, 'To be forgotten is to be invisible.'),
+  NoahLine(_n, 'Then, one person turns around.'),
+  NoahLine(_c, '…Were you trying to say something? Sorry, I didn\'t notice.'),
+  NoahLine(_n, '—Those words stay with you, strangely warm. The feeling of being found.'),
+];
+
+const List<NoahLine> kNoahBeforeMeetingEn = [
+  NoahLine(_n, '—The introductions begin.'),
+  NoahLine(_n, 'Everyone carries a business card. Not paper—printed with comm IDs, fields, and even hobbies.'),
+  NoahLine(_n, '"The hobbies are there to give you more hooks for memory." That\'s what Dr. Shirakawa said.'),
+  NoahLine(_n, 'You only get to look at each card once.'),
+];
+
+const List<NoahLine> kNoahBeforeSleepEn = [
+  NoahLine(_n, 'The night before departure.'),
+  NoahLine(_n, 'On the tennis court wall, someone has scratched "see you tomorrow" with their nail.'),
+  NoahLine(_n, 'Below it, another person carves the same words. Then another, in turn.'),
+  NoahLine(_n, 'Five hundred "see you tomorrow"s cover the wall.'),
+  NoahLine(_n, 'There will be no tomorrow on Earth. And yet the words someone carved are traced by someone else. That chain—that is what a community is.'),
+  NoahLine(_p, '"See you tomorrow"—three hundred and thirty years from now…'),
+  NoahLine(_n, 'The 18th green splits open, and the Ark "Noah" rises.'),
+  NoahLine(_n, 'The water of Lake Oike bursts into mist, a curtain of steam swallowing all sound. The golf course vitrifies in the launch heat, then dissolves into the black of space.'),
+  NoahLine(_d, 'Today\'s hole, par 4. Distance to the green—forty-nine light-years.', who: 'Director'),
+  NoahLine(_n, 'The pod lid closes. Cold sleep wraps around you.'),
+  NoahLine(_n, 'The next time you open your eyes—will you remember?'),
+];
+
+const List<NoahLine> kNoahAwakeEn = [
+  NoahLine(_n, '—Three hundred and thirty years.'),
+  NoahLine(_n, 'The lid opens. Cold air. Your cells wake up, one by one.'),
+  NoahLine(_n, 'You see the ceiling. A date is displayed. You can remember your own name.'),
+  NoahLine(_n, 'The wall that said "see you tomorrow" is nowhere.'),
+  NoahLine(_p, '(…Then, what about that person?)'),
+  NoahLine(_n, 'Someone stirs in the next pod.'),
+  NoahLine(_n, 'The face looks familiar. But—the name won\'t come.'),
+];
+
+const List<NoahLine> kNoahClimaxEn = [
+  NoahLine(_n, 'Deceleration phase, begin.'),
+  NoahLine(_n, 'A magnetic sail hundreds of kilometers across unfurls, catching the stellar wind to brake. If this fails, the ship will overshoot the star and drift into the void.'),
+  NoahLine(_n, 'Sail deployment—stalled at seventy-three percent.'),
+  NoahLine(_c, 'Four minutes. We have four minutes to open it.'),
+  NoahLine(_c, 'Fusion output—divert everything to the sail.'),
+  NoahLine(_p, 'Sector Three, temperature is spiking!'),
+  NoahLine(_n, 'No one responds.'),
+  NoahLine(_n, '—No. It\'s not just your voice. Everyone is shouting at everyone else. The comms are a tangle of screams.'),
+  NoahLine(_n, 'Five hundred people, and you are alone again.'),
+  NoahLine(_p, '…Sector Three, route coolant now!'),
+  NoahLine(_c, 'Heard. Sector Three, coolant routed.'),
+  NoahLine(_n, 'That one acknowledgement loosens the knot in your shoulders.'),
+  NoahLine(_n, 'Just like at orientation. One person notices, and you can stand again.'),
+  NoahLine(_c, 'Send the robots outside. Bring everyone home.'),
+  NoahLine(_c, 'Life support to minimum. Protect the lives.'),
+  NoahLine(_c, 'Starboard, tilt three degrees. The heat won\'t hold.'),
+  NoahLine(_c, 'Hold your breath. It\'ll be fine.'),
+  NoahLine(_n, 'Sail, one hundred percent deployed.'),
+  NoahLine(_n, 'Deceleration complete.'),
+  NoahLine(_n, 'Beyond the window—a small red sun, and a planet with dark blue seas.'),
+  NoahLine(_n, 'Before we land, there is one more thing to confirm.'),
+];
+
+const List<NoahLine> kNoahWhyNamesEn = [
+  NoahLine(_p, 'Can I ask you something?'),
+  NoahLine(_p, 'Is remembering names really that important? All the data is in the ship\'s database.'),
+  NoahLine(_d, 'It is.', who: 'Director'),
+  NoahLine(_d, 'The database can tell you who is who. But it can\'t call their name.', who: 'Director'),
+  NoahLine(_d, 'Three hundred and thirty years from now, five hundred people will wake up at the same time. Every one of them has lost part of their memory.', who: 'Director'),
+  NoahLine(_d, 'The first thing that will happen is not panic, or looting.', who: 'Director'),
+  NoahLine(_d, 'It\'s silence.', who: 'Director'),
+  NoahLine(_d, 'Someone is next to you, and you can\'t speak to them—because you don\'t know their name.', who: 'Director'),
+  NoahLine(_n, 'The director was quiet for a long moment.'),
+  NoahLine(_d, 'When someone calls your name, you know you are here.', who: 'Director'),
+  NoahLine(_d, 'That\'s all it is. And that small thing is what turns five hundred people into a community.', who: 'Director'),
+  NoahLine(_d, 'So remember. As many as you can.', who: 'Director'),
+  NoahLine(_d, 'The size of this ship depends on the number of names you can carry.', who: 'Director'),
+];
+
+const List<NoahLine> kNoahBeforeResultEn = [
+  NoahLine(_n, 'Landing preparations.'),
+  NoahLine(_n, 'Outside the window, a small red sun reflects off the sea. Only the terminator zone—the strip between day and night—had the right temperature.'),
+  NoahLine(_n, 'The passenger manifest is read aloud.'),
+];
+
+const List<NoahDate> kNoahDatesEn = [
+  NoahDate('The Artificial River', 'Ninety-nine percent of the water in this river was once drunk by someone three hundred years ago. It circulates.'),
+  NoahDate('Food Court', 'Algae steak and cricket tempura. The soy sauce is from yeast cultures brought all the way from Earth.'),
+  NoahDate('Karaoke', 'Some frequencies seem to resonate with the ship\'s rotation. At certain notes, the floor hums.'),
+  NoahDate('Department Store', 'Nothing on this ship is new. Everything is recycled. So the repair workers are the most respected people here.'),
+  NoahDate('Tennis Court', 'Half gravity. The ball falls slowly, curving slightly with the Coriolis force.'),
+  NoahDate('Observation Deck', 'The window shows nothing but black. The stars don\'t move. For three hundred and thirty years, almost the same view.'),
+  NoahDate('Old Fairway Footage', 'Video from the morning of the launch. The 18th pin flag stands alone, still planted.'),
+];
+
+const List<NoahNote> kNoahNotesEn = [
+  NoahNote(
+    'Say it out loud',
+    'Words you speak or write yourself tend to be recalled more easily than words you only heard. When you receive a business card, say the person\'s name aloud right there. Even that small act gives you more hooks for memory.',
+    'MacLeod et al. (2010) — the production effect',
+  ),
+  NoahNote(
+    'Retrieval is the best practice',
+    'Given the same amount of time, hiding the information and trying to recall it leads to longer retention than re-reading. The constant testing on this ship isn\'t cruelty.',
+    'Roediger & Karpicke (2006) — the testing effect',
+  ),
+  NoahNote(
+    'Names are uniquely hard to remember',
+    'The same word "Baker" as a surname is harder to recall than "baker" as a profession. Names tell you nothing about the person, so they have few places to stick.',
+    'McWeeny et al. (1987) — the Baker/baker paradox',
+  ),
+  NoahNote(
+    'Attach meaning',
+    'Information connected to facial features or personal stories sticks better. "Hibino who does pottery." "Kiryu who plays Go." Learning hobbies first gives names something to hold onto.',
+    'Craik & Tulving (1975) — levels of processing',
+  ),
+  NoahNote(
+    'Connect it to yourself',
+    'Information related to yourself is recalled more easily than neutral information. Remembering "where I met this person" can help later.',
+    'Rogers et al. (1977) — self-reference effect',
+  ),
+  NoahNote(
+    'Space it out, come back',
+    'Rather than trying to memorize everything in one go, spacing out recall sessions leads to better long-term retention. Though 330 years might be a bit much.',
+    'Spacing effect research since Ebbinghaus',
+  ),
+];

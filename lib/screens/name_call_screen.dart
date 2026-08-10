@@ -567,27 +567,27 @@ class _NameCallScreenState extends State<NameCallScreen>
   String _uniqueGachaName() {
     final ja = PlatformDispatcherLocale.isJa;
     final used = _game.roster.values.toSet();
-    // 🏷 実在しそうな苗字から選ぶ。造語のガチャ名だと
+    // 🏷 実在しそうな名前から選ぶ。造語のガチャ名だと
     //    「人の名前を覚える」練習として現実味がないため。
-    final pool = [...kCommonSurnames]..shuffle(_rng);
+    final pool = [...commonNamePool(ja)]..shuffle(_rng);
     for (final s in pool) {
-      final n = surnameWithHonorific(s, ja);
+      final n = formatNameForLocale(s, ja);
       if (!used.contains(n)) return n;
     }
     // 100人ぶん使い切ったときだけ番号を足して必ず一意にする
-    return '${surnameWithHonorific(pool.first, ja)}${used.length + 1}';
+    return '${formatNameForLocale(pool.first, ja)}${used.length + 1}';
   }
 
   /// クイズの4択を作る。名簿の名前が4つに満たないとき（出たとき命名の序盤や
-  /// 少人数のカスタム名簿）は、実在しそうな苗字で4つまで補充する。
+  /// 少人数のカスタム名簿）は、実在しそうな名前で4つまで補充する。
   List<String> _buildChoices(Person card) {
     // ⚠️ 以前はおなまえガチャの造語（カタカナ）で埋めていたが、
     //    「モジャモン」のような選択肢が並ぶと明らかに正解でないと分かり、
-    //    4択が実質2択になってしまう。実在しそうな苗字で埋める。
+    //    4択が実質2択になってしまう。実在しそうな名前で埋める。
     final ja = PlatformDispatcherLocale.isJa;
     return _game.choicesFor(
       card,
-      filler: [for (final sn in kCommonSurnames) surnameWithHonorific(sn, ja)],
+      filler: [for (final n in commonNamePool(ja)) formatNameForLocale(n, ja)],
     );
   }
 
