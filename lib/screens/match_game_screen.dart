@@ -893,7 +893,8 @@ class _MatchGameScreenState extends State<MatchGameScreen>
           children: [
             Expanded(
               child: switch (_phase) {
-                _Phase.memorize => _buildMemorize(m),
+                _Phase.memorize =>
+                    _vsCpu ? _buildCpuMemorize(m) : _buildMemorize(m),
                 _Phase.recall => _buildCpuRecall(m),
                 _Phase.hobbyQuiz => _buildHobbyQuiz(m),
                 _Phase.nameReview => _buildNameReview(m),
@@ -914,53 +915,12 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   }
 
   Widget _buildMemorize(MetaStrings m) {
+    // CPU対戦は顔を大きく覚えやすく
+    if (_vsCpu) return _buildCpuMemorize(m);
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
-          // 🤖 CPU対戦の相手表示
-          if (_vsCpu) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFFF8FC0), width: 1.5),
-              ),
-              child: Row(
-                children: [
-                  Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 28)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_cpuPersona.name,
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w900,
-                                color: Color(0xFFE8663C))),
-                        Text('${m.ja ? '趣味' : 'Hobby'}: ${_cpuPersona.hobby}',
-                            style: const TextStyle(
-                                fontSize: 11.5, color: Color(0xFF6A5A6A))),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    switch (widget.cpuLevel!) {
-                      CpuLevel.easy => Icons.star_border,
-                      CpuLevel.normal => Icons.star_half,
-                      CpuLevel.hard => Icons.star,
-                      CpuLevel.oni => Icons.whatshot,
-                      CpuLevel.god => Icons.bolt,
-                    },
-                    color: const Color(0xFFE8A400), size: 24),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -974,11 +934,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _vsCpu
-                        ? (m.ja
-                            ? '${_cpuPersona.name}と対戦。顔と名前を覚えてね！'
-                            : 'vs ${_cpuPersona.name}. Remember faces & names!')
-                        : m.memorizePrompt,
+                    m.memorizePrompt,
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w900),
                   ),
@@ -1457,6 +1413,155 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       ),
   ],
 );
+  }
+
+  // 🤖 CPU対戦の覚えタイム: 顔が大きく、残り時間がわかる
+  Widget _buildCpuMemorize(MetaStrings m) {
+    final totalSec = switch (widget.cpuLevel!) {
+      CpuLevel.easy => 12, CpuLevel.normal => 9, CpuLevel.hard => 6,
+      CpuLevel.oni => 4, CpuLevel.god => 2,
+    };
+    final progress = totalSec > 0 ? _memorizeLeft / totalSec : 0.0;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
+      child: Column(
+        children: [
+          // CPU対戦相手カード
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFE3EE), Color(0xFFD8F0FF)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFFF8FC0), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 26)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_cpuPersona.name,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900,
+                              color: Color(0xFFE8663C))),
+                      Text('${m.ja ? '趣味' : 'Hobby'}: ${_cpuPersona.hobby}',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF6A5A6A))),
+                    ],
+                  ),
+                ),
+                Icon(
+                  switch (widget.cpuLevel!) {
+                    CpuLevel.easy => Icons.star_border,
+                    CpuLevel.normal => Icons.star_half,
+                    CpuLevel.hard => Icons.star,
+                    CpuLevel.oni => Icons.whatshot,
+                    CpuLevel.god => Icons.bolt,
+                  },
+                  color: const Color(0xFFE8A400), size: 22),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          // 🎯 一致させよう！案内 + 残り時間バー
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF3FF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF3A7BD5), width: 1.5),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Text('🎯', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        m.ja ? '顔と名前を一致させよう！' : 'Match the face to the name!',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    Text('$_memorizeLeft s',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900,
+                            color: Color(0xFF3A7BD5))),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress.clamp(0.0, 1.0),
+                    minHeight: 6,
+                    backgroundColor: const Color(0xFFCFE3F8),
+                    color: _memorizeLeft <= 3
+                        ? const Color(0xFFC62828)
+                        : const Color(0xFF3A7BD5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          // 🧑‍🎨 顔と名前グリッド — 1列で大きく
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _recallPeople >= 8 ? 2 : 1,
+                mainAxisSpacing: 6,
+                crossAxisSpacing: 8,
+                childAspectRatio: _recallPeople >= 8 ? 2.2 : 0.85,
+              ),
+              itemCount: _people.length,
+              itemBuilder: (context, i) {
+                final p = _people[i];
+                return Container(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFD8E4F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      FaceView(person: p, size: _recallPeople >= 10 ? 56 : 72, radius: 10),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          p.name,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w900),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          // はじめるボタン
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _startCpuRecall,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3A7BD5),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(46),
+              ),
+              child: Text(m.memorizeDone,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBoard(MetaStrings m) {
