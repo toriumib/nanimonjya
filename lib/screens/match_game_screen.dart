@@ -55,7 +55,7 @@ class MatchGameScreen extends StatefulWidget {
   State<MatchGameScreen> createState() => _MatchGameScreenState();
 }
 
-enum _Phase { memorize, playing, hobbyQuiz, nameReview, finished }
+enum _Phase { memorize, playing, recall, hobbyQuiz, nameReview, finished }
 
 class _CardData {
   final Person person;
@@ -105,6 +105,22 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   late final CpuPersona _cpuPersona;
   String? _cpuQuip; // いま表示している口癖
   int _cpuQuipsSaid = 0;
+
+  // ⚡ CPUリコールバトル: おぼえたあとに顔を1人ずつ出題、名前を当てるレース
+  late final int _recallPeople; // 覚える人数（難易度で変わる）
+  List<Person> _recallQueue = []; // まだ正解していない人のキュー
+  int _recallQueueIdx = 0; // いま出題している人
+  List<String> _recallChoices = []; // 現在の選択肢
+  int _playerCorrect = 0; // プレイヤーの正解数
+  int _cpuCorrect = 0; // CPUの正解数
+  final Set<String> _playerDone = {}; // プレイヤーが正解した人のface
+  final Set<String> _cpuDone = {}; // CPUが正解した人のface
+  bool _recallAnswerLocked = false;
+  String? _recallPicked;
+  Timer? _cpuRecallTimer;
+  DateTime? _recallShownAt;
+  final List<int> _recallReactionMs = [];
+
   // 🤖 CPUが取ったペア（おさらい用）
   final List<Person> _cpuPairsWon = [];
   final List<Person> _playerPairsWon = [];
@@ -149,12 +165,18 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       },
     );
     final ja = PlatformDispatcherLocale.isJa;
-    // 🖼 顔はフリー素材の実写にする（SVGのイラスト顔だと、実生活で
-    //    人の顔を覚える練習にならないため）。
-    //    オンラインは両者の盤面が一致しないと成立しないので、
-    //    購入キャラやデッキ編集を混ぜず、誰でも持っている基本の顔だけを使う。
+    // ⚡ CPUリコールバトルの人数（難易度で変わる）
+    _recallPeople = switch (widget.cpuLevel) {
+      CpuLevel.easy => 2,
+      CpuLevel.normal => 3,
+      CpuLevel.hard => 5,
+      CpuLevel.oni => 10,
+      _ => 3,
+    };
+    // 🖼 顔はフリー素材の実写にする
+    final totalPeople = _vsCpu ? _recallPeople : _pairCount;
     _people = generatePeople(
-      _pairCount,
+      totalPeople,
       ja: ja,
       random: _rng,
       charAssets: _isOnline
@@ -168,9 +190,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
               PlayerProfile.instance.deckExcluded,
             ),
     );
-    _cards = [
-      for (final p in _people) ...[_CardData(p, true), _CardData(p, false)],
-    ]..shuffle(_rng);
+    _cards = _vsCpu
+        ? []
+        : [
+            for (final p in _people) ...[_CardData(p, true), _CardData(p, false)],
+          ]..shuffle(_rng);
     // 📊 おぼえタイムで顔と名前を見せる＝「会った」。ここを記録しておくと、
     // このあとのペア当てが「2回目」として定着率の対象になる。
     if (_vsCpu) {
@@ -187,16 +211,16 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       _memorizeTimer = Timer.periodic(
           const Duration(milliseconds: 500), (_) => _tickOnlineMemorize());
     } else {
-      // おぼえタイム: 1ペアあたり3秒 + ガイド時は読み時間を足す
-      _memorizeLeft = _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
+      // おぼえタイム: CPUリコールバトルは1人3秒、カード対戦は1ペア3秒
+      _memorizeLeft = _vsCpu
+          ? _recallPeople * 3
+          : _pairCount * 3 + (widget.mnemonicGuide ? 6 : 0);
       _memorizeTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-        // 画面破棄後もタイマーが回り続けないよう、ここで止める
-        if (!mounted) {
-          t.cancel();
-          return;
-        }
+        if (!mounted) { t.cancel(); return; }
         setState(() => _memorizeLeft -= 1);
-        if (_memorizeLeft <= 0) _startPlaying(); // 中で cancel される
+        if (_memorizeLeft <= 0) {
+          if (_vsCpu) _startCpuRecall(); else _startPlaying();
+        }
       });
     }
     AppAnalytics.gameStart(
@@ -281,13 +305,24 @@ class _MatchGameScreenState extends State<MatchGameScreen>
 
   int get _progressPct {
     if (_phase == _Phase.memorize) return 0;
+    if (_vsCpu && _phase == _Phase.recall) {
+      final done = _playerCorrect + _cpuCorrect;
+      return _recallPeople == 0 ? 0 : done * 100 ~/ (_recallPeople * 2);
+    }
+    if (_phase == _Phase.nameReview || _phase == _Phase.finished) return 100;
     final matched = _cards.where((c) => c.matched).length;
     return _cards.isEmpty ? 0 : matched * 100 ~/ _cards.length;
   }
 
-  int get _currentCard => _cards.where((c) => c.matched || c.revealed).length;
+  int get _currentCard {
+    if (_vsCpu) return _playerCorrect + _cpuCorrect;
+    return _cards.where((c) => c.matched || c.revealed).length;
+  }
 
-  int get _totalCards => _cards.length;
+  int get _totalCards {
+    if (_vsCpu) return _recallPeople * 2;
+    return _cards.length;
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -318,7 +353,6 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   }
 
   void _finishBoard() {
-    // 一人特訓のレベル3+は趣味クイズへ
     if (_isSolo && widget.level >= 3) {
       _quizTargets
         ..clear()
@@ -329,12 +363,153 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       setState(() => _phase = _Phase.hobbyQuiz);
       return;
     }
-    // 🤖 CPU対戦は名前おさらいを表示
     if (_vsCpu) {
+      // CPUリコールバトルではここは通らない（_finishCpuRecallが使われる）
       setState(() => _phase = _Phase.nameReview);
       return;
     }
     _goToResult();
+  }
+
+  // ⚡ CPUリコールバトル — おぼえた顔を1人ずつランダムに出題し名前を当てるレース
+
+  void _startCpuRecall() {
+    _memorizeTimer?.cancel();
+    _recallQueue = [..._people]..shuffle(_rng);
+    _recallQueueIdx = 0;
+    _playerCorrect = 0;
+    _cpuCorrect = 0;
+    _playerDone.clear();
+    _cpuDone.clear();
+    _recallAnswerLocked = false;
+    _recallPicked = null;
+    _buildRecallChoices(_recallQueue[0]);
+    setState(() => _phase = _Phase.recall);
+    _recallShownAt = DateTime.now();
+    // CPUが一定間隔で正解していく
+    _startCpuRecallTimer();
+  }
+
+  void _buildRecallChoices(Person target) {
+    final ja = PlatformDispatcherLocale.isJa;
+    // 全員の名前を選択肢にして + 足りなければ実名で補充
+    final names = _people.map((p) => _gameName(p, ja)).toSet();
+    final all = [...names]..shuffle(_rng);
+    // 正解が先頭に来ないようにする（答えが一番上だと即バレ）
+    if (all.first == _gameName(target, ja)) {
+      all.shuffle(_rng);
+    }
+    _recallChoices = all;
+  }
+
+  String _gameName(Person p, bool ja) => _people.length <= 4
+      ? p.name // 少人数なら名前だけで十分識別できる
+      : p.name;
+
+  void _answerRecall(String choice) {
+    if (_recallAnswerLocked) return;
+    _recallAnswerLocked = true;
+    final target = _recallQueue[_recallQueueIdx];
+    final ja = PlatformDispatcherLocale.isJa;
+    final correct = choice == _gameName(target, ja);
+    final shownAt = _recallShownAt;
+    if (shownAt != null) {
+      _recallReactionMs.add(DateTime.now().difference(shownAt).inMilliseconds);
+    }
+    if (correct) {
+      _playerCorrect += 1;
+      _playerDone.add(target.face);
+      _playerPairsWon.add(target);
+      Sfx.instance.correct();
+    } else {
+      Sfx.instance.wrong();
+    }
+    _recallPicked = choice;
+    setState(() {});
+
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      if (correct) {
+        // 正解ならその人は消える。残りを次のキューに
+        _recallQueue.removeAt(_recallQueueIdx);
+        if (_recallQueue.isEmpty) {
+          _finishCpuRecall();
+          return;
+        }
+        // まだ残っている人のうち、プレイヤーがまだ正解してない人→優先
+        final remaining = _recallQueue
+            .where((p) => !_playerDone.contains(p.face))
+            .toList();
+        if (remaining.isEmpty) {
+          _finishCpuRecall();
+          return;
+        }
+        _recallQueueIdx = remaining.length > 1
+            ? _recallQueue.indexOf(remaining[_rng.nextInt(remaining.length)])
+            : _recallQueue.indexOf(remaining.first);
+      } else {
+        // 不正解ならその人はキューの最後に回る
+        final missed = _recallQueue.removeAt(_recallQueueIdx);
+        _recallQueue.add(missed);
+        _recallQueueIdx = _recallQueue.length - 1;
+        // 次の人へ（いなければ最初から）
+        if (_recallQueueIdx >= _recallQueue.length) _recallQueueIdx = 0;
+      }
+      _recallPicked = null;
+      _recallAnswerLocked = false;
+      _buildRecallChoices(_recallQueue[_recallQueueIdx]);
+      _recallShownAt = DateTime.now();
+      if (mounted) setState(() {});
+    });
+  }
+
+  void _startCpuRecallTimer() {
+    final (intervalMs, accuracy, speedMs) = switch (widget.cpuLevel!) {
+      CpuLevel.easy => (2800, 0.45, 3200),
+      CpuLevel.normal => (2000, 0.60, 2400),
+      CpuLevel.hard => (1400, 0.78, 1800),
+      CpuLevel.oni => (800, 0.92, 1200),
+    };
+    _cpuRecallTimer?.cancel();
+    _cpuRecallTimer = Timer.periodic(Duration(milliseconds: intervalMs), (_) {
+      if (!mounted || _recallQueue.isEmpty) return;
+      // CPUがまだ正解してない人からランダムに「思い出す」
+      final remaining = _recallQueue
+          .where((p) => !_cpuDone.contains(p.face))
+          .toList();
+      if (remaining.isEmpty) return;
+      if (_rng.nextDouble() < accuracy) {
+        final picked = remaining[_rng.nextInt(remaining.length)];
+        _cpuDone.add(picked.face);
+        _cpuCorrect += 1;
+        _cpuPairsWon.add(picked);
+        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid);
+        _cpuQuipsSaid += 1;
+        if (mounted) setState(() {});
+        Future.delayed(const Duration(milliseconds: 1800), () {
+          if (mounted) setState(() => _cpuQuip = null);
+        });
+        // CPUが全員終わったら終了
+        if (_cpuDone.length >= _recallPeople) {
+          _finishCpuRecall();
+          return;
+        }
+      }
+    });
+  }
+
+  void _finishCpuRecall() {
+    _cpuRecallTimer?.cancel();
+    // もう出題する人がいない or CPUが全問正解した
+    _cpuTimer?.cancel();
+    _attempts = _playerCorrect + (_recallPicked != null
+        ? _recallQueue.length - _playerCorrect
+        : 0);
+    _matches = _playerCorrect;
+    _pairsWon[0] = _playerCorrect;
+    _pairsWon[1] = _cpuCorrect;
+    // 古いカード型の変数も埋めておく（_goToResultで使う）
+    setState(() => _phase = _Phase.nameReview);
   }
 
   void _prepareQuizChoices() {
@@ -691,6 +866,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
             Expanded(
               child: switch (_phase) {
                 _Phase.memorize => _buildMemorize(m),
+                _Phase.recall => _buildCpuRecall(m),
                 _Phase.hobbyQuiz => _buildHobbyQuiz(m),
                 _Phase.nameReview => _buildNameReview(m),
                 _ => _buildBoard(m),
@@ -986,6 +1162,152 @@ class _MatchGameScreenState extends State<MatchGameScreen>
             ),
           ),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  // ⚡ CPUリコールバトルのUI — 顔が出て名前を選ぶ
+  Widget _buildCpuRecall(MetaStrings m) {
+    if (_recallQueue.isEmpty) return const SizedBox.shrink();
+    final person = _recallQueue[_recallQueueIdx];
+    final answered = _recallPicked != null;
+    final correct = answered && _playerDone.contains(person.face);
+    final total = _recallPeople;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Column(
+        children: [
+          // スコアバー
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3A7BD5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('😀 ${m.you}',
+                          style: const TextStyle(fontSize: 10, color: Color(0xCCFFFFFF))),
+                      Text('$_playerCorrect / $total',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8A5AC2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('${_cpuPersona.emoji} ${_cpuPersona.name}',
+                          style: const TextStyle(fontSize: 10, color: Color(0xCCFFFFFF))),
+                      Text('$_cpuCorrect / $total',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // 顔カード
+          Expanded(
+            flex: 3,
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  key: ValueKey(person.face),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: answered
+                          ? (correct ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
+                          : const Color(0xFFD8E4F0),
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: answered && correct
+                            ? const Color(0xFF2E9E5B).withValues(alpha: 0.3)
+                            : Colors.black.withValues(alpha: 0.08),
+                        blurRadius: answered && correct ? 20 : 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FaceView(person: person, size: 200, radius: 16),
+                      const SizedBox(height: 12),
+                      if (answered)
+                        Text(
+                          correct ? _gameName(person, m.ja) : '？',
+                          style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: correct ? const Color(0xFF2E9E5B) : const Color(0xFFC62828)),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // 名前選択肢
+          Expanded(
+            flex: 2,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 6,
+                crossAxisSpacing: 6,
+                childAspectRatio: 3.0,
+              ),
+              itemCount: _recallChoices.length,
+              itemBuilder: (context, i) {
+                final choice = _recallChoices[i];
+                final isCorrect = choice == _gameName(person, m.ja);
+                Color bg = const Color(0xFF5AD1FF);
+                Color fg = const Color(0xFF05070F);
+                if (answered) {
+                  if (isCorrect) {
+                    bg = const Color(0xFF2E9E5B); fg = Colors.white;
+                  } else if (choice == _recallPicked) {
+                    bg = const Color(0xFFFF7A7A); fg = Colors.white;
+                  } else {
+                    bg = const Color(0xFF44506B); fg = const Color(0xFF8899BB);
+                  }
+                }
+                return ElevatedButton(
+                  onPressed: answered ? null : () => _answerRecall(choice),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: bg,
+                    foregroundColor: fg,
+                    disabledBackgroundColor: bg,
+                    disabledForegroundColor: fg,
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+                  ),
+                  child: Text(choice, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
