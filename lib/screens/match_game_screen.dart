@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../l10n/meta_strings.dart';
@@ -120,6 +121,10 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   Timer? _cpuRecallTimer;
   DateTime? _recallShownAt;
   final List<int> _recallReactionMs = [];
+  int _recallCombo = 0; // 🔥 連続正解
+  int _recallBestCombo = 0;
+  int _recallSparkleKey = 0; // ✨ 金キラ
+  bool _recallVictory = false; // 🏆 勝利演出
 
   // 🤖 CPUが取ったペア（おさらい用）
   final List<Person> _cpuPairsWon = [];
@@ -429,12 +434,28 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       _playerCorrect += 1;
       _playerDone.add(target.face);
       _playerPairsWon.add(target);
-      Sfx.instance.correct();
+      _recallCombo += 1;
+      if (_recallCombo > _recallBestCombo) _recallBestCombo = _recallCombo;
+      _recallSparkleKey += 1; // ✨ 金キラ発動
+      // 🔥 連続で盛り上げる
+      if (_recallCombo >= 5) {
+        HapticFeedback.heavyImpact();
+        Sfx.instance.get();
+      } else if (_recallCombo >= 3) {
+        HapticFeedback.mediumImpact();
+        Sfx.instance.correct();
+      } else {
+        HapticFeedback.lightImpact();
+        Sfx.instance.correct();
+      }
+      // 全問正解でクリア → 勝利演出
+      if (_playerCorrect >= _recallPeople) _recallVictory = true;
     } else {
+      _recallCombo = 0;
       Sfx.instance.wrong();
+      HapticFeedback.mediumImpact();
     }
     _recallPicked = choice;
-    // 正解した人はキューから消える。まちがえても次の人へ（一度きりの勝負）
     _recallQueue.removeAt(_recallQueueIdx);
     setState(() {});
 
@@ -1178,39 +1199,80 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     final answered = _recallPicked != null;
     final correct = answered && _playerDone.contains(person.face);
     final total = _recallPeople;
+    final hotCombo = _recallCombo >= 3; // 🔥 3連続から熱く
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Column(
-        children: [
-          // スコアバー
-          Row(
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Column(
             children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3A7BD5),
-                    borderRadius: BorderRadius.circular(12),
+              // スコアバー
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3A7BD5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('😀 ${m.you}',
+                                  style: const TextStyle(fontSize: 10, color: Color(0xCCFFFFFF))),
+                              if (_recallCombo >= 2)
+                                TweenAnimationBuilder<double>(
+                                  key: ValueKey('combo$_recallCombo'),
+                                  tween: Tween(begin: 0.4, end: 1),
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.elasticOut,
+                                  builder: (_, v, child) =>
+                                      Transform.scale(scale: v, child: child),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(left: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      gradient: hotCombo
+                                          ? const LinearGradient(colors: [
+                                              Color(0xFFFF6A3D),
+                                              Color(0xFFFFC02E)
+                                            ])
+                                          : const LinearGradient(colors: [
+                                              Color(0xFF62B6FF),
+                                              Color(0xFF7BE0C8)
+                                            ]),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      hotCombo ? '🔥$_recallCombo' : '$_recallCombo',
+                                      style: const TextStyle(
+                                          fontFamily: 'DelaGothicOne',
+                                          fontSize: 11,
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          Text('$_playerCorrect / $total',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      Text('😀 ${m.you}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xCCFFFFFF))),
-                      Text('$_playerCorrect / $total',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8A5AC2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8A5AC2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                   child: Column(
                     children: [
                       Text('${_cpuPersona.emoji} ${_cpuPersona.name}',
@@ -1314,7 +1376,83 @@ class _MatchGameScreenState extends State<MatchGameScreen>
           ),
         ],
       ),
-    );
+    ),
+    // ✨ 正解時に金キラ
+    if (_recallSparkleKey > 0)
+      Positioned.fill(
+        child: IgnorePointer(
+          key: ValueKey('sparkle$_recallSparkleKey'),
+          child: Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (_, t, child) => Opacity(
+                opacity: (1 - t).clamp(0.0, 1.0),
+                child: Transform.scale(
+                  scale: 0.5 + t * 2.0,
+                  child: child,
+                ),
+              ),
+              child: Container(
+                width: 140, height: 140,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Color(0x55FFD700),
+                      Color(0x33FFC02E),
+                      Color(0x00FFA500),
+                    ],
+                    stops: [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    // 🏆 全問正解で紙吹雪
+    if (_recallVictory)
+      Positioned.fill(
+        child: IgnorePointer(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: const Duration(milliseconds: 1500),
+            builder: (_, t, child) {
+              return Opacity(
+                opacity: (1 - t).clamp(0.0, 1.0),
+                child: child,
+              );
+            },
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    Color(0x44FFD700),
+                    Color(0x22FFC02E),
+                    Color(0x00FFFFFF),
+                  ],
+                ),
+              ),
+              child: const Center(
+                child: Text('🔥 PERFECT! 🔥',
+                    style: TextStyle(
+                      fontFamily: 'DelaGothicOne',
+                      fontSize: 38,
+                      color: Color(0xFFFFC02E),
+                      shadows: [
+                        Shadow(offset: Offset(0, 3), blurRadius: 6, color: Color(0xAA000000)),
+                        Shadow(offset: Offset(0, 0), blurRadius: 20, color: Color(0x88FFD700)),
+                      ],
+                    )),
+              ),
+            ),
+          ),
+        ),
+      ),
+  ],
+);
   }
 
   Widget _buildBoard(MetaStrings m) {
