@@ -238,19 +238,18 @@ def post_bluesky(handle: str, app_password: str, text: str, image_path: str = No
             "$type": "app.bsky.embed.images",
             "images": [{"image": thumb_blob, "alt": "PetaName app screenshot"}],
         }
-        # ファセット（リンクのクリック可能化）
+    # Add clickable link facet if URL is in the text
+    u_pos = text.find(APP_URL)
+    full_url = True
+    if u_pos == -1:
+        u_pos = text.find("web-sigma-drab-72.vercel.app")
+        full_url = False
+    if u_pos >= 0:
+        u_end = u_pos + (len(APP_URL) if full_url else len("web-sigma-drab-72.vercel.app"))
         record["record"]["facets"] = [
             {
-                "index": {
-                    "byteStart": text.find(APP_URL),
-                    "byteEnd": text.find(APP_URL) + len(APP_URL),
-                },
-                "features": [
-                    {
-                        "$type": "app.bsky.richtext.facet#link",
-                        "uri": APP_URL,
-                    }
-                ],
+                "index": {"byteStart": u_pos, "byteEnd": u_end},
+                "features": [{"$type": "app.bsky.richtext.facet#link", "uri": APP_URL}],
             }
         ]
 
@@ -296,7 +295,7 @@ def cmd_post(args):
         if ogp.exists():
             image = str(ogp)
 
-    print(f"Post: {text[:80]}...")
+    print(f"Post: {text[:80]}...".encode('ascii', errors='replace').decode())
     ok = True
 
     if args.platform in ("mastodon", "all"):
