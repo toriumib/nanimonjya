@@ -10,6 +10,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
+import 'ai_clone_screen.dart';
 import '../services/custom_roster_service.dart';
 import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
@@ -824,7 +825,26 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          // 🤖 AIクローン
+          OutlinedButton.icon(
+            onPressed: () {
+              Sfx.instance.fanfare();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiCloneScreen()),
+              );
+            },
+            icon: const Icon(Icons.auto_awesome, size: 16),
+            label: Text(m.ja ? '🤖 AIの自分を作る（新機能）' : '🤖 Create your AI clone (NEW)',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF5AD1FF),
+              side: const BorderSide(color: Color(0xFF5AD1FF)),
+              minimumSize: const Size.fromHeight(40),
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
