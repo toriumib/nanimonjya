@@ -10,6 +10,7 @@ import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../models/cpu_persona.dart';
 import '../models/person.dart';
+import '../models/surnames.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
 import '../services/app_analytics.dart';
@@ -406,26 +407,34 @@ class _MatchGameScreenState extends State<MatchGameScreen>
 
   void _buildRecallChoices(Person target) {
     final ja = PlatformDispatcherLocale.isJa;
-    // 全員の名前を選択肢にして + 足りなければ実名で補充
-    final names = _people.map((p) => _gameName(p, ja)).toSet();
+    final answer = target.name;
+    // 全登場人物の名前 + 実名プールから常に4択以上に補充
+    final names = <String>{answer};
+    for (final p in _people) {
+      names.add(p.name);
+    }
+    // 足りなければcommonNamePoolから補充
+    final filler = commonNamePool(ja).map((n) => formatNameForLocale(n, ja));
+    for (final n in filler) {
+      if (names.length >= max(6, _people.length + 3)) break;
+      names.add(n);
+    }
     final all = [...names]..shuffle(_rng);
-    // 正解が先頭に来ないようにする（答えが一番上だと即バレ）
-    if (all.first == _gameName(target, ja)) {
-      all.shuffle(_rng);
+    // 正解が先頭に来ないようにする
+    if (all.first == answer) all.shuffle(_rng);
+    if (all.first == answer) {
+      // どうしても先頭なら最後と入れ替え
+      final tmp = all[0]; all[0] = all.last; all[all.length - 1] = tmp;
     }
     _recallChoices = all;
   }
-
-  String _gameName(Person p, bool ja) => _people.length <= 4
-      ? p.name // 少人数なら名前だけで十分識別できる
-      : p.name;
 
   void _answerRecall(String choice) {
     if (_recallAnswerLocked || _recallQueue.isEmpty) return;
     _recallAnswerLocked = true;
     final target = _recallQueue[_recallQueueIdx];
     final ja = PlatformDispatcherLocale.isJa;
-    final correct = choice == _gameName(target, ja);
+    final correct = choice == target.name;
     final shownAt = _recallShownAt;
     if (shownAt != null) {
       _recallReactionMs.add(DateTime.now().difference(shownAt).inMilliseconds);
@@ -459,9 +468,8 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     _recallQueue.removeAt(_recallQueueIdx);
     setState(() {});
 
-    // 正解=短く光らせてから次へ、まちがい=即次
-    final delay = correct ? 400 : 0;
-    Future.delayed(Duration(milliseconds: delay), () {
+    // 正解も不正解も即次へ（効果音はすでに鳴っている）
+    Future.delayed(Duration.zero, () {
       if (!mounted) return;
       if (_recallQueue.isEmpty) {
         _finishCpuRecall();
@@ -1322,7 +1330,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                       const SizedBox(height: 12),
                       if (answered)
                         Text(
-                          correct ? _gameName(person, m.ja) : '？',
+                          correct ? person.name : '？',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w900,
@@ -1348,7 +1356,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
               itemCount: _recallChoices.length,
               itemBuilder: (context, i) {
                 final choice = _recallChoices[i];
-                final isCorrect = choice == _gameName(person, m.ja);
+                final isCorrect = choice == person.name;
                 Color bg = const Color(0xFF5AD1FF);
                 Color fg = const Color(0xFF05070F);
                 if (answered) {
