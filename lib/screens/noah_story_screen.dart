@@ -33,6 +33,10 @@ enum _Phase {
   prologue, // 序章
   whyNames, // なぜ名前なのか（物語の主題）
   coldShoulder, // 🥶 無視されるシーン
+  physics, // 🌀 量子重力研 — 時空の構造と名前
+  beforePhysicsMeet, // 物理チーム名刺前口上
+  physicsMeet, // 物理チームの名刺をもらう
+  physicsRecall, // 物理チームの名前を思い出す
   beforeMeeting, // 名刺交換の前口上
   meet, // 名刺をもらう
   beforeSleep, // 出発前夜
@@ -86,6 +90,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.prologue => kNoahPrologue,
         _Phase.whyNames => kNoahWhyNames,
         _Phase.coldShoulder => kNoahColdShoulder,
+        _Phase.physics => kNoahPhysics,
+        _Phase.beforePhysicsMeet => kNoahBeforePhysicsMeet,
         _Phase.beforeMeeting => kNoahBeforeMeeting,
         _Phase.beforeSleep => kNoahBeforeSleep,
         _Phase.awake => kNoahAwake,
@@ -96,6 +102,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.prologue => kNoahPrologueEn,
         _Phase.whyNames => kNoahWhyNamesEn,
         _Phase.coldShoulder => kNoahColdShoulderEn,
+        _Phase.physics => kNoahPhysicsEn,
+        _Phase.beforePhysicsMeet => kNoahBeforePhysicsMeetEn,
         _Phase.beforeMeeting => kNoahBeforeMeetingEn,
         _Phase.beforeSleep => kNoahBeforeSleepEn,
         _Phase.awake => kNoahAwakeEn,
@@ -142,6 +150,13 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.whyNames:
           _phase = _Phase.coldShoulder;
         case _Phase.coldShoulder:
+          _phase = _Phase.physics;
+        case _Phase.physics:
+          _phase = _Phase.beforePhysicsMeet;
+        case _Phase.beforePhysicsMeet:
+          _phase = _Phase.beforeMeeting;
+        case _Phase.physicsMeet:
+        case _Phase.physicsRecall:
           _phase = _Phase.beforeMeeting;
         case _Phase.beforeMeeting:
           _phase = _Phase.meet;

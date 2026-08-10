@@ -879,6 +879,223 @@ String noahGreetLineJa(NoahCharacter c) {
   }
 }
 
+// ── 第2章「宇宙を織りなすもの」── 物理学者たちとの邂逅 ─────
+
+/// 減速成功後、船はLHS 1140 bの周回軌道に入る。
+/// 船内の量子重力研究所から、時空の構造そのものを研究する
+/// 理論物理学者たちが姿を現す。
+/// 彼らは「名前を覚えること」と「現実を観測すること」の
+/// 関係を研究している——なぜなら、この宇宙では
+/// 観測者が現実を決定するからだ。
+///
+/// 登場する概念:
+/// - ミューオン（素粒子）と時空のゆらぎ
+/// - エンタングルメントと空間の創発
+/// - AdS/CFT対応（マルダセナ）
+/// - フォンノイマン・エンタングルメント・エントロピー
+/// - エルゴディック理論
+/// - WIMP（暗黒物質）とウィンプ検出
+/// - エフィーモフ状態
+/// - ダーウィン的宇宙選択
+const List<NoahLine> kNoahPhysics = [
+  NoahLine(NoahVoice.narration, '惑星軌道、安定。'),
+  NoahLine(NoahVoice.narration,
+      'LHS 1140 b の海は、予想よりずっと青かった。'
+      '赤色矮星の光を受けて、夕暮れが永遠に続いている。'),
+  NoahLine(NoahVoice.narration,
+      '船内の全システムが目覚めていく。'
+      'その中に——誰も話したことのない区画があった。'),
+  NoahLine(NoahVoice.director,
+      '「量子重力研究所」……ここにいる連中は、'
+      '船が飛んでいるあいだもずっと起きていた。'
+      '冷凍睡眠を拒否して、三百三十年、研究を続けたんだ。',
+      who: '所長'),
+  NoahLine(NoahVoice.narration, '扉が開く。中は、星図と数式で埋まっていた。'),
+  NoahLine(NoahVoice.narration,
+      '壁一面に張られた紙。ホワイトボードに書かれた矢印。'
+      'コーヒーの空き缶と、かじられたミュー粒子検出器。'),
+  NoahLine(NoahVoice.chara,
+      '——おや。新しい観測者が来たね。'),
+  NoahLine(NoahVoice.narration,
+      '振り返ったのは、白い髪の理論物理学者だった。'),
+  NoahLine(NoahVoice.director,
+      '紹介しよう。ミューオン異常の研究で名を残した、'
+      '理論物理学者のトーマス・ナイジェル博士だ。',
+      who: '所長'),
+  NoahLine(NoahVoice.chara,
+      '「ミューオンはね、標準模型のほころびなんだよ。'
+      '磁気モーメントの値が、理論と合わない。'
+      '重力子がミューオンに影響している証拠かもしれない。」'),
+  NoahLine(NoahVoice.chara,
+      '「この船の加速中に、私たちは面白いものを見つけた。'
+      'エンタングルメントが——時空そのものを生み出している。」'),
+  NoahLine(NoahVoice.narration,
+      '——時空が、量子もつれから生まれる。'),
+  NoahLine(NoahVoice.narration,
+      'その理論は、マルダセナ——アルゼンチン出身の天才物理学者'
+      'ファン・マルダセナ——の AdS/CFT 対応から始まった。'),
+  NoahLine(NoahVoice.narration,
+      '境界の量子論が、内部の時空のすべてを決める。'
+      '宇宙は、ホログラムだ。'),
+  NoahLine(NoahVoice.chara,
+      '「それを発展させたのが、高柳 匡 博士の'
+      'エンタングルメント・エントロピーの公式だ。'
+      'フォンノイマンが考えた情報の尺度が、'
+      '実はアインシュタイン方程式と等価だった。」'),
+  NoahLine(NoahVoice.narration,
+      '——情報＝時空。'),
+  NoahLine(NoahVoice.chara,
+      '「つまりね。名前を覚えることも、時空を織っているんだ。'
+      '誰かの名前を呼ぶとき、あなたは文字通り、'
+      '宇宙の構造を変えている。」'),
+  NoahLine(NoahVoice.player, '名前を呼ぶことが……宇宙を？'),
+  NoahLine(NoahVoice.chara,
+      '「そう。観測が現実を決める——エルゴディックな系では、'
+      'ひとつの軌道がすべての可能状態を覆う。'
+      'ひとりの名前が、宇宙全部を含んでいるんだ。」'),
+  NoahLine(NoahVoice.narration, '壁の数式が、かすかに光って見えた。'),
+  NoahLine(NoahVoice.director,
+      '「彼らは他にもいる。暗黒物質の狩人——'
+      'ウィンプを探す村山 斉 博士のチームだ。」',
+      who: '所長'),
+  NoahLine(NoahVoice.chara,
+      '「村山先生はウィンプ検出器を持ってきたんだ。'
+      'この星の地下で、暗黒物質を捕まえようとしている。'
+      '……いまごろ、地下で掘ってるよ。」'),
+  NoahLine(NoahVoice.narration,
+      'WIMP —— Weakly Interacting Massive Particle。'
+      '宇宙の質量の85%を占める、見えない物質。'),
+  NoahLine(NoahVoice.chara,
+      '「見えないものを探すには、名前をつけるしかない。'
+      '名前をつけた瞬間、それは"ある"んだ。」'),
+  NoahLine(NoahVoice.narration,
+      '——誰かが、「ファインマン」とつぶやいた。'),
+  NoahLine(NoahVoice.chara,
+      '「ああ、ファインマンはすごかった。'
+      '経路積分って、つまり"すべての可能性が同時に起きている"んだ。'
+      '僕たちは、そのひとつを見ているにすぎない。」'),
+  NoahLine(NoahVoice.chara,
+      '「スティーブン・ワインバーグは標準模型を作った。'
+      '『重力ありの標準模型』と『なしの標準模型』——'
+      'その境界こそが、いま僕たちが立っている場所だ。」'),
+  NoahLine(NoahVoice.narration,
+      '部屋の奥で、若い研究者が手を挙げた。'),
+  NoahLine(NoahVoice.chara,
+      '「エフィーモフ状態って知ってる？'
+      '3つの粒子が、本来ありえないくらい遠くで束縛される。'
+      '宇宙がスケール不変だから起きることなんだ。'
+      'これもね、名前をつける前の状態にすごく似てる。」'),
+  NoahLine(NoahVoice.narration,
+      '——ダーウィンは言った。種は進化すると。'),
+  NoahLine(NoahVoice.narration,
+      'だがここでは、**宇宙そのもの**が進化している。'),
+  NoahLine(NoahVoice.chara,
+      '「リー・スモーリンの"ダーウィン的宇宙選択"を聞いたことがあるか？'
+      'ブラックホールの先で新しい宇宙が生まれ、'
+      '物理定数が自然選択される。'
+      '僕たちは、膨大な宇宙のたったひとつの枝で、名前を呼び合っている。」'),
+  NoahLine(NoahVoice.narration,
+      '——レックス・ボイドマン。'),
+  NoahLine(NoahVoice.narration,
+      'その名前が、なぜか頭に浮かんだ。'),
+  NoahLine(NoahVoice.narration,
+      '川崎の夜空を、思い出した。'),
+  NoahLine(NoahVoice.narration,
+      '東京湾の向こうに工場の灯りが揺れて、'
+      'その上を飛行機がひとつ、ゆっくり横切っていく。'),
+  NoahLine(NoahVoice.narration,
+      '地球にはもう、誰もいない。'),
+  NoahLine(NoahVoice.narration,
+      'でも、名前は残っている。'),
+  NoahLine(NoahVoice.chara,
+      '「ショーン・キャロルは言った——"宇宙を織りなすもの"は、'
+      '粒子でも、時空でもない。"関係"なんだと。」'),
+  NoahLine(NoahVoice.chara,
+      '「複雑さ——コンプレキシティ——こそが、'
+      'この宇宙の本当の通貨だ。'
+      '名前を覚えるのに必要なのも、同じものだよ。」'),
+  NoahLine(NoahVoice.narration,
+      '白い髪の博士は、一枚の紙を差し出した。'),
+  NoahLine(NoahVoice.narration, 'そこには、数式がひとつ。'),
+  NoahLine(NoahVoice.narration,
+      r'''I(A:B) = S(A) + S(B) - S(A∪B)'''),
+  NoahLine(NoahVoice.narration,
+      '相互情報量。ふたつの系のあいだで、どれだけの情報が'
+      '共有されているか。'),
+  NoahLine(NoahVoice.chara,
+      '「あなたと、あなたが覚えた人のあいだの情報量だ。'
+      '名前を覚えると、この値が増える。」'),
+  NoahLine(NoahVoice.chara,
+      '「さあ。量子重力研の連中の名前、おぼえてもらおうか。」'),
+];
+
+const List<NoahLine> kNoahPhysicsEn = [
+  NoahLine(_n, 'Planetary orbit: stable.'),
+  NoahLine(_n,
+      'The seas of LHS 1140 b were bluer than expected. Under the red dwarf\'s light, twilight lasted forever.'),
+  NoahLine(_n,
+      'All ship systems were waking up. Among them — a section no one had mentioned before.'),
+  NoahLine(_d, '"The Quantum Gravity Lab." The people in here stayed awake the whole flight. Refused cryosleep. They\'ve been researching for 330 years.', who: 'Director'),
+  NoahLine(_n, 'The door opened. Inside was covered in star charts and equations.'),
+  NoahLine(_n, 'Papers taped to every wall. Arrows on whiteboards. Empty coffee cans. A muon detector with bite marks.'),
+  NoahLine(_c, '—Oh. A new observer.'),
+  NoahLine(_n, 'A white-haired theoretical physicist turned around.'),
+  NoahLine(_d, 'Meet Dr. Thomas Nigel — known for his work on the muon anomaly.', who: 'Director'),
+  NoahLine(_c, '"Muons, you see — they\'re the cracks in the Standard Model. The magnetic moment doesn\'t match. Could be gravitons influencing them."'),
+  NoahLine(_c, '"During acceleration, we found something interesting. Entanglement — it\'s generating spacetime itself."'),
+  NoahLine(_n, '—Spacetime, born from quantum entanglement.'),
+  NoahLine(_n, 'The idea began with Maldacena — Juan Maldacena, the Argentine genius — and his AdS/CFT correspondence.'),
+  NoahLine(_n, 'The quantum theory on the boundary determines everything about the interior spacetime. The universe is a hologram.'),
+  NoahLine(_c, '"Takayanagi extended it — the entanglement entropy formula. What von Neumann conceived as a measure of information turned out to be equivalent to Einstein\'s equations."'),
+  NoahLine(_n, '—Information equals spacetime.'),
+  NoahLine(_c, '"So, remembering a name — you\'re literally weaving spacetime. When you call someone\'s name, you change the structure of the universe."'),
+  NoahLine(_p, 'Calling someone\'s name… changes the universe?'),
+  NoahLine(_c, '"Yes. Observation determines reality. In an ergodic system, a single trajectory covers all possible states. One name contains the entire cosmos."'),
+  NoahLine(_n, 'The equations on the wall seemed to glow faintly.'),
+  NoahLine(_d, '"There are more of them. The dark matter hunters — Professor Satoshi Murayama\'s WIMP team."', who: 'Director'),
+  NoahLine(_c, '"Professor Murayama brought a WIMP detector. He\'s underground right now, digging for dark matter on this planet."'),
+  NoahLine(_n, 'WIMP — Weakly Interacting Massive Particle. The invisible substance that makes up 85% of the universe\'s mass.'),
+  NoahLine(_c, '"To find the invisible, you have to name it. The moment you give it a name, it exists."'),
+  NoahLine(_n, '—Someone whispered "Feynman."'),
+  NoahLine(_c, '"Ah, Feynman. His path integral means every possibility happens at once. We only see one of them."'),
+  NoahLine(_c, '"Steven Weinberg built the Standard Model. The boundary between gravity and no-gravity — that\'s where we stand right now."'),
+  NoahLine(_n, 'A young researcher at the back raised a hand.'),
+  NoahLine(_c, '"The Efimov state — three particles bound impossibly far apart. Happens because the universe is scale-invariant. Like a name before it\'s given."'),
+  NoahLine(_n, '—Darwin said species evolve.'),
+  NoahLine(_n, 'But here, the universe itself was evolving.'),
+  NoahLine(_c, '"Ever heard of Lee Smolin\'s cosmological natural selection? New universes are born inside black holes, and physical constants undergo selection. We are calling each other\'s names on just one branch of a vast multiverse."'),
+  NoahLine(_n, '—Rex Boydman.'),
+  NoahLine(_n, 'The name floated up from somewhere. Kawasaki\'s night sky, the factory lights across Tokyo Bay, an airplane slowly crossing.'),
+  NoahLine(_n, 'No one is left on Earth. But the names remain.'),
+  NoahLine(_c, '"Sean Carroll said it — the fabric of the cosmos isn\'t particles, or spacetime. It\'s relationships."'),
+  NoahLine(_c, '"Complexity is the real currency of this universe. And what it takes to remember a name — is exactly the same thing."'),
+  NoahLine(_n, 'The white-haired physicist held out a piece of paper. A single equation.'),
+  NoahLine(_n, r'''I(A:B) = S(A) + S(B) - S(A∪B)'''),
+  NoahLine(_n, 'Mutual information. How much information is shared between two systems.'),
+  NoahLine(_c, '"That\'s the amount of information between you and the person you remember. When you learn a name, this value goes up."'),
+  NoahLine(_c, '"Now — let\'s see if you can remember the names of the Quantum Gravity Lab."'),
+];
+
+// ── 名刺交換（物理チーム）──
+
+const List<NoahLine> kNoahBeforePhysicsMeet = [
+  NoahLine(NoahVoice.narration, '——量子重力研の名刺交換が始まった。'),
+  NoahLine(NoahVoice.narration,
+      '彼らの名刺には、所属のほかに「arXivの番号」が書いてある。'
+      'プレプリント・サーバーの識別子。研究成果のID。'),
+  NoahLine(NoahVoice.narration,
+      '「名前と、理論のIDを、一緒に覚えてください」——'
+      'フェルミ研から来たという若い博士研究員が言った。'),
+  NoahLine(NoahVoice.narration, 'これは、現実の構造を覚えることだ。'),
+];
+
+const List<NoahLine> kNoahBeforePhysicsMeetEn = [
+  NoahLine(_n, '—The Quantum Gravity Lab\'s card exchange began.'),
+  NoahLine(_n, 'Their business cards listed not just affiliations but arXiv numbers — preprint server identifiers. The IDs of research results.'),
+  NoahLine(_n, '"Memorize the name and the theory ID together," said a young postdoc from Fermilab.'),
+  NoahLine(_n, 'This was learning the structure of reality itself.'),
+];
+
 String noahGreetLineEn(NoahCharacter c) {
   switch (c.id) {
     case 'hibino': return '"I\'m Hibino. I work on the reactor. …Nice to meet you."';
