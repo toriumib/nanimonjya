@@ -1393,7 +1393,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
 }
 
 /// ロケール判定ヘルパー（initStateでcontextなしに使うため）。
+/// 🌐 Web版の言語切替（PlayerProfile.webLocaleCode）を優先する。
 class PlatformDispatcherLocale {
-  static bool get isJa =>
-      WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
+  static bool get isJa {
+    final web = PlayerProfile.instance.webLocaleCode;
+    if (web != null) return web == 'ja';
+    return WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
+  }
 }
