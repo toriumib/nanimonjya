@@ -6,14 +6,14 @@
 
   "app_name": {
     "max_chars": 30,
-    "ja": "ペタネーム - 顔と名前の記憶トレ",
-    "en": "PetaName - Face & Name Memory"
+    "ja": "なまえコール 顔と名前の記憶ゲーム",
+    "en": "Name Call - Face & Name Memory"
   },
 
   "short_description": {
     "max_chars": 80,
-    "ja": "顔はわかるのに名前が出てこない——をゲームで解決。名刺を覚えて会議前に5分おさらい。",
-    "en": "Never forget a face or name again. Memory training game backed by cognitive science."
+    "ja": "顔と名前を覚える脳トレゲーム。写真と名刺で本物の相手も覚えられる無料アプリ。",
+    "en": "Brain game to remember faces & names. Free. Photos, biz cards, quiz."
   },
 
   "full_description": {
