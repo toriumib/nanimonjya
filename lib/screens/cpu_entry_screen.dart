@@ -9,8 +9,7 @@ import '../models/person.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
-import 'match_game_screen.dart' show CpuLevel;
-import 'name_call_screen.dart';
+import 'match_game_screen.dart';
 import '../services/app_analytics.dart';
 
 /// ⚔️ CPU対戦のまえの「参戦」演出。
@@ -71,11 +70,8 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => NameCallScreen(
+        builder: (_) => MatchGameScreen(
           cpuLevel: widget.level,
-          quizMode: true,
-          peopleCount: widget.peopleCount,
-          copiesPerPerson: widget.copiesPerPerson,
         ),
       ),
     );
