@@ -1067,7 +1067,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _startPlaying,
+                onPressed: _vsCpu ? _startCpuRecall : _startPlaying,
                 child: Text(m.memorizeDone),
               ),
             ),
