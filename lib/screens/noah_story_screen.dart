@@ -321,7 +321,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               _Phase.date => _date(),
               _Phase.note => _noteView(),
               _Phase.ending => _ending(),
-              _ => _scriptView(),
+              _ => _advView(m),
             },
           ),
         ),
@@ -470,58 +470,165 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         ),
       );
 
-  // ── ② 地の文の章 ──
+  // ── ADV風テキスト表示 ──
 
-  Widget _scriptView() {
+  Widget _advView(MetaStrings m) {
     final lines = _script;
-    final shown = lines.take(_line + 1).toList();
+    if (lines.isEmpty) return const SizedBox.shrink();
+    final l = lines[_line];
+    final isLastLine = _line + 1 >= lines.length;
+    final hasChoices = isLastLine && _choicesForPhase.isNotEmpty;
+
+    // 特定の行で選択肢をセット
+    if (_phase == _Phase.physics && _line == 66) {
+      // 物理学者「さあ…おぼえてもらおうか」のあとの返答
+      _choicesForPhase = [
+        NoahChoice(text: _ja ? '名刺を見せてください！' : 'Show me your card!', charaId: 'quantum', affectionDelta: 1),
+        NoahChoice(text: _ja ? '数式の意味を教えてくれますか？' : 'Can you explain the formula?', charaId: 'quantum', affectionDelta: 2),
+        NoahChoice(text: _ja ? '……宇宙を覚えるのは、むずかしい。' : '...Learning the universe is hard.', affectionDelta: 0),
+      ];
+    }
+    if (_phase == _Phase.coldShoulder && _line >= 12 && _line < 15) {
+      _choicesForPhase = [
+        NoahChoice(text: _ja ? '（もう一度、話しかけてみる）' : '(Try speaking up again)', charaId: 'kiryu', affectionDelta: 1),
+        NoahChoice(text: _ja ? '（だまって、周りを見渡す）' : '(Stay silent, look around)', affectionDelta: 0),
+      ];
+    }
+
     return Column(
       children: [
-        Expanded(
-          child: ListView(
-            reverse: true,
-            children: [
-              for (final l in shown.reversed)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: _lineView(l, dim: l != shown.last),
-                ),
-            ],
+        Expanded(child: const SizedBox.shrink()),
+        // テキストボックス
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          child: Container(
+            key: ValueKey('line_$_line'),
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            decoration: BoxDecoration(
+              color: const Color(0xEE0D1117),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF2A3A5A), width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 話者名
+                if (l.voice == NoahVoice.chara || l.voice == NoahVoice.director)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8, height: 12,
+                          decoration: BoxDecoration(
+                            color: l.voice == NoahVoice.director
+                                ? const Color(0xFFFF9A3C)
+                                : const Color(0xFF5AD1FF),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l.voice == NoahVoice.director
+                              ? (l.who.isEmpty
+                                  ? (_ja ? '所長' : 'Director')
+                                  : l.who)
+                              : _speakerName(_line, _ja),
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: l.voice == NoahVoice.director
+                                  ? const Color(0xFFFF9A3C)
+                                  : const Color(0xFF5AD1FF)),
+                        ),
+                      ],
+                    ),
+                  ),
+                _body(l.text, size: 15),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 6),
-        Text('${_line + 1} / ${lines.length}',
-            style: const TextStyle(fontSize: 11, color: Color(0xFF8FA3C8))),
-        const SizedBox(height: 6),
-        _nextButton(_line + 1 < lines.length
-            ? (_ja ? '▼ つづき' : '▼ Continue')
-            : (_ja ? 'すすむ' : 'Next')),
+        // 選択肢
+        if (hasChoices) ...[
+          ..._choicesForPhase.map((c) => Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 4),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Sfx.instance.pop();
+                      if (c.affectionDelta != 0 && c.charaId != null) {
+                        _affection[c.charaId!] =
+                            (_affection[c.charaId!] ?? 0) + c.affectionDelta;
+                      }
+                      setState(() => _choicesForPhase = []);
+                      _next();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1D2A4A),
+                      foregroundColor: const Color(0xFFD0D8E8),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Color(0xFF334466), width: 1.2),
+                      ),
+                    ),
+                    child: Text(c.text, textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 13.5, height: 1.4)),
+                  ),
+                ),
+              )),
+        ],
+        const SizedBox(height: 4),
+        // 進むボタン
+        if (!hasChoices)
+          GestureDetector(
+            onTap: _next,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF5AD1FF), Color(0xFF3AA8E8)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(
+                    isLastLine
+                        ? (_ja ? 'すすむ' : 'Next')
+                        : (_ja ? '▼ つづき' : '▼ Continue'),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w900,
+                        color: Color(0xFF05070F)),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _lineView(NoahLine l, {bool dim = false}) {
-    final alpha = dim ? 0.42 : 1.0;
-    return switch (l.voice) {
-      NoahVoice.narration =>
-        _body(l.text, color: const Color(0xFFA8B6D6).withValues(alpha: alpha)),
-      NoahVoice.player => _body('(${_gender.pronoun(_ja)}) "${l.text}"',
-          color: const Color(0xFF7DFFB0).withValues(alpha: alpha)),
-      NoahVoice.director => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l.who.isEmpty ? (_ja ? '所長' : 'Director') : l.who,
-                style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFF9A3C).withValues(alpha: alpha))),
-            _body('「${l.text}」',
-                color: const Color(0xFFD7E2FF).withValues(alpha: alpha)),
-          ],
-        ),
-      NoahVoice.chara => _body('「${l.text}」',
-          color: const Color(0xFF5AD1FF).withValues(alpha: alpha)),
-    };
+  /// 選択肢（現在のphaseの最終行に到達したら表示）
+  List<NoahChoice> _choicesForPhase = [];
+
+  /// 発言者の名前を返す（キャラのとき）
+  String _speakerName(int line, bool ja) {
+    // 物理章では文脈から判断
+    if (_phase == _Phase.physics) {
+      if (line <= 7) return ja ? '所長' : 'Director';
+      if (line <= 18 || line == 19 || line >= 60) return ja ? '白髪の博士' : 'The Physicist';
+      if (line >= 45 && line <= 55) return ja ? '若い研究員' : 'Young Researcher';
+      return ja ? '白髪の博士' : 'The Physicist';
+    }
+    // 他章では castから文脈で判断 — とりあえずCharacter
+    return ja ? '乗員' : 'Crew';
   }
 
   // ── 覚え方の話（研究にもとづく／断定はしない）──

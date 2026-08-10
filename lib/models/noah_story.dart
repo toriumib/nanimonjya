@@ -405,6 +405,70 @@ class NoahLine {
   const NoahLine(this.voice, this.text, {this.who = ''});
 }
 
+/// 🎮 ADVの選択肢。プレイヤーが選ぶと好感度が変動する。
+class NoahChoice {
+  /// 選択肢の表示テキスト。
+  final String text;
+
+  /// 選んだ相手のID（どのキャラへの発言か）。
+  /// null ならナレーション的な選択。
+  final String? charaId;
+
+  /// この選択肢を選んだときの好感度変化。
+  final int affectionDelta;
+
+  const NoahChoice({
+    required this.text,
+    this.charaId,
+    this.affectionDelta = 0,
+  });
+}
+
+/// 選択肢を含む行。[_script] の途中に埋め込んで使う。
+/// [NoahLine] ではないので注意。画面側で専用にハンドルする。
+class NoahChoicePoint {
+  /// 誰に向けた選択か（表示用）。
+  final String? charaId;
+
+  /// 「どう答える？」のような前振り。
+  final String prompt;
+
+  /// 2〜4択。
+  final List<NoahChoice> choices;
+
+  const NoahChoicePoint({
+    this.charaId,
+    required this.prompt,
+    required this.choices,
+  });
+}
+
+/// スクリプトの1要素。通常のセリフ行か、選択肢か。
+sealed class NoahScriptItem {
+  const NoahScriptItem();
+}
+class _NoahLineItem extends NoahScriptItem {
+  final NoahLine line;
+  const _NoahLineItem(this.line);
+}
+class _NoahChoiceItem extends NoahScriptItem {
+  final NoahChoicePoint choice;
+  const _NoahChoiceItem(this.choice);
+}
+
+/// スクリプトを行と選択肢の混合リストに変換する。
+List<NoahScriptItem> noahScriptItems({required List<NoahLine> lines, List<MapEntry<int, NoahChoicePoint>> choices = const []}) {
+  final items = <NoahScriptItem>[];
+  final choiceMap = <int, NoahChoicePoint>{for (final e in choices) e.key: e.value};
+  for (var i = 0; i < lines.length; i++) {
+    if (choiceMap.containsKey(i)) {
+      items.add(_NoahChoiceItem(choiceMap[i]!));
+    }
+    items.add(_NoahLineItem(lines[i]));
+  }
+  return items;
+}
+
 /// 主人公の性別。台詞は同一だが、一人称と呼ばれ方だけ変える。
 enum NoahGender { male, female, none }
 
