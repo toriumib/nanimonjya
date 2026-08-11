@@ -272,7 +272,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
         final rank = cpuRankForRating(profile.cpuRating);
         final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
         final godUnlocked = profile.cpuOniWins >= 3;
-        final ultimateUnlocked = profile.cpuGodWins >= 5;
+        final ultimateUnlocked = true; // 最初から開放
 
         Widget cpuButton(String label, CpuLevel level, Color color,
             {bool locked = false}) {
