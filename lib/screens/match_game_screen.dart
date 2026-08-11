@@ -425,7 +425,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     if (!_recallChoices.contains(answer)) _recallChoices[_rng.nextInt(4)] = answer;
   }
 
-  void _answerRecall(String choice) {
+  Future<void> _answerRecall(String choice) async {
     if (_recallAnswerLocked || _recallQueue.isEmpty) return;
     _recallAnswerLocked = true;
     final target = _recallQueue[_recallQueueIdx];
@@ -440,23 +440,22 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       _playerPairsWon.add(target);
       _recallCombo += 1;
       if (_recallCombo > _recallBestCombo) _recallBestCombo = _recallCombo;
-      _recallSparkleKey += 1; // ✨ 金キラ発動
-      // 🔥 連続で盛り上げる
+      _recallSparkleKey += 1;
+      // 🔥 awaitで音を確実に鳴らしてから次へ
       if (_recallCombo >= 5) {
         HapticFeedback.heavyImpact();
-        Sfx.instance.get();
+        await Sfx.instance.get();
       } else if (_recallCombo >= 3) {
         HapticFeedback.mediumImpact();
-        Sfx.instance.correct();
+        await Sfx.instance.correct();
       } else {
         HapticFeedback.lightImpact();
-        Sfx.instance.correct();
+        await Sfx.instance.correct();
       }
-      // 全問正解でクリア → 勝利演出
       if (_playerCorrect >= _recallPeople) _recallVictory = true;
     } else {
       _recallCombo = 0;
-      Sfx.instance.wrong();
+      await Sfx.instance.wrong();
       HapticFeedback.mediumImpact();
     }
     _recallPicked = choice;
