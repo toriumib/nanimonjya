@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../l10n/meta_strings.dart';
 import '../models/bgm_catalog.dart';
@@ -224,6 +225,15 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       _iapSection(m, p),
                     ],
                     const SizedBox(height: 20),
+                    // 🏪 日替わりショップ（FOMO: 今日だけ割引）
+                    _dailyShopCard(m, p),
+                    const SizedBox(height: 16),
+                    // ⚡ コインブースト（コインの無限需要）
+                    _coinBoostCard(m, p),
+                    const SizedBox(height: 16),
+                    // 🎯 動画スタンプラリー（7日でレジェンド）
+                    _stampRallyCard(m, p),
+                    const SizedBox(height: 20),
                     // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
                     _sectionHeader(m.storeMore, m.storeCharsDesc),
                     GridView.count(
@@ -295,6 +305,285 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
         ),
       ),
     );
+  }
+
+  // ═══════════════ 🏪 日替わりショップ ═══════════════
+
+  Widget _dailyShopCard(MetaStrings m, PlayerProfile p) {
+    p.refreshDailyShop();
+    final shop = DailyShop.generate(42);
+    return Card(
+      color: const Color(0xFFFFF9E6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: Color(0xFFFFC02E), width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Text('🏪', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                m.ja ? '本日限定！日替わり割引' : 'TODAY ONLY! Daily Deals',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF5A4A1E)),
+              )),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6A3D),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text('SALE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            ...shop.items.take(3).map((item) {
+              final bought = p.dailyShopBought.contains(item.id);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Text(item.emoji, style: const TextStyle(fontSize: 22)),
+                    const SizedBox(width: 8),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name(m.ja), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+                        Row(children: [
+                          Text('🪙${item.originalCost}', style: const TextStyle(fontSize: 11, decoration: TextDecoration.lineThrough, color: Colors.black38)),
+                          const SizedBox(width: 4),
+                          Text('→ 🪙${item.discountCost}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFFC62828))),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFE0E0),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(m.ja ? '${(100 - item.discountCost * 100 ~/ item.originalCost)}%OFF' : '-${(100 - item.discountCost * 100 ~/ item.originalCost)}%',
+                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFFC62828))),
+                          ),
+                        ]),
+                      ],
+                    )),
+                    ElevatedButton(
+                      onPressed: bought ? null : () async {
+                        if (p.coins < item.discountCost) {
+                          await _offerAdForCoins(m, item.discountCost);
+                          return;
+                        }
+                        final ok = await p.buyDailyShopItem(item.id, item.discountCost);
+                        if (ok) {
+                          Sfx.instance.coin();
+                          if (item.id == 'daily_coins') {
+                            p.grantBonusCoins(200);
+                          } else if (item.id == 'daily_coins_big') {
+                            p.grantBonusCoins(500);
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(m.shopBought)));
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: bought ? Colors.grey.shade300 : const Color(0xFFFFC02E),
+                        foregroundColor: bought ? Colors.grey : const Color(0xFF5A4A1E),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        minimumSize: Size.zero,
+                        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                      ),
+                      child: Text(bought ? (m.ja ? '済' : 'Done') : '🪙${item.discountCost}'),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════ ⚡ コインブースト ═══════════════
+
+  Widget _coinBoostCard(MetaStrings m, PlayerProfile p) {
+    return Card(
+      color: p.coinBoostActive ? const Color(0xFFFFF3D6) : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: p.coinBoostActive ? const Color(0xFFFFC02E) : const Color(0xFFD8E4F0),
+          width: p.coinBoostActive ? 2 : 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(children: [
+          const Text('⚡', style: TextStyle(fontSize: 28)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(CoinBoost.name(m.ja), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 2),
+              Text(CoinBoost.desc(m.ja), style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            ],
+          )),
+          const SizedBox(width: 8),
+          p.coinBoostActive
+              ? Chip(label: Text(m.ja ? '有効！' : 'ACTIVE', style: const TextStyle(fontSize: 11)),
+                   backgroundColor: const Color(0xFFFFC02E).withValues(alpha: 0.3))
+              : ElevatedButton(
+                  onPressed: p.coins < 20 ? null : () async {
+                    await p.activateCoinBoost();
+                    Sfx.instance.coin();
+                    if (mounted) setState(() {});
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF6A3D),
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                  ),
+                  child: const Text('🪙20'),
+                ),
+        ]),
+      ),
+    );
+  }
+
+  // ═══════════════ 🎯 動画スタンプラリー ═══════════════
+
+  Widget _stampRallyCard(MetaStrings m, PlayerProfile p) {
+    final day = p.adStreakDay;
+    final watchedToday = p.adWatchedToday;
+    return Card(
+      color: const Color(0xFFF3E8FF),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: day >= 7 ? const Color(0xFFFFC02E) : const Color(0xFF8A5AC2),
+          width: day >= 7 ? 2.5 : 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Text('🎯', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                StampRally.title(m.ja, day),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF4A2A7A)),
+              )),
+              if (day >= 7 && !p.adStreakRewardsClaimed.contains('day7'))
+                ElevatedButton(
+                  onPressed: () => _claimLegendary(m, p),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFC02E),
+                    foregroundColor: const Color(0xFF5A4A1E),
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                  ),
+                  child: Text(m.ja ? 'GET!' : 'CLAIM!'),
+                ),
+            ]),
+            const SizedBox(height: 8),
+            Text(StampRally.desc(m.ja), style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            const SizedBox(height: 10),
+            // Stamp dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 1; i <= 7; i++)
+                  Container(
+                    width: 36, height: 36,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: i <= day ? const Color(0xFF8A5AC2) : Colors.grey.shade200,
+                      border: Border.all(color: i <= day ? const Color(0xFF6A3A9E) : Colors.grey.shade300, width: 1.5),
+                    ),
+                    child: Center(child: Text(
+                      i <= day ? '✅' : '$i',
+                      style: TextStyle(fontSize: i <= day ? 16 : 13, color: i <= day ? Colors.white : Colors.grey),
+                    )),
+                  ),
+              ],
+            ),
+            if (!watchedToday) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _watchAdForRally(m, p),
+                  icon: const Icon(Icons.play_circle_outline, size: 18),
+                  label: Text(m.ja ? '🎬 動画を見てスタンプGET' : '🎬 Watch ad to stamp'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF8A5AC2),
+                    side: const BorderSide(color: Color(0xFF8A5AC2)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _watchAdForRally(MetaStrings m, PlayerProfile p) async {
+    await _rewardAd.showOrQueue(onReward: () async {
+      await p.recordAdWatch();
+      Sfx.instance.fanfare();
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(m.ja ? 'スタンプGET！ (${p.adStreakDay}/7)' : 'Stamped! (${p.adStreakDay}/7)')),
+        );
+      }
+    });
+  }
+
+  Future<void> _claimLegendary(MetaStrings m, PlayerProfile p) async {
+    if (p.adStreakRewardsClaimed.contains('day7')) return;
+    // Pick a legendary character from historical figures
+    final pool = [
+      ('einstein_icon', '🧠', 'アインシュタイン', 'Einstein'),
+      ('newton_icon', '🍎', 'ニュートン', 'Newton'),
+      ('curie_icon', '⚛️', 'キュリー夫人', 'Marie Curie'),
+    ];
+    final pick = pool[DateTime.now().millisecond % pool.length];
+    final id = 'legend_${pick.$1}';
+    if (p.unlockedCharacters.contains(id)) {
+      p.adStreakRewardsClaimed.add('day7');
+      p.adWatchStreak = 0;
+      if (mounted) setState(() {});
+      return;
+    }
+    p.unlockedCharacters.add(id);
+    p.adStreakRewardsClaimed.add('day7');
+    p.adWatchStreak = 0;
+    p.grantBonusCoins(200); // grantBonusCoins 内で _persist が呼ばれる
+    Sfx.instance.fanfare();
+    HapticFeedback.heavyImpact();
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(m.ja
+            ? '🎉 レジェンドキャラ「${pick.$3}」を解放しました！'
+            : '🎉 Legendary "${pick.$4}" unlocked!')),
+      );
+    }
   }
 
   /// 💳 広告除去（買い切り）のカード。

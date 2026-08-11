@@ -191,7 +191,7 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// 📅 日替わりショップの日付が変わったらリセット
-  void _refreshDailyShop() {
+  void refreshDailyShop() {
     final today = DateTime.now();
     final d = '${today.year}-${today.month}-${today.day}';
     if (dailyShopDate != d) {
@@ -310,7 +310,7 @@ class PlayerProfile extends ChangeNotifier {
     lastAdWatchDate = p.getString('lastAdWatchDate') ?? '';
     adStreakRewardsClaimed = (p.getStringList('adStreakRewards') ?? []).toSet();
     coinBoostActive = p.getBool('coinBoost') ?? false;
-    _refreshDailyShop();
+    refreshDailyShop();
     _loaded = true;
     _refreshDailyState();
   }
