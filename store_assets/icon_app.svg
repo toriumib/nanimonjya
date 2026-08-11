@@ -1,45 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FF6A3D"/>
-      <stop offset="50%" stop-color="#E8663C"/>
-      <stop offset="100%" stop-color="#FFC02E"/>
+      <stop offset="0%" stop-color="#0F2027"/>
+      <stop offset="50%" stop-color="#203A43"/>
+      <stop offset="100%" stop-color="#2C5364"/>
     </linearGradient>
-    <linearGradient id="tag" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#FF6B35"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#FFF3E0"/>
+      <stop offset="100%" stop-color="#F8F4FF"/>
     </linearGradient>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.25"/>
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <!-- Background rounded square -->
-  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#bg)"/>
+  <!-- Dark premium bg -->
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
 
-  <!-- Decorative dots -->
-  <circle cx="100" cy="100" r="4" fill="#FFFFFF" opacity="0.3"/>
-  <circle cx="420" cy="80" r="3" fill="#FFFFFF" opacity="0.25"/>
-  <circle cx="400" cy="440" r="5" fill="#FFFFFF" opacity="0.2"/>
-  <circle cx="80" cy="420" r="3" fill="#FFFFFF" opacity="0.3"/>
+  <!-- Corner accents -->
+  <circle cx="85" cy="85" r="50" fill="#FFD700" opacity="0.05"/>
+  <circle cx="440" cy="440" r="70" fill="#FFD700" opacity="0.05"/>
 
-  <!-- Name tag card -->
-  <g filter="url(#shadow)">
-    <rect x="120" y="130" width="272" height="260" rx="28" fill="url(#tag)" stroke="#E8663C" stroke-width="3"/>
+  <!-- Tilted business card -->
+  <g filter="url(#cardShadow)" transform="rotate(-8, 256, 200)">
+    <rect x="105" y="110" width="302" height="190" rx="22" fill="url(#cardBg)"/>
+    <!-- Gold border -->
+    <rect x="105" y="110" width="302" height="190" rx="22" fill="none" stroke="url(#gold)" stroke-width="2.5"/>
+    <!-- Face silhouette on card -->
+    <circle cx="256" cy="195" r="38" fill="none" stroke="#203A43" stroke-width="3"/>
+    <circle cx="243" cy="184" r="5" fill="#203A43"/>
+    <circle cx="269" cy="184" r="5" fill="#203A43"/>
+    <path d="M 236 207 Q 256 224 276 207" fill="none" stroke="#203A43" stroke-width="3" stroke-linecap="round"/>
+    <!-- Name text on card -->
+    <text x="256" y="258" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="14" font-weight="900" fill="#2C5364">佐藤 さん</text>
+    <rect x="200" y="268" width="112" height="1.5" rx="1" fill="#FFD700" opacity="0.4"/>
   </g>
 
-  <!-- Pin hole + string -->
-  <circle cx="256" cy="168" r="13" fill="#E8663C"/>
-  <line x1="256" y1="168" x2="256" y2="200" stroke="#E8663C" stroke-width="3" stroke-linecap="round"/>
+  <!-- Big ? overlapping card edge -->
+  <text x="256" y="155" text-anchor="middle" font-family="MochiyPopOne, sans-serif" font-size="100" font-weight="900" fill="url(#gold)" filter="url(#glow)">？</text>
 
-  <!-- Face silhouette -->
-  <circle cx="256" cy="270" r="56" fill="none" stroke="#2B2B2B" stroke-width="3.5"/>
-  <circle cx="238" cy="255" r="7" fill="#2B2B2B"/>
-  <circle cx="274" cy="255" r="7" fill="#2B2B2B"/>
-  <path d="M 232 288 Q 256 312 280 288" fill="none" stroke="#2B2B2B" stroke-width="4" stroke-linecap="round"/>
+  <!-- App name -->
+  <text x="256" y="450" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="46" font-weight="900" fill="#FFFFFF" letter-spacing="5">なまえがお</text>
 
-  <!-- Japanese text on tag -->
-  <text x="256" y="350" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="28" font-weight="900" fill="#2B2B2B">なまえ</text>
-  <rect x="180" y="360" width="152" height="2" rx="1" fill="#E8663C" opacity="0.4"/>
-  <text x="256" y="378" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="14" font-weight="700" fill="#E8663C">が　お</text>
+  <!-- Gold bar -->
+  <rect x="170" y="466" width="172" height="3.5" rx="1.5" fill="url(#gold)" opacity="0.85"/>
+
 </svg>
