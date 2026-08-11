@@ -235,6 +235,15 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 🪙 コイン倍増ゲーム
                     _coinDoublerCard(m),
                     const SizedBox(height: 16),
+                    // 🌟 神スキン（高額消費）
+                    _godSkinCard(m, p),
+                    const SizedBox(height: 12),
+                    // 💀 ハードコアチケット
+                    _hardcoreTicketCard(m, p),
+                    const SizedBox(height: 12),
+                    // 🎰 ガチャ（毎日引きたい）
+                    _gachaCard(m, p),
+                    const SizedBox(height: 16),
                     // 🎯 動画スタンプラリー（7日でレジェンド）
                     _stampRallyCard(m, p),
                     const SizedBox(height: 20),
@@ -457,6 +466,213 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                   child: const Text('🪙20'),
                 ),
         ]),
+      ),
+    );
+  }
+
+  // ═══════════════ 🌟 神スキン ═══════════════
+
+  Widget _godSkinCard(MetaStrings m, PlayerProfile p) {
+    return Card(
+      color: const Color(0xFF1A1A2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Text('🌟', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 8),
+              Text(m.ja ? '神スキン' : 'God Skins',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFFFFC02E))),
+            ]),
+            const SizedBox(height: 4),
+            Text(m.ja ? '装備すると特別な演出が追加されます' : 'Equip for special visual effects',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF8899BB))),
+            const SizedBox(height: 12),
+            ...kGodSkins.map((s) {
+              final owned = (s.id == 'god_skin_golden'); // always buyable
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D1117),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF2A3A5A)),
+                ),
+                child: Row(children: [
+                  Text(s.emoji, style: const TextStyle(fontSize: 28)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(s.name(m.ja), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                      const SizedBox(height: 2),
+                      Text(s.desc(m.ja), style: const TextStyle(fontSize: 10, color: Color(0xFF8899BB))),
+                    ],
+                  )),
+                  ElevatedButton(
+                    onPressed: p.coins < s.cost ? null : () async {
+                      if (p.coins < s.cost) return;
+                      p.coins -= s.cost;
+                      p.unlockedAccessories.add(s.id);
+                      p.selectedAccessory = s.id;
+                      await p.buyDailyShopItem(s.id, s.cost);
+                      Sfx.instance.fanfare();
+                      if (mounted) setState(() {});
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFC02E),
+                      foregroundColor: const Color(0xFF1A1A2E),
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                    ),
+                    child: Text('🪙${s.cost}'),
+                  ),
+                ]),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════ 💀 ハードコアチケット ═══════════════
+
+  Widget _hardcoreTicketCard(MetaStrings m, PlayerProfile p) {
+    return Card(
+      color: const Color(0xFF1A0000),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: const Color(0xFFFF4444).withValues(alpha: 0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(children: [
+          const Text('💀', style: TextStyle(fontSize: 30)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(HardcoreTicket.name(m.ja),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFFF4444))),
+              const SizedBox(height: 2),
+              Text(HardcoreTicket.desc(m.ja),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFFFF8888))),
+            ],
+          )),
+          ElevatedButton(
+            onPressed: p.coins < HardcoreTicket.cost ? null : () async {
+              if (p.coins < HardcoreTicket.cost) return;
+              p.coins -= HardcoreTicket.cost;
+              p.applyBoost(10); // activate as boost-like
+              Sfx.instance.fanfare();
+              HapticFeedback.heavyImpact();
+              if (mounted) {
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(m.ja ? '💀 ハードコア発動！次のゲームの報酬3倍' : '💀 Hardcore active! 3x rewards next game!')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF4444),
+              foregroundColor: Colors.white,
+              minimumSize: Size.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            ),
+            child: Text('🪙${HardcoreTicket.cost}'),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  // ═══════════════ 🎰 ガチャ ═══════════════
+
+  Widget _gachaCard(MetaStrings m, PlayerProfile p) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFC02E), Color(0xFFFF6A3D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFFFFC02E).withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text('🎰', style: TextStyle(fontSize: 44)),
+            const SizedBox(height: 4),
+            Text(Gacha.name(m.ja),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
+            const SizedBox(height: 2),
+            Text(Gacha.desc(m.ja),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 11, color: Color(0xFFFFF3D6))),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: p.coins < Gacha.cost ? null : () async {
+                    if (p.coins < Gacha.cost) {
+                      await _offerAdForCoins(m, Gacha.cost);
+                      return;
+                    }
+                    final result = await p.pullGacha();
+                    if (!mounted) return;
+                    setState(() {});
+                    final text = result.coinsBack > 0
+                        ? (m.ja ? '🎰 ハズレ…でも${result.coinsBack}コイン戻ってきた！' : '🎰 Miss! But ${result.coinsBack} coins returned!')
+                        : result.type == 'legendary_chara'
+                            ? (m.ja ? '🌟 神引き！伝説のキャラGET！' : '🌟 JACKPOT! Legendary character!')
+                            : (m.ja ? '🎉 レアアイテムGET！' : '🎉 Rare item won!');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(text)));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFFE8663C),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                  child: Text(m.ja ? '1回 🪙40' : '1x 🪙40',
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: p.coins < Gacha.multiCost ? null : () async {
+                    for (var i = 0; i < 3; i++) {
+                      if (p.coins < Gacha.cost) break;
+                      await p.pullGacha();
+                    }
+                    if (mounted) {
+                      setState(() {});
+                      Sfx.instance.fanfare();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.85),
+                    foregroundColor: const Color(0xFFFF6A3D),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                  child: Text(m.ja ? '3連 🪙100' : '3x 🪙100',
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ]),
+          ],
+        ),
       ),
     );
   }
