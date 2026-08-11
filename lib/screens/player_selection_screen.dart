@@ -272,12 +272,15 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
         final rank = cpuRankForRating(profile.cpuRating);
         final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
         final godUnlocked = profile.cpuOniWins >= 3;
+        final ultimateUnlocked = profile.cpuGodWins >= 5;
 
         Widget cpuButton(String label, CpuLevel level, Color color,
             {bool locked = false}) {
-          final lockedHint = level == CpuLevel.god
-              ? m.godLockedHint(3) // 鬼に3勝
-              : m.oniLockedHint(kOniUnlockRating);
+          final lockedHint = level == CpuLevel.ultimate
+              ? m.ultimateLockedHint(5)
+              : level == CpuLevel.god
+                  ? m.godLockedHint(3)
+                  : m.oniLockedHint(kOniUnlockRating);
           return ElevatedButton(
             onPressed: locked ? null : () => _start(cpu: level),
             style: ElevatedButton.styleFrom(
@@ -335,6 +338,10 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               cpuButton(m.cpuGod, CpuLevel.god,
                   const Color(0xFFFFD700),
                   locked: !godUnlocked),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuUltimate, CpuLevel.ultimate,
+                  const Color(0xFF1A0033),
+                  locked: !ultimateUnlocked),
             ],
           ),
         );

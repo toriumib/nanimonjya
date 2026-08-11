@@ -66,6 +66,7 @@ class PlayerProfile extends ChangeNotifier {
   int cpuNormalWins = 0;
   int cpuHardWins = 0;
   int cpuOniWins = 0;
+  int cpuGodWins = 0;
   /// 全問正解でCPUに勝ったことがあるか（実績キャラの解放条件）
   bool hadPerfectCpuWin = false;
   int bestQuizAccuracyPct = 0; // 1ゲーム内のベスト正答率(0-100)
@@ -270,6 +271,7 @@ class PlayerProfile extends ChangeNotifier {
     cpuNormalWins = p.getInt('cpuNormalWins') ?? 0;
     cpuHardWins = p.getInt('cpuHardWins') ?? 0;
     cpuOniWins = p.getInt('cpuOniWins') ?? 0;
+    cpuGodWins = p.getInt('cpuGodWins') ?? 0;
     hadPerfectCpuWin = p.getBool('hadPerfectCpuWin') ?? false;
     bestQuizAccuracyPct = p.getInt('bestQuizAccuracyPct') ?? 0;
     bestAvgReactionMs = p.getInt('bestAvgReactionMs') ?? 0;
@@ -1137,6 +1139,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('cpuNormalWins', cpuNormalWins);
     await p.setInt('cpuHardWins', cpuHardWins);
     await p.setInt('cpuOniWins', cpuOniWins);
+    await p.setInt('cpuGodWins', cpuGodWins);
     await p.setInt('bestQuizAccuracyPct', bestQuizAccuracyPct);
     await p.setInt('bestAvgReactionMs', bestAvgReactionMs);
     await p.setInt('soloTrainingSessions', soloTrainingSessions);

@@ -19,6 +19,7 @@ import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../services/iap_service.dart'; // 💰 課金
 import 'character_deck_screen.dart';
+import 'coin_doubler_screen.dart';
 
 /// 🛍 キャラクターショップ。
 /// - 動画（リワード広告）でコインを稼ぐ導線
@@ -230,6 +231,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     const SizedBox(height: 16),
                     // ⚡ コインブースト（コインの無限需要）
                     _coinBoostCard(m, p),
+                    const SizedBox(height: 16),
+                    // 🪙 コイン倍増ゲーム
+                    _coinDoublerCard(m),
                     const SizedBox(height: 16),
                     // 🎯 動画スタンプラリー（7日でレジェンド）
                     _stampRallyCard(m, p),
@@ -452,6 +456,71 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                   ),
                   child: const Text('🪙20'),
                 ),
+        ]),
+      ),
+    );
+  }
+
+  // ═══════════════ 🪙 コイン倍増ゲーム ═══════════════
+
+  Widget _coinDoublerCard(MetaStrings m) {
+    return Card(
+      color: const Color(0xFFFFF8E6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFFFC02E), width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(children: [
+          const Text('🪙', style: TextStyle(fontSize: 28)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(m.ja ? '🪙 コイン倍増ゲーム' : '🪙 Coin Doubler',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 2),
+              Text(m.ja
+                  ? '3人の顔と名前を覚えて賭けたコインを倍に！1人でも間違えたら没収。'
+                  : 'Memorize 3 faces. Double or nothing! Miss one and lose it all.',
+                  style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            ],
+          )),
+          const SizedBox(width: 8),
+          Column(children: [
+            ElevatedButton(
+              onPressed: () {
+                Sfx.instance.fanfare();
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => const CoinDoublerScreen(bet: 50)));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFC02E),
+                foregroundColor: const Color(0xFF5A4A1E),
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+              ),
+              child: Text(m.ja ? '🪙50勝負' : '🪙50 Bet'),
+            ),
+            const SizedBox(height: 4),
+            ElevatedButton(
+              onPressed: () {
+                Sfx.instance.fanfare();
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => const CoinDoublerScreen(bet: 200)));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE8663C),
+                foregroundColor: Colors.white,
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+              ),
+              child: Text(m.ja ? '🪙200勝負' : '🪙200 Bet'),
+            ),
+          ]),
         ]),
       ),
     );

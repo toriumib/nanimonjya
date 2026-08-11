@@ -390,6 +390,7 @@ class _TopScreenState extends State<TopScreen>
       Color(0xFFE8663C),
       Color(0xFF8A5AC2),
       Color(0xFFFFD700),
+      Color(0xFF7B2D8E),
     ];
     final rows = [
       for (final (i, lv) in [
