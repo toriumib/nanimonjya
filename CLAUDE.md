@@ -186,6 +186,10 @@ cd build/web && npx vercel --prod
 
 ### 4. AABビルド（Android）
 
+⚠️ **AABはユーザーが明示的に指示したときだけビルドする。**
+通常のコード修正→コミットの流れでは `flutter analyze` + `flutter test` + WebビルドまででOK。
+AABビルドには時間がかかり、Play ConsoleのversionCodeも消費するため。
+
 ```bash
 powershell.exe -ExecutionPolicy Bypass -File scripts/bump_and_build.ps1
 ```
