@@ -248,7 +248,7 @@ class AppAnalytics {
         'category': category,
         'item_id': itemId,
         'cost': cost,
-        'affordable': affordable,
+        'affordable': affordable ? 1 : 0,
       });
 
   // ── メタ層 ──
@@ -282,7 +282,7 @@ class AppAnalytics {
   }) =>
       _log('cpu_match_end', {
         'level': level,
-        'won': won,
+        'won': won ? 1 : 0,
         'accuracy_pct': accuracyPct,
         'avg_reaction_ms': avgReactionMs,
       });
@@ -301,8 +301,8 @@ class AppAnalytics {
     required bool isRandomMatch,
   }) =>
       _log('online_match_end', {
-        'won': won,
-        'random': isRandomMatch,
+        'won': won ? 1 : 0,
+        'random': isRandomMatch ? 1 : 0,
       });
 
   static void reviewPromptShown() => _log('review_prompt_shown');

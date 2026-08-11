@@ -47,9 +47,9 @@ class Bgm {
 
   Future<void> _serialize(Future<void> Function() action) {
     final next = _chain.then((_) => action()).catchError((Object e, StackTrace s) {
-      debugPrint('BGM op failed: $e');
+      print('BGM op failed: $e');
       if (!kIsWeb) {
-        FirebaseCrashlytics.instance.recordError(e, s);
+        try { FirebaseCrashlytics.instance.recordError(e, s); } catch (_) {}
       }
     });
     _chain = next;
@@ -192,12 +192,7 @@ class Bgm {
         _current = null;
         _blocked = true;
         try { await _player.stop(); } catch (_) {}
-        // Web でも見えるように print に出す（debugPrint は release で消える）
-        if (kIsWeb) {
-          print('BGM ERROR: $key — $e');
-        } else {
-          debugPrint('BGM play failed ($key): $e');
-        }
+        print('BGM ERROR: $key — $e');
       }
     });
   }
