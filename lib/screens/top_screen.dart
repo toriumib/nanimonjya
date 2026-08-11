@@ -18,6 +18,7 @@ import 'match_game_screen.dart' show CpuLevel;
 import 'custom_roster_screen.dart'; // 🧑‍🎨 顔メモ
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
+import 'noah_story_screen.dart'; // 🚀 SFストーリー
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'rulebook_screen.dart'; // 📖 ルールブック
 import '../services/player_profile.dart';
@@ -1206,6 +1207,31 @@ class _TopScreenState extends State<TopScreen>
                           },
                         )),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 🚀 プロジェクト・ノア（SFストーリー）
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: JuicyButton(
+                      onTap: () {
+                        Sfx.instance.fanfare();
+                        AppAnalytics.modePick('story');
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => const NoahStoryScreen()));
+                      },
+                      colors: const [Color(0xFF1D3A6B), Color(0xFF0F1D3D)],
+                      height: 52,
+                      radius: 14,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('🚀', style: TextStyle(fontSize: 22)),
+                          const SizedBox(width: 8),
+                          Text(m.ja ? 'SFノベルを読む' : 'Read SF Novel',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

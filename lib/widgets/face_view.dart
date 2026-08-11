@@ -36,6 +36,17 @@ class FaceView extends StatelessWidget {
       case FaceKind.svg:
         return SvgPicture.asset(person.face, width: size, height: size);
       case FaceKind.asset:
+        // Webからアップロードした写真（http/blob URL）はImage.networkで表示
+        if (_isWebUrl(person.face)) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Image.network(
+              person.face,
+              width: size, height: size, fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _fallback(),
+            ),
+          );
+        }
         return ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: Image.asset(
@@ -60,6 +71,9 @@ class FaceView extends StatelessWidget {
         );
     }
   }
+
+  bool _isWebUrl(String path) =>
+      path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:');
 
   Widget _fallback() {
     return Container(

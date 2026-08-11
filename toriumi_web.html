@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鳥海理論 — Toriumi Theory: Live Proof</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #141420;
+    --text: #e0e0e8;
+    --dim: #6b6b80;
+    --accent: #c4a35a;
+    --gap: #ff4470;
+    --match: #44d0a0;
+    --pred: #5a8ac4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  /* ── Header ──────────────────────────────────── */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+  .header .sub {
+    font-size: 0.85rem;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* ── Panel ───────────────────────────────────── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid #252535;
+    border-radius: 12px;
+    padding: 20px 28px;
+    max-width: 720px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .panel-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    margin-bottom: 12px;
+  }
+
+  /* ── Agent Viz ──────────────────────────────── */
+  .agent-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .agent-circle {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #2a2a40, #111);
+    border: 2px solid #333;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+  .agent-circle.thinking {
+    border-color: var(--pred);
+    box-shadow: 0 0 24px rgba(90,138,196,0.4);
+    animation: pulse 0.6s ease-in-out infinite;
+  }
+  .agent-circle.chose {
+    border-color: var(--accent);
+    box-shadow: 0 0 28px rgba(196,163,90,0.5);
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  .bubble {
+    background: #1e1e30;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    max-width: 240px;
+    text-align: center;
+    border: 1px solid #2a2a3a;
+    transition: all 0.3s;
+  }
+  .bubble.pred { border-left: 3px solid var(--pred); }
+  .bubble.chosen { border-left: 3px solid var(--accent); }
+  .bubble.gap-alert {
+    border-color: var(--gap);
+    background: #1a1018;
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-3px); }
+  }
+  .gap-flash {
+    border-color: var(--gap) !important;
+    box-shadow: 0 0 40px rgba(255,68,112,0.6) !important;
+  }
+
+  /* ── Recursion Viz ───────────────────────────── */
+  .recursion-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .rec-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #1a1a28;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.35s ease;
+  }
+  .rec-level.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .rec-level.active {
+    background: #1e2440;
+    border-left: 3px solid var(--pred);
+  }
+  .rec-level .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+    flex-shrink: 0;
+  }
+  .rec-level.active .dot { background: var(--pred); }
+
+  /* ── Log ─────────────────────────────────────── */
+  .log-area {
+    height: 160px;
+    overflow-y: auto;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.72rem;
+    background: #0c0c18;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--dim);
+    border: 1px solid #202030;
+  }
+  .log-area .entry { padding: 1px 0; border-bottom: 1px solid #0f0f1a; }
+  .log-area .entry.gap-entry { color: var(--gap); font-weight: 600; }
+  .log-area .entry.commit-entry { color: var(--accent); }
+  .log-area .entry.sim-entry { color: var(--pred); }
+
+  /* ── Stats ───────────────────────────────────── */
+  .stats-row {
+    display: flex; gap: 16px; justify-content: center;
+    flex-wrap: wrap; margin-top: 12px;
+  }
+  .stat {
+    text-align: center;
+    min-width: 80px;
+  }
+  .stat .val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+  }
+  .stat .val.gap-val { color: var(--gap); }
+  .stat .lbl { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Buttons ─────────────────────────────────── */
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+  }
+  .btn-run   { background: var(--accent); color: #0a0a0f; }
+  .btn-run:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-reset  { background: transparent; color: var(--dim); border: 1px solid #333; }
+  .btn-reset:hover { border-color: #555; }
+  .btn-auto   { background: #1e2a30; color: var(--pred); border: 1px solid #2a3a48; }
+  .btn-auto:hover { border-color: var(--pred); }
+  .btn-auto.running { background: var(--gap); color: #fff; border-color: var(--gap); }
+  .btn-speed { background: transparent; color: var(--dim); border: 1px solid #2a2a2a; font-size: 0.7rem; padding: 8px 14px; }
+
+  /* ── Phase indicator ─────────────────────────── */
+  .phase-bar {
+    height: 3px;
+    background: #1a1a28;
+    border-radius: 2px;
+    margin-top: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--pred);
+    transition: width 0.3s ease, background 0.3s ease;
+  }
+  .phase-fill.gap-phase { background: var(--gap); }
+  .phase-fill.commit-phase { background: var(--accent); }
+
+  .phase-label {
+    font-size: 0.65rem;
+    color: var(--dim);
+    margin-top: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Theory quote ────────────────────────────── */
+  .quote {
+    text-align: center;
+    font-style: italic;
+    color: var(--dim);
+    font-size: 0.82rem;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+  .quote em { color: var(--accent); font-style: normal; }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 500px) {
+    body { padding: 10px; }
+    .panel { padding: 14px 12px; }
+    .agent-circle { width: 54px; height: 54px; font-size: 1.4rem; }
+    .bubble { font-size: 0.75rem; padding: 8px 12px; }
+    .stat .val { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>鳥海理論</h1>
+  <p class="sub">Toriumi Theory — Constructive Proof of Free Will</p>
+</div>
+
+<!-- AGENT PANEL -->
+<div class="panel">
+  <div class="panel-title">Self-Referential Agent</div>
+  <div class="agent-row">
+    <div class="agent-circle" id="agentCircle">🤖</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="bubble pred" id="predictBubble">I predict: ...</div>
+      <div class="bubble chosen" id="chosenBubble">I choose: ...</div>
+    </div>
+  </div>
+  <div class="phase-bar"><div class="phase-fill" id="phaseFill" style="width:0%"></div></div>
+  <div class="phase-label" id="phaseLabel">ready</div>
+</div>
+
+<!-- RECURSION PANEL -->
+<div class="panel">
+  <div class="panel-title">Self-Simulation Recursion (k=3)</div>
+  <div class="recursion-stack" id="recStack">
+    <div class="rec-level" data-level="2">f₂: "What would I do if I simulated myself?"</div>
+    <div class="rec-level" data-level="1">f₁: "What would I do if I considered...?"</div>
+    <div class="rec-level" data-level="0">f₀: base prediction from current state</div>
+  </div>
+  <div style="text-align:center;margin-top:8px;font-size:0.65rem;color:var(--dim);" id="recLabel">recursion dormant</div>
+</div>
+
+<!-- LOG PANEL -->
+<div class="panel">
+  <div class="panel-title">Agent Log (stream of consciousness)</div>
+  <div class="log-area" id="logArea">
+    <div class="entry">[init] agent created, log empty</div>
+  </div>
+</div>
+
+<!-- STATS PANEL -->
+<div class="panel">
+  <div class="stats-row">
+    <div class="stat">
+      <div class="val" id="statDecisions">0</div>
+      <div class="lbl">Decisions</div>
+    </div>
+    <div class="stat">
+      <div class="val gap-val" id="statGaps">0</div>
+      <div class="lbl">Toriumi Gaps</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="statRate">—</div>
+      <div class="lbl">Gap Rate (Γ)</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="statSims">0</div>
+      <div class="lbl">Self-Simulations</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="statLog">0</div>
+      <div class="lbl">Log Entries</div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-run" id="btnStep" onclick="step()">▶ Step Once</button>
+    <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()">↻ Auto-Run</button>
+    <button class="btn btn-speed" id="btnSpeed" onclick="cycleSpeed()">Speed: 1×</button>
+    <button class="btn btn-reset" onclick="resetAll()">↺ Reset</button>
+  </div>
+</div>
+
+<div class="quote">
+  「自由とは、自分自身を予測できないことである。<br>
+  予測できない理由はランダムだからではない。<br>
+  自己言及が<em>計算的-irreducible-性</em>を生むからだ。」<br>
+  — 鳥海健悟 —<br>
+  <span style="font-size:0.7rem;color:var(--dim);">運命は、消えた。 Fate has been erased.</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Toriumi Agent — JavaScript / Browser Implementation
+// ═══════════════════════════════════════════════════════════════════
+
+// Simple SHA-256 (using SubtleCrypto) — or fallback hash
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray;
+}
+
+function hashToBigInt(hashArray) {
+  // Take first 8 bytes as big-endian BigInt
+  let result = 0n;
+  for (let i = 0; i < 8 && i < hashArray.length; i++) {
+    result = (result << 8n) | BigInt(hashArray[i]);
+  }
+  return result;
+}
+
+function hashMod(hashArray, n) {
+  const big = hashToBigInt(hashArray);
+  return Number(big % BigInt(n));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Agent State
+// ═══════════════════════════════════════════════════════════════════
+
+const state = {
+  log: [],                  // append-only log
+  decisionCount: 0,
+  simulationCount: 0,
+  totalGaps: 0,
+  autoRunning: false,
+  autoTimer: null,
+  speed: 1,                // 1=normal, 2=fast, 3=instant
+  locked: false,           // prevent concurrent steps
+};
+
+function logEntry(eventType, data) {
+  return { event: eventType, seq: state.log.length, ...data, ts: Date.now() };
+}
+
+function logHash(log) {
+  const raw = JSON.stringify(log);
+  return raw;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Core Algorithm (mirrors toriumi_agent.py)
+// ═══════════════════════════════════════════════════════════════════
+
+async function toriumiChoose(options, maxDepth = 3) {
+  const initialLogLen = state.log.length;
+
+  // Phase 1: Self-simulate to predict
+  addToLog('choice_faced', { options, decision: state.decisionCount });
+  const predicted = await selfSimulate(options, 0, maxDepth);
+
+  // Phase 2: Commit (actual decision)
+  const actual = await commit(options);
+  state.decisionCount++;
+
+  const isGap = predicted !== actual;
+  if (isGap) state.totalGaps++;
+
+  return {
+    choice: actual,
+    predicted: predicted,
+    gap: isGap,
+    logLength: state.log.length,
+  };
+}
+
+async function selfSimulate(options, depth, maxDepth) {
+  if (depth >= maxDepth) {
+    return fallbackPredict(options);
+  }
+  state.simulationCount++;
+
+  const entryIdx = state.log.length;
+  addToLogSync('sim_enter', { depth });
+
+  // Recurse one level deeper
+  const innerPred = await selfSimulate(options, depth + 1, maxDepth);
+
+  const entriesAdded = state.log.length - entryIdx;
+
+  addToLogSync('sim_exit', { depth, innerPrediction: innerPred, entriesAdded });
+
+  return biasedPredict(options, innerPred, depth);
+}
+
+async function fallbackPredict(options) {
+  const h = logHash(state.log);
+  const hashBytes = await sha256(h + '||predict||' + state.decisionCount);
+  return options[hashMod(hashBytes, options.length)];
+}
+
+async function biasedPredict(options, innerPred, depth) {
+  const h = logHash(state.log);
+  const mixStr = h + '||mix||' + innerPred + '||' + String(depth);
+  const hashBytes = await sha256(mixStr);
+  return options[hashMod(hashBytes, options.length)];
+}
+
+async function commit(options) {
+  const h = logHash(state.log);
+  const finalStr = h + '||commit||' + state.decisionCount;
+  const hashBytes = await sha256(finalStr);
+  const choice = options[hashMod(hashBytes, options.length)];
+
+  addToLogSync('decision', { choice, decisionIndex: state.decisionCount });
+  return choice;
+}
+
+function addToLogSync(eventType, data) {
+  state.log.push({ event: eventType, seq: state.log.length, ...data });
+}
+
+async function addToLog(eventType, data) {
+  addToLogSync(eventType, data);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════════════════════════
+
+const agentCircle = document.getElementById('agentCircle');
+const predictBubble = document.getElementById('predictBubble');
+const chosenBubble = document.getElementById('chosenBubble');
+const recStack = document.getElementById('recStack');
+const recLabel = document.getElementById('recLabel');
+const logArea = document.getElementById('logArea');
+const phaseFill = document.getElementById('phaseFill');
+const phaseLabel = document.getElementById('phaseLabel');
+const statDecisions = document.getElementById('statDecisions');
+const statGaps = document.getElementById('statGaps');
+const statRate = document.getElementById('statRate');
+const statSims = document.getElementById('statSims');
+const statLog = document.getElementById('statLog');
+
+function resetAll() {
+  if (state.autoRunning) toggleAuto();
+  state.log = [];
+  state.decisionCount = 0;
+  state.simulationCount = 0;
+  state.totalGaps = 0;
+  state.locked = false;
+
+  document.querySelectorAll('.rec-level').forEach(el => {
+    el.classList.remove('visible', 'active');
+  });
+  recLabel.textContent = 'recursion dormant';
+  logArea.innerHTML = '<div class="entry">[init] agent created, log empty</div>';
+
+  updatePhase('ready', 0);
+
+  agentCircle.className = 'agent-circle';
+  agentCircle.textContent = '🤖';
+  predictBubble.className = 'bubble pred';
+  predictBubble.textContent = 'I predict: ...';
+  chosenBubble.className = 'bubble chosen';
+  chosenBubble.textContent = 'I choose: ...';
+
+  updateStats();
+  updatePhase('ready', 0);
+}
+
+function updateStats() {
+  statDecisions.textContent = state.decisionCount;
+  statGaps.textContent = state.totalGaps;
+  statRate.textContent = state.decisionCount > 0
+    ? (state.totalGaps / state.decisionCount * 100).toFixed(1) + '%'
+    : '—';
+  statSims.textContent = state.simulationCount;
+  statLog.textContent = state.log.length;
+}
+
+function updatePhase(phase, pct) {
+  phaseLabel.textContent = phase;
+  phaseFill.style.width = pct + '%';
+  phaseFill.className = 'phase-fill';
+  if (phase.includes('GAP')) phaseFill.classList.add('gap-phase');
+  if (phase.includes('commit') || phase.includes('decided')) phaseFill.classList.add('commit-phase');
+}
+
+function sleep(ms) {
+  if (state.speed === 3) return Promise.resolve(); // instant
+  const scaled = ms / state.speed;
+  return new Promise(r => setTimeout(r, scaled));
+}
+
+async function step() {
+  if (state.locked) return;
+  state.locked = true;
+
+  const options = ['A', 'B'];
+  const decIdx = state.decisionCount;
+
+  // ── Stage 1: Facing choice ─────────────────────
+  updatePhase('facing choice', 5);
+  agentCircle.className = 'agent-circle';
+  agentCircle.textContent = '🤖';
+  predictBubble.className = 'bubble pred';
+  predictBubble.textContent = 'I predict: ...';
+  chosenBubble.className = 'bubble chosen';
+  chosenBubble.textContent = 'I choose: ...';
+  recLabel.textContent = 'recursion dormant';
+  document.querySelectorAll('.rec-level').forEach(el => {
+    el.classList.remove('visible', 'active');
+  });
+
+  await sleep(300);
+
+  // ── Stage 2: Self-simulation ───────────────────
+  updatePhase('self-simulating (k=3 recursion)', 25);
+  agentCircle.classList.add('thinking');
+  recLabel.textContent = 'recursion active — self-simulating...';
+
+  // Animate recursion levels sequentially
+  const levels = document.querySelectorAll('.rec-level');
+  for (let i = levels.length - 1; i >= 0; i--) {
+    const level = levels[i];
+    const depth = parseInt(level.dataset.level);
+    level.classList.add('visible');
+    level.classList.add('active');
+    level.style.opacity = '0';
+    level.style.transform = 'translateX(-20px)';
+    // Reflow to restart animation
+    void level.offsetWidth;
+    level.style.opacity = '1';
+    level.style.transform = 'translateX(0)';
+    level.style.background = '#1e2440';
+    level.style.borderLeft = '3px solid var(--pred)';
+
+    await sleep(400 + depth * 150);
+  }
+
+  recLabel.textContent = 'recursion complete — committing...';
+  updatePhase('simulation complete', 55);
+  await sleep(200);
+
+  // ── Stage 3: Actual decision runs ──────────────
+  updatePhase('committing decision', 70);
+  const result = await toriumiChoose(options, 3);
+
+  // Update bubbles
+  animateRecursionDone(levels);
+
+  predictBubble.className = 'bubble pred';
+  predictBubble.innerHTML = `<strong>Predicted:</strong> <span style="color:var(--pred)">${result.predicted}</span>`;
+
+  chosenBubble.className = 'bubble chosen';
+  chosenBubble.innerHTML = `<strong>Chose:</strong> <span style="color:var(--accent)">${result.choice}</span>`;
+
+  agentCircle.classList.remove('thinking');
+  agentCircle.classList.add('chose');
+  agentCircle.textContent = result.choice === 'A' ? '🅰' : '🅱';
+
+  // ── Stage 4: Gap reveal ────────────────────────
+  if (result.gap) {
+    updatePhase('TORIUMI GAP! prediction ≠ choice', 100);
+    chosenBubble.classList.add('gap-alert');
+    agentCircle.classList.add('gap-flash');
+
+    // Animate gap
+    await sleep(200);
+    agentCircle.classList.remove('gap-flash');
+    await sleep(300);
+    chosenBubble.classList.remove('gap-alert');
+  } else {
+    updatePhase('decided — prediction = choice (coincidence)', 100);
+  }
+
+  // ── Stage 5: Log update ────────────────────────
+  updateLogDisplay(result);
+
+  // Reset recursion display
+  updateRecursionAfterChoice();
+  recLabel.textContent = result.gap
+    ? 'TORIUMI GAP — self-reference created divergence'
+    : 'prediction matched (coincidence, ~50% of the time)';
+
+  updateStats();
+  agentCircle.classList.remove('chose');
+
+  await sleep(600);
+  updatePhase('ready', 0);
+  state.locked = false;
+}
+
+function animateRecursionDone(levels) {
+  levels.forEach(l => {
+    l.classList.remove('active');
+    l.style.background = '#1a1a28';
+    l.style.borderLeft = '1px solid #2a2a3a';
+  });
+}
+
+function updateRecursionAfterChoice() {
+  const levels = document.querySelectorAll('.rec-level');
+  levels.forEach(l => {
+    l.classList.remove('active');
+    l.style.background = '#1a1a28';
+    l.style.borderLeft = '1px solid #2a2a3a';
+    setTimeout(() => {
+      l.classList.remove('visible');
+      l.style.opacity = '0';
+    }, 600);
+  });
+}
+
+function updateLogDisplay(result) {
+  // Show last 8 entries
+  const recent = state.log.slice(-8);
+  logArea.innerHTML = '';
+  recent.forEach(entry => {
+    const div = document.createElement('div');
+    div.className = 'entry';
+    const se = entry.event;
+
+    if (se === 'decision') {
+      div.classList.add('commit-entry');
+      div.textContent = `[${entry.seq}] DECISION → "${entry.choice}" (decision #${entry.decisionIndex})`;
+    } else if (se === 'choice_faced') {
+      div.textContent = `[${entry.seq}] choice_faced  options=${entry.options.join('/')}`;
+    } else if (se === 'sim_enter') {
+      div.classList.add('sim-entry');
+      div.textContent = `[${entry.seq}] sim_enter      depth=${entry.depth}`;
+    } else if (se === 'sim_exit') {
+      div.classList.add('sim-entry');
+      div.textContent = `[${entry.seq}] sim_exit       depth=${entry.depth}  inner→${entry.innerPrediction}`;
+    } else {
+      div.textContent = `[${entry.seq}] ${entry.event}`;
+    }
+
+    logArea.appendChild(div);
+  });
+  logArea.scrollTop = logArea.scrollHeight;
+
+  if (result.gap) {
+    const lastEl = logArea.lastElementChild;
+    if (lastEl) lastEl.classList.add('gap-entry');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Auto-run
+// ═══════════════════════════════════════════════════════════════════
+
+async function toggleAuto() {
+  state.autoRunning = !state.autoRunning;
+  const btn = document.getElementById('btnAuto');
+  if (state.autoRunning) {
+    btn.textContent = '■ Stop';
+    btn.classList.add('running');
+    autoLoop();
+  } else {
+    btn.textContent = '↻ Auto-Run';
+    btn.classList.remove('running');
+  }
+}
+
+async function autoLoop() {
+  while (state.autoRunning) {
+    await step();
+    await sleep(600);
+  }
+}
+
+function cycleSpeed() {
+  const speeds = [1, 2, 3];
+  const labels = ['1×', '2×', 'Instant'];
+  const idx = speeds.indexOf(state.speed);
+  state.speed = speeds[(idx + 1) % speeds.length];
+  document.getElementById('btnSpeed').textContent = 'Speed: ' + labels[state.speed - 1 + (state.speed === 3 ? 2 : state.speed === 2 ? 1 : 0)];
+  // fix labels
+  const lbls = {'1':'1×','2':'2×','3':'Instant'};
+  document.getElementById('btnSpeed').textContent = 'Speed: ' + lbls[String(state.speed)];
+}
+</script>
+
+</body>
+</html>

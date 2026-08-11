@@ -180,7 +180,11 @@ class CustomEntry {
         face: imagePath.isNotEmpty ? imagePath : (avatar.isEmpty
             ? const Avatar().encode()
             : avatar),
-        kind: imagePath.isNotEmpty ? FaceKind.file : FaceKind.avatar,
+        kind: imagePath.isNotEmpty
+            ? (imagePath.startsWith('http') || imagePath.startsWith('blob')
+                ? FaceKind.asset // Web画像はasset扱い（FaceViewが分岐）
+                : FaceKind.file)
+            : FaceKind.avatar,
         name: name,
         hobby: '',
         company: company,

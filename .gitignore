@@ -76,3 +76,5 @@ disable_hyperv.bat
 
 # SNS認証情報（パスワードを含むためコミット禁止）
 scripts/.auto_poster_config.json
+scripts/client_secret.json
+scripts/.youtube_token.pickle
