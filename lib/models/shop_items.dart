@@ -385,6 +385,72 @@ const List<AvatarAccessory> kAvatarAccessories = [
   AvatarAccessory(id: 'acc_wing_angel', emoji: '👼', nameJa: '天使の羽（激レア）', nameEn: 'Angel Wings (UR)', cost: 200, avatarBit: 10),
 ];
 
+// ═══════════════ 🌟 神スキン ═══════════════
+
+class GodSkin {
+  final String id;
+  final String emoji;
+  final String nameJa;
+  final String nameEn;
+  final int cost;
+  final String descJa;
+  final String descEn;
+
+  const GodSkin({
+    required this.id,
+    required this.emoji,
+    required this.nameJa,
+    required this.nameEn,
+    required this.cost,
+    required this.descJa,
+    required this.descEn,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+  String desc(bool ja) => ja ? descJa : descEn;
+}
+
+const List<GodSkin> kGodSkins = [
+  GodSkin(
+    id: 'god_skin_golden',
+    emoji: '✨',
+    nameJa: '黄金の記憶',
+    nameEn: 'Golden Memory',
+    cost: 500,
+    descJa: 'なまえがおの名簿が金色に輝きます。全キャラに金色のオーラ。',
+    descEn: 'Your roster shines in gold. All characters get a golden aura.',
+  ),
+  GodSkin(
+    id: 'god_skin_cosmic',
+    emoji: '🌌',
+    nameJa: '宇宙の織り手',
+    nameEn: 'Cosmic Weaver',
+    cost: 800,
+    descJa: '時空を超えた記憶の支配者。背景が星空に。覚えた数だけ星が増える。',
+    descEn: 'Master of spacetime memory. Starfield background. Stars multiply with each name learned.',
+  ),
+  GodSkin(
+    id: 'god_skin_neon',
+    emoji: '💜',
+    nameJa: 'ネオン・ゴッド',
+    nameEn: 'Neon God',
+    cost: 600,
+    descJa: 'サイバーパンクの神。ネオンの輝きと共に名前を覚える。',
+    descEn: 'Cyberpunk deity. Learn names with neon brilliance.',
+  ),
+];
+
+// ═══════════════ 💀 ハードコアモードチケット ═══════════════
+
+class HardcoreTicket {
+  static const int cost = 30;
+
+  static String name(bool ja) => ja ? '💀 ハードコアチケット' : '💀 Hardcore Ticket';
+  static String desc(bool ja) => ja
+      ? '1回だけハードコアモードでプレイ。選択肢が1つ減り、制限時間が半分に。成功報酬3倍。'
+      : 'One hardcore game: -1 choice option, half the time limit, 3x rewards.';
+}
+
 // ═══════════════ 🎯 スタンプラリー ═══════════════
 
 class StampRally {
