@@ -1526,28 +1526,18 @@ class _MatchGameScreenState extends State<MatchGameScreen>
             ]),
           ),
           const SizedBox(height: 8),
-          // 顔カード一覧（10人以上はスクロール、少人数でも顔が大きい）
+          // 顔×名前カード — 3列グリッド・スクロール
           Expanded(
-            child: _recallPeople >= 10
-                ? GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 6,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1.4,
-                    ),
-                    itemCount: _people.length,
-                    itemBuilder: (context, i) => _memorizeCard(_people[i], 80),
-                  )
-                : ListView(
-                    children: [
-                      for (final p in _people)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: _memorizeCard(p, _recallPeople <= 3 ? 120 : 96),
-                        ),
-                    ],
-                  ),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 6,
+                crossAxisSpacing: 6,
+                childAspectRatio: 0.72,
+              ),
+              itemCount: _people.length,
+              itemBuilder: (context, i) => _memorizeCardSmall(_people[i]),
+            ),
           ),
           // はじめるボタン
           const SizedBox(height: 8),
@@ -1569,32 +1559,23 @@ class _MatchGameScreenState extends State<MatchGameScreen>
     );
   }
 
-  /// 🧑‍🎨 覚えタイム用の顔+名前カード
-  Widget _memorizeCard(Person p, double faceSize) => Container(
-    padding: const EdgeInsets.all(12),
+  /// 🧑‍🎨 覚えタイム用 3列グリッドの顔+名前カード（縦型）
+  Widget _memorizeCardSmall(Person p) => Container(
+    padding: const EdgeInsets.fromLTRB(6, 10, 6, 6),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       border: Border.all(color: const Color(0xFFD8E4F0)),
     ),
-    child: Row(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        FaceView(person: p, size: faceSize, radius: 12),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(p.name,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-              if (p.hobby.isNotEmpty)
-                Text(p.hobby,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                    overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        ),
+        FaceView(person: p, size: 56, radius: 10),
+        const SizedBox(height: 6),
+        Text(p.name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+            maxLines: 2, overflow: TextOverflow.ellipsis),
       ],
     ),
   );
