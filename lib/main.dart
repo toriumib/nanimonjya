@@ -28,47 +28,30 @@ import 'l10n/app_localizations.dart'; // ★追加: 生成されるファイル�
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // 📱 Bluestacks等でGoogle Play Servicesが無いとFirebase initが例外を投げる。
+  //    アプリ本体は広告・分析なしで動かす（落とさない）。
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {}
   // ⏱ 初回起動の時刻を控える（初回ゲーム開始までの秒数を測るため）
   AppAnalytics.rememberFirstOpen();
   if (!kIsWeb) {
-    // Crashlytics: 未捕捉のFlutterエラー/非同期エラーを自動送信（Web非対応）
-    //
-    // ⚠️ **フレームワークのエラーを「致命的」として記録しない。**
-    //    以前は recordFlutterFatalError にしていたが、これは
-    //    「アプリが死んだ」という意味ではなく、ただの分類。
-    //    実際には FlutterError.onError が呼ばれてもアプリは動き続ける。
-    //
-    //    2026-08、Crashlytics のクラッシュのほぼ全部が
-    //    「google_fonts が圏外でフォントを取りにいって失敗した」だった。
-    //    アプリは落ちていないのに、クラッシュ率が66%まで落ちて見えていた。
-    //    **本物のクラッシュがこのノイズに埋もれる**ので、分類を分ける。
-    //
-    //    致命的として送るのは、下の PlatformDispatcher で拾う
-    //    「本当に捕まえられなかった非同期エラー」だけにする。
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-    MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
-    // ⚠️ **起動時に全画面広告を先読みしない。**
-    //    2026-08 のレポートで、インタースティシャルは 56ロード/7表示、
-    //    リワードインタースティシャルは 14ロード/0表示だった。
-    //    起動しただけで読むと、ゲームを終えずに離脱した人のぶんが
-    //    まるごと空振りになる。空振りはマッチ率と単価を下げる。
-    //    いまは「出す見込みが立ってから読む」に変えてある
-    //    （インタースティシャル＝あと1プレイで出る時点、
-    //      リワードインタースティシャル＝よみものを開いた時点）。
-    // 🚪 アプリ起動広告は**いったん止めている**。
-    //    枠（/9282156275）も実装（services/app_open_ad_helper.dart）も
-    //    あるので、再開したくなったら次の1行を戻すだけでよい。
-    //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
-    //    ほかの手を整えてから判断する。
-    AppOpenAdHelper.instance.start();
-    InterstitialAdHelper.instance.load(); // 起動時にインタースティシャルを先読み
-    IapService.instance.init(); // 💰 課金の初期化（await不要・非同期で進行）
-    PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
+    // Bluestacks等のエミュレータではGoogle Play Servicesが無いことがあり、
+    // Firebase/MobileAdsの初期化で例外が出てアプリごと落ちる。
+    // どの初期化がコケてもアプリ本体は起動するように個別に守る。
+    try {
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+    } catch (_) {}
+
+    try { MobileAds.instance.initialize(); } catch (_) {}
+    try { AppOpenAdHelper.instance.start(); } catch (_) {}
+    try { InterstitialAdHelper.instance.load(); } catch (_) {}
+    try { IapService.instance.init(); } catch (_) {}
+    try { PushService.instance.init(); } catch (_) {}
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
