@@ -895,7 +895,7 @@ class _TopScreenState extends State<TopScreen>
               const Positioned.fill(child: SeasonalDecor()),
               Positioned(top: 8, right: 8, child: _topBar()),
               Positioned(top: 8, left: 8, child: _webLocaleToggle()),
-              Column(
+              SingleChildScrollView(child: Column(
                 children: [
                   const SizedBox(height: 6),
                   // タイトルロゴ＋キャッチコピー（コンパクト）
@@ -1016,7 +1016,6 @@ class _TopScreenState extends State<TopScreen>
                     },
                   ),
                   // 👉 つぎの一歩
-                  if (_showNextStep) _nextStepCard(m),
                   // 📊 いまの実績（継続の動機づけ）
                   AnimatedBuilder(
                     animation: PlayerProfile.instance,
@@ -1277,6 +1276,7 @@ class _TopScreenState extends State<TopScreen>
                   ],
                   const SizedBox(height: 2),
                 ],
+              ),
               ),
             ],
           ),
