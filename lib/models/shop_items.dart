@@ -239,3 +239,95 @@ LuckyCharm luckyCharmById(String id) => kLuckyCharms.firstWhere(
 
 // 🗑 名刺スキン（CardSkin）は廃止した。名刺の配色が変わるだけで、
 //    覚える練習には効かず、ショップの項目数だけを増やしていた。
+
+// ═══════════════ 🏪 日替わりショップ ═══════════════
+
+class DailyShopItem {
+  final String id;
+  final String nameJa;
+  final String nameEn;
+  final String emoji;
+  final int originalCost;
+  final int discountCost; // 割引後の価格（0なら動画で無料）
+
+  const DailyShopItem({
+    required this.id,
+    required this.nameJa,
+    required this.nameEn,
+    required this.emoji,
+    required this.originalCost,
+    required this.discountCost,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+  int get discount => originalCost - discountCost;
+}
+
+class DailyShop {
+  final String date; // yyyy-mm-dd
+  final List<DailyShopItem> items;
+
+  const DailyShop({required this.date, required this.items});
+
+  bool get isToday => date == _today();
+
+  static String _today() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  static DailyShop generate(int seed) {
+    final tpls = <Map<String, Object>>[
+      {'id': 'daily_coins', 'ja': 'コイン200枚', 'en': '200 Coins', 'emoji': '🪙', 'cost': 200},
+      {'id': 'daily_coins_big', 'ja': 'コイン500枚', 'en': '500 Coins', 'emoji': '💰', 'cost': 500},
+      {'id': 'daily_voice', 'ja': 'ほめボイス1種', 'en': '1 Praise Voice', 'emoji': '🎤', 'cost': 120},
+      {'id': 'daily_charm', 'ja': 'お守り1種', 'en': '1 Lucky Charm', 'emoji': '🍀', 'cost': 150},
+      {'id': 'daily_bgm', 'ja': 'BGM1曲', 'en': '1 BGM track', 'emoji': '🎵', 'cost': 400},
+    ];
+    final rng = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+        .millisecondsSinceEpoch ~/ 86400000;
+    final r = seed + rng;
+    final items = <DailyShopItem>[];
+    for (final tpl in tpls) {
+      final cost = tpl['cost'] as int;
+      items.add(DailyShopItem(
+        id: tpl['id'] as String,
+        nameJa: tpl['ja'] as String,
+        nameEn: tpl['en'] as String,
+        emoji: tpl['emoji'] as String,
+        originalCost: cost,
+        discountCost: ((cost * (0.3 + (r % 5) / 10.0)) / 10).round() * 10,
+      ));
+    }
+    return DailyShop(date: _today(), items: items);
+  }
+}
+
+// ═══════════════ ⚡ コインブースト ═══════════════
+
+class CoinBoost {
+  static const int cost = 20;
+  static const double multiplier = 2.0;
+
+  static String name(bool ja) => ja ? '⚡ コイン2倍ブースト' : '⚡ Coin x2 Boost';
+  static String desc(bool ja) => ja
+      ? '次の1ゲームだけ、獲得コインが2倍になります。重ねがけできません。'
+      : 'Doubles coins earned in your next game. Cannot be stacked.';
+}
+
+// ═══════════════ 🎯 スタンプラリー ═══════════════
+
+class StampRally {
+  static const int targetDays = 7;
+
+  static String title(bool ja, int days) => ja
+      ? '🎯 動画スタンプラリー ($days/$targetDays)'
+      : '🎯 Ad Watch Streak ($days/$targetDays)';
+
+  static String desc(bool ja) => ja
+      ? '毎日1回リワード広告を見るとスタンプがたまります。$targetDays日連続でレジェンドキャラをプレゼント！'
+      : 'Watch 1 rewarded ad daily to earn stamps. $targetDays consecutive days = Legendary Character!';
+
+  static bool canClaim(int streak, Set<String> unlockedCharacters) =>
+      streak >= targetDays;
+}

@@ -151,6 +151,55 @@ class PlayerProfile extends ChangeNotifier {
   bool devMode = false;
   String selectedCharm = 'none';
 
+  // 🏪 日替わりショップ
+  String dailyShopDate = '';
+  Set<String> dailyShopBought = {}; // 今日買った日替わり品のID
+
+  // 🎯 動画視聴スタンプラリー
+  int adWatchStreak = 0;
+  String lastAdWatchDate = '';
+  Set<String> adStreakRewardsClaimed = {}; // 受け取り済みの日数報酬
+
+  // ⚡ コインブースト（次の1ゲームだけ2倍）
+  bool coinBoostActive = false;
+
+  /// 🎯 動画スタンプ: 今日すでに動画を見たか
+  bool get adWatchedToday {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    return lastAdWatchDate == d;
+  }
+
+  /// 🎯 スタンプラリーの今日の日数
+  int get adStreakDay => adWatchStreak.clamp(1, 7);
+
+  /// 🎯 動画視聴を記録。今日まだなら+1
+  Future<void> recordAdWatch() async {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    if (lastAdWatchDate == d) return; // 今日もう見た
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final y = '${yesterday.year}-${yesterday.month}-${yesterday.day}';
+    if (lastAdWatchDate == y) {
+      adWatchStreak = (adWatchStreak + 1).clamp(1, 7);
+    } else {
+      adWatchStreak = 1;
+    }
+    lastAdWatchDate = d;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 📅 日替わりショップの日付が変わったらリセット
+  void _refreshDailyShop() {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    if (dailyShopDate != d) {
+      dailyShopDate = d;
+      dailyShopBought.clear();
+    }
+  }
+
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
   int missionPlays = 0; // 今日あそんだ回数
@@ -253,7 +302,15 @@ class PlayerProfile extends ChangeNotifier {
     _refreshMissions();
     selectedHomeBgm = bgm.home;
     selectedResultBgm = bgm.result;
-    _webLocaleCode = p.getString('webLocale'); // null = 端末の言語に従う
+    _webLocaleCode = p.getString('webLocale');
+    // 🏪 日替わりショップ + スタンプラリー
+    dailyShopDate = p.getString('dailyShopDate') ?? '';
+    dailyShopBought = (p.getStringList('dailyShopBought') ?? []).toSet();
+    adWatchStreak = p.getInt('adWatchStreak') ?? 0;
+    lastAdWatchDate = p.getString('lastAdWatchDate') ?? '';
+    adStreakRewardsClaimed = (p.getStringList('adStreakRewards') ?? []).toSet();
+    coinBoostActive = p.getBool('coinBoost') ?? false;
+    _refreshDailyShop();
     _loaded = true;
     _refreshDailyState();
   }
@@ -1101,6 +1158,44 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('missionCoinsEarned', missionCoinsEarned);
     await p.setInt('missionOnline', missionOnline);
     await p.setStringList('missionClaimed', missionClaimed.toList());
+    // 🏪 日替わりショップ + スタンプラリー
+    await p.setString('dailyShopDate', dailyShopDate);
+    await p.setStringList('dailyShopBought', dailyShopBought.toList());
+    await p.setInt('adWatchStreak', adWatchStreak);
+    await p.setString('lastAdWatchDate', lastAdWatchDate);
+    await p.setStringList('adStreakRewards', adStreakRewardsClaimed.toList());
+    await p.setBool('coinBoost', coinBoostActive);
+  }
+
+  /// ⚡ コインブーストを有効化
+  Future<void> activateCoinBoost() async {
+    if (coinBoostActive) return;
+    if (coins < 20) return;
+    coins -= 20;
+    coinBoostActive = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// ⚡ コインブーストを使って消費
+  int applyBoost(int amount) {
+    if (!coinBoostActive) return amount;
+    coinBoostActive = false;
+    final doubled = amount * 2;
+    _persist(); // fire and forget
+    notifyListeners();
+    return doubled;
+  }
+
+  /// 📅 日替わりショップで購入
+  Future<bool> buyDailyShopItem(String itemId, int cost) async {
+    if (coins < cost) return false;
+    if (dailyShopBought.contains(itemId)) return false;
+    coins -= cost;
+    dailyShopBought.add(itemId);
+    await _persist();
+    notifyListeners();
+    return true;
   }
 }
 
