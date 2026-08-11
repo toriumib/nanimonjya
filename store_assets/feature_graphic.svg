@@ -44,8 +44,10 @@
   <circle cx="50" cy="300" r="1" fill="#FFC02E" opacity="0.3"/>
 
   <!-- Title area -->
-  <text x="512" y="68" text-anchor="middle" font-family="MochiyPopOne, sans-serif" font-size="26" font-weight="900" fill="url(#gold)">NAME CALL</text>
+  <text x="512" y="68" text-anchor="middle" font-family="MochiyPopOne, sans-serif" font-size="32" font-weight="900" fill="url(#gold)">なまえがお</text>
   <text x="512" y="95" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="13" fill="#8899BB" letter-spacing="3">顔と名前の記憶トレーニングゲーム</text>
+
+  <text x="512" y="120" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="10" fill="#556688">Face &amp; Name Memory Training Game</text>
 
   <!-- 4 name tags row -->
   <!-- Tag 1 -->
