@@ -13,6 +13,7 @@ import 'top_screen.dart';
 import 'training_hub_screen.dart';
 import 'tutorial_screen.dart';
 import 'tutorial_play_screen.dart';
+import 'welcome_gift_screen.dart';
 
 /// アプリのルート: 下部タブでモードを切り替えるシェル。
 /// 1. なまえがお（メイン） 2. ビジネス特訓 3. ショップ 4. よみもの 5. マイページ
@@ -56,22 +57,21 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     final needPlay = await shouldPlayTutorial();
     final needRead = await shouldShowTutorial();
 
-    // 🎮 まず1ゲーム。ここが「最初の成功体験」で、いちばん大事な1分。
+    // 🎁 まずウェルカムギフト（コイン＋キャラ即付与）。読ませない。与える。
     if (needPlay) {
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const WelcomeGiftScreen()));
+      if (!mounted) return;
+      // チュートリアルゲーム（1分で終わる簡易版）
+      await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => const TutorialPlayScreen()));
       if (!mounted) return;
-      // 遊び終わったあとに、読むかどうかを本人に選ばせる
       if (needRead) await _offerGuide();
-      // ホームの「つぎは顔メモ」を出し直させる。
-      // TopScreen の initState はここより先に走っているので、
-      // そのままでは「おためし未プレイ」と判定されたままになる。
       kHomeNextStepTick.value++;
       return;
     }
 
-    // おためしを済ませている人（更新で入った人など）には、従来どおり案内する
     if (needRead) {
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(
