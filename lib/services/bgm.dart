@@ -224,21 +224,23 @@ class Bgm {
 
   /// 🔊 いま鳴らしている場面のBGMを、選び直した曲でかけ直す。
   ///
-  /// ⚠️ ショップは「ホームのタブ」の中にあるので、曲を選んだあとに
-  /// [restartGameBgm] を呼ぶと**ゲーム用の曲**が鳴り出してしまい、
-  /// 画面を移動した瞬間にホームの曲へ戻る（＝選んだのに変わらない、に見える）。
-  /// いまの場面に合わせてかけ直す。
+  /// 即座に前の曲を止めて新しい曲を鳴らす。
+  /// `_current = null` + `_player.stop()` を先にやってから
+  /// play系に渡すので、`_play`内の「同じ曲ならスキップ」に引っかからない。
   Future<void> restartCurrent() async {
-    _current = null;
-    switch (_mode) {
-      case _BgmMode.game:
-        await playGame();
-      case _BgmMode.result:
-        await playResult();
-      case _BgmMode.home:
-      case _BgmMode.none:
-        await playHome();
-    }
+    return _serialize(() async {
+      _current = null;
+      try { await _player.stop(); } catch (_) {}
+      switch (_mode) {
+        case _BgmMode.game:
+          await _play(assetKey(PlayerProfile.instance.selectedBgm));
+        case _BgmMode.result:
+          await _play(assetKey(resultAsset()));
+        case _BgmMode.home:
+        case _BgmMode.none:
+          await _play(assetKey(homeAsset()), volume: 0.22);
+      }
+    });
   }
 
   /// ▶️ 試聴。持っていない曲でも鳴らせる（買う前に聴けないと選べないため）。

@@ -1507,42 +1507,47 @@ class _MatchGameScreenState extends State<MatchGameScreen>
             ),
           ),
           const SizedBox(height: 8),
-          // 🧑‍🎨 顔と名前グリッド — 1列で大きく
+          // 🧑‍🎨 顔と名前を覚える — 全員表示・スクロール可
+          // 🎯 文言を上部に表示
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF9E6),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFFC02E), width: 1.5),
+            ),
+            child: Row(children: [
+              const Text('🎯', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                m.ja ? '顔と名前を一致させて覚えて！' : 'Match each face to its name — memorize!',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF5A4A1E)),
+              )),
+            ]),
+          ),
+          const SizedBox(height: 8),
+          // 顔カード一覧（10人以上はスクロール、少人数でも顔が大きい）
           Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _recallPeople >= 8 ? 2 : 1,
-                mainAxisSpacing: 6,
-                crossAxisSpacing: 8,
-                childAspectRatio: _recallPeople >= 8 ? 2.2 : 0.85,
-              ),
-              itemCount: _people.length,
-              itemBuilder: (context, i) {
-                final p = _people[i];
-                return Container(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFD8E4F0)),
-                  ),
-                  child: Row(
+            child: _recallPeople >= 10
+                ? GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 6,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1.4,
+                    ),
+                    itemCount: _people.length,
+                    itemBuilder: (context, i) => _memorizeCard(_people[i], 80),
+                  )
+                : ListView(
                     children: [
-                      FaceView(person: p, size: _recallPeople >= 10 ? 56 : 72, radius: 10),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          p.name,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w900),
-                          overflow: TextOverflow.ellipsis,
+                      for (final p in _people)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _memorizeCard(p, _recallPeople <= 3 ? 120 : 96),
                         ),
-                      ),
                     ],
                   ),
-                );
-              },
-            ),
           ),
           // はじめるボタン
           const SizedBox(height: 8),
@@ -1563,6 +1568,36 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       ),
     );
   }
+
+  /// 🧑‍🎨 覚えタイム用の顔+名前カード
+  Widget _memorizeCard(Person p, double faceSize) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: const Color(0xFFD8E4F0)),
+    ),
+    child: Row(
+      children: [
+        FaceView(person: p, size: faceSize, radius: 12),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(p.name,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              if (p.hobby.isNotEmpty)
+                Text(p.hobby,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildBoard(MetaStrings m) {
     const cols = 4;
