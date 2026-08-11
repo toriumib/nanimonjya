@@ -149,102 +149,75 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
             builder: (context, _) {
               final p = PlayerProfile.instance;
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // コイン残高
+                    // 💰 コインバー（グラデーション背景＋動画＋評価 一体化）
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3D6),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: const Color(0xFFFFC93C), width: 1.5),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFF3D6), Color(0xFFFFE3B0)],
+                          begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(color: const Color(0xFFFFC93C).withValues(alpha: 0.2), blurRadius: 8),
+                        ],
+                        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('🪙', style: TextStyle(fontSize: 22)),
+                      child: Column(children: [
+                        Row(children: [
+                          const Text('🪙', style: TextStyle(fontSize: 28)),
                           const SizedBox(width: 8),
                           Text(m.storeCoins(p.coins),
-                              style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF7A5A00))),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
+                          const Spacer(),
+                          _miniBtn(m.storeWatchAd(_adReward), const Color(0xFF4ECDC4), _rewardAd.isLoading ? null : _watchAd, width: 120),
+                          const SizedBox(width: 6),
+                          _miniBtn(m.storeRate, const Color(0xFFFFB300), _rate, width: 80),
+                        ]),
+                        const SizedBox(height: 8),
+                        Text(m.storeHint, textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 10.5, color: Color(0xAA7A5A00))),
+                      ]),
+                    ),
+                    const SizedBox(height: 16),
+                    // 💳 広告除去
+                    _removeAdsCard(m, p),
+                    if (IapService.instance.available) ...[
+                      const SizedBox(height: 16), _iapSection(m, p),
+                    ],
+                    const SizedBox(height: 18),
+                    // ── 🔥 人気セクション ──
+                    _sectionHeader(m.ja ? '🔥 人気＆お得' : '🔥 Trending', ''),
+                    const SizedBox(height: 10),
+                    // 🏪 日替わり
+                    _dailyShopCard(m, p),
+                    const SizedBox(height: 10),
+                    // 🎰 ガチャ
+                    _gachaCard(m, p),
+                    const SizedBox(height: 10),
+                    // ⚡ ブースト + 🪙 コイン倍増（横並び）
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: _coinBoostCard(m, p)),
+                          const SizedBox(width: 8),
+                          Expanded(child: _coinDoublerCard(m)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    // 動画でコイン & 評価
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _rewardAd.isLoading ? null : _watchAd,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4ECDC4),
-                              minimumSize: const Size.fromHeight(50),
-                            ),
-                            child: Text(
-                              _rewardAd.isLoading
-                                  ? m.storeAdLoading
-                                  : m.storeWatchAd(_adReward),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w900, fontSize: 13.5),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _rate,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFB300),
-                              minimumSize: const Size.fromHeight(50),
-                            ),
-                            child: Text(m.storeRate,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13.5)),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(m.storeHint,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black54)),
-                    const SizedBox(height: 16),
-                    // 💳 旧課金の広告除去（すでに購入済みの人へのお礼）
-                    _removeAdsCard(m, p),
-                    // 💰 課金アイテム（コインパック・広告除去・プレミアム）
-                    if (IapService.instance.available) ...[
-                      const SizedBox(height: 20),
-                      _iapSection(m, p),
-                    ],
-                    const SizedBox(height: 20),
-                    // 🏪 日替わりショップ（FOMO: 今日だけ割引）
-                    _dailyShopCard(m, p),
-                    const SizedBox(height: 16),
-                    // ⚡ コインブースト（コインの無限需要）
-                    _coinBoostCard(m, p),
-                    const SizedBox(height: 16),
-                    // 🪙 コイン倍増ゲーム
-                    _coinDoublerCard(m),
-                    const SizedBox(height: 16),
-                    // 🌟 神スキン（高額消費）
+                    const SizedBox(height: 10),
+                    // 🌟 神スキン
                     _godSkinCard(m, p),
-                    const SizedBox(height: 12),
-                    // 💀 ハードコアチケット
+                    const SizedBox(height: 8),
+                    // 💀 ハードコア
                     _hardcoreTicketCard(m, p),
-                    const SizedBox(height: 12),
-                    // 🎰 ガチャ（毎日引きたい）
-                    _gachaCard(m, p),
-                    const SizedBox(height: 16),
-                    // 🎯 動画スタンプラリー（7日でレジェンド）
+                    const SizedBox(height: 8),
+                    // 🎯 スタンプラリー
                     _stampRallyCard(m, p),
                     const SizedBox(height: 20),
                     // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
@@ -870,6 +843,21 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       );
     }
   }
+
+  /// 🔘 ミニボタン
+  Widget _miniBtn(String label, Color color, VoidCallback? onTap, {double width = 100}) => SizedBox(
+    width: width,
+    child: ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color, foregroundColor: Colors.white,
+        minimumSize: const Size.fromHeight(40),
+        padding: EdgeInsets.zero,
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+      ),
+      child: Text(label, textAlign: TextAlign.center),
+    ),
+  );
 
   /// 💳 広告除去（買い切り）のカード。
   /// 💰 課金セクション（コインパック・広告除去・プレミアム）。
