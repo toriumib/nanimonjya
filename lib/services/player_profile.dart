@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
@@ -163,6 +165,13 @@ class PlayerProfile extends ChangeNotifier {
   // ⚡ コインブースト（次の1ゲームだけ2倍）
   bool coinBoostActive = false;
 
+  // 🧢 アバターアクセサリー
+  Set<String> unlockedAccessories = {};
+  String? selectedAccessory;
+
+  // 🔥 ログイン保険
+  bool streakSaverOwned = false;
+
   /// 🎯 動画スタンプ: 今日すでに動画を見たか
   bool get adWatchedToday {
     final today = DateTime.now();
@@ -310,6 +319,9 @@ class PlayerProfile extends ChangeNotifier {
     lastAdWatchDate = p.getString('lastAdWatchDate') ?? '';
     adStreakRewardsClaimed = (p.getStringList('adStreakRewards') ?? []).toSet();
     coinBoostActive = p.getBool('coinBoost') ?? false;
+    unlockedAccessories = (p.getStringList('unlockedAccessories') ?? []).toSet();
+    selectedAccessory = p.getString('selectedAccessory');
+    streakSaverOwned = p.getBool('streakSaver') ?? false;
     refreshDailyShop();
     _loaded = true;
     _refreshDailyState();
@@ -1165,6 +1177,62 @@ class PlayerProfile extends ChangeNotifier {
     await p.setString('lastAdWatchDate', lastAdWatchDate);
     await p.setStringList('adStreakRewards', adStreakRewardsClaimed.toList());
     await p.setBool('coinBoost', coinBoostActive);
+    await p.setStringList('unlockedAccessories', unlockedAccessories.toList());
+    if (selectedAccessory != null) await p.setString('selectedAccessory', selectedAccessory!);
+    await p.setBool('streakSaver', streakSaverOwned);
+  }
+
+  /// 🎰 ガチャを引く
+  Future<({String? id, String? type, int coinsBack})> pullGacha() async {
+    if (coins < Gacha.cost) return (id: null, type: null, coinsBack: 0);
+    final rng = Random();
+    final result = Gacha.pull(rng);
+    coins -= Gacha.cost;
+    if (result.coinsBack > 0) coins += result.coinsBack;
+    final cid = result.id;
+    if (cid != null) {
+      if (result.type == 'random_chara') {
+        final pool = kExtraCharacters.where((c) => !unlockedCharacters.contains(c.id)).toList();
+        if (pool.isNotEmpty) unlockedCharacters.add(pool[rng.nextInt(pool.length)].id);
+      } else if (result.type == 'rare_voice') {
+        final pool = kPraiseVoices.where((v) => v.id != 'none' && !unlockedVoices.contains(v.id)).toList();
+        if (pool.isNotEmpty) unlockedVoices.add(pool[rng.nextInt(pool.length)].id);
+      } else if (cid == 'jackpot') {
+        unlockedAccessories.add('acc_wing_angel');
+        grantBonusCoins(100);
+      }
+    }
+    await _persist();
+    notifyListeners();
+    return result;
+  }
+
+  /// 🔥 ログイン保険: 購入
+  Future<bool> buyStreakSaver() async {
+    if (coins < StreakSaver.cost || streakSaverOwned) return false;
+    coins -= StreakSaver.cost;
+    streakSaverOwned = true;
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
+  /// 🔥 ログイン忘れ時に保険消費
+  Future<void> maybeUseStreakSaver() async {
+    if (!streakSaverOwned) return;
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    final y = '${yesterday.year}-${yesterday.month}-${yesterday.day}';
+    final dayBefore = today.subtract(const Duration(days: 2));
+    final d2 = '${dayBefore.year}-${dayBefore.month}-${dayBefore.day}';
+    // 昨日も一昨日もログインなし＝2日空いたら保険発動
+    if (lastLoginDate != y && lastLoginDate == d2 && dailyStreak > 1) {
+      streakSaverOwned = false;
+      // 日付を昨日に補正して連続を維持
+      lastLoginDate = y;
+      await _persist();
+      notifyListeners();
+    }
   }
 
   /// ⚡ コインブーストを有効化

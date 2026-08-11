@@ -1,3 +1,7 @@
+library;
+
+import 'dart:math';
+
 /// 🛍 ショップの拡張アイテム。
 ///
 /// キャラ購入（character_catalog.dart）に加えて、
@@ -9,7 +13,6 @@
 /// - PlayerTitle : 名前の下に出る称号（マイページ・結果画面に表示）
 ///
 /// いずれも購入状態は PlayerProfile に保存する。
-library;
 
 /// 🎉 ほめボイス。正解や勝利のときに、選んだキャラの口調で褒めてくれる。
 class PraiseVoice {
@@ -314,6 +317,73 @@ class CoinBoost {
       ? '次の1ゲームだけ、獲得コインが2倍になります。重ねがけできません。'
       : 'Doubles coins earned in your next game. Cannot be stacked.';
 }
+
+// ═══════════════ 🎰 ガチャ ═══════════════
+
+class Gacha {
+  static const int cost = 40; // 1回40コイン
+  static const int multiCost = 100; // 3回100コイン
+
+  static String name(bool ja) => ja ? '🎰 おなまえガチャ' : '🎰 Name Gacha';
+  static String desc(bool ja) => ja
+      ? '1回40コイン。レアなキャラや名刺スキンが当たります。3連100コイン。'
+      : '40 coins per pull. Win rare characters & card skins! 3-pull for 100.';
+
+  /// Returns prize. null = ハズレ（コイン一部返還）
+  static ({String? id, String? type, int coinsBack}) pull(Random rng) {
+    final roll = rng.nextDouble();
+    if (roll < 0.05) return (id: 'jackpot', type: 'legendary_chara', coinsBack: 0); // 5% 神引き
+    if (roll < 0.20) return (id: 'rare', type: 'rare_voice', coinsBack: 0); // 15% レア
+    if (roll < 0.50) return (id: 'normal', type: 'random_chara', coinsBack: 0); // 30% 通常
+    return (id: null, type: null, coinsBack: 15); // 50% ハズレ（15コイン返還）
+  }
+}
+
+// ═══════════════ 🔥 連続ログイン保険 ═══════════════
+
+class StreakSaver {
+  static const int cost = 80;
+
+  static String name(bool ja) => ja ? '🔥 ログイン保険' : '🔥 Streak Saver';
+  static String desc(bool ja) => ja
+      ? 'うっかりログインを忘れても連続日数が途切れません。購入後、次に途切れそうなときに自動で消費されます。'
+      : 'If you miss a day, your streak is protected. Auto-consumed once when needed.';
+}
+
+// ═══════════════ 🧢 アバターアクセサリー ═══════════════
+
+class AvatarAccessory {
+  final String id;
+  final String emoji;
+  final String nameJa;
+  final String nameEn;
+  final int cost;
+  final int avatarBit; // AvatarパラメータのどのビットをONにするか
+
+  const AvatarAccessory({
+    required this.id,
+    required this.emoji,
+    required this.nameJa,
+    required this.nameEn,
+    required this.cost,
+    required this.avatarBit,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+}
+
+const List<AvatarAccessory> kAvatarAccessories = [
+  AvatarAccessory(id: 'acc_glasses_round', emoji: '👓', nameJa: '丸メガネ', nameEn: 'Round Glasses', cost: 30, avatarBit: 1),
+  AvatarAccessory(id: 'acc_glasses_square', emoji: '🕶', nameJa: '四角メガネ', nameEn: 'Square Glasses', cost: 30, avatarBit: 2),
+  AvatarAccessory(id: 'acc_hat_cap', emoji: '🧢', nameJa: 'キャップ', nameEn: 'Cap', cost: 40, avatarBit: 3),
+  AvatarAccessory(id: 'acc_hat_crown', emoji: '👑', nameJa: 'クラウン（プレミア）', nameEn: 'Crown (Premium)', cost: 100, avatarBit: 4),
+  AvatarAccessory(id: 'acc_hat_tophat', emoji: '🎩', nameJa: 'トップハット', nameEn: 'Top Hat', cost: 50, avatarBit: 5),
+  AvatarAccessory(id: 'acc_neck_tie', emoji: '👔', nameJa: 'ネクタイ', nameEn: 'Necktie', cost: 30, avatarBit: 6),
+  AvatarAccessory(id: 'acc_ear_headphones', emoji: '🎧', nameJa: 'ヘッドホン', nameEn: 'Headphones', cost: 40, avatarBit: 7),
+  AvatarAccessory(id: 'acc_mask_ninja', emoji: '🥷', nameJa: 'ニンジャマスク', nameEn: 'Ninja Mask', cost: 60, avatarBit: 8),
+  AvatarAccessory(id: 'acc_scarf_red', emoji: '🧣', nameJa: '赤いマフラー', nameEn: 'Red Scarf', cost: 35, avatarBit: 9),
+  AvatarAccessory(id: 'acc_wing_angel', emoji: '👼', nameJa: '天使の羽（激レア）', nameEn: 'Angel Wings (UR)', cost: 200, avatarBit: 10),
+];
 
 // ═══════════════ 🎯 スタンプラリー ═══════════════
 
