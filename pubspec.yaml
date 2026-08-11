@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+175
+version: 2.5.0+183
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -100,7 +100,7 @@ flutter:
 
 flutter_icons:
   ios: true
-  image_path: "assets/images/launcher/icon_ios.png"
+  image_path: "assets/images/launcher/icon.png"
   remove_alpha_ios: true
   android: true
   adaptive_icon_background: "assets/images/launcher/icon_adaptive_background.png"
