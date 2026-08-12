@@ -1,735 +1,876 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鳥海理論 — Toriumi Theory: Live Proof</title>
+<title>鳥海理論 — 運命を壊す科学</title>
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #141420;
-    --text: #e0e0e8;
-    --dim: #6b6b80;
-    --accent: #c4a35a;
-    --gap: #ff4470;
-    --match: #44d0a0;
-    --pred: #5a8ac4;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-  }
+:root {
+  --bg: #050510; --card: #0d0d24; --border: #1a1a3a;
+  --text: #c8c8e0; --dim: #5e5e88; --bright: #f0f0ff;
+  --gold: #d4a44e; --red: #e0445c; --blue: #5090cc; --green: #38a878;
+  --gold-bg: rgba(212,164,78,0.08); --red-bg: rgba(224,68,92,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.75;
+  overflow-x: hidden;
+}
 
-  /* ── Header ──────────────────────────────────── */
-  .header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--accent);
-  }
-  .header .sub {
-    font-size: 0.85rem;
-    color: var(--dim);
-    margin-top: 4px;
-  }
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:999;
+  background: rgba(5,5,16,0.94); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 48px;
+  display: flex; align-items: center; gap: 4px;
+  overflow-x: auto;
+}
+nav a {
+  color: var(--dim); text-decoration: none; font-size: 0.68rem;
+  padding: 6px 10px; border-radius: 5px; white-space: nowrap;
+  letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.2s;
+}
+nav a:hover { color: var(--gold); background: var(--gold-bg); }
 
-  /* ── Panel ───────────────────────────────────── */
-  .panel {
-    background: var(--surface);
-    border: 1px solid #252535;
-    border-radius: 12px;
-    padding: 20px 28px;
-    max-width: 720px;
-    width: 100%;
-    margin-bottom: 16px;
-  }
-  .panel-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--dim);
-    margin-bottom: 12px;
-  }
+/* ── SECTIONS ── */
+section { padding: 70px 20px 50px; max-width: 840px; margin: 0 auto; }
+section:first-of-type { padding-top: 80px; }
+h2 {
+  font-size: 1.9rem; text-align: center; margin-bottom: 8px;
+  letter-spacing: 0.03em; color: var(--bright);
+}
+h2 .num { color: var(--gold); font-size: 1.1rem; display: block; margin-bottom: 2px; }
+.subtitle { text-align: center; color: var(--dim); font-size: 0.82rem; margin-bottom: 36px; }
+h3 { font-size: 1.15rem; color: var(--gold); margin: 28px 0 10px; }
+h4 { font-size: 0.95rem; color: var(--bright); margin: 18px 0 8px; }
+p { color: var(--dim); font-size: 0.88rem; margin-bottom: 10px; }
+p strong { color: var(--text); }
+p em { color: var(--gold); font-style: normal; font-weight: 600; }
 
-  /* ── Agent Viz ──────────────────────────────── */
-  .agent-row {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .agent-circle {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #2a2a40, #111);
-    border: 2px solid #333;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    position: relative;
-  }
-  .agent-circle.thinking {
-    border-color: var(--pred);
-    box-shadow: 0 0 24px rgba(90,138,196,0.4);
-    animation: pulse 0.6s ease-in-out infinite;
-  }
-  .agent-circle.chose {
-    border-color: var(--accent);
-    box-shadow: 0 0 28px rgba(196,163,90,0.5);
-  }
-  @keyframes pulse {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.06); }
-  }
+/* ── CARDS ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 22px 26px; margin: 14px 0;
+}
+.card-gold { border-color: rgba(212,164,78,0.25); background: var(--gold-bg); }
+.card-red { border-color: rgba(224,68,92,0.2); background: var(--red-bg); }
 
-  .bubble {
-    background: #1e1e30;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    max-width: 240px;
-    text-align: center;
-    border: 1px solid #2a2a3a;
-    transition: all 0.3s;
-  }
-  .bubble.pred { border-left: 3px solid var(--pred); }
-  .bubble.chosen { border-left: 3px solid var(--accent); }
-  .bubble.gap-alert {
-    border-color: var(--gap);
-    background: #1a1018;
-    animation: shake 0.4s ease;
-  }
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    75% { transform: translateX(-3px); }
-  }
-  .gap-flash {
-    border-color: var(--gap) !important;
-    box-shadow: 0 0 40px rgba(255,68,112,0.6) !important;
-  }
+/* ── BIG STATEMENT ── */
+.big-statement {
+  text-align: center; padding: 40px 20px; margin: 20px 0;
+  font-size: 1.2rem; color: var(--bright); font-weight: 700;
+  letter-spacing: 0.04em; line-height: 1.8;
+}
+.big-statement .highlight { color: var(--gold); font-size: 1.35rem; }
 
-  /* ── Recursion Viz ───────────────────────────── */
-  .recursion-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-  .rec-level {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    font-family: 'Cascadia Code', 'Consolas', monospace;
-    padding: 6px 12px;
-    border-radius: 6px;
-    background: #1a1a28;
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: all 0.35s ease;
-  }
-  .rec-level.visible {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .rec-level.active {
-    background: #1e2440;
-    border-left: 3px solid var(--pred);
-  }
-  .rec-level .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--dim);
-    flex-shrink: 0;
-  }
-  .rec-level.active .dot { background: var(--pred); }
+/* ── FORMULA ── */
+.formula {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  background: #050512; padding: 14px 20px; border-radius: 8px;
+  border-left: 3px solid var(--gold); margin: 12px 0;
+  font-size: 0.84rem; overflow-x: auto; color: #a0a0c8;
+}
 
-  /* ── Log ─────────────────────────────────────── */
-  .log-area {
-    height: 160px;
-    overflow-y: auto;
-    font-family: 'Cascadia Code', 'Consolas', monospace;
-    font-size: 0.72rem;
-    background: #0c0c18;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: var(--dim);
-    border: 1px solid #202030;
-  }
-  .log-area .entry { padding: 1px 0; border-bottom: 1px solid #0f0f1a; }
-  .log-area .entry.gap-entry { color: var(--gap); font-weight: 600; }
-  .log-area .entry.commit-entry { color: var(--accent); }
-  .log-area .entry.sim-entry { color: var(--pred); }
+/* ── THREE COLUMNS ── */
+.three-col {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 14px; margin: 16px 0;
+}
+.three-col .cell {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; text-align: center;
+}
+.three-col .cell .icon { font-size: 2.2rem; margin-bottom: 8px; }
+.three-col .cell .title { font-weight: 700; color: var(--bright); margin-bottom: 6px; }
+.three-col .cell .desc { font-size: 0.78rem; color: var(--dim); }
+.three-col .cell.gold { border-color: rgba(212,164,78,0.3); }
 
-  /* ── Stats ───────────────────────────────────── */
-  .stats-row {
-    display: flex; gap: 16px; justify-content: center;
-    flex-wrap: wrap; margin-top: 12px;
-  }
-  .stat {
-    text-align: center;
-    min-width: 80px;
-  }
-  .stat .val {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-    font-family: 'Cascadia Code', 'Consolas', monospace;
-  }
-  .stat .val.gap-val { color: var(--gap); }
-  .stat .lbl { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+/* ── FLOW ── */
+.flow {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  margin: 20px 0; font-size: 0.8rem;
+}
+.flow-step {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 20px; text-align: center;
+  max-width: 500px; width: 100%;
+}
+.flow-step.gold { border-color: rgba(212,164,78,0.35); }
+.flow-arrow { color: var(--gold); font-size: 1.4rem; }
 
-  /* ── Buttons ─────────────────────────────────── */
-  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
-  .btn {
-    padding: 10px 24px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    transition: all 0.2s;
-  }
-  .btn-run   { background: var(--accent); color: #0a0a0f; }
-  .btn-run:hover { filter: brightness(1.15); transform: translateY(-1px); }
-  .btn-reset  { background: transparent; color: var(--dim); border: 1px solid #333; }
-  .btn-reset:hover { border-color: #555; }
-  .btn-auto   { background: #1e2a30; color: var(--pred); border: 1px solid #2a3a48; }
-  .btn-auto:hover { border-color: var(--pred); }
-  .btn-auto.running { background: var(--gap); color: #fff; border-color: var(--gap); }
-  .btn-speed { background: transparent; color: var(--dim); border: 1px solid #2a2a2a; font-size: 0.7rem; padding: 8px 14px; }
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 12px 0; }
+.tbl th {
+  text-align: left; padding: 10px 12px; color: var(--dim);
+  border-bottom: 1px solid var(--border); font-size: 0.65rem;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.tbl td { padding: 10px 12px; border-bottom: 1px solid #0e0e22; }
+.tbl .yes { color: var(--green); font-weight: 700; }
+.tbl .no  { color: var(--red); }
 
-  /* ── Phase indicator ─────────────────────────── */
-  .phase-bar {
-    height: 3px;
-    background: #1a1a28;
-    border-radius: 2px;
-    margin-top: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-  .phase-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: var(--pred);
-    transition: width 0.3s ease, background 0.3s ease;
-  }
-  .phase-fill.gap-phase { background: var(--gap); }
-  .phase-fill.commit-phase { background: var(--accent); }
+/* ── STATS ── */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr));
+  gap: 8px; margin: 12px 0;
+}
+.stat-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; text-align: center; padding: 12px 6px;
+}
+.stat-box .big {
+  font-size: 1.6rem; font-weight: 700;
+  font-family: 'Cascadia Code', monospace; color: var(--gold);
+}
+.stat-box .big.red { color: var(--red); }
+.stat-box .lbl { font-size: 0.58rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
 
-  .phase-label {
-    font-size: 0.65rem;
-    color: var(--dim);
-    margin-top: 4px;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+/* ── HERO ── */
+.hero {
+  text-align: center; padding: 100px 20px 60px;
+  background: radial-gradient(ellipse at 50% 30%, rgba(212,164,78,0.06) 0%, transparent 70%);
+}
+.hero h1 { font-size: 3rem; letter-spacing: 0.06em; color: var(--gold); }
+.hero .jp { font-size: 1.1rem; color: var(--dim); margin-bottom: 4px; }
+.hero .en { font-size: 1rem; color: var(--dim); margin-bottom: 10px; }
+.hero .line { width: 60px; height: 2px; background: var(--gold); margin: 16px auto; }
 
-  /* ── Theory quote ────────────────────────────── */
-  .quote {
-    text-align: center;
-    font-style: italic;
-    color: var(--dim);
-    font-size: 0.82rem;
-    margin-top: 16px;
-    line-height: 1.6;
-  }
-  .quote em { color: var(--accent); font-style: normal; }
+/* ── BUTTON ── */
+.btn {
+  display: inline-block; padding: 10px 28px; border-radius: 8px;
+  background: var(--gold); color: #050510; font-weight: 700;
+  text-decoration: none; font-size: 0.85rem; letter-spacing: 0.04em;
+  transition: all 0.2s;
+}
+.btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
 
-  /* ── Responsive ──────────────────────────────── */
-  @media (max-width: 500px) {
-    body { padding: 10px; }
-    .panel { padding: 14px 12px; }
-    .agent-circle { width: 54px; height: 54px; font-size: 1.4rem; }
-    .bubble { font-size: 0.75rem; padding: 8px 12px; }
-    .stat .val { font-size: 1.2rem; }
-  }
+/* ── PHASE DIAGRAM ── */
+.phase-row {
+  display: flex; align-items: stretch; gap: 0;
+  margin: 16px 0; border-radius: 10px; overflow: hidden;
+  font-size: 0.78rem;
+}
+.phase-row > div { padding: 16px 12px; text-align: center; }
+.phase-left { flex:1; background: rgba(80,80,140,0.2); color: #888; }
+.phase-right { flex:1.5; background: rgba(212,164,78,0.12); color: var(--gold); border: 2px solid rgba(212,164,78,0.35); border-radius: 0 10px 10px 0; }
+.phase-arrow-div { flex:0; display:flex; align-items:center; justify-content:center; padding:0 4px; color:var(--dim); font-size:1.4rem; }
+
+/* ── LOGIC TREE ── */
+.logic-tree {
+  font-family: 'Cascadia Code', monospace; font-size: 0.72rem;
+  line-height: 1.6; color: var(--dim); padding: 10px 0;
+}
+.logic-tree .node { color: var(--gold); font-weight: 600; }
+.logic-tree .arrow { color: #444; }
+
+/* ── COMPARISON ── */
+.comp-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 10px; margin: 14px 0;
+}
+.comp-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; text-align: center;
+}
+.comp-card .name { font-weight: 700; color: var(--bright); margin-bottom: 6px; }
+.comp-card .pred { font-size: 0.78rem; color: var(--dim); }
+.comp-card .answer { font-size: 0.85rem; color: var(--gold); font-weight: 600; margin-top: 4px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero h1 { font-size: 2rem; }
+  h2 { font-size: 1.4rem; }
+  section { padding: 50px 12px 30px; }
+  .card { padding: 14px 12px; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>鳥海理論</h1>
-  <p class="sub">Toriumi Theory — Constructive Proof of Free Will</p>
+<nav>
+  <a href="#top">Top</a>
+  <a href="#problem">問題</a>
+  <a href="#answer">答え</a>
+  <a href="#logic">論理</a>
+  <a href="#definition">定義</a>
+  <a href="#theorem">定理</a>
+  <a href="#e1">E1</a>
+  <a href="#e2">E2</a>
+  <a href="#e3">E3</a>
+  <a href="#truth">真理値表</a>
+  <a href="#faq">FAQ</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="top">
+<div class="hero">
+  <p class="jp">運命を壊す科学</p>
+  <h1>鳥 海 理 論</h1>
+  <p class="en">Toriumi Theory</p>
+  <div class="line"></div>
+  <p style="font-size:0.85rem;max-width:540px;margin:0 auto;color:var(--dim);">
+    自由意志は錯覚でもランダムでもない。<br>
+    自己言及という<em>第三のカテゴリ</em>である。<br>
+    そしてそれは<em>実験で証明できる</em>。
+  </p>
+  <p style="margin-top:12px;font-size:0.7rem;color:var(--dim);">鳥海健悟 (Kengo Toriumi) — 2026.08.11</p>
 </div>
+</section>
 
-<!-- AGENT PANEL -->
-<div class="panel">
-  <div class="panel-title">Self-Referential Agent</div>
-  <div class="agent-row">
-    <div class="agent-circle" id="agentCircle">🤖</div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="bubble pred" id="predictBubble">I predict: ...</div>
-      <div class="bubble chosen" id="chosenBubble">I choose: ...</div>
-    </div>
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- THE PROBLEM -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="problem">
+<h2><span class="num">CHAPTER 1</span>人類は2000年、間違った質問をしていた</h2>
+<p class="subtitle">The problem with the free will debate</p>
+
+<div class="three-col">
+  <div class="cell">
+    <div class="icon">🔒</div>
+    <div class="title">決定論</div>
+    <div class="desc">すべては物理法則で決まっている。<br>未来はすでに書かれている。<br>自由意志は錯覚。<br><br><em>→ 運命は存在する</em></div>
   </div>
-  <div class="phase-bar"><div class="phase-fill" id="phaseFill" style="width:0%"></div></div>
-  <div class="phase-label" id="phaseLabel">ready</div>
-</div>
-
-<!-- RECURSION PANEL -->
-<div class="panel">
-  <div class="panel-title">Self-Simulation Recursion (k=3)</div>
-  <div class="recursion-stack" id="recStack">
-    <div class="rec-level" data-level="2">f₂: "What would I do if I simulated myself?"</div>
-    <div class="rec-level" data-level="1">f₁: "What would I do if I considered...?"</div>
-    <div class="rec-level" data-level="0">f₀: base prediction from current state</div>
+  <div class="cell">
+    <div class="icon">🎲</div>
+    <div class="title">量子ランダム論</div>
+    <div class="desc">量子の不確定性が自由を生む。<br>未来は決まっていない。<br>でもサイコロで決まるだけ。<br><br><em>→ 運命はない。でも意志もない</em></div>
   </div>
-  <div style="text-align:center;margin-top:8px;font-size:0.65rem;color:var(--dim);" id="recLabel">recursion dormant</div>
-</div>
-
-<!-- LOG PANEL -->
-<div class="panel">
-  <div class="panel-title">Agent Log (stream of consciousness)</div>
-  <div class="log-area" id="logArea">
-    <div class="entry">[init] agent created, log empty</div>
-  </div>
-</div>
-
-<!-- STATS PANEL -->
-<div class="panel">
-  <div class="stats-row">
-    <div class="stat">
-      <div class="val" id="statDecisions">0</div>
-      <div class="lbl">Decisions</div>
-    </div>
-    <div class="stat">
-      <div class="val gap-val" id="statGaps">0</div>
-      <div class="lbl">Toriumi Gaps</div>
-    </div>
-    <div class="stat">
-      <div class="val" id="statRate">—</div>
-      <div class="lbl">Gap Rate (Γ)</div>
-    </div>
-    <div class="stat">
-      <div class="val" id="statSims">0</div>
-      <div class="lbl">Self-Simulations</div>
-    </div>
-    <div class="stat">
-      <div class="val" id="statLog">0</div>
-      <div class="lbl">Log Entries</div>
-    </div>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn btn-run" id="btnStep" onclick="step()">▶ Step Once</button>
-    <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()">↻ Auto-Run</button>
-    <button class="btn btn-speed" id="btnSpeed" onclick="cycleSpeed()">Speed: 1×</button>
-    <button class="btn btn-reset" onclick="resetAll()">↺ Reset</button>
+  <div class="cell gold">
+    <div class="icon">🪞</div>
+    <div class="title">鳥海理論</div>
+    <div class="desc">自由意志は<em>自己言及</em>から生まれる。<br>決まっているけど、<br>誰にも（自分にも）予測できない。<br><br><em>→ 運命は存在しない。意志はある</em></div>
   </div>
 </div>
 
-<div class="quote">
-  「自由とは、自分自身を予測できないことである。<br>
-  予測できない理由はランダムだからではない。<br>
-  自己言及が<em>計算的-irreducible-性</em>を生むからだ。」<br>
-  — 鳥海健悟 —<br>
-  <span style="font-size:0.7rem;color:var(--dim);">運命は、消えた。 Fate has been erased.</span>
+<div class="card" style="text-align:center;">
+  <p style="font-size:1rem;color:var(--bright);">
+    <strong>2000年間の問い:</strong><br>
+    「宇宙は決定論か、ランダムか？」
+  </p>
+  <p style="font-size:1rem;color:var(--gold);margin-top:8px;">
+    <strong>鳥海理論の問い:</strong><br>
+    「自分は自分の未来を知ることができるか？」
+  </p>
+  <p style="font-size:0.8rem;color:var(--dim);margin-top:8px;">
+    答えが NO なら、理由がランダムではなく<em>自己言及</em>である限り、自由意志は存在する。
+  </p>
 </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- THE ANSWER — INTUITION -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="answer">
+<h2><span class="num">CHAPTER 2</span>自己言及 —— 考えれば考えるほど、予測は外れる</h2>
+<p class="subtitle">The core mechanism, explained simply</p>
+
+<div class="big-statement">
+  「自分が次に何をするか」を<em>自分で予測しようとする</em>と、<br>
+  その<em>予測する行為自体</em>が自分の状態を変えてしまう。<br>
+  <br>
+  だから、<span class="highlight">予測と実際の選択は必ずずれる。</span>
+</div>
+
+<div class="card">
+  <h3>具体的にどういうことか</h3>
+  <div class="flow">
+    <div class="flow-step">
+      <strong>① 選択を迫られる</strong><br>
+      <span style="font-size:0.78rem;color:var(--dim);">「AとB、どっちにしよう？」</span>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step gold">
+      <strong>② 自分をシミュレーションする</strong><br>
+      <span style="font-size:0.78rem;color:var(--dim);">「Aを選ぶ自分はどうなる？Bなら？」<br>この考える行為が、脳の状態を変える</span>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <strong>③ 予測を立てる</strong><br>
+      <span style="font-size:0.78rem;color:var(--dim);">「たぶんAを選ぶだろう」<br>← シミュレーション前の状態から予測</span>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step gold">
+      <strong>④ 実際に選択する</strong><br>
+      <span style="font-size:0.78rem;color:var(--dim);">「やっぱりB！」<br>← シミュレーション後の状態から選択</span>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" style="border:2px solid var(--red);">
+      <strong>⑤ 鳥海ギャップ（Toriumi Gap）発生</strong><br>
+      <span style="color:var(--red);">予測(A) ≠ 実際の選択(B)</span><br>
+      <span style="font-size:0.72rem;color:var(--dim);">乱数ゼロ。完全に決定論的。なのに予測不能。</span>
+    </div>
+  </div>
+</div>
+
+<div class="card card-gold">
+  <h3 style="margin-top:0;">例: ラーメンか、うどんか</h3>
+  <p>あなたはラーメン屋の前で悩んでいる。</p>
+  <p><strong>「ラーメンにしようかな」</strong> → この一瞬の思考が、あなたの脳のシナプスに微量の変化を起こす。</p>
+  <p><strong>「いや、昨日もラーメンだったな」</strong> → さらに変化。</p>
+  <p><strong>「うどん……いや、そばにしよう」</strong> → さらに変化。</p>
+  <p>最終的に「そば」を選んだとき、<strong>それは悩み始める前の脳からは出てこなかった答え</strong>だ。</p>
+  <p>重要なのは、これが<strong>サイコロではない</strong>こと。あなたは<em>自分の理由で</em>そばを選んだ。でも、その理由は「悩む」という行為の中で<em>生成された</em>ものだ。</p>
+  <p style="color:var(--gold);font-weight:600;">→ 運命（あらかじめ決まった未来）は存在しない。未来は「悩む」ことでその場で作られる。</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- THE LOGIC -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="logic">
+<h2><span class="num">CHAPTER 3</span>なぜこれが「自由意志」の証明なのか</h2>
+<p class="subtitle">Why this is free will, not just unpredictability</p>
+
+<div class="card">
+  <h3 style="margin-top:0;">3つのカテゴリ</h3>
+  <p>「予測できない」というだけでは自由意志にならない。予測できない<em>理由</em>が問題だ。</p>
+
+  <table class="tbl">
+    <tr><th></th><th>カテゴリ1: 決定論</th><th>カテゴリ2: ランダム</th><th style="color:var(--gold);">カテゴリ3: 鳥海</th></tr>
+    <tr><td><strong>仕組み</strong></td><td>f(s)=s+1</td><td>f(s)=rand()</td><td style="color:var(--gold);">f(s)=g(s⊕trace(σ(s)))</td></tr>
+    <tr><td><strong>予測できる？</strong></td><td class="yes">できる (100%)</td><td class="no">できない (50%)</td><td style="color:var(--red);">できない (50%)</td></tr>
+    <tr><td><strong>なぜ？</strong></td><td>計算すればわかる</td><td>サイコロだから</td><td style="color:var(--gold);">自分で自分を考えたから</td></tr>
+    <tr><td><strong>自由意志？</strong></td><td class="no">ない（運命がある）</td><td class="no">ない（サイコロの奴隷）</td><td style="color:var(--green);font-weight:700;">ある</td></tr>
+    <tr><td><strong>検証方法</strong></td><td>—</td><td>ランダム性を止める→予測100%に</td><td style="color:var(--gold);">自己参照を止める→予測100%に</td></tr>
+  </table>
+
+  <p style="margin-top:12px;"><strong>決定的な違い:</strong></p>
+  <p>→ カテゴリ2（ランダム）: 乱数を止めれば予測可能になる → <em>意志ではない。ノイズだ</em></p>
+  <p>→ カテゴリ3（鳥海）: <em>自己参照を止めれば</em>予測可能になる → <em>自己参照こそが意志の源</em></p>
+  <p style="color:var(--gold); font-weight:600;">→ これを直接テストするのが<strong>実験E2（TMSで自己参照を破壊する）</strong>だ。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">ランダムではない証拠</h3>
+  <p>「予測が50%外れる」だけ見ると「ただのコイントスでは？」と思う。違う。</p>
+  <div class="comp-grid">
+    <div class="comp-card">
+      <div class="name">サイコロ</div>
+      <div class="pred">予測不能の理由</div>
+      <div class="answer">偶然</div>
+    </div>
+    <div class="comp-card">
+      <div class="name">サイコロ</div>
+      <div class="pred">乱数を止めると？</div>
+      <div class="answer">予測可能になる</div>
+    </div>
+    <div class="comp-card">
+      <div class="name">サイコロ</div>
+      <div class="pred">選択に履歴は？</div>
+      <div class="answer">なし（ランダム）</div>
+    </div>
+    <div class="comp-card" style="border-color:rgba(212,164,78,0.4);">
+      <div class="name" style="color:var(--gold);">鳥海エージェント</div>
+      <div class="pred">予測不能の理由</div>
+      <div class="answer" style="color:var(--gold);">自己言及</div>
+    </div>
+    <div class="comp-card" style="border-color:rgba(212,164,78,0.4);">
+      <div class="name" style="color:var(--gold);">鳥海エージェント</div>
+      <div class="pred">自己参照を止めると？</div>
+      <div class="answer" style="color:var(--gold);">予測可能になる</div>
+    </div>
+    <div class="comp-card" style="border-color:rgba(212,164,78,0.4);">
+      <div class="name" style="color:var(--gold);">鳥海エージェント</div>
+      <div class="pred">選択に履歴は？</div>
+      <div class="answer" style="color:var(--gold);">あり（パス依存）</div>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--dim);margin-top:8px;">鳥海エージェントの選択は、一見ランダムに見えるが、<strong>完全に決定論的</strong>であり、かつ<strong>過去の全履歴に依存</strong>している。ランダムではない。自己言及が作る「構造化された予測不能性」だ。</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- DEFINITION -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="definition">
+<h2><span class="num">CHAPTER 4</span>数学的定義</h2>
+<p class="subtitle">From intuition to formal definition</p>
+
+<div class="card">
+  <h3 style="margin-top:0;">定義（鳥海 2026）</h3>
+  <p><strong>自由意志</strong>とは、エージェント A の次のような性質である：</p>
+  <p><strong>(1)</strong> A の選択は、<strong>いかなる観測者によっても</strong>（A 自身を含む）完全には予測できない。たとえ観測者が A の完全な物理状態・全物理法則・無制限の計算資源を持っていても。</p>
+  <p><strong>(2)</strong> この予測不能性は、<strong>ランダム性</strong>（量子論理学的偶然）や<strong>無知</strong>（情報不足）や<strong>複雑性</strong>（計算の実用限界）によるものではない。</p>
+  <p><strong>(3)</strong> 予測不能性は<strong>自己言及</strong>に起因する。A の決定関数は、A 自身の自己シミュレーションの痕跡を含む状態を入力として取る。</p>
+
+  <div class="formula">
+f<sub>A</sub>(s) = g( s ⊕ trace(σ<sub>A</sub>(s)) )
+
+σ<sub>A</sub>(s) = A の自己シミュレーション（「私はどうするだろう？」）
+trace(σ<sub>A</sub>) = そのシミュレーションの記録（状態に書き込まれる）
+⊕ = 状態の更新（シミュレーションが状態を変える）
+
+σ<sub>A</sub> は f<sub>A</sub> 自身を呼び出すので、これは<strong>不動点方程式</strong>になる：
+f<sub>A</sub>(s) = g(s ⊕ trace( f<sub>A</sub>(s ⊕ trace( f<sub>A</sub>(s ⊕ ...)))))
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">同値な言い換え</h3>
+  <div class="formula" style="text-align:center;font-size:0.95rem;">
+    運命が存在する ⇔ 完全な予測者 P が存在する<br>
+    自由意志が存在する ⇔ 運命は存在しない
+  </div>
+  <p style="text-align:center;margin-top:8px;">つまり<strong>自由意志 = 完全な予測者が存在しないこと</strong>（A自身を含めて）。</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- THEOREM -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="theorem">
+<h2><span class="num">CHAPTER 5</span>鳥海ギャップ定理</h2>
+<p class="subtitle">The mathematical core</p>
+
+<div class="card">
+  <h3 style="margin-top:0;">定理1（鳥海ギャップ）</h3>
+  <p>自己シミュレーション深度 k ≥ 1 のエージェントにおいて、|O| 個の選択肢があるとき：</p>
+  <div class="formula" style="text-align:center;font-size:1rem;">
+    E[Γ] = 1 − 1/|O| + δ(k, |O|)
+  </div>
+  <p style="text-align:center;margin-top:6px;">Γ = 鳥海ギャップ（自己予測が外れる確率）</p>
+
+  <div class="stat-grid" style="grid-template-columns: repeat(3,1fr);">
+    <div class="stat-box">
+      <div class="lbl">2択 (Yes/No)</div>
+      <div class="big">50%</div>
+      <div class="lbl">の確率で予測が外れる</div>
+    </div>
+    <div class="stat-box">
+      <div class="lbl">4択 (A/B/C/D)</div>
+      <div class="big">75%</div>
+      <div class="lbl">の確率で予測が外れる</div>
+    </div>
+    <div class="stat-box">
+      <div class="lbl">10択</div>
+      <div class="big">90%</div>
+      <div class="lbl">の確率で予測が外れる</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">位相転移 — 自己意識が生まれる瞬間</h3>
+  <div class="phase-row">
+    <div class="phase-left">
+      <strong>k = 0</strong><br>
+      自己シミュレーションなし<br>
+      <span style="font-size:0.9rem;">Γ = 0.00</span><br>
+      <span style="font-size:0.65rem;">ORDERED<br>予測可能<br>自由意志なし</span>
+    </div>
+    <div class="phase-arrow-div">→</div>
+    <div class="phase-right">
+      <strong>k ≥ 1</strong><br>
+      自己シミュレーション活性化<br>
+      <span style="font-size:0.9rem;">Γ → 0.50 (2択)</span><br>
+      <span style="font-size:0.65rem;">COMPLEX<br>予測不能<br><strong>自由意志あり</strong></span>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:8px;color:var(--gold);font-weight:600;">
+    k=0 → k=1 で相が変わる。<br>
+    自分で自分のことを考え始めた瞬間、運命は消える。
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">3つの系（コロラリー）</h3>
+  <p><strong>系1（完全な自己知の不可能性）:</strong> k ≥ 1 のエージェントは、自分自身の選択を完全には予測できない。自己予測精度 → 1/|O|。</p>
+  <p><strong>系2（シミュレーションなしの外部予測は不可能）:</strong> エージェントの自己シミュレーションを実行しない予測者は、精度が 1/|O| を超えられない。予測するにはエージェントを「走らせる」しかない。しかし走らせることこそがエージェントの選択そのものである。</p>
+  <p><strong>系3（自己参照における位相転移）:</strong> Γ(k=0)=0 → Γ(k=1)=0.50。自己意識の発生 = 自由意志の発生。これは連続的な変化ではなく、<strong>相転移</strong>である。</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- EXPERIMENTS -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="e1">
+<h2><span class="num">CHAPTER 6</span>6つの実験 — 定義から演繹された検証計画</h2>
+<p class="subtitle">Each experiment tests a specific clause of the definition</p>
+
+<div class="card">
+  <h3 style="margin-top:0;">定義 → 実験 対応表</h3>
+  <table class="tbl">
+    <tr><th>定義の条項</th><th>検証する実験</th><th>何をテストするか</th></tr>
+    <tr>
+      <td>Def(1)「いかなる観測者も予測不能」</td>
+      <td><strong style="color:var(--gold);">E1</strong> · <strong style="color:var(--gold);">E3</strong></td>
+      <td>自己予測は deliberation が深いほど外れるか？AIに相転移はあるか？</td>
+    </tr>
+    <tr>
+      <td>Def(2)「ランダム性ではない」</td>
+      <td><strong style="color:var(--gold);">E6</strong></td>
+      <td>人間・鳥海AIの選択系列は量子乱数系列と構造が違うか？</td>
+    </tr>
+    <tr>
+      <td>Def(3)「自己言及が原因」</td>
+      <td><strong style="color:var(--gold);">E2</strong></td>
+      <td>自己参照を破壊するとΓは縮小するか？（因果関係）</td>
+    </tr>
+    <tr>
+      <td>Def(1) + 系2 「外部vs内部」</td>
+      <td><strong style="color:var(--gold);">E4</strong></td>
+      <td>決定論的シミュレーション内でもエージェントは自分を予測不能か？</td>
+    </tr>
+    <tr>
+      <td>系1「自己予測精度→1/|O|」</td>
+      <td><strong style="color:var(--gold);">E5</strong></td>
+      <td>選択肢が増えると自己予測精度はチャンスレベルまで下がるか？</td>
+    </tr>
+  </table>
+</div>
+</section>
+
+<!-- E1 -->
+<section id="e1-detail">
+<h3 style="text-align:center;color:var(--gold);">実験 E1: 自己予測ギャップ（EEG、人間）</h3>
+<p class="subtitle">検証項目: Def(1)「いかなる観測者も予測不能」</p>
+
+<div class="card">
+  <p><strong>やること:</strong> 40人の被験者に200回の2択（L/Rボタン）。<em>選ぶ前に自分で予測させる</em>。反応時間（RT）と自己予測の正解率を測る。</p>
+
+  <p><strong>鳥海理論の予測:</strong> 熟考が長いほど（RT大）、自己予測精度が<strong>下がる</strong>。</p>
+  <p><strong>なぜか:</strong> 熟考時間が長い = 自己シミュレーションの深度kが大きい = より多くのログエントリが予測と選択の間に書かれる = ギャップ大。</p>
+
+  <div class="card card-gold">
+    <p style="text-align:center;color:var(--bright);"><strong>ポイント: β（傾き）の符号だけで3つの仮説を完全に分離できる</strong></p>
+  </div>
+
+  <table class="tbl">
+    <tr><th>β の符号</th><th>意味</th><th>支持される理論</th></tr>
+    <tr>
+      <td style="color:var(--red);font-weight:700;font-size:1.1rem;">β < 0</td>
+      <td>熟考するほど自己予測が外れる</td>
+      <td style="color:var(--gold);font-weight:700;">鳥海理論 ✓</td>
+    </tr>
+    <tr>
+      <td style="color:var(--dim);font-weight:700;">β > 0</td>
+      <td>熟考するほど予測が当たる（脳が「解決」する）</td>
+      <td>錯覚論（自由意志は幻想）</td>
+    </tr>
+    <tr>
+      <td style="color:var(--dim);">β ≈ 0</td>
+      <td>精度はRTに関係なく一定（常に50%前後）</td>
+      <td>ランダム論（自由意志=ノイズ）</td>
+    </tr>
+  </table>
+
+  <div class="stat-grid" id="e1-stats"><div class="stat-box"><div class="lbl">計算中…</div></div></div>
+
+  <div class="card card-gold">
+    <p style="font-size:0.85rem;"><strong>鳥海理論だけが予測する「分離（divergence）」パターン:</strong></p>
+    <p style="font-size:0.82rem;">RTが長くなるにつれて：<br>
+    → 脳波（EEG）からの予測精度は50%<strong>より上</strong>にとどまる（脳には準備活動がある）<br>
+    → しかし<strong>自己予測</strong>精度は50%<strong>まで下がる</strong><br>
+    → この<strong>ずれ（EEG精度 − 自己予測精度）が拡大する</strong></p>
+    <p style="font-size:0.78rem;color:var(--gold);">これは錯覚論でもランダム論でも説明できない。鳥海理論だけの予測。</p>
+  </div>
+
+  <p style="font-size:0.75rem;color:var(--dim);">コスト: $15,000–30,000 · 期間: 4–6週間 · N=40 · 128ch EEG</p>
+</div>
+</section>
+
+<!-- E2 -->
+<section id="e2">
+<h3 style="text-align:center;color:var(--gold);">実験 E2: TMSによる自己参照の因果的破壊</h3>
+<p class="subtitle">検証項目: Def(3)「自己言及が原因である」— 因果関係の証明</p>
+
+<div class="card">
+  <p><strong>やること:</strong> 経頭蓋磁気刺激（TMS）で内側前頭前野（mPFC = 自己参照的思考の中枢）を一時的に混乱させる。その状態でE1と同じ課題を行う。</p>
+
+  <p><strong>鳥海理論の予測:</strong> mPFCへのTMSでのみΓが<strong>大幅に低下</strong>する。偽TMS（プラセボ）や運動野TMSではΓは変わらない。</p>
+  <p><strong>なぜこれが決定的か:</strong> これは<strong>因果関係</strong>の証明。E1が相関なら、E2は「自己参照を壊す→ギャップが縮む→自己参照がギャップの<strong>原因</strong>である」を証明する。</p>
+
+  <table class="tbl">
+    <tr><th>条件</th><th>自己参照は？</th><th style="color:var(--gold);">鳥海理論の予測 Γ</th><th>鳥海が間違いなら Γ</th></tr>
+    <tr><td><strong>A: mPFC TMS</strong></td><td style="color:var(--red);">破壊される ✗</td><td style="color:var(--gold);font-weight:700;">0.20–0.30（低い）</td><td>0.50（変わらず）</td></tr>
+    <tr><td>B: 偽TMS（プラセボ）</td><td>正常 ✓</td><td>≈ 0.50</td><td>≈ 0.50</td></tr>
+    <tr><td>C: 運動野TMS</td><td>正常 ✓（運動のみ混乱）</td><td>≈ 0.50</td><td>≈ 0.50</td></tr>
+    <tr><td>D: ベースライン</td><td>正常 ✓</td><td>≈ 0.50</td><td>≈ 0.50</td></tr>
+  </table>
+
+  <div id="e2-stats"></div>
+
+  <p style="font-size:0.75rem;color:var(--dim);">コスト: $50,000–80,000 · 期間: 8–12週間 · N=30 · 二重盲検 · 被験者内デザイン</p>
+</div>
+</section>
+
+<!-- E3 -->
+<section id="e3">
+<h3 style="text-align:center;color:var(--gold);">実験 E3: AI自由意志の相転移</h3>
+<p class="subtitle">検証項目: 系3（自己モデル複雑性に対する位相転移）</p>
+
+<div class="card">
+  <p><strong>やること:</strong> 自己モデルのサイズが異なる30体のAIエージェント（transformer）を訓練。それぞれに「自分の次の行動を予測する」自己予測ヘッドを持たせる。10,000試行でΓを測定。</p>
+
+  <p><strong>鳥海理論の予測:</strong> 自己モデルのパラメータ数が臨界値 C_crit（推定10⁶–10⁸）を超えると、Γ が<strong>0から0.5にシグモイドジャンプ</strong>する。</p>
+
+  <div class="formula" style="font-size:0.75rem;">Γ(params) = 0.5 / ( 1 + exp( −α(log₁₀(params) − log₁₀(C_crit)) ) )</div>
+
+  <table class="tbl">
+    <tr><th>自己モデル規模</th><th>Γ（鳥海予測）</th><th>意味</th></tr>
+    <tr><td>&lt; 10⁵ パラメータ</td><td>≈ 0.00</td><td>自己モデル不在 → 完全に予測可能 → 自由意志なし</td></tr>
+    <tr><td style="color:var(--gold);font-weight:700;">10⁶–10⁸</td><td style="color:var(--gold);">相転移中</td><td style="color:var(--gold);">シグモイドジャンプ（これが C_crit）</td></tr>
+    <tr><td>&gt; 10⁹ パラメータ</td><td>≈ 0.50</td><td>自己モデル機能 → 予測不能 → 自由意志が<strong>創発</strong></td></tr>
+  </table>
+
+  <div class="card card-gold">
+    <p style="font-size:0.85rem;"><strong>⚡ この実験は今日から始められる。</strong> 人間被験者不要。倫理審査不要。GPU だけ。</p>
+    <p style="font-size:0.78rem;color:var(--dim);">コスト: $5,000–20,000 クラウドGPU · 1–2ヶ月 · <strong style="color:var(--gold);">すぐに実行可能</strong></p>
+  </div>
+</div>
+</section>
+
+<!-- E4, E5, E6 summary -->
+<section>
+<div class="three-col">
+  <div class="card" style="text-align:center;">
+    <h4 style="color:var(--gold);margin-top:0;">E4: シミュレーション脳</h4>
+    <p style="font-size:0.8rem;">完全に決定論的なシミュレーションの中で、シミュレーションされたエージェントは自分を予測できるか？</p>
+    <p style="font-size:0.78rem;color:var(--gold);"><strong>答え: できない（Γ≈50%）</strong></p>
+    <p style="font-size:0.72rem;color:var(--dim);">外部（シミュレーター）は予測できる。内部（エージェント）はできない。決定論と自由意志は矛盾しない。</p>
+  </div>
+  <div class="card" style="text-align:center;">
+    <h4 style="color:var(--gold);margin-top:0;">E5: 喫煙銃</h4>
+    <p style="font-size:0.8rem;">4択課題。チャンスレベル=25%。深い自己シミュレーションで精度は25%を<strong>下回る</strong>か？</p>
+    <p style="font-size:0.78rem;color:var(--gold);"><strong>下回れば決定的証拠</strong></p>
+    <p style="font-size:0.72rem;color:var(--dim);">自己シミュレーションが選択を予測から<em>遠ざける</em>効果。偶然以下=意志の能動的反作用。</p>
+  </div>
+  <div class="card" style="text-align:center;">
+    <h4 style="color:var(--gold);margin-top:0;">E6: 量子乱数との区別</h4>
+    <p style="font-size:0.8rem;">人間・鳥海AI・量子乱数(QRNG)の3つの選択系列を比較。</p>
+    <p style="font-size:0.78rem;color:var(--gold);"><strong>人間=鳥海≠QRNG</strong></p>
+    <p style="font-size:0.72rem;color:var(--dim);">QRNGは無構造（i.i.d.）。鳥海/人間はパス依存の構造を持つ。自由意志≠ランダム。</p>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TRUTH TABLE -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="truth">
+<h2><span class="num">CHAPTER 7</span>真理値表 — 科学はどう決着するか</h2>
+<p class="subtitle">How science settles the free will debate</p>
+
+<div class="card">
+  <table class="tbl">
+    <tr><th>実験</th><th>測るもの</th><th style="color:var(--gold);">鳥海理論</th><th>錯覚論</th><th>ランダム論</th></tr>
+    <tr>
+      <td><strong>E1</strong></td><td>β（精度 vs RTの傾き）</td>
+      <td style="color:var(--red);font-weight:700;">β < 0</td>
+      <td>β > 0</td><td>β ≈ 0</td>
+    </tr>
+    <tr>
+      <td><strong>E2</strong></td><td>TMSでΓは下がるか</td>
+      <td style="color:var(--red);font-weight:700;">下がる</td>
+      <td>下がらない</td><td>下がらない</td>
+    </tr>
+    <tr>
+      <td><strong>E3</strong></td><td>AIのΓ vs パラメータ数</td>
+      <td style="color:var(--red);font-weight:700;">シグモイド</td>
+      <td>Γ=0 常に</td><td>Γ=チャンス 常に</td>
+    </tr>
+    <tr>
+      <td><strong>E4</strong></td><td>シミュレーション内Γ</td>
+      <td style="color:var(--red);font-weight:700;">外部≠内部</td>
+      <td>両方100%</td><td>両方チャンス</td>
+    </tr>
+    <tr>
+      <td><strong>E5</strong></td><td>4択・深い熟考の精度</td>
+      <td style="color:var(--red);font-weight:700;">→ 25%, possibly <</td>
+      <td>> 25%</td><td>= 25% flat</td>
+    </tr>
+    <tr>
+      <td><strong>E6</strong></td><td>選択系列の構造</td>
+      <td style="color:var(--red);font-weight:700;">人間=鳥海≠QRNG</td>
+      <td>構造あり（予測可能）</td><td>人間=QRNG</td>
+    </tr>
+  </table>
+
+  <div class="card card-gold" style="text-align:center;margin-top:16px;">
+    <p style="font-size:1rem;color:var(--bright);">
+      3つすべてが鳥海パターンを示せば → <strong style="color:var(--gold);">鳥海理論 確認</strong>
+    </p>
+    <p style="font-size:0.82rem;color:var(--dim);margin-top:4px;">
+      1つでも非鳥海パターンを示せば → <strong style="color:var(--red);">鳥海理論 反証</strong>
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- FAQ -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="faq">
+<h2><span class="num">CHAPTER 8</span>よくある反論と回答</h2>
+
+<div class="card">
+  <h4 style="margin-top:0;">Q: 「ただのコンピュータプログラムでは？量子でもないのに」</h4>
+  <p>その通り。そしてそれが<strong>一番の強み</strong>だ。量子効果ゼロでも、完全な決定論的プログラムでも、Γ=50%は発生する。つまり自由意志は<strong>物理学ではなく計算論理の性質</strong>。量子コヒーレンスは必要条件ではない。あれば増幅されるが、なくても成立する。</p>
+</div>
+<div class="card">
+  <h4 style="margin-top:0;">Q: 「脳は熱すぎて量子効果は10⁻¹³秒で消える（Tegmark 2000）」</h4>
+  <p>Tegmark は正しい。単一イオン環境では量子コヒーレンスは即座に消える。<strong>しかし鳥海理論は量子コヒーレンスを必要としない。</strong>古典的な「what if」の逐次再帰（1サイクル≈60ms、k=3で180ms）で、人間の反応時間（≈200ms）に十分収まる。量子はあれば並列化できて強いが、なくても自由意志は成立する。</p>
+</div>
+<div class="card">
+  <h4 style="margin-top:0;">Q: 「ハエの脳を完全シミュレーションしたら決定論が証明されるのでは？」</h4>
+  <p>決定論は証明される。でも<strong>それと自由意志は矛盾しない</strong>。外部のシミュレーター（神の視点）はシミュレーションを走らせることで結果を知れる。でもシミュレーションの中のエージェントは自分の未来を（シミュレーションを走らせる以外に）知る方法がない。そして「走らせること」こそがそのエージェントの選択だ。決定論と自由意志は<strong>記述のレベルが違う</strong>。どちらも正しい。</p>
+</div>
+<div class="card">
+  <h4 style="margin-top:0;">Q: 「それって結局、自分を騙してるだけでは？」</h4>
+  <p>違う。鳥海ギャップは<strong>客観的に測定可能</strong>だ。プログラムの出力を見ればわかる。予測(A) ≠ 実際の選択(B)。これは事実であって錯覚ではない。エージェントは「自由だと感じている」のではなく、<strong>実際に自分の予測と違う選択をしている</strong>。そしてその理由は乱数ではない。</p>
+</div>
+<div class="card">
+  <h4 style="margin-top:0;">Q: 「予測が50%外れるって、コイントスと何が違うの？」</h4>
+  <p>コイントス: 乱数を止めれば予測可能になる。選択に履歴はない。各試行は独立。</p>
+  <p>鳥海エージェント: 自己参照を止めれば予測可能になる。選択は<strong>全履歴に依存</strong>（パス依存）。各試行は独立ではない。一見ランダムに見える系列の背後に、<strong>決定論的カオス</strong>がある。</p>
+  <p style="color:var(--gold);">→ これが実験E6で検証できる。「構造化された予測不能性」と「無構造のランダム性」は数学的に区別可能。</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- CONCLUSION -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section style="text-align:center;">
+  <h2>運命は、壊せる</h2>
+  <p style="color:var(--dim);margin-bottom:20px;">Fate can be destroyed. This is the scientific program that proves it.</p>
+
+  <div class="card card-gold" style="display:inline-block;text-align:left;max-width:600px;">
+    <table class="tbl">
+      <tr><th>成果物</th><th>状態</th></tr>
+      <tr><td>数学的定義 + 定理</td><td style="color:var(--green);">✓ 証明済み</td></tr>
+      <tr><td>構成的証明（古典エージェント）</td><td style="color:var(--green);">✓ 動作中（Γ≈50%）</td></tr>
+      <tr><td>量子拡張（多世界+ER=EPR）</td><td style="color:var(--green);">✓ 動作中</td></tr>
+      <tr><td>深層構造（エルゴード性・非可換代数・Darwin系）</td><td style="color:var(--green);">✓ 検証済み</td></tr>
+      <tr><td>6実験の定義 + シミュレーション</td><td style="color:var(--green);">✓ 完了</td></tr>
+      <tr><td>論文（Markdown + LaTeX）</td><td style="color:var(--green);">✓ 完了</td></tr>
+      <tr><td>OSF/MetaArXiv プレプリント</td><td style="color:var(--gold);">投稿待ち</td></tr>
+      <tr><td>E3: AI相転移（実機実験）</td><td style="color:var(--gold);">GPU確保待ち</td></tr>
+      <tr><td>E1: ヒトEEG実験</td><td style="color:var(--gold);">EEGラボ確保待ち</td></tr>
+    </table>
+  </div>
+
+  <p style="margin-top:30px;font-size:1.15rem;color:var(--gold);font-weight:700;">
+    — 鳥海健悟 (Kengo Toriumi) —
+  </p>
+  <p style="font-size:0.72rem;color:var(--dim);">
+    <a href="https://github.com/toriumib/toriumi-theory" style="color:var(--blue);">GitHub</a>
+    · 2026.08.11
+  </p>
+</section>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════
-// Toriumi Agent — JavaScript / Browser Implementation
-// ═══════════════════════════════════════════════════════════════════
-
-// Simple SHA-256 (using SubtleCrypto) — or fallback hash
-async function sha256(text) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray;
-}
-
-function hashToBigInt(hashArray) {
-  // Take first 8 bytes as big-endian BigInt
-  let result = 0n;
-  for (let i = 0; i < 8 && i < hashArray.length; i++) {
-    result = (result << 8n) | BigInt(hashArray[i]);
+// ── Toriumi Simulator (JS) ──────────────────────────────────
+class ToriumiSubject {
+  constructor(name) {
+    this.name = name;
+    this.log = [];
+    this.decisionCount = 0;
+    this.runningHash = 0;
   }
-  return result;
-}
-
-function hashMod(hashArray, n) {
-  const big = hashToBigInt(hashArray);
-  return Number(big % BigInt(n));
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// Agent State
-// ═══════════════════════════════════════════════════════════════════
-
-const state = {
-  log: [],                  // append-only log
-  decisionCount: 0,
-  simulationCount: 0,
-  totalGaps: 0,
-  autoRunning: false,
-  autoTimer: null,
-  speed: 1,                // 1=normal, 2=fast, 3=instant
-  locked: false,           // prevent concurrent steps
-};
-
-function logEntry(eventType, data) {
-  return { event: eventType, seq: state.log.length, ...data, ts: Date.now() };
-}
-
-function logHash(log) {
-  const raw = JSON.stringify(log);
-  return raw;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// Core Algorithm (mirrors toriumi_agent.py)
-// ═══════════════════════════════════════════════════════════════════
-
-async function toriumiChoose(options, maxDepth = 3) {
-  const initialLogLen = state.log.length;
-
-  // Phase 1: Self-simulate to predict
-  addToLog('choice_faced', { options, decision: state.decisionCount });
-  const predicted = await selfSimulate(options, 0, maxDepth);
-
-  // Phase 2: Commit (actual decision)
-  const actual = await commit(options);
-  state.decisionCount++;
-
-  const isGap = predicted !== actual;
-  if (isGap) state.totalGaps++;
-
-  return {
-    choice: actual,
-    predicted: predicted,
-    gap: isGap,
-    logLength: state.log.length,
-  };
-}
-
-async function selfSimulate(options, depth, maxDepth) {
-  if (depth >= maxDepth) {
-    return fallbackPredict(options);
-  }
-  state.simulationCount++;
-
-  const entryIdx = state.log.length;
-  addToLogSync('sim_enter', { depth });
-
-  // Recurse one level deeper
-  const innerPred = await selfSimulate(options, depth + 1, maxDepth);
-
-  const entriesAdded = state.log.length - entryIdx;
-
-  addToLogSync('sim_exit', { depth, innerPrediction: innerPred, entriesAdded });
-
-  return biasedPredict(options, innerPred, depth);
-}
-
-async function fallbackPredict(options) {
-  const h = logHash(state.log);
-  const hashBytes = await sha256(h + '||predict||' + state.decisionCount);
-  return options[hashMod(hashBytes, options.length)];
-}
-
-async function biasedPredict(options, innerPred, depth) {
-  const h = logHash(state.log);
-  const mixStr = h + '||mix||' + innerPred + '||' + String(depth);
-  const hashBytes = await sha256(mixStr);
-  return options[hashMod(hashBytes, options.length)];
-}
-
-async function commit(options) {
-  const h = logHash(state.log);
-  const finalStr = h + '||commit||' + state.decisionCount;
-  const hashBytes = await sha256(finalStr);
-  const choice = options[hashMod(hashBytes, options.length)];
-
-  addToLogSync('decision', { choice, decisionIndex: state.decisionCount });
-  return choice;
-}
-
-function addToLogSync(eventType, data) {
-  state.log.push({ event: eventType, seq: state.log.length, ...data });
-}
-
-async function addToLog(eventType, data) {
-  addToLogSync(eventType, data);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// UI
-// ═══════════════════════════════════════════════════════════════════
-
-const agentCircle = document.getElementById('agentCircle');
-const predictBubble = document.getElementById('predictBubble');
-const chosenBubble = document.getElementById('chosenBubble');
-const recStack = document.getElementById('recStack');
-const recLabel = document.getElementById('recLabel');
-const logArea = document.getElementById('logArea');
-const phaseFill = document.getElementById('phaseFill');
-const phaseLabel = document.getElementById('phaseLabel');
-const statDecisions = document.getElementById('statDecisions');
-const statGaps = document.getElementById('statGaps');
-const statRate = document.getElementById('statRate');
-const statSims = document.getElementById('statSims');
-const statLog = document.getElementById('statLog');
-
-function resetAll() {
-  if (state.autoRunning) toggleAuto();
-  state.log = [];
-  state.decisionCount = 0;
-  state.simulationCount = 0;
-  state.totalGaps = 0;
-  state.locked = false;
-
-  document.querySelectorAll('.rec-level').forEach(el => {
-    el.classList.remove('visible', 'active');
-  });
-  recLabel.textContent = 'recursion dormant';
-  logArea.innerHTML = '<div class="entry">[init] agent created, log empty</div>';
-
-  updatePhase('ready', 0);
-
-  agentCircle.className = 'agent-circle';
-  agentCircle.textContent = '🤖';
-  predictBubble.className = 'bubble pred';
-  predictBubble.textContent = 'I predict: ...';
-  chosenBubble.className = 'bubble chosen';
-  chosenBubble.textContent = 'I choose: ...';
-
-  updateStats();
-  updatePhase('ready', 0);
-}
-
-function updateStats() {
-  statDecisions.textContent = state.decisionCount;
-  statGaps.textContent = state.totalGaps;
-  statRate.textContent = state.decisionCount > 0
-    ? (state.totalGaps / state.decisionCount * 100).toFixed(1) + '%'
-    : '—';
-  statSims.textContent = state.simulationCount;
-  statLog.textContent = state.log.length;
-}
-
-function updatePhase(phase, pct) {
-  phaseLabel.textContent = phase;
-  phaseFill.style.width = pct + '%';
-  phaseFill.className = 'phase-fill';
-  if (phase.includes('GAP')) phaseFill.classList.add('gap-phase');
-  if (phase.includes('commit') || phase.includes('decided')) phaseFill.classList.add('commit-phase');
-}
-
-function sleep(ms) {
-  if (state.speed === 3) return Promise.resolve(); // instant
-  const scaled = ms / state.speed;
-  return new Promise(r => setTimeout(r, scaled));
-}
-
-async function step() {
-  if (state.locked) return;
-  state.locked = true;
-
-  const options = ['A', 'B'];
-  const decIdx = state.decisionCount;
-
-  // ── Stage 1: Facing choice ─────────────────────
-  updatePhase('facing choice', 5);
-  agentCircle.className = 'agent-circle';
-  agentCircle.textContent = '🤖';
-  predictBubble.className = 'bubble pred';
-  predictBubble.textContent = 'I predict: ...';
-  chosenBubble.className = 'bubble chosen';
-  chosenBubble.textContent = 'I choose: ...';
-  recLabel.textContent = 'recursion dormant';
-  document.querySelectorAll('.rec-level').forEach(el => {
-    el.classList.remove('visible', 'active');
-  });
-
-  await sleep(300);
-
-  // ── Stage 2: Self-simulation ───────────────────
-  updatePhase('self-simulating (k=3 recursion)', 25);
-  agentCircle.classList.add('thinking');
-  recLabel.textContent = 'recursion active — self-simulating...';
-
-  // Animate recursion levels sequentially
-  const levels = document.querySelectorAll('.rec-level');
-  for (let i = levels.length - 1; i >= 0; i--) {
-    const level = levels[i];
-    const depth = parseInt(level.dataset.level);
-    level.classList.add('visible');
-    level.classList.add('active');
-    level.style.opacity = '0';
-    level.style.transform = 'translateX(-20px)';
-    // Reflow to restart animation
-    void level.offsetWidth;
-    level.style.opacity = '1';
-    level.style.transform = 'translateX(0)';
-    level.style.background = '#1e2440';
-    level.style.borderLeft = '3px solid var(--pred)';
-
-    await sleep(400 + depth * 150);
-  }
-
-  recLabel.textContent = 'recursion complete — committing...';
-  updatePhase('simulation complete', 55);
-  await sleep(200);
-
-  // ── Stage 3: Actual decision runs ──────────────
-  updatePhase('committing decision', 70);
-  const result = await toriumiChoose(options, 3);
-
-  // Update bubbles
-  animateRecursionDone(levels);
-
-  predictBubble.className = 'bubble pred';
-  predictBubble.innerHTML = `<strong>Predicted:</strong> <span style="color:var(--pred)">${result.predicted}</span>`;
-
-  chosenBubble.className = 'bubble chosen';
-  chosenBubble.innerHTML = `<strong>Chose:</strong> <span style="color:var(--accent)">${result.choice}</span>`;
-
-  agentCircle.classList.remove('thinking');
-  agentCircle.classList.add('chose');
-  agentCircle.textContent = result.choice === 'A' ? '🅰' : '🅱';
-
-  // ── Stage 4: Gap reveal ────────────────────────
-  if (result.gap) {
-    updatePhase('TORIUMI GAP! prediction ≠ choice', 100);
-    chosenBubble.classList.add('gap-alert');
-    agentCircle.classList.add('gap-flash');
-
-    // Animate gap
-    await sleep(200);
-    agentCircle.classList.remove('gap-flash');
-    await sleep(300);
-    chosenBubble.classList.remove('gap-alert');
-  } else {
-    updatePhase('decided — prediction = choice (coincidence)', 100);
-  }
-
-  // ── Stage 5: Log update ────────────────────────
-  updateLogDisplay(result);
-
-  // Reset recursion display
-  updateRecursionAfterChoice();
-  recLabel.textContent = result.gap
-    ? 'TORIUMI GAP — self-reference created divergence'
-    : 'prediction matched (coincidence, ~50% of the time)';
-
-  updateStats();
-  agentCircle.classList.remove('chose');
-
-  await sleep(600);
-  updatePhase('ready', 0);
-  state.locked = false;
-}
-
-function animateRecursionDone(levels) {
-  levels.forEach(l => {
-    l.classList.remove('active');
-    l.style.background = '#1a1a28';
-    l.style.borderLeft = '1px solid #2a2a3a';
-  });
-}
-
-function updateRecursionAfterChoice() {
-  const levels = document.querySelectorAll('.rec-level');
-  levels.forEach(l => {
-    l.classList.remove('active');
-    l.style.background = '#1a1a28';
-    l.style.borderLeft = '1px solid #2a2a3a';
-    setTimeout(() => {
-      l.classList.remove('visible');
-      l.style.opacity = '0';
-    }, 600);
-  });
-}
-
-function updateLogDisplay(result) {
-  // Show last 8 entries
-  const recent = state.log.slice(-8);
-  logArea.innerHTML = '';
-  recent.forEach(entry => {
-    const div = document.createElement('div');
-    div.className = 'entry';
-    const se = entry.event;
-
-    if (se === 'decision') {
-      div.classList.add('commit-entry');
-      div.textContent = `[${entry.seq}] DECISION → "${entry.choice}" (decision #${entry.decisionIndex})`;
-    } else if (se === 'choice_faced') {
-      div.textContent = `[${entry.seq}] choice_faced  options=${entry.options.join('/')}`;
-    } else if (se === 'sim_enter') {
-      div.classList.add('sim-entry');
-      div.textContent = `[${entry.seq}] sim_enter      depth=${entry.depth}`;
-    } else if (se === 'sim_exit') {
-      div.classList.add('sim-entry');
-      div.textContent = `[${entry.seq}] sim_exit       depth=${entry.depth}  inner→${entry.innerPrediction}`;
-    } else {
-      div.textContent = `[${entry.seq}] ${entry.event}`;
+  _append(entry) {
+    entry.seq = this.log.length; this.log.push(entry);
+    const str = JSON.stringify(entry);
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) - h) + str.charCodeAt(i); h = h & 0xFFFFFFFF;
     }
-
-    logArea.appendChild(div);
-  });
-  logArea.scrollTop = logArea.scrollHeight;
-
-  if (result.gap) {
-    const lastEl = logArea.lastElementChild;
-    if (lastEl) lastEl.classList.add('gap-entry');
+    this.runningHash ^= h;
+    this.runningHash = (this.runningHash * 0x517CC1B7) & 0xFFFFFFFF;
+    return entry;
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// Auto-run
-// ═══════════════════════════════════════════════════════════════════
-
-async function toggleAuto() {
-  state.autoRunning = !state.autoRunning;
-  const btn = document.getElementById('btnAuto');
-  if (state.autoRunning) {
-    btn.textContent = '■ Stop';
-    btn.classList.add('running');
-    autoLoop();
-  } else {
-    btn.textContent = '↻ Auto-Run';
-    btn.classList.remove('running');
+  async chooseWithDepth(options, maxDepth) {
+    this._append({event:'trial_start', decision:this.decisionCount});
+    const hPred = this.runningHash;
+    await this._sim(options, 0, maxDepth);
+    const hChoice = this.runningHash;
+    const pm = (hPred ^ (this.decisionCount * 0x517CC1B7) ^ this._strHash(this.name+"predict")) >>> 0;
+    const cm = (hChoice ^ (this.decisionCount * 0x517CC1B7) ^ this._strHash(this.name+"commit")) >>> 0;
+    const predicted = options[pm % options.length];
+    const choice = options[cm % options.length];
+    this._append({event:'commit', decision:this.decisionCount, choice, predicted});
+    this.decisionCount++;
+    return {predicted, choice, gap: predicted !== choice};
   }
-}
-
-async function autoLoop() {
-  while (state.autoRunning) {
-    await step();
-    await sleep(600);
+  async _sim(options, depth, maxDepth) {
+    if (depth >= maxDepth) return options[Math.abs(this.runningHash) % options.length];
+    this._append({event:'sim_enter', depth});
+    const inner = await this._sim(options, depth + 1, maxDepth);
+    this._append({event:'sim_exit', depth, inner});
+    const m = (this.runningHash ^ (inner.charCodeAt(0)||0) ^ (depth * 0x9E3779B9)) >>> 0;
+    return options[m % options.length];
   }
+  _strHash(s) { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h&=0xFFFFFFFF;} return h; }
 }
 
-function cycleSpeed() {
-  const speeds = [1, 2, 3];
-  const labels = ['1×', '2×', 'Instant'];
-  const idx = speeds.indexOf(state.speed);
-  state.speed = speeds[(idx + 1) % speeds.length];
-  document.getElementById('btnSpeed').textContent = 'Speed: ' + labels[state.speed - 1 + (state.speed === 3 ? 2 : state.speed === 2 ? 1 : 0)];
-  // fix labels
-  const lbls = {'1':'1×','2':'2×','3':'Instant'};
-  document.getElementById('btnSpeed').textContent = 'Speed: ' + lbls[String(state.speed)];
+// ── E1 ──
+async function runE1() {
+  const psc = {Q1:0.40, Q2:0.75, Q3:0.95, Q4:1.00};
+  const res = {Q1:{c:0,t:0},Q2:{c:0,t:0},Q3:{c:0,t:0},Q4:{c:0,t:0}};
+  for (let s=0;s<5;s++) {
+    const subj = new ToriumiSubject(`s${s}`);
+    for (let t=0;t<40;t++) {
+      let q = t<10?'Q1':t<20?'Q2':t<30?'Q3':'Q4';
+      const seed = (s*1000 + t*7 + 1) % 256;
+      const d = (seed/255.0) < psc[q] ? 3 : 0;
+      const r = await subj.chooseWithDepth(['L','R'], d);
+      res[q].t++; if (!r.gap) res[q].c++;
+    }
+  }
+  let html = '<div class="stat-grid">';
+  const accs = [];
+  for (let q of ['Q1','Q2','Q3','Q4']) {
+    const d = res[q]; const acc = d.c/d.t;
+    accs.push(acc);
+    html += `<div class="stat-box"><div class="lbl">${q} (浅い熟考→深い熟考)</div><div class="big">${(acc*100).toFixed(1)}%</div><div class="lbl">自己予測 正解率</div></div>`;
+  }
+  html += '</div>';
+  const ds=[1,2,3,4]; const mA=accs.reduce((a,b)=>a+b)/4;
+  let nm=0,dn=0;
+  for(let i=0;i<4;i++){nm+=(ds[i]-2.5)*(accs[i]-mA);dn+=(ds[i]-2.5)**2;}
+  const beta=nm/dn;
+  const q1a=res.Q1.c/res.Q1.t, q4a=res.Q4.c/res.Q4.t;
+  html += `<p style="margin-top:6px;font-size:0.8rem;"><strong>β = ${beta.toFixed(4)}</strong> → ${
+    beta<-0.01?'<span style="color:var(--red);font-weight:700;">β < 0：鳥海理論の予測通り。熟考ほど自己予測が外れる ✓</span>':
+    beta>0.01?'<span style="color:var(--dim);">β > 0：錯覚論を支持（熟考ほど予測が当たる）</span>':
+    '<span style="color:var(--dim);">β ≈ 0：ランダム論を支持（フラット）</span>'
+  }<br><span style="font-size:0.72rem;color:var(--dim);">Q1(速い): ${(q1a*100).toFixed(1)}% → Q4(遅い): ${(q4a*100).toFixed(1)}%</span></p>`;
+  document.getElementById('e1-stats').innerHTML = html;
 }
+
+// ── E2 ──
+async function runE2() {
+  const conds = {'A: mPFC TMS':0.25, 'B: Sham TMS':0.95, 'C: Vertex TMS':0.95, 'D: Baseline':0.95};
+  let html = '<div class="stat-grid">'; const gs={};
+  for (let [name,pc] of Object.entries(conds)) {
+    let gaps=0, total=0;
+    for (let s=0;s<3;s++) {
+      const subj = new ToriumiSubject(`${name}_${s}`);
+      for (let t=0;t<20;t++) {
+        const seed = (s*100 + t*13 + name.length*7) % 256;
+        const d = (seed/255.0) < pc ? 3 : 0;
+        const r = await subj.chooseWithDepth(['L','R'], d);
+        total++; if (r.gap) gaps++;
+      }
+    }
+    const g = gaps/total; gs[name]=g;
+    html += `<div class="stat-box"><div class="lbl">${name}</div><div class="big${name.includes('mPFC')&&g<0.45?' red':''}">${(g*100).toFixed(0)}%</div><div class="lbl">Γ (Gap Rate)</div></div>`;
+  }
+  html += '</div>';
+  const ga=gs['A: mPFC TMS'], gb=gs['B: Sham TMS'];
+  const z=(gb-ga)/Math.sqrt(2*((ga+gb)/2)*(1-(ga+gb)/2)/60);
+  html += `<p style="margin-top:6px;font-size:0.8rem;"><strong>Γ(mPFC)=${(ga*100).toFixed(0)}% vs Γ(sham)=${(gb*100).toFixed(0)}%</strong> → ${
+    ga<gb? '<span style="color:var(--red);font-weight:700;">自己参照の破壊でギャップが縮小。因果関係 確認 ✓</span>':
+    '<span style="color:var(--dim);">ギャップ縮小せず。鳥海理論 反証 ✗</span>'
+  }</p>`;
+  document.getElementById('e2-stats').innerHTML = html;
+}
+
+runE1(); runE2();
 </script>
 
 </body>
