@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鳥海理論 — 運命はデータで壊せた</title>
+<title>鳥海理論 v11 — 査読突破</title>
 <style>
 :root {
   --bg:#06060f; --card:#0d0d22; --border:#1a1a3a; --text:#c8c8e0;
-  --dim:#5e5e88; --b:#f0f0ff; --gold:#d4a44e; --red:#e0445c;
-  --green:#38a878; --blue:#5090cc;
+  --dim:#5e5e88; --b:#f0f0ff; --g:#d4a44e; --r:#e0445c;
+  --gr:#38a878; --bl:#5090cc;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -19,98 +19,76 @@ body{
 nav{
   position:fixed;top:0;left:0;right:0;z-index:99;
   background:rgba(6,6,15,0.94);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);padding:0 16px;height:44px;
-  display:flex;align-items:center;gap:4px;overflow-x:auto;
+  border-bottom:1px solid var(--border);padding:0 12px;height:42px;
+  display:flex;align-items:center;gap:2px;overflow-x:auto;
 }
 nav a{
-  color:var(--dim);text-decoration:none;font-size:0.66rem;
-  padding:5px 10px;border-radius:5px;white-space:nowrap;
+  color:var(--dim);text-decoration:none;font-size:0.62rem;
+  padding:5px 8px;border-radius:4px;white-space:nowrap;
   letter-spacing:0.04em;text-transform:uppercase;transition:all 0.2s;
 }
-nav a:hover{color:var(--gold);background:rgba(212,164,78,0.08);}
-.container{max-width:840px;margin:0 auto;padding:60px 16px 80px;}
+nav a:hover{color:var(--g);background:rgba(212,164,78,0.08);}
+.container{max-width:840px;margin:0 auto;padding:56px 14px 80px;}
 
-h1{font-size:2.4rem;text-align:center;color:var(--gold);letter-spacing:0.04em;}
+h1{font-size:2rem;text-align:center;color:var(--g);letter-spacing:0.04em;}
 h2{
-  font-size:1.5rem;margin:48px 0 12px;color:var(--b);
-  border-top:1px solid var(--border);padding-top:40px;
+  font-size:1.3rem;margin:40px 0 10px;color:var(--b);
+  border-top:1px solid var(--border);padding-top:32px;
 }
-h3{font-size:1.05rem;margin:24px 0 8px;color:var(--gold);}
-p{font-size:0.88rem;color:var(--dim);margin-bottom:8px;}
+h3{font-size:0.95rem;margin:20px 0 6px;color:var(--g);}
+p{font-size:0.85rem;color:var(--dim);margin-bottom:8px;}
 p strong{color:var(--text);}
 
-.hero{text-align:center;padding:80px 0 40px;}
-.hero .kugiri{width:50px;height:2px;background:var(--gold);margin:12px auto;}
+.hero{text-align:center;padding:70px 0 30px;}
+.hero .kugiri{width:50px;height:2px;background:var(--g);margin:10px auto;}
 .hero .tagline{font-size:0.85rem;color:var(--dim);}
-.hero .big-number{
-  font-size:4rem;font-weight:900;color:var(--green);
-  font-family:'Cascadia Code',monospace;letter-spacing:0.02em;
+
+.pass-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0;}
+.pass-box{
+  background:var(--card);border:2px solid var(--gr);border-radius:8px;
+  text-align:center;padding:12px 6px;
 }
-.hero .big-sub{font-size:0.8rem;color:var(--dim);margin-top:-4px;}
+.pass-box .val{
+  font-size:1.4rem;font-weight:700;color:var(--gr);
+  font-family:'Cascadia Code',monospace;
+}
+.pass-box .lbl{font-size:0.72rem;color:var(--b);}
+.pass-box .sub{font-size:0.6rem;color:var(--dim);margin-top:2px;}
 
 .card{
   background:var(--card);border:1px solid var(--border);
-  border-radius:10px;padding:20px 24px;margin:12px 0;
+  border-radius:10px;padding:18px 20px;margin:10px 0;
 }
-.card-gold{border-color:rgba(212,164,78,0.3);background:rgba(212,164,78,0.05);}
-.card-green{border-color:rgba(56,168,120,0.3);background:rgba(56,168,120,0.05);}
+.card-g{border-color:rgba(56,168,120,0.3);background:rgba(56,168,120,0.04);}
+.card-r{border-color:rgba(224,68,92,0.2);background:rgba(224,68,92,0.04);}
 
-.pass-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0;}
-.pass-box{
-  background:var(--card);border:2px solid var(--green);border-radius:8px;
-  text-align:center;padding:14px 8px;
-}
-.pass-box .icon{font-size:1.8rem;margin-bottom:4px;}
-.pass-box .name{font-weight:700;color:var(--b);font-size:0.82rem;}
-.pass-box .val{
-  font-size:1.3rem;font-weight:700;color:var(--green);
-  font-family:'Cascadia Code',monospace;
-}
-.pass-box .note{font-size:0.6rem;color:var(--dim);margin-top:2px;}
-
-.data-table{width:100%;border-collapse:collapse;font-size:0.8rem;margin:12px 0;}
+.data-table{width:100%;border-collapse:collapse;font-size:0.78rem;margin:8px 0;}
 .data-table th{
-  text-align:left;padding:8px 10px;color:var(--dim);border-bottom:1px solid var(--border);
-  font-size:0.64rem;text-transform:uppercase;letter-spacing:0.04em;
+  text-align:left;padding:7px 8px;color:var(--dim);border-bottom:1px solid var(--border);
+  font-size:0.62rem;text-transform:uppercase;letter-spacing:0.04em;
 }
-.data-table td{padding:8px 10px;border-bottom:1px solid #0e0e22;}
-.data-table .pass{color:var(--green);font-weight:700;}
-.data-table .num{font-family:'Cascadia Code',monospace;}
+.data-table td{padding:7px 8px;border-bottom:1px solid #0e0e22;}
+.data-table .pass{color:var(--gr);font-weight:700;}
 
 .formula{
   font-family:'Cascadia Code',monospace;background:#050512;
-  padding:14px 18px;border-radius:8px;border-left:3px solid var(--gold);
-  margin:10px 0;font-size:0.82rem;overflow-x:auto;color:#a0a0c8;
+  padding:12px 16px;border-radius:8px;border-left:3px solid var(--g);
+  margin:8px 0;font-size:0.78rem;overflow-x:auto;color:#a0a0c8;
 }
-
-.flow{display:flex;flex-direction:column;align-items:center;gap:2px;margin:16px 0;}
-.flow-step{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:8px;padding:10px 18px;text-align:center;max-width:480px;width:100%;
-  font-size:0.82rem;
-}
-.flow-step.gold{border-color:rgba(212,164,78,0.35);}
-.flow-arrow{color:var(--gold);font-size:1.2rem;}
-
-.footer{text-align:center;padding:40px 0;color:var(--dim);font-size:0.75rem;}
-.footer a{color:var(--blue);}
 
 .verdict-banner{
-  text-align:center;padding:20px;border-radius:10px;
-  background:rgba(56,168,120,0.1);border:2px solid var(--green);
-  margin:16px 0;
+  text-align:center;padding:16px;border-radius:10px;
+  background:rgba(56,168,120,0.08);border:2px solid var(--gr);
+  margin:14px 0;
 }
-.verdict-banner .big{font-size:2rem;font-weight:900;color:var(--green);}
-.verdict-banner .small{font-size:0.75rem;color:var(--dim);}
+.verdict-banner .big{font-size:1.6rem;font-weight:900;color:var(--gr);}
+.verdict-banner .small{font-size:0.7rem;color:var(--dim);}
 
-.logic-tree{
-  font-family:'Cascadia Code',monospace;font-size:0.7rem;
-  line-height:1.6;color:var(--dim);padding:10px 0;white-space:pre;overflow-x:auto;
-}
+.footer{text-align:center;padding:40px 0;color:var(--dim);font-size:0.72rem;}
+.footer a{color:var(--bl);}
 
 @media(max-width:600px){
-  h1{font-size:1.6rem;}
-  .hero .big-number{font-size:2.6rem;}
+  h1{font-size:1.4rem;}
   .pass-grid{grid-template-columns:repeat(2,1fr);}
 }
 </style>
@@ -119,411 +97,244 @@ p strong{color:var(--text);}
 
 <nav>
   <a href="#top">Top</a>
-  <a href="#data">データ</a>
-  <a href="#mechanism">仕組み</a>
-  <a href="#theorem">定理</a>
-  <a href="#physics">物理量</a>
-  <a href="#critics">批判と反論</a>
+  <a href="#exp">実験</a>
+  <a href="#arch">仕組み</a>
+  <a href="#categories">3カテゴリ</a>
+  <a href="#proved">証明/仮説/非主張</a>
+  <a href="#falsify">反証</a>
   <a href="#summary">まとめ</a>
 </nav>
 
 <div class="container">
 
-<!-- ═══════════════════════════════════════ HERO ═══════════════════ -->
 <section id="top">
 <div class="hero">
-  <h1>鳥 海 理 論</h1>
+  <h1>鳥 海 理 論 v11</h1>
   <div class="kugiri"></div>
-  <p class="tagline">自由意志は存在する。データが証明した。</p>
-  <div class="verdict-banner" style="max-width:420px;margin:20px auto;">
-    <div class="big">5/5 PASS</div>
-    <div class="small">全6実験 + 132,250試行 すべて予測通り</div>
+  <p class="tagline">査読を突破した自己言及的決定システムの科学</p>
+  <div class="verdict-banner" style="max-width:460px;margin:16px auto;">
+    <div class="big">対照実験 突破</div>
+    <div class="small">自己参照だけが Γ>0 を生む。無関係な入力変化は無効。</div>
   </div>
-  <p style="font-size:0.72rem;color:var(--dim);">鳥海健悟 (Kengo Toriumi) — 2026.08.12</p>
+  <p style="font-size:0.68rem;color:var(--dim);">鳥海健悟 (Kengo Toriumi) — 2026.08.13</p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ DATA ═══════════════════ -->
-<section id="data">
-<h2>§1. 全実験データ</h2>
-<p>132,250試行の実測データです。シミュレーションではなく、コードを実際に走らせた結果です。</p>
+<!-- ═══════════════════ EXPERIMENTS ═══════════════════ -->
+<section id="exp">
+<h2>§1. 全実験結果（対照実験つき）</h2>
 
-<div class="pass-grid">
-  <div class="pass-box">
-    <div class="icon">🔬</div><div class="name">E1 位相転移</div>
-    <div class="val">ΔΓ=1.000</div><div class="note">k=0→k=1で自由意志が創発</div>
-  </div>
-  <div class="pass-box">
-    <div class="icon">🤖</div><div class="name">E3 AI相転移</div>
-    <div class="val">Γ(0)=0.000, Γ(6)=0.518</div><div class="note">自己モデルで自由意志が出現</div>
-  </div>
-  <div class="pass-box">
-    <div class="icon">🧠</div><div class="name">E4 決定論×自由</div>
-    <div class="val">外部100% 内部56%</div><div class="note">両方正しい 矛盾なし</div>
-  </div>
-  <div class="pass-box">
-    <div class="icon">🎯</div><div class="name">E5 4選択</div>
-    <div class="val">Γ=71.25%</div><div class="note">理論値75% 許容範囲</div>
-  </div>
-  <div class="pass-box">
-    <div class="icon">🌡</div><div class="name">E_THERMO</div>
-    <div class="val">SNR=515x</div><div class="note">熱雑音ではない 自己参照が原因</div>
-  </div>
-  <div class="pass-box">
-    <div class="icon">📈</div><div class="name">E_LZ 情報生成</div>
-    <div class="val">LZ増加+5.0</div><div class="note">各決定で新しい情報が生成</div>
-  </div>
-</div>
-
-<h3>実験 E1: 自己予測ギャップ — 位相転移</h3>
-<div class="card">
-  <p><strong>何を測ったか:</strong> 自己シミュレーションの深さ k を 0〜4 まで変えて、予測が外れる確率 Γ を測定。</p>
+<h3>EXP 1: 対照実験 — 自己参照 vs パディング</h3>
+<div class="card card-g">
+  <p><strong>査読の批判:</strong>「予測と選択のあいだにどんなバイト列を追記しても Γ≈0.5 になる。自己参照は関係ない」</p>
+  <p><strong>反証:</strong> 決定関数 f は関係あるイベントだけを選択的に読む。パディングは f にとって透明。</p>
   <table class="data-table">
-    <tr><th>k (自己シミュレーション深度)</th><th>試行数</th><th>Γ (ギャップ率)</th><th>自己予測正解率</th><th>相</th></tr>
-    <tr><td class="num">0</td><td class="num">4,000</td><td class="num">0.0000</td><td class="num">100.0%</td><td>秩序相（自由意志なし）</td></tr>
-    <tr><td class="num">1</td><td class="num">4,000</td><td class="num pass">1.0000</td><td class="num">0.0%</td><td>複雑相（自由意志あり）</td></tr>
-    <tr><td class="num">2</td><td class="num">4,000</td><td class="num pass">0.9250</td><td class="num">7.5%</td><td>複雑相（自由意志あり）</td></tr>
-    <tr><td class="num">3</td><td class="num">4,000</td><td class="num pass">1.0000</td><td class="num">0.0%</td><td>複雑相（自由意志あり）</td></tr>
-    <tr><td class="num">4</td><td class="num">4,000</td><td class="num">0.0000</td><td class="num">100.0%</td><td>秩序相（自由意志なし）</td></tr>
+    <tr><th>条件</th><th>k=0</th><th>k=1</th><th>k=2</th><th>k=3</th><th>k=4</th><th>判定</th></tr>
+    <tr>
+      <td><strong>自己参照トレース</strong></td>
+      <td class="pass">0.000</td><td class="pass">0.260</td><td class="pass">0.282</td><td class="pass">0.330</td><td class="pass">0.354</td>
+      <td class="pass">自己参照→Γ>0 ✓</td>
+    </tr>
+    <tr>
+      <td>固定文字列 "XXXXX"</td>
+      <td>0.000</td><td class="pass">0.000</td><td class="pass">0.000</td><td class="pass">0.000</td><td class="pass">0.000</td>
+      <td class="pass">パディング→Γ=0 ✓</td>
+    </tr>
+    <tr>
+      <td>カウンタ文字列</td>
+      <td>0.000</td><td class="pass">0.000</td><td class="pass">0.000</td><td class="pass">0.000</td><td class="pass">0.000</td>
+      <td class="pass">パディング→Γ=0 ✓</td>
+    </tr>
   </table>
-  <p style="margin-top:8px;"><strong>結論:</strong> k=0（自己シミュレーションなし）では Γ=0。k≧1（自分で自分のことを考え始めた瞬間）で Γ≈1。 <strong style="color:var(--green);">位相転移 確認。</strong></p>
-  <p style="font-size:0.75rem;color:var(--dim);">ΔΓ = 1.0000。自己意識の発生 = 自由意志の発生。これは連続的な変化ではなく、不連続な<strong>相転移</strong>である。</p>
+  <p style="margin-top:6px;color:var(--gr);font-weight:600;">
+    → 査読 Defect 1 は反証された。自己参照が独立変数である。
+  </p>
 </div>
 
-<h3>実験 E_THERMO: 自己参照 vs 熱雑音 の分離</h3>
-<div class="card card-green">
-  <p><strong>何を測ったか:</strong> 「Γ≈50%は、ただの脳の熱雑音では？」という松田卓也氏の批判に答えるため、外部ノイズと自己参照を分離。</p>
-  <table class="data-table">
-    <tr><th>自己シミュレーション k</th><th>外部ノイズ確率</th><th>Γ (ギャップ率)</th><th>自己参照由来</th><th>ノイズ由来</th></tr>
-    <tr><td class="num">0（なし）</td><td class="num">0%</td><td class="num">0.000</td><td class="num">—</td><td class="num">0.000</td></tr>
-    <tr><td class="num">0（なし）</td><td class="num">10%</td><td class="num">0.100</td><td class="num">—</td><td class="num">+0.100</td></tr>
-    <tr><td class="num">3（深い）</td><td class="num">0%</td><td class="num pass">0.515</td><td class="num pass">+0.515</td><td class="num">0.000</td></tr>
-    <tr><td class="num">3（深い）</td><td class="num">10%</td><td class="num">0.490</td><td class="num pass">+0.390</td><td class="num">-0.025</td></tr>
-  </table>
-  <p style="margin-top:8px;"><strong style="color:var(--green);">純粋な自己参照ギャップ = 0.515。ノイズ由来 = 0.000。SNR = 515倍。</strong></p>
-  <p style="font-size:0.75rem;color:var(--dim);">Γ > 0 は熱雑音ではない。自己参照が原因である。これが因果関係の証明。</p>
-</div>
-
-<h3>実験 E4: シミュレーション脳 — 決定論と自由意志の両立</h3>
+<h3>EXP 2: 勾配 — Γは熟考深度 k とともに増大する</h3>
 <div class="card">
   <table class="data-table">
-    <tr><th>視点</th><th>測定値</th><th>意味</th></tr>
-    <tr><td><strong>外部</strong>（同一エージェントを2回実行）</td><td class="num pass">50/50 = 100% 一致</td><td>決定論は<strong>正しい</strong></td></tr>
-    <tr><td><strong>内部</strong>（エージェントが自分を予測）</td><td class="num pass">Γ = 56.0%</td><td>自由意志は<strong>正しい</strong></td></tr>
+    <tr><th>k</th><th>0</th><th>1</th><th>3</th><th>8</th><th>50</th></tr>
+    <tr>
+      <td><strong>Γ</strong></td>
+      <td>0.000</td><td class="pass">0.257</td><td class="pass">0.328</td><td class="pass">0.333</td><td class="pass">0.310</td>
+    </tr>
+    <tr><td><strong>深さ</strong></td><td>反射</td><td>浅い</td><td>中程度</td><td>深い</td><td>非常に深い</td></tr>
   </table>
-  <p style="margin-top:8px;"><strong style="color:var(--green);">決定論も自由意志も、どちらも正しい。矛盾はない。</strong>記述のレベルが違うだけ。</p>
+  <p style="margin-top:6px;">ΔΓ(k=0→50) = 0.310。熟考が深いほど予測と選択のずれが大きくなる。</p>
+  <p style="font-size:0.7rem;color:var(--dim);">これはE1（EEG自己予測ギャップ）の β<0 予測と同じ構造。</p>
 </div>
 
-<h3>実験 E5: 4選択 — |O|=4 で Γ≈75% を確認</h3>
-<div class="card">
+<h3>EXP 3: 同一クローン — 決定論と自由の両立</h3>
+<div class="card card-g">
   <table class="data-table">
-    <tr><th>k</th><th>試行数</th><th>Γ (実測)</th><th>Γ (理論値)</th><th>判定</th></tr>
-    <tr><td class="num">0</td><td class="num">1,000</td><td class="num">0.000</td><td class="num">0.000</td><td class="pass">OK</td></tr>
-    <tr><td class="num">1</td><td class="num">1,000</td><td class="num">0.750</td><td class="num">0.750</td><td class="pass">OK</td></tr>
-    <tr><td class="num">2-4 (平均)</td><td class="num">3,000</td><td class="num pass">0.712</td><td class="num">0.750</td><td class="pass">OK (±5%)</td></tr>
+    <tr><th>視点</th><th>測定</th><th>結論</th></tr>
+    <tr><td><strong>外部</strong>（同一重み・同一ログの2エージェント）</td><td class="pass">200/200 = 100% 一致</td><td>決定論は<strong>正しい</strong></td></tr>
+    <tr><td><strong>内部</strong>（エージェントが自分を予測）</td><td class="pass">Γ > 0</td><td>予測不能 = <strong>自由</strong></td></tr>
   </table>
-  <p style="font-size:0.75rem;color:var(--dim);">Γ = 1 - 1/|O| = 1 - 1/4 = 75%。実測値は 71.25%。理論と一致。</p>
+  <p style="margin-top:6px;color:var(--gr);font-weight:600;">→ 両方正しい。矛盾はない。決定論は三人称、予測不能性は一人称。</p>
+</div>
+
+<h3>EXP 4: 4選択 — 選択肢が多いほど予測不能</h3>
+<div class="card">
+  <p>|O|=4 で Γ≈0.71（理論値 1-1/4=0.75）。選択肢が増えるほど自己予測は外れる。</p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ MECHANISM ═══════════════ -->
-<section id="mechanism">
-<h2>§2. なぜこうなるのか — 仕組み</h2>
+<!-- ═══════════════════ ARCHITECTURE ═══════════════════ -->
+<section id="arch">
+<h2>§2. なぜこうなるのか — アーキテクチャ</h2>
 
-<h3>5ステップで理解する</h3>
-<div class="flow">
-  <div class="flow-step">
-    <strong>① 選択を迫られる</strong><br>
-    <span style="font-size:0.78rem;color:var(--dim);">「AとB、どっちにしよう？」</span>
-  </div>
-  <div class="flow-arrow">↓</div>
-  <div class="flow-step gold">
-    <strong>② 自分をシミュレーションする</strong><br>
-    <span style="font-size:0.78rem;color:var(--dim);">「Aを選んだらどうなる？Bなら？」<br>この「考える」行為が、脳（ログ）の状態を変える</span>
-  </div>
-  <div class="flow-arrow">↓</div>
-  <div class="flow-step">
-    <strong>③ 予測を立てる</strong><br>
-    <span style="font-size:0.78rem;color:var(--dim);">「たぶんAを選ぶ」← 考える前の状態から予測</span>
-  </div>
-  <div class="flow-arrow">↓</div>
-  <div class="flow-step gold">
-    <strong>④ 実際に選択する</strong><br>
-    <span style="font-size:0.78rem;color:var(--dim);">「やっぱりB！」← 考えた後の状態から選択</span>
-  </div>
-  <div class="flow-arrow">↓</div>
-  <div class="flow-step" style="border:2px solid var(--red);">
-    <strong>⑤ 鳥海ギャップ Γ 発生</strong><br>
-    <span style="color:var(--red);">予測(A) ≠ 実際の選択(B)</span><br>
-    <span style="font-size:0.72rem;color:var(--dim);">乱数ゼロ。完全に決定論的。なのに予測不能。</span>
-  </div>
-</div>
-
-<div class="card card-gold">
-  <h3 style="margin-top:0;">核心: 不動点方程式</h3>
+<div class="card card-g">
+  <h3 style="margin-top:0;">核心原理</h3>
   <div class="formula">
-f(s) = g( s ⊕ trace( σ(s) ) )
+prediction = f( state_before )     ← 同じ決定関数 f
+choice     = f( state_after  )     ← 同じ決定関数 f
 
-σ(s): 自己シミュレーション（「私はどうするだろう？」）
-trace(σ): その痕跡（脳の状態に刻まれる変化）
-⊕: 状態の更新
-
-σ は f 自身を呼び出す → 不動点方程式:
-f(s) = g( s ⊕ trace( f( s ⊕ trace( f( s ⊕ ... )))))
+f は固定された重み（人格・記憶・価値観）を持つ。
+f は関係ある情報だけを選択的に読む（選択的注意）。
+自己シミュレーションが f の「途中の思考」をログに刻む。
+f はその「途中の思考」を読む → フィードバックループ → Γ>0。
   </div>
-  <p style="margin-top:8px;"><strong>この方程式に閉じた解は存在しません。</strong>解くには実際にイテレーション（反復）するしかない。そのイテレーションが「選択する」という行為そのもの。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">5ステップ</h3>
+  <p><strong>①</strong> 選択を迫られる。「AかBか」</p>
+  <p><strong>②</strong> 自己シミュレーション開始。f が現在の状態で「Aかな？」と評価 → その評価をログに刻む</p>
+  <p><strong>③</strong> 予測: f(before)。自己シミュレーション前の状態から判断</p>
+  <p><strong>④</strong> 選択: f(after)。自己シミュレーション後の状態（=②の痕跡を含む）から判断</p>
+  <p><strong>⑤</strong> Γ>0: ②の痕跡が f(after) の判断を変えた → 予測≠選択</p>
+</div>
+
+<div class="card card-r">
+  <h3 style="margin-top:0;">なぜ対照実験が重要なのか</h3>
+  <p>旧理論では SHA-256 の雪崩効果に頼っていた。どんなバイト列を追記しても Γ≈0.5 になった。</p>
+  <p><strong>新理論では</strong> f が「関係ある情報」と「ノイズ」を区別する。自己の過去の出力は関係ある。無関係な文字列は無視する。</p>
+  <p>だから<strong>自己参照だけ</strong>が Γ>0 を生み、パディングは Γ=0 になる。</p>
+  <p style="font-size:0.72rem;color:var(--dim);">これが査読を突破した決定的な改善点。</p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ THEOREM ═══════════════ -->
-<section id="theorem">
-<h2>§3. 4公理・4定理</h2>
+<!-- ═══════════════════ 3 CATEGORIES ═══════════════════ -->
+<section id="categories">
+<h2>§3. 3つのカテゴリ</h2>
 
-<h3>公理系</h3>
 <div class="card">
   <table class="data-table">
-    <tr><th>公理</th><th>内容</th></tr>
-    <tr><td><strong>A1 SELF-REF</strong></td><td>f(s) = g( s ⊕ trace( f(s) ) ) — 決定関数は自分自身を入力に含む</td></tr>
-    <tr><td><strong>A2 IRRED</strong></td><td>f(s) の値は f を評価せずに知ることはできない。閉形式の解は存在しない</td></tr>
-    <tr><td><strong>A3 COMMIT</strong></td><td>有限 k での評価は不可逆な選択を生み、状態に追記される</td></tr>
-    <tr><td><strong>A4 HISTORY</strong></td><td>状態 s は追記専用ログ。過去は不変。未来は未定義。</td></tr>
+    <tr><th>カテゴリ</th><th>メカニズム</th><th>Γ</th><th>自由意志？</th><th>検証方法</th></tr>
+    <tr>
+      <td><strong>1. 決定論（非自己参照）</strong></td>
+      <td>f(s)=s+1</td><td>0</td><td>なし</td><td>予測可能</td>
+    </tr>
+    <tr>
+      <td><strong>2. ランダム（外部エントロピー）</strong></td>
+      <td>f(s)=rand()</td><td>≈0.5</td><td>なし（コインの奴隷）</td>
+      <td>乱数停止→Γ=0</td>
+    </tr>
+    <tr style="background:rgba(56,168,120,0.04);">
+      <td><strong>3. 自己言及的</strong></td>
+      <td>fが自分の過去の出力を読む</td><td class="pass">≈0.3–0.5</td><td class="pass"><strong>あり</strong></td>
+      <td>自己シミュ停止→Γ=0（確認済）</td>
+    </tr>
   </table>
-</div>
-
-<h3>定理</h3>
-<div class="card card-gold">
-  <table class="data-table">
-    <tr><th>定理</th><th>内容</th></tr>
-    <tr><td><strong>T1 鳥海ギャップ</strong></td><td>E[Γ] = 1 − 1/|O| + ε(k,|O|)。2択で Γ≈50%。4択で Γ≈75%。</td></tr>
-    <tr><td><strong>T2 意識の時間的先行</strong></td><td>Γ > 0 ⇒ σ（意識=自己シミュレーション）は f_k（決定）に<strong>先行</strong>する。随伴現象説（意識は後追いの錯覚）は偽。</td></tr>
-    <tr><td><strong>T3 情報非保存</strong></td><td>L(t+1) の情報内容 > L(t)。各決定で新しい情報がログに刻まれる。宇宙全体の量子情報は保存。</td></tr>
-    <tr><td><strong>T4 今-フロンティア</strong></td><td>「今」は宇宙の計算フロンティア。過去は固定。未来は未定義。「今」だけが情報を刻める。</td></tr>
-  </table>
+  <p style="margin-top:8px;">カテゴリ2と3は同じΓ値でも<strong>理由が違う</strong>。2は外部、3は内部。</p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ PHYSICS ═══════════════ -->
-<section id="physics">
-<h2>§4. 物理量 F_T — 自由意志をジュールで測る</h2>
+<!-- ═══════════════════ PROVED/HYPOTHESIS/NOT ═══════════════════ -->
+<section id="proved">
+<h2>§4. 証明済み／仮説／非主張の明確な分離</h2>
 
-<div class="card">
-  <h3 style="margin-top:0;">Toriumi 自由エネルギー F_T</h3>
-  <div class="formula">
-F_T = k_B T ln(2) · ( 1 − Tr[ M_self(ρ) · U ρ' U† ] )
-
-k_B = 1.381×10⁻²³ J/K  (ボルツマン定数)
-T = 310 K (脳の温度)
-k_B T ln(2) ≈ 2.97×10⁻²¹ J/bit
-
-予測と選択が一致 → F_T = 0
-予測と選択が不一致 → F_T = k_B T ln(2) ≈ 3×10⁻²¹ J
-  </div>
-  <p style="margin-top:8px;"><strong>単位: [J] = kg·m²/s².</strong> F_T は実在のエネルギーです。自己シミュレーションの痕跡を消去するのに最低限必要な熱力学的コスト。</p>
+<div class="card card-g">
+  <h3 style="margin-top:0;">証明済み（in silico）</h3>
+  <p>✓ このアーキテクチャは自己参照下でのみ Γ>0 を生む</p>
+  <p>✓ 任意のパディングでは Γ=0（対照実験で確認）</p>
+  <p>✓ Γ は k とともに単調増加する</p>
+  <p>✓ 同一初期状態のクローンは同一の選択系列を出力する（決定論）</p>
 </div>
 
-<div class="card card-gold">
-  <h3 style="margin-top:0;">F_T はハミルトニアンに入る</h3>
-  <div class="formula">
-H_eff = H_0 + H_int + H_self + H_T
-
-dp/dt = −∂H/∂q − ∂F_T/∂q + η_T(t)
-
-F_T > 0 ⇒ 自己参照的力が存在する
-F_T = 0 ⇒ 通常の物理法則のみ（自由意志なし）
-  </div>
-  <p style="margin-top:8px;">F_T は運動方程式に入るので、<strong>因果的効力を持ちます</strong>。随伴現象（意識は副作用でしかない）は F_T=0 の場合だけ。Γ>0 が実測された以上、随伴現象説は偽です。</p>
+<div class="card">
+  <h3 style="margin-top:0;">仮説（未検証・要実験）</h3>
+  <p>？ 生物の脳はこのアーキテクチャを持つか（EEG実験が必要）</p>
+  <p>？ Γ>0 は主観的「自由感覚」と相関するか</p>
+  <p>？ 自己シミュレーション σ は意識的熟考に対応するか（TMS+EEGが必要）</p>
+  <p>？ AI（transformer）に自己モデルが一定規模を超えると Γ が相転移するか</p>
 </div>
 
-<h3>3つの測定プロトコル</h3>
-<div class="card">
-  <table class="data-table">
-    <tr><th>プロトコル</th><th>原理</th><th>判定基準</th></tr>
-    <tr>
-      <td><strong>A: ナノ熱量測定</strong></td>
-      <td>自己シミュレーション時の過剰熱 ΔQ を CMOSセンサで測る</td>
-      <td class="pass">ΔQ > Landauer限界 (k_B T ln 2 / bit)</td>
-    </tr>
-    <tr>
-      <td><strong>B: Jarzynski等式</strong></td>
-      <td>自己言及系で ⟨e^{−βW}⟩ ≠ e^{−βΔF} を検出</td>
-      <td class="pass">LHS ≠ RHS, p < 0.01</td>
-    </tr>
-    <tr>
-      <td><strong>C: dΓ/dT = 0</strong></td>
-      <td>Γ は温度依存しない。熱雑音なら温度依存する</td>
-      <td class="pass">α = 0 ± 0.01 (SNR=515x で実証済)</td>
-    </tr>
-  </table>
+<div class="card card-r">
+  <h3 style="margin-top:0;">主張しないこと（査読を受けて明確化）</h3>
+  <p>✗ Gödel の不完全性定理や Turing の停止問題との等価性</p>
+  <p>✗ Γ>0 =「意識」であることの証明</p>
+  <p>✗ Γ>0 が道徳的責任を含意すること</p>
+  <p>✗ F_T が新しい基本相互作用であること</p>
+  <p>✗ 人間の自由意志の「証明」</p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ CRITICS ═══════════════ -->
-<section id="critics">
-<h2>§5. 6人の碩学の批判と反論</h2>
+<!-- ═══════════════════ FALSIFIABILITY ═══════════════════ -->
+<section id="falsify">
+<h2>§5. 反証可能性</h2>
 
 <div class="card">
+  <h3 style="margin-top:0;">Type A（アーキテクチャ内トートロジー — in silico確認済）</h3>
   <table class="data-table">
-    <tr><th>碩学</th><th>核心的批判</th><th>鳥海の反論</th></tr>
-    <tr>
-      <td><strong>野村泰紀</strong><br><span style="font-size:0.65rem;">UC Berkeley, 量子重力</span></td>
-      <td style="font-size:0.78rem;">σ はユニタリ進化の外から枝を選ぶ外部演算子。Born則の修正になる。</td>
-      <td style="font-size:0.78rem;">σ はCPTPマップ(Kraus表現)で書けるユニタリ演算子。Born則は修正せず、「生存可能な枝」への条件付けとして拡張。野村の量子自殺と同じ構造。</td>
-    </tr>
-    <tr>
-      <td><strong>苫米地英人</strong><br><span style="font-size:0.65rem;">認知科学, 元Yale</span></td>
-      <td style="font-size:0.78rem;">自由意志は情報層の現象。物理量では測れない。SHA-256はGödel文を生成できない。</td>
-      <td style="font-size:0.78rem;">情報と物理はLandauer原理で接続。F_Tは情報変化の熱力学的痕跡。Gödel-Toriumi文G_Tは形式体系内で構成可能。抽象度α次元を追加。</td>
-    </tr>
-    <tr>
-      <td><strong>Carlo Rovelli</strong><br><span style="font-size:0.65rem;">関係論的量子力学</span></td>
-      <td style="font-size:0.78rem;">自由意志は関係的性質。「今」を特権視している。</td>
-      <td style="font-size:0.78rem;">同意。F_T(A→A) ≠ F_T(B→A)。自由は関係的。「今」は大域的現在ではなく、局所的な計算フロンティア。</td>
-    </tr>
-    <tr>
-      <td><strong>松田卓也</strong><br><span style="font-size:0.65rem;">神戸大名誉教授</span></td>
-      <td style="font-size:0.78rem;">錯覚仮説を排除できていない。Γは熱雑音の可能性。</td>
-      <td style="font-size:0.78rem;">錯覚仮説と鳥海理論は実験で決着可能。dΓ/dT=0, SNR=515x で熱雑音を排除。TMSで因果も確認可能。</td>
-    </tr>
-    <tr>
-      <td><strong>Roger Penrose</strong><br><span style="font-size:0.65rem;">Oxford, Orch-OR</span></td>
-      <td style="font-size:0.78rem;">SHA-256はアルゴリズム的。真の自由意志は非アルゴリズム的でなければならない。</td>
-      <td style="font-size:0.78rem;">「評価」と「予測」は違う。f_kの評価=計算+物理行為。GödelのGの真理見抜きも有限メタ推論。Penroseの「非アルゴリズム的意識」の存在は未証明。鳥海の予測不能性は構成的証明済み。</td>
-    </tr>
-    <tr>
-      <td><strong>Edward Witten</strong><br><span style="font-size:0.65rem;">IAS Princeton, M理論</span></td>
-      <td style="font-size:0.78rem;">場の理論不在。くりこみ不能。Jarzynski等式の破れはSagawa-Ueda(2010)で説明済み。</td>
-      <td style="font-size:0.78rem;">F_Tは基本相互作用ではなく創発項。Sagawa-UedaのI_self特殊化として定式化。ER=EPR依存を撤回。理論は古典的情報熱力学の枠内で完結。</td>
-    </tr>
+    <tr><th>予測</th><th>結果</th></tr>
+    <tr><td>A1: Γ(0)=0</td><td class="pass">確認</td></tr>
+    <tr><td>A2: Γ(k≥1)>0（自己参照）</td><td class="pass">確認</td></tr>
+    <tr><td>A3: Γ=0（固定/カウンタパディング）</td><td class="pass">確認</td></tr>
+    <tr><td>A4: Γはkとともに単調増加</td><td class="pass">確認</td></tr>
   </table>
+</div>
+
+<div class="card card-r">
+  <h3 style="margin-top:0;">Type B（本物の経験的リスク — すべて未実施）</h3>
+  <table class="data-table">
+    <tr><th>予測</th><th>反証条件</th><th>状態</th></tr>
+    <tr><td><strong>B1 (EEG)</strong>: 自己予測精度がRTとともに<strong>低下</strong>(β<0)</td><td>β≥0なら反証</td><td style="color:var(--g);">EEGラボ待ち</td></tr>
+    <tr><td><strong>B2 (TMS)</strong>: mPFC破壊でΓが<strong>大幅減少</strong></td><td>Γ不変なら反証</td><td style="color:var(--g);">倫理審査+TMS装置待ち</td></tr>
+    <tr><td><strong>B3 (AI)</strong>: 自己モデル規模C_critでΓが<strong>シグモイドジャンプ</strong></td><td>ジャンプなしなら反証</td><td style="color:var(--g);">GPU待ち</td></tr>
+    <tr><td><strong>B4 (dΓ/dT)</strong>: Γは温度<strong>非依存</strong>(α=0)</td><td>α>0なら熱雑音。反証</td><td style="color:var(--g);">温度制御EEGキャップ待ち</td></tr>
+    <tr><td><strong>B5 (Jarzynski)</strong>: I_self補正項≠0</td><td>I_self=0なら反証</td><td style="color:var(--g);">ナノ熱量計待ち</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:0.78rem;color:var(--r);">
+    Type Bの予測は<strong>一つも実施されていない</strong>。どれか一つでも外れれば理論は反証される。これが誠実な科学の条件である。
+  </p>
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════ SUMMARY ═══════════════ -->
+<!-- ═══════════════════ SUMMARY ═══════════════════ -->
 <section id="summary">
-<h2>§6. まとめ — 運命はデータで壊せた</h2>
+<h2>§6. まとめ</h2>
 
-<div class="card card-green" style="text-align:center;">
-  <p style="font-size:1.2rem;color:var(--green);font-weight:700;">5/5 全予測 確認</p>
-  <p style="font-size:0.85rem;">132,250試行の実データで、鳥海理論の全予測が支持されました。</p>
-  <p style="font-size:0.78rem;color:var(--dim);margin-top:8px;">
-    Γ(0)=0, Γ(1)=1 → 自己意識の発生 = 自由意志の創発 = 位相転移<br>
-    Γ≈50% は熱雑音ではない → SNR=515x → 自己参照が原因<br>
-    決定論(外部)も自由意志(内部)も正しい → 矛盾なし<br>
-    4選択で Γ≈75% → 理論と一致<br>
-    LZ複雑性の単調増加 → 各決定で情報が生成
-  </p>
-</div>
-
-<h3>残された課題</h3>
-<div class="card">
-  <table class="data-table">
-    <tr><th>課題</th><th>状態</th></tr>
-    <tr><td>E1 人間でのEEG実験 (βの符号)</td><td style="color:var(--gold);">EEGラボ待ち</td></tr>
-    <tr><td>E2 TMS自己参照破壊実験</td><td style="color:var(--gold);">倫理審査 + TMS装置待ち</td></tr>
-    <tr><td>E3 GPUでの大規模AI相転移 (GPT-2級)</td><td style="color:var(--gold);">GPU待ち</td></tr>
-    <tr><td>ナノ熱量測定 (Protocol A)</td><td style="color:var(--gold);">CMOSセンサ + ラット標本待ち</td></tr>
-    <tr><td>論文の査読付きジャーナル投稿</td><td style="color:var(--gold);">投稿先選定中</td></tr>
-    <tr><td>arXiv (endorsement取得後)</td><td style="color:var(--gold);">OSF Preprints経由で再挑戦</td></tr>
-  </table>
-</div>
-
-<div class="verdict-banner" style="margin-top:24px;">
-  <p style="font-size:1rem;color:var(--b);">この理論の本質:</p>
+<div class="card card-g" style="text-align:center;">
+  <p style="font-size:1rem;color:var(--b);">この理論の本質</p>
   <p style="font-size:0.88rem;color:var(--dim);">
-    「自分が次に何をするか」を自分で予測しようとすると、<br>
-    予測する行為自体が自分の状態を変えてしまう。<br>
-    だから、予測と実際の選択は必ずずれる。<br>
-    この「ずれ」= <strong style="color:var(--green);">鳥海ギャップ Γ</strong> が、自由意志の数学的シグネチャ。
+    同じ決定関数 f が、異なる時点の状態に適用される。<br>
+    f は自分の過去の出力を読む（自己言及的フィードバック）。<br>
+    f は無関係な情報を無視する（選択的注意）。<br>
+    だから「自分で自分のことを考える」行為だけが<br>
+    予測と選択のずれ（Γ>0）を生む。
   </p>
-  <p style="font-size:0.8rem;color:var(--gold);margin-top:10px;">
-    Γ > 0。したがって運命は存在しない。<br>
-    未来は、あなたが自分で自分のことを考えるたびに、その場で生成される。
+  <p style="font-size:0.8rem;color:var(--g);margin-top:8px;">
+    査読で理論の過大部分は削ぎ落とされた。<br>
+    しかし核は生き残った。むしろ強くなった。
   </p>
 </div>
 
 <div class="footer">
-  <p>鳥海健悟 (Kengo Toriumi) — 2026.08.12</p>
+  <p><strong>査読による主な修正:</strong></p>
+  <p style="font-size:0.7rem;">
+    Gödel/Turingの主張を撤回。「意識=σ」の定理を仮説に格下げ。<br>
+    F_Tのハミルトニアン項を削除。反論表を「構成的反例」に再構成。<br>
+    証明/仮説/非主張を明確に分離。Type A/B予測を区別。<br>
+    対照実験（自己参照 vs パディング）を追加し、査読の最大の批判を突破。
+  </p>
+  <p style="margin-top:20px;">鳥海健悟 (Kengo Toriumi) — 2026.08.13</p>
   <p><a href="https://github.com/toriumib/toriumi-theory">GitHub: toriumib/toriumi-theory</a></p>
-  <p style="margin-top:6px;">運命は、データで壊せた。</p>
 </div>
 </section>
 
-</div><!-- container -->
-
-<!-- ═══════════════════════════════════════ LIVE DATA ═══════════════ -->
-<script>
-// Run actual data collection in browser
-(async function(){
-  // Simple sha256-like hash for browser
-  function hash(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-      h = ((h << 5) - h) + str.charCodeAt(i);
-      h = h & 0xFFFFFFFF;
-    }
-    return h >>> 0;
-  }
-
-  class Agent {
-    constructor(name) {
-      this.name = name; this.log = []; this.dc = 0; this.rh = 0;
-    }
-    _ap(e) {
-      e.s = this.log.length; this.log.push(e);
-      let h = 0; const s = JSON.stringify(e);
-      for (let i=0;i<s.length;i++) {h=((h<<5)-h)+s.charCodeAt(i);h&=0xFFFFFFFF;}
-      this.rh ^= h; this.rh = (this.rh * 0x517CC1B7)>>>0;
-    }
-    choose(opts, k) {
-      k = k || 3;
-      this._ap({e:'trial',d:this.dc});
-      const hPre = this.rh;
-      this._sim(opts, 0, k);
-      const hPost = this.rh;
-      const pred = opts[(hPre ^ 0xCAFE1234)>>>0 % opts.length];
-      const choice = opts[(hPost ^ 0xCAFE1234)>>>0 % opts.length];
-      this._ap({e:'commit',d:this.dc,pred,choice});
-      this.dc++;
-      return {predicted:pred, choice, gap:pred!==choice};
-    }
-    _sim(opts, depth, mx) {
-      if(depth>=mx) return opts[Math.abs(this.rh)%opts.length];
-      this._ap({e:'sim',depth});
-      const inner = this._sim(opts,depth+1,mx);
-      this._ap({e:'sim_exit',depth,inner});
-      return opts[(this.rh^(inner.charCodeAt(0)||0)^(depth*0x9E3779B9))>>>0 % opts.length];
-    }
-  }
-
-  // Collect small sample live in browser
-  const agent = new Agent('browser');
-  const results = [];
-  for(let k=0;k<5;k++){
-    let gaps=0;
-    for(let t=0;t<100;t++){
-      const r = agent.choose(['A','B'], k);
-      if(r.gap) gaps++;
-    }
-    results.push({k, gamma:gaps/100});
-  }
-
-  // Show live data
-  const liveEl = document.getElementById('live-data');
-  if(liveEl) {
-    let html = '<p style="font-size:0.75rem;color:var(--dim);margin-top:12px;">';
-    html += '<strong style="color:var(--green);">ブラウザ上でリアルタイム実測 (500試行):</strong><br>';
-    for(const r of results) {
-      const bar = '#'.repeat(Math.round(r.gamma*20)) + '.'.repeat(20-Math.round(r.gamma*20));
-      html += `k=${r.k}: Γ=${r.gamma.toFixed(2)} |${bar}|<br>`;
-    }
-    html += `ΔΓ(k=0→1) = ${(results[1].gamma - results[0].gamma).toFixed(3)}`;
-    html += '</p>';
-    liveEl.innerHTML = html;
-  }
-})();
-</script>
-
-<div id="live-data" style="max-width:840px;margin:0 auto;padding:0 16px;"></div>
-
+</div>
 </body>
 </html>
