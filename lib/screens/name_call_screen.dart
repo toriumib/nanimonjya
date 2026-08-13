@@ -751,27 +751,10 @@ class _NameCallScreenState extends State<NameCallScreen>
       );
     } else {
       Sfx.instance.wrong();
-      // 📛 原作のルール: 誰も名前を正確に思い出せなかったら、
-      // そのカードに**あらためて新しい名前をつけて**ゲームを続ける。
-      // （出たとき命名のときだけ。まとめて命名は名簿が決まっているので対象外）
-      if (widget.nameAsYouGo && _round.isNotEmpty) {
-        // 黙って命名画面へ飛ぶと「なぜ戻された？」になる。理由を出す。
-        ScaffoldMessenger.of(context)
-          ..clearSnackBars()
-          ..showSnackBar(SnackBar(
-            duration: const Duration(milliseconds: 1600),
-            content: Text(m.nobodyRecalled),
-          ));
-        final card = _round[_answering];
-        _game.roster.remove(card); // 古い名前を捨てて付け直す
-        // 付け直した名前をあとで試せるよう、山札に戻す
-        _game.returnToDeck(card);
-        setState(() {
-          _inlinePerson = card;
-          _phase = _Phase.inlineNaming;
-        });
-        return;
-      }
+      // 📛 みんなで（一台）＝審判モードでは、名前をつけた人が
+      //    消えて「もう一度命名」になるのは混乱の元。名前は保持したまま
+      //    「だれも取れなかった」として次へ進める。
+      //    （出たとき命名＋審判モードでも同じ扱いにする）
     }
     _roundClaimer.add(player);
 
