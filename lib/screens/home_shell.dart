@@ -68,7 +68,6 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           builder: (_) => const TutorialPlayScreen()));
       if (!mounted) return;
       if (needRead) await _offerGuide();
-      kHomeNextStepTick.value++;
       return;
     }
 

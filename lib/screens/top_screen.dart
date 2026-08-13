@@ -2,9 +2,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'tutorial_play_screen.dart';
 import '../services/custom_roster_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // ロゴ・演出アニメーション
 import 'package:flutter_svg/flutter_svg.dart'; // マスコットイラスト
@@ -35,13 +33,6 @@ import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 import '../services/app_analytics.dart';
-
-/// 🔁 ホームに「つぎの一歩」を出し直させる合図。
-///
-/// ⚠️ TopScreen の initState は、初回起動のチュートリアルより**先に**走る。
-///    その時点ではまだ「おためし未プレイ」なので、判定が必ず false になる。
-///    チュートリアルを終えた HomeShell 側からここを叩いてもらう。
-final ValueNotifier<int> kHomeNextStepTick = ValueNotifier<int>(0);
 
 // 多言語対応のために追加
 
@@ -195,34 +186,6 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
-  /// 🧭 ホーム下部のまとめ導線1つぶん。
-  ///
-  /// 顔メモ・マイページ・チュートリアル・レビュー・支援を
-  /// 同じ見た目の小さなタイルにして並べる。
-  /// 縦長のボタンを積むより、ずっと少ない高さで収まる。
-  /// 「つぎは顔メモ」を出すか。登録が1人でもあれば、もう出さない。
-  bool _showNextStep = false;
-  static const String _kNextStepKey = 'nextStepFaceMemoDone';
-
-  Future<void> _refreshNextStep() async {
-    if (kIsWeb) return; // 顔メモの写真登録はモバイル限定
-    final p = await SharedPreferences.getInstance();
-    if (p.getBool(_kNextStepKey) ?? false) return;
-    // おためしを終えた人にだけ。初回起動の1画面目からは出さない。
-    if (await shouldPlayTutorial()) return;
-    await CustomRosterService.instance.load();
-    final empty = CustomRosterService.instance.entries.isEmpty;
-    if (!mounted) return;
-    setState(() => _showNextStep = empty);
-    if (!empty) await p.setBool(_kNextStepKey, true);
-  }
-
-  Future<void> _dismissNextStep() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kNextStepKey, true);
-    if (mounted) setState(() => _showNextStep = false);
-  }
-
   /// 🎁🪙📺 コンパクトなチップ型ボタン。ギフト・ガチャ・広告→キャラ用。
   Widget _chipButton({
     required VoidCallback onTap,
@@ -265,71 +228,6 @@ class _TopScreenState extends State<TopScreen>
       ),
     );
   }
-
-  Widget _nextStepCard(MetaStrings m) => Container(
-        margin: const EdgeInsets.fromLTRB(4, 4, 4, 10),
-        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFE0F7F4), Color(0xFFFFF6D8)],
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF1E8A82), width: 1.6),
-        ),
-        child: Row(
-          children: [
-            const Text('🧑‍🎨', style: TextStyle(fontSize: 32)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(m.nextStepTitle,
-                      style: const TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF12645E))),
-                  const SizedBox(height: 2),
-                  Text(
-                    m.nextStepBody,
-                    style: const TextStyle(fontSize: 12, height: 1.45),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 34,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        AppAnalytics.modePick('face_memo_nextstep');
-                        await _dismissNextStep();
-                        if (!mounted) return;
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const CustomRosterScreen(
-                                  startAvatar: true)),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E8A82),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        textStyle: const TextStyle(
-                            fontSize: 13.5, fontWeight: FontWeight.w900),
-                      ),
-                      child: Text(m.nextStepButton),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: m.closeLabel,
-              icon: const Icon(Icons.close, size: 18, color: Colors.black38),
-              onPressed: _dismissNextStep,
-            ),
-          ],
-        ),
-      );
 
   /// 🎁 今日のキャラを1体引く（1日1回）。
   Future<void> _pullGacha() async {
@@ -579,8 +477,6 @@ class _TopScreenState extends State<TopScreen>
   void initState() {
     super.initState();
     AppAnalytics.screen('top');
-    _refreshNextStep();
-    kHomeNextStepTick.addListener(_refreshNextStep);
     _giftAd.load();
     _gachaAd.load();
     _bounceController = AnimationController(
@@ -595,7 +491,6 @@ class _TopScreenState extends State<TopScreen>
 
   @override
   void dispose() {
-    kHomeNextStepTick.removeListener(_refreshNextStep);
     _giftAd.dispose();
     _gachaAd.dispose();
     _bounceController.dispose();

@@ -1,5 +1,15 @@
 ## v2.5.0 リリースノート
 
+### 🛍 ショップを大幅拡充（収益導線の強化）
+- 🌟 **神スキン**3種（黄金の記憶／宇宙の織り手／ネオン・ゴッド）を追加。覚えた枚数に応じて演出が豪華に
+- 💀 **ハードコアチケット**：次のゲームの報酬が3倍になる高難度オプション
+- 🎰 **ガチャ**：コインで追加キャラを抽選（単発／3連）
+- 🪙 **コイン倍増ゲーム**：3人覚えるごとにコインが倍額
+- ⚡ **コインブースト**：次のゲームの獲得コイン2倍
+- 🏪 **日替わりショップ**：毎日5品を30〜70%OFFで提供
+- 🎯 **動画スタンプラリー**：7日連続でレジェンド報酬
+- ショップUIを刷新：コインバー一体化・「🔥 人気＆お得」見出し・お得感のあるレイアウト
+
 ### 🏠 ホーム画面を1画面にリニューアル
 - ロゴ・マスコットをコンパクト化し、すべての操作がスクロールなしで行えるようになりました
 - 「みんなで対戦」ボタンを大きくし、いちばん使われているモードにすぐアクセス
@@ -47,6 +57,16 @@
 ---
 
 ## v2.5.0 Release Notes
+
+### 🛍 Expanded Shop (monetization)
+- 🌟 **God Skins** (Golden Memory / Cosmic Weaver / Neon God) — increasingly flashy effects as you memorize more
+- 💀 **Hardcore Ticket** — 3x rewards on your next game
+- 🎰 **Gacha** — coin-based character lottery (single / 3-pull)
+- 🪙 **Coin Doubler** — double coins for every 3 people memorized
+- ⚡ **Coin Boost** — 2x coins on your next game
+- 🏪 **Daily Deals** — 5 rotating items at 30–70% off
+- 🎯 **Ad Stamp Rally** — 7-day streak for a Legendary reward
+- Shop UI revamp: unified coin bar, "🔥 Hot Deals" headers, deal-focused layout
 
 ### 🏠 Redesigned Home Screen
 - Everything fits on one screen — no scrolling needed
