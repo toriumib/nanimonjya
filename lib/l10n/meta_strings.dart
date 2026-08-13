@@ -1625,12 +1625,6 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get rankButtonCompact => ja ? '🏆 ランク' : '🏆 Ranked';
   String get trainingButtonCompact =>
       ja ? '🏋️ ビジネス特訓' : '🏋️ Business Training';
-  String get nextStepTitle => ja ? 'つぎは 顔メモ' : 'Next: Face Notes';
-  String get nextStepBody => ja
-      ? '会社や学校で会った人の顔を似顔絵で作って、\n名前といっしょに覚えられます。'
-      : 'Create a face for people you meet at work or school,\nand memorize them with their names.';
-  String get nextStepButton => ja ? '顔をつくってみる →' : 'Create a face →';
-  String get closeLabel => ja ? 'とじる' : 'Close';
   String get howManyPlayers => ja ? '何人であそぶ？' : 'How many players?';
   String get myPageTooltip => ja ? 'マイページ' : 'My Page';
   String get tutorialLabel => ja ? 'チュートリアル' : 'Tutorial';
