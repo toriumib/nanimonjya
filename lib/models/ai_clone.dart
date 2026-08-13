@@ -11,7 +11,6 @@
 /// 「自分そっくりのAIが自己紹介してくれる」体験。
 library;
 
-import 'dart:convert';
 import 'avatar.dart';
 
 class AiClonePersona {

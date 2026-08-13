@@ -1179,8 +1179,6 @@ String noahGreetLineEn(NoahCharacter c) {
 const _d = NoahVoice.director; const _n = NoahVoice.narration;
 const _p = NoahVoice.player; const _c = NoahVoice.chara;
 
-List<NoahLine> _en(List<NoahLine> jp) => jp; // placeholder, will be replaced with actual English
-
 /// 🌐 Locale-aware story line picker.
 List<NoahLine> noahStoryLines(bool ja, List<NoahLine> jaLines, List<NoahLine> enLines) =>
     ja ? jaLines : enLines;

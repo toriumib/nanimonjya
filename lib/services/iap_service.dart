@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Google Play / App Store 課金サービス。
 ///
 /// 📦 現在は in_app_purchase パッケージを取り下げているため、

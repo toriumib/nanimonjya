@@ -465,7 +465,6 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                 style: const TextStyle(fontSize: 11, color: Color(0xFF8899BB))),
             const SizedBox(height: 12),
             ...kGodSkins.map((s) {
-              final owned = (s.id == 'god_skin_golden'); // always buyable
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),

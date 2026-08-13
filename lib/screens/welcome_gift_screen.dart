@@ -5,7 +5,6 @@ import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
-import '../widgets/face_view.dart';
 
 /// 🎁 初回起動の最初の画面。読ませない。与える。
 ///
