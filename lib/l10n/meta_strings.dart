@@ -307,7 +307,7 @@ class MetaStrings {
       ? '【$titleForShare】なまえコールで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
       : "[$titleForShare] Training my name-memory in Name Call! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
   String get shareHashtag =>
-      ja ? '#名前を覚えよう #顔と名前の記憶トレ' : '#NameCall #NameMemoryTraining';
+      ja ? '#なまえがお #顔と名前の記憶トレ' : '#Namaegao #NameMemoryTraining';
   // シェア文に埋め込む現在の称号（シェア直前に設定）。constクラスなのでstatic。
   static String titleForShare = '';
 
@@ -706,7 +706,7 @@ class MetaStrings {
   String get feedbackButton =>
       ja ? 'ご意見・不具合を送る' : 'Send feedback';
   String get feedbackSubject =>
-      ja ? '【ペタネーム】ご意見・不具合の報告' : '[PetaName] Feedback / bug report';
+      ja ? '【なまえがお】ご意見・不具合の報告' : '[Namaegao] Feedback / bug report';
   String get feedbackBody => ja
       ? '''※わかる範囲で大丈夫です。書ける項目だけ埋めて送ってください。
 

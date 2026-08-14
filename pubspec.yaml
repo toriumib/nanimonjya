@@ -1,5 +1,5 @@
 name: nanimonjya
-description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
+description: なまえがお - 顔と名前の記憶トレーニング（旧ナニモンジャ／ペタネーム、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
 version: 2.5.0+148

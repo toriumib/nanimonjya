@@ -1,7 +1,11 @@
-# ペタネーム (PetaName)
+# なまえがお (Namaegao)
 
 顔と名前の記憶トレーニングアプリ（顔カード×名前カードの神経衰弱）。
-Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は「ペタネーム」) とWeb (Vercel / Firebase Hosting) で配信。
+Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は「なまえがお」) とWeb (Vercel / Firebase Hosting) で配信。
+
+**表示名の変遷**: ナニモンジャ → ペタネーム → **なまえがお**（現行）。
+`applicationId` / pubspec の `name` / `MainActivity` の package はすべて `nanimonjya` のまま。
+Playの同一性が壊れるので**絶対に変えないこと**。表示名だけを差し替える。
 
 **v2.0.0で全面ピボット**: 旧「名づけ神経衰弱」ルール・旧名称は全廃。他ボードゲームを想起させる名称・文言・イラストは使わないこと。
 

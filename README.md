@@ -1,4 +1,4 @@
-# ペタネーム (PetaName)
+# なまえがお (Namaegao)
 
 顔と名前の記憶トレーニングゲーム。「顔はわかるのに名前が出てこない」を、
 顔カード×名前カードの神経衰弱（ペアマッチング）で楽しくトレーニングするFlutterアプリ。
@@ -10,7 +10,7 @@
 
 ## 配信
 
-- Android: Google Play `com.nanimonjya`（内部ID。表示名は「ペタネーム」）
+- Android: Google Play `com.nanimonjya`（内部ID。表示名は「なまえがお」）
 - Web: Vercel / Firebase Hosting
 
 ## 開発
