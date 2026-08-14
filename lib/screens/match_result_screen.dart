@@ -14,6 +14,7 @@ import '../widgets/count_up.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
+import '../widgets/native_ad_card.dart';
 import 'match_game_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -192,6 +193,8 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
                   RosterRevealCard(people: widget.people),
                   const SizedBox(height: 12),
                   const StoreCtaCard(),
+                  const SizedBox(height: 16),
+                  const NativeAdCard(),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {

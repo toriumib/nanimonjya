@@ -18,6 +18,7 @@ import '../services/review_prompt.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
+import '../widgets/native_ad_card.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../services/app_analytics.dart';
 
@@ -224,6 +225,8 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                   RosterRevealCard(people: widget.people),
                   const SizedBox(height: 12),
                   const StoreCtaCard(),
+                  const SizedBox(height: 16),
+                  const NativeAdCard(),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
