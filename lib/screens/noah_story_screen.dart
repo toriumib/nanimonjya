@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../models/noah_save.dart';
 import '../models/noah_story.dart';
 import '../services/player_profile.dart';
+import '../services/noah_save_store.dart';
 import '../services/sfx.dart';
 import '../widgets/avatar_view.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -102,6 +104,96 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
 
   /// いま何人まで乗れるか。思い出した数で伸びる。
   int get _capacity => noahCapacityFor(_correct, _total);
+
+  // ── 💾 セーブ ──
+
+  bool _hasSave = false;
+
+  @override
+  void initState() {
+    super.initState();
+    NoahSaveStore.instance.load().then((s) {
+      if (mounted) setState(() => _hasSave = s != null);
+    });
+  }
+
+  /// いまの進行をまるごと書き出す。
+  /// ⚠️ 出題中の3択も一緒に保存する。作り直すと引き直せてしまうため。
+  NoahSaveData _snapshot() => NoahSaveData(
+        phase: _phase.name,
+        gender: _gender.name,
+        pref: _pref.name,
+        castIds: [for (final c in _cast) c.id],
+        talkableIds: [for (final c in _talkable) c.id],
+        metIds: [for (final c in _met) c.id],
+        affection: Map.of(_affection),
+        remembered: {
+          for (final e in _remembered.entries)
+            e.key: [for (final f in e.value) f.name],
+        },
+        mysterySolved: _mysterySolved,
+        index: _index,
+        line: _line,
+        correct: _correct,
+        total: _total,
+        noteTitles: [for (final n in _notes) n.title],
+        noteIndex: _noteIndex,
+        mysteryCulpritIds: [for (final m in _mysteries) m.culprit.id],
+        mysteryChoiceIds: [
+          for (final m in _mysteries) [for (final c in m.choices) c.id],
+        ],
+        mysteryIndex: _mysteryIndex,
+        mysteryPickedId: _mysteryPicked?.id,
+        qTargetId: _q?.target.id,
+        qField: _q?.field.name,
+        qChoices: _q?.choices ?? const [],
+        qPicked: _picked,
+      );
+
+  void _persist() {
+    if (_phase == _Phase.setup) return;
+    NoahSaveStore.instance.save(_snapshot());
+  }
+
+  /// セーブから復帰する。読めない項目があっても落ちないようにしてある。
+  void _resume(NoahSaveData s) {
+    _cast = s.cast();
+    if (_cast.isEmpty) return; // 壊れていたら最初から
+    _talkable = s.talkable();
+    if (_talkable.isEmpty) _talkable = _cast;
+    _met
+      ..clear()
+      ..addAll(s.met());
+    _affection
+      ..clear()
+      ..addAll(s.affection);
+    _remembered
+      ..clear()
+      ..addAll(s.rememberedFields());
+    _mysterySolved = s.mysterySolved;
+    _index = s.index;
+    _line = s.line;
+    _correct = s.correct;
+    _total = s.total;
+    _notes = s.notes();
+    _noteIndex = s.noteIndex;
+    _mysteries = s.mysteries();
+    _mysteryIndex = s.mysteryIndex;
+    _mysteryPicked =
+        s.mysteryPickedId == null ? null : noahCharacterById(s.mysteryPickedId!);
+    _q = s.question();
+    _picked = s.qPicked;
+    _gender = NoahGender.values
+        .firstWhere((g) => g.name == s.gender, orElse: () => _gender);
+    _pref = NoahPreference.values
+        .firstWhere((p) => p.name == s.pref, orElse: () => _pref);
+    _phase = _Phase.values
+        .firstWhere((p) => p.name == s.phase, orElse: () => _Phase.prologue);
+    // 範囲外に飛ばないよう念のため丸める
+    if (_index >= _cast.length) _index = 0;
+    if (_noteIndex >= _notes.length) _noteIndex = 0;
+    if (_mysteryIndex >= _mysteries.length) _mysteryIndex = 0;
+  }
 
   // ── 進行 ──
 
@@ -249,6 +341,9 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.beforeResult:
           _phase = _Phase.ending;
           _grantReward();
+          // 読み終えた周回のセーブは残さない（結果画面から再開しても意味がない）
+          NoahSaveStore.instance.clear();
+          _hasSave = false;
         case _Phase.ending:
           // タブの中では閉じられないので、最初から遊べるように戻す
           if (widget.embedded) {
@@ -258,6 +353,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           }
       }
     });
+    _persist();
   }
 
   void _prepare(List<NoahField> fields) {
@@ -286,6 +382,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       Sfx.instance.wrong();
     }
     setState(() => _picked = choice);
+    _persist();
   }
 
   /// 🔍 謎の答え合わせ。
@@ -306,6 +403,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       Sfx.instance.wrong();
     }
     setState(() => _mysteryPicked = picked);
+    _persist();
   }
 
   Future<void> _grantReward() async {
