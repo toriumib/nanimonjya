@@ -579,6 +579,10 @@ class PlayerProfile extends ChangeNotifier {
     _refreshMissions();
     if (missionClaimed.contains(id)) return false;
     missionClaimed.add(id);
+    // ここだけ _addCoinsSync を使わないのは**わざと**。
+    // ミッション報酬を missionCoinsEarned に足すと、
+    // 「今日60コイン稼ぐ」ミッションが他のミッションの報酬で進んでしまう。
+    // 倍率だけは掛ける。
     final scaled = _scaled(reward);
     coins += scaled;
     lifetimeCoins += scaled;
@@ -651,13 +655,22 @@ class PlayerProfile extends ChangeNotifier {
 
   int _scaled(int amount) => (amount * coinMultiplier).round();
 
-  Future<void> _addCoins(int amount) async {
+  /// コイン付与の**唯一の入口**。倍率（覚醒＋招福こばん）とミッション進捗が
+  /// ここにまとまっている。同期版なので `_checkAchievements` のような
+  /// 非async の場所からも呼べる。
+  ///
+  /// ⚠️ ここを通さずに `coins += n` と書かないこと。
+  ///    倍率が効かない付与経路ができてしまい、倍率を買った人ほど損をする。
+  ///    （実際にガチャの残念賞と実績報酬がその状態だった）
+  void _addCoinsSync(int amount) {
     final scaled = _scaled(amount);
     coins += scaled;
     lifetimeCoins += scaled;
     _refreshMissions();
     missionCoinsEarned += scaled; // 今日かせいだコイン（ミッション用）
   }
+
+  Future<void> _addCoins(int amount) async => _addCoinsSync(amount);
 
   /// 覚醒できる条件（鬼段位に到達し、鬼CPUに3勝以上）。
   bool get canAwaken =>
@@ -747,7 +760,6 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// 追加キャラをコインで購入。成功したら true。
-  /// 実績キャラはコインでは買えない（腕前でしか手に入らない枠）。
   Future<bool> unlockCharacter(String id, int cost) async {
     if (unlockedCharacters.contains(id)) return true;
     // 🏆 実績・📅 ログイン枠も**買える**。本筋は条件を満たすことだが、
@@ -847,8 +859,10 @@ class PlayerProfile extends ChangeNotifier {
     lastGachaDate = _today();
     final pool = _gachaPool();
     if (pool.isEmpty) {
-      coins += consolationCoins;
-      lifetimeCoins += consolationCoins;
+      // ⚠️ 直接足さずに _addCoins を通すこと。
+      //    覚醒（awakenings）と招福こばんの倍率がここだけ効かず、
+      //    倍率を買った人ほど損をする状態になっていた。
+      await _addCoins(consolationCoins);
       await _persist();
       notifyListeners();
       return null;
@@ -948,8 +962,8 @@ class PlayerProfile extends ChangeNotifier {
       if (unlockedAchievements.contains(a.id)) continue;
       if (_meetsAchievement(a.id)) {
         unlockedAchievements.add(a.id);
-        coins += a.rewardCoins;
-        lifetimeCoins += a.rewardCoins;
+        // ⚠️ 直接足さずに _addCoinsSync を通すこと（倍率がここだけ死んでいた）
+        _addCoinsSync(a.rewardCoins);
         newly.add(a.id);
       }
     }

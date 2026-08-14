@@ -652,16 +652,15 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       );
 
   Widget _charCard(MetaStrings m, GameCharacter c, bool owned) {
-    // 🏆 実績キャラはコインで買えない。条件だけ見せて、腕前で取ってもらう。
+    // 🏆 実績・📅 ログイン枠は「条件を満たせばタダで手に入る」枠だが、
+    //    コインでも買える（PlayerProfile.unlockCharacter が許可している）。
+    //    以前ここで購入を封じていたため、600〜900コインという値付けが
+    //    到達不能な死にデータになり、いちばん大きなコインの使い道が消えていた。
+    //    条件はバッジで見せつつ、買う道も開けておく。
     final feat = c.feat;
-    final locked = feat != null && !owned;
+    final featGated = feat != null && !owned;
     return GestureDetector(
-      onTap: owned
-          ? null
-          : locked
-              ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(m.featLocked(m.featCondition(feat)))))
-              : () => _buy(c),
+      onTap: owned ? null : () => _buy(c),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -687,6 +686,22 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     left: 4,
                     child: Text(c.emoji, style: const TextStyle(fontSize: 16)),
                   ),
+                  // 🏆 条件を満たせばタダで取れる枠、という手がかり
+                  if (featGated)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF5B3E9E).withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('🏆',
+                            style: TextStyle(fontSize: 11)),
+                      ),
+                    ),
                   if (owned)
                     Container(
                       color: Colors.black.withValues(alpha: 0.28),
@@ -698,27 +713,40 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 3),
               color: owned
                   ? const Color(0xFFDFF5F2)
-                  : locked
+                  : featGated
                       ? const Color(0xFFEFE6FF)
                       : const Color(0xFFFFF3D6),
-              child: Text(
-                owned
-                    ? m.storeOwned
-                    : locked
-                        ? '🏆 ${m.featCondition(feat)}'
-                        : '🪙 ${c.cost}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                    color: owned
-                        ? const Color(0xFF1E9C8E)
-                        : locked
-                            ? const Color(0xFF5B3E9E)
-                            : const Color(0xFF7A5A00)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    owned ? m.storeOwned : '🪙 ${c.cost}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        color: owned
+                            ? const Color(0xFF1E9C8E)
+                            : featGated
+                                ? const Color(0xFF5B3E9E)
+                                : const Color(0xFF7A5A00)),
+                  ),
+                  // 買わずに取る道も併記する（そちらが本筋）
+                  if (featGated)
+                    Text(
+                      m.featCondition(feat),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF7B65B5)),
+                    ),
+                ],
               ),
             ),
           ],

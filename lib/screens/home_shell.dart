@@ -133,13 +133,16 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             icon: const Text('🛍', style: TextStyle(fontSize: 22)),
             label: m.tabShop,
           ),
-          NavigationDestination(
-            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
-            label: m.tabStory,
-          ),
+          // ⚠️ 並びは上の IndexedStack と1対1で対応させること。
+          //    index 3 = よみもの（MemoryTips）／index 4 = ものがたり（NoahStory）。
+          //    ここが入れ替わっていて「ものがたり」を押すと読み物が開いていた。
           NavigationDestination(
             icon: const Text('📚', style: TextStyle(fontSize: 22)),
             label: m.tabRead,
+          ),
+          NavigationDestination(
+            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
+            label: m.tabStory,
           ),
           NavigationDestination(
             icon: const Text('🏆', style: TextStyle(fontSize: 22)),

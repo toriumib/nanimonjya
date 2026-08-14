@@ -1259,9 +1259,9 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
     }
   }
 
-  String featLocked(String cond) => ja
-      ? 'このキャラはコインで買えません。「$cond」で参戦します🏆'
-      : 'Not for sale. Unlock by: $cond 🏆';
+  // ⚠️ featLocked（「コインで買えません」）は撤去した。
+  //    実績・ログイン枠もコインで買える（値段が高いだけ）ので、
+  //    買えないと言う文言を残すと嘘になる。条件は featCondition で見せる。
   String featJoined(String name) =>
       ja ? '🏆 $name が参戦した！' : '🏆 $name joins the battle!';
 
