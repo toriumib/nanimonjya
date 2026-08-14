@@ -22,6 +22,7 @@ import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/coin_short_sheet.dart';
 import '../widgets/stamp_calendar.dart';
 
 /// 🛠 開発者モードの合言葉。動作確認と画面撮影のためのもの。
@@ -804,8 +805,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ScaffoldMessenger.of(context)
                       .showSnackBar(SnackBar(content: Text(m.unlocked)));
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(m.notEnoughCoins)));
+                  // 行き止まりのスナックバーで終わらせず、その場で貯める道を出す
+                  await offerAdForCoins(context,
+                      ad: _rewardAd,
+                      cost: t.cost,
+                      category: 'theme',
+                      itemId: t.id);
+                  if (mounted) setState(() {});
                 }
               },
               child: Text('${t.cost}🪙'),
@@ -1073,8 +1079,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(m.unlocked)));
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(m.notEnoughCoins)));
+                    await offerAdForCoins(context,
+                        ad: _rewardAd,
+                        cost: c.cost,
+                        category: 'costume',
+                        itemId: c.id);
+                    if (mounted) setState(() {});
                   }
                 },
                 child: Text('${c.cost}🪙'),
@@ -1394,8 +1404,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(m.unlocked)));
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(m.notEnoughCoins)));
+                  await offerAdForCoins(context,
+                      ad: _rewardAd,
+                      cost: b.cost,
+                      category: 'bgm',
+                      itemId: b.asset);
+                  if (mounted) setState(() {});
                 }
               },
               child: Text('${b.cost}🪙'),

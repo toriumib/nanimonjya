@@ -15,6 +15,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/coin_short_sheet.dart';
 import 'character_deck_screen.dart';
 
 /// 🛍 キャラクターショップ。
@@ -33,7 +34,9 @@ class CharacterShopScreen extends StatefulWidget {
 
 class _CharacterShopScreenState extends State<CharacterShopScreen> {
   final RewardAdHelper _rewardAd = RewardAdHelper(placement: 'shop');
-  static const int _adReward = 60;
+  /// 動画1本ぶんのコイン。コイン不足ダイアログと同額でないと
+  /// 「60もらえる」と言われて別の額が入ることになるので、共通の定数を使う。
+  static const int _adReward = kCoinAdReward;
 
   @override
   void initState() {
@@ -91,17 +94,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
     if (p.coins < c.cost) {
       // キャラ購入も同じく、その場で動画に誘導する
-      AppAnalytics.shopBlockedByCoins(
-          category: 'character', itemId: c.id, shortBy: c.cost - p.coins);
-      // 「この商品が欲しくて動画を見た」という因果を残す
-      AppAnalytics.adOfferedForItem(
-        category: 'character',
-        itemId: c.id,
-        cost: c.cost,
-        coinsHeld: p.coins,
-      );
-      Sfx.instance.wrong();
-      await _offerAdForCoins(m, c.cost);
+      // （分析イベントと効果音は offerAdForCoins の中で出す）
+      await _offerAdForCoins(c.cost, category: 'character', itemId: c.id);
       return;
     }
     final ok = await p.unlockCharacter(c.id, c.cost);
@@ -421,14 +415,15 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   Future<void> _buyGeneric(
     Future<bool> Function() buy,
     int cost,
-    Future<void> Function() equip,
-  ) async {
+    Future<void> Function() equip, {
+    required String category,
+    required String itemId,
+  }) async {
     final m = MetaStrings.of(context);
     if (PlayerProfile.instance.coins < cost) {
       // 「欲しいのに足りない」瞬間が動画を見てもらえる一番のタイミング。
       // ここで行き止まりのスナックバーを出すのはもったいないので、その場で誘う。
-      Sfx.instance.wrong();
-      await _offerAdForCoins(m, cost);
+      await _offerAdForCoins(cost, category: category, itemId: itemId);
       return;
     }
     final ok = await buy();
@@ -443,26 +438,21 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
 
   /// コインが足りないときに「動画を見てコインを増やす？」と確認して、
   /// はいならそのままリワード広告を再生する。
-  Future<void> _offerAdForCoins(MetaStrings m, int cost) async {
-    final short = cost - PlayerProfile.instance.coins;
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(m.notEnoughCoins),
-        content: Text(m.shortByCoins(short, _adReward)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(m.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(m.storeWatchAd(_adReward)),
-          ),
-        ],
-      ),
+  ///
+  /// 中身は widgets/coin_short_sheet.dart に移した
+  /// （マイページのテーマ・衣装・BGMでも同じ「足りない」が起きるため）。
+  Future<void> _offerAdForCoins(
+    int cost, {
+    required String category,
+    required String itemId,
+  }) async {
+    await offerAdForCoins(
+      context,
+      ad: _rewardAd,
+      cost: cost,
+      category: category,
+      itemId: itemId,
     );
-    if (go == true && mounted) await _watchAd();
   }
 
   Widget _voiceRow(MetaStrings m, PlayerProfile p, PraiseVoice v) {
@@ -475,7 +465,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       owned: owned,
       equipped: p.selectedVoice == v.id,
       onBuy: () => _buyGeneric(
-          () => p.unlockVoice(v.id, v.cost), v.cost, () => p.selectVoice(v.id)),
+          () => p.unlockVoice(v.id, v.cost), v.cost, () => p.selectVoice(v.id),
+          category: 'voice', itemId: v.id),
       onEquip: () {
         Sfx.instance.pop();
         p.selectVoice(v.id);
@@ -499,7 +490,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       owned: owned,
       equipped: p.selectedCharm == c.id,
       onBuy: () => _buyGeneric(
-          () => p.unlockCharm(c.id, c.cost), c.cost, () => p.selectCharm(c.id)),
+          () => p.unlockCharm(c.id, c.cost), c.cost, () => p.selectCharm(c.id),
+          category: 'charm', itemId: c.id),
       onEquip: () {
         Sfx.instance.pop();
         p.selectCharm(c.id);
@@ -516,7 +508,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       equipped: p.selectedTheme == t.id,
       tint: t.subtle.first,
       onBuy: () => _buyGeneric(
-          () => p.unlockTheme(t.id, t.cost), t.cost, () => p.selectTheme(t.id)),
+          () => p.unlockTheme(t.id, t.cost), t.cost, () => p.selectTheme(t.id),
+          category: 'theme', itemId: t.id),
       onEquip: () {
         Sfx.instance.pop();
         p.selectTheme(t.id);
@@ -600,7 +593,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                   () => p.unlockBgm(b.asset, b.cost), b.cost, () async {
                 await p.selectBgm(b.asset);
                 Bgm.instance.restartCurrent();
-              }),
+              }, category: 'bgm', itemId: b.asset),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFC93C),
                 foregroundColor: const Color(0xFF7A5A00),

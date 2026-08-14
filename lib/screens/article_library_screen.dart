@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
 import '../l10n/premium_articles.dart';
+import '../services/app_analytics.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/coin_short_sheet.dart';
 import '../widgets/themed_background.dart';
 
 /// 📚 コインで読める読み物の一覧。
@@ -78,12 +80,26 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   }
 
   /// コインが足りないときに、その場で貯める道を出す。
+  ///
+  /// ここだけ共通の offerAdForCoins を使わず自前で持っているのは**わざと**。
+  /// 先にリワードインタースティシャルを試す（単価が高い）作りになっていて、
+  /// そちらのほうが取りこぼしが少ないため。文言と報酬額だけそろえる。
   Future<void> _offerCoins(MetaStrings m, PremiumArticle a) async {
+    final p = PlayerProfile.instance;
+    // 「何が欲しくて足りなかったか」「その結果 動画を見たか」を残す
+    AppAnalytics.shopBlockedByCoins(
+        category: 'article', itemId: a.id, shortBy: a.cost - p.coins);
+    AppAnalytics.adOfferedForItem(
+      category: 'article',
+      itemId: a.id,
+      cost: a.cost,
+      coinsHeld: p.coins,
+    );
     final want = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: Text(m.articleNotEnough),
-        content: Text(m.articleWatchToEarn(60)),
+        content: Text(m.articleWatchToEarn(kCoinAdReward)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false), child: Text(m.cancel)),
@@ -95,7 +111,7 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
     );
     if (want != true || !mounted) return;
     void grant() {
-      PlayerProfile.instance.grantBonusCoins(60);
+      PlayerProfile.instance.grantBonusCoins(kCoinAdReward);
       Sfx.instance.reward();
       if (mounted) setState(() {});
     }
