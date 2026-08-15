@@ -176,7 +176,11 @@ List<FaceRef> buildFacePool({
   required Set<String> excluded,
   List<FaceRef> customFaces = const [],
   int minimum = 4,
-  bool ja = true,
+  /// ⚠️ **必須にしてある。** 既定値を持たせていたせいで
+  ///    `name_call_screen` が渡し忘れ、英語版のなまえコールに
+  ///    日本語版の顔が出ていた（アプリの主役モードで、いちばん目立つ場所）。
+  ///    「渡さないと日本語」という既定は、静かに間違うので置かない。
+  required bool ja,
 }) {
   final all = <FaceRef>[
     // 🌍 基本の顔ぶれと買ったキャラは [playablePool] の規則に従う

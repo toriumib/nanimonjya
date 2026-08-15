@@ -276,6 +276,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     final facePool = _isOnline
         ? null
         : buildFacePool(
+            ja: ja, // 🌍 英語版は欧米系の顔ぶれ
             unlockedIds: PlayerProfile.instance.unlockedCharacters,
             excluded: PlayerProfile.instance.deckExcluded,
             customFaces: [

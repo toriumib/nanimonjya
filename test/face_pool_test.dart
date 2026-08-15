@@ -23,7 +23,7 @@ void main() {
 
   group('出演プールの組み立て', () {
     test('顔メモの人がプールに入る', () {
-      final pool = buildFacePool(
+      final pool = buildFacePool(ja: true, 
         unlockedIds: const {},
         excluded: const {},
         customFaces: [avatarFace('a'), avatarFace('b')],
@@ -36,12 +36,12 @@ void main() {
 
     test('購入したキャラもプールに入る', () {
       final id = kExtraCharacters.first.id;
-      final pool = buildFacePool(unlockedIds: {id}, excluded: const {});
+      final pool = buildFacePool(ja: true, unlockedIds: {id}, excluded: const {});
       expect(pool.map((f) => f.face), contains(kExtraCharacters.first.asset));
     });
 
     test('OFFにした人はプールから消える', () {
-      final pool = buildFacePool(
+      final pool = buildFacePool(ja: true, 
         unlockedIds: const {},
         excluded: {'custom:a'},
         customFaces: [avatarFace('a'), avatarFace('b')],
@@ -54,7 +54,7 @@ void main() {
     test('似顔絵の人を1人OFFにしても、ほかの似顔絵の人は残る', () {
       // 画像パス（どちらも空文字）をキーにしていたころは、
       // ここで似顔絵の人が全員まとめて消えていた。
-      final pool = buildFacePool(
+      final pool = buildFacePool(ja: true, 
         unlockedIds: const {},
         excluded: {'custom:a'},
         customFaces: [avatarFace('a'), avatarFace('b'), avatarFace('c')],
@@ -68,7 +68,7 @@ void main() {
       final all = {
         for (final a in kCharImageAssets) a,
       };
-      final pool = buildFacePool(unlockedIds: const {}, excluded: all);
+      final pool = buildFacePool(ja: true, unlockedIds: const {}, excluded: all);
       expect(pool.length, kCharImageAssets.length,
           reason: '全部OFFにしても、遊べなくなるよりは元に戻す');
     });
@@ -76,7 +76,7 @@ void main() {
 
   group('プールから人を作る', () {
     test('指定した人数ぶん、重複なく作られる', () {
-      final pool = buildFacePool(
+      final pool = buildFacePool(ja: true, 
         unlockedIds: const {},
         excluded: const {},
         customFaces: [avatarFace('a')],
