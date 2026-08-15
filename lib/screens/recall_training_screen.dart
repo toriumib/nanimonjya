@@ -9,6 +9,7 @@ import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
@@ -125,6 +126,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void dispose() {
     Speech.instance.stop();
+    // 🎵 リザルトへ進んでいるときは止めない（リザルト曲を消してしまうため）
+    Bgm.instance.stopGame();
     super.dispose();
   }
 
@@ -191,6 +194,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       return;
     }
     _mainTotal = _questions.length;
+    // 🎵 ここまでは自己紹介の読み上げが主役なので無音。
+    //    思い出すフェーズに入ってから曲を鳴らす（今まではこのモードだけ
+    //    ホームの曲が止められたまま最後まで無音だった）。
+    Bgm.instance.playGame();
     setState(() {
       _phase = _Phase.recall;
       _qIndex = 0;
@@ -208,7 +215,21 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
         if (!identical(p, _q.person)) recallFieldValue(p, _q.field),
     }..removeWhere((v) => v.trim().isEmpty || v == answer);
     final pool = others.toList()..shuffle(_rng);
-    _choices = [answer, ...pool.take(3)]..shuffle(_rng);
+    final picked = pool.take(3).toList();
+    // 🎯 出題人数が少ない（＝復習キューに1〜2人しか残っていない）と
+    //    選択肢が正解＋1個になり、覚えていなくても当たってしまう。
+    //    足りない分は実在しない人の値で埋めて必ず4択にする。
+    if (picked.length < 3) {
+      picked.addAll(recallDistractors(
+        _q.field,
+        ja: _ja,
+        count: 3 - picked.length,
+        like: answer,
+        exclude: {answer, ...picked},
+        random: _rng,
+      ));
+    }
+    _choices = [answer, ...picked]..shuffle(_rng);
     _answered = false;
     _picked = null;
     _questionShownAt = DateTime.now();
@@ -297,6 +318,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     if (widget.people != null) {
       AppAnalytics.spacedReviewDone(total: total, correct: _correct);
     }
+    Bgm.instance.playResult(); // 🎵 選んだリザルト曲（他のリザルト画面とそろえる）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
     // 🔔 ここは「時間をおいて思い出す」を体験した直後。間隔をあけた復習が
     //    効くという説明がいちばん通じる場面なので、リマインドを持ちかける。

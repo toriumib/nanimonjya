@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import '../l10n/meta_strings.dart';
 import '../models/person.dart';
 import '../services/sfx.dart';
+import '../services/memory_stats.dart';
+import '../services/player_profile.dart';
+import '../services/review_queue.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/face_view.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../services/app_analytics.dart';
@@ -34,16 +38,42 @@ class _StudyScreenState extends State<StudyScreen> {
   int _correct = 0;
   bool _answered = false;
   String? _picked;
+  bool _ja = true;
+
+  /// 出題した時刻。速さ（平均回答時間）の集計に使う。
+  DateTime _shownAt = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     AppAnalytics.screen('study');
     _order = [...widget.people]..shuffle(_rng);
-    if (widget.quizMode) _prepareChoices();
+    // 🔁 覚えたい相手を日をまたいで出し直すため、キューを先に読んでおく
+    ReviewQueue.instance.load();
+    MemoryStats.instance.load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Localizations は initState では引けないので、ここで言語を決めてから
+    // 最初の選択肢を作る（ダミー選択肢の言語がこれで決まる）。
+    _ja = MetaStrings.of(context).ja;
+    if (widget.quizMode && _choices.isEmpty) {
+      _prepareChoices();
+      // 📊 「この人に会った」= フラッシュカードや登録で一度見ている前提。
+      //     出題前に記録しておかないと定着率の分母に入らない。
+      _recordMeeting();
+    }
   }
 
   Person get _current => _order[_index];
+
+  String _statKey(Person p) =>
+      MemoryStats.keyOf(face: p.face, name: p.name, field: 'name');
+
+  void _recordMeeting() =>
+      MemoryStats.instance.recordMeeting(itemKey: _statKey(_current));
 
   void _prepareChoices() {
     final others = widget.people
@@ -52,9 +82,27 @@ class _StudyScreenState extends State<StudyScreen> {
         .toSet()
         .toList()
       ..shuffle(_rng);
-    _choices = [_current.name, ...others.take(3)]..shuffle(_rng);
+    final picked = others.take(3).toList();
+    // 🎯 登録が2〜3人しかない名簿だと選択肢が正解＋1個になり、
+    //    覚えていなくても当たってしまう（＝確認テストにならない）。
+    //    足りない分は実在しそうな苗字で埋めて必ず4択にする。
+    if (picked.length < 3) {
+      picked.addAll(recallDistractors(
+        RecallField.name,
+        ja: _ja,
+        count: 3 - picked.length,
+        like: _current.name,
+        exclude: {
+          for (final p in widget.people) p.name,
+          ...picked,
+        },
+        random: _rng,
+      ));
+    }
+    _choices = [_current.name, ...picked]..shuffle(_rng);
     _answered = false;
     _picked = null;
+    _shownAt = DateTime.now();
   }
 
   void _next() {
@@ -66,6 +114,9 @@ class _StudyScreenState extends State<StudyScreen> {
         _revealed = false;
         if (widget.quizMode) _prepareChoices();
       });
+      if (widget.quizMode) _recordMeeting();
+    } else if (widget.quizMode) {
+      _finishQuiz();
     } else {
       Navigator.pop(context);
     }
@@ -74,6 +125,24 @@ class _StudyScreenState extends State<StudyScreen> {
   void _answer(String choice) {
     if (_answered) return;
     final correct = choice == _current.name;
+    final reactionMs = DateTime.now().difference(_shownAt).inMilliseconds;
+    final person = _current;
+
+    // 📊 成績レポート（顔メモ枠）。実在の人の記録なので架空の人と混ぜない。
+    MemoryStats.instance.record(
+      mode: StatMode.faceMemo,
+      itemKey: _statKey(person),
+      correct: correct,
+      reactionMs: reactionMs,
+    );
+    // 🔁 日をまたいだ復習。まちがえた人は明日また出てくる。
+    //     当てられた人は間隔をひろげて（1→3→7→14→30日）いずれ卒業する。
+    if (correct) {
+      ReviewQueue.instance.recordSuccess(person);
+    } else {
+      ReviewQueue.instance.recordMiss(person);
+    }
+
     if (correct) {
       _correct += 1;
       Sfx.instance.correct();
@@ -85,6 +154,62 @@ class _StudyScreenState extends State<StudyScreen> {
       _picked = choice;
     });
     Future.delayed(const Duration(milliseconds: 900), _next);
+  }
+
+  /// 確認テストを終える。成績を保存し、がんばりぶんのコインを渡してから結果を出す。
+  Future<void> _finishQuiz() async {
+    await MemoryStats.instance.finishSession(StatMode.faceMemo);
+    final reward = _correct * 5 + (_correct == _order.length ? 15 : 0);
+    if (reward > 0) await PlayerProfile.instance.grantBonusCoins(reward);
+    if (!mounted) return;
+    final m = MetaStrings.of(context);
+    final due = ReviewQueue.instance.dueCount();
+    final missed = _order.length - _correct;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(m.quizScore(_correct, _order.length)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (reward > 0) ...[
+              Text('🪙 +$reward',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w900)),
+              // 🎬 結果が出た直後は、動画を見てもらいやすい場面
+              //    （他のリザルト画面と同じ置き方にそろえる）
+              DoubleCoinsButton(coinsEarned: reward),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              missed > 0
+                  ? (m.ja
+                      ? 'まちがえた$missed人は、日をあらためて「ビジネス特訓」の復習に出てきます。'
+                      : 'The $missed you missed will come back for review in Business Training on a later day.')
+                  : (m.ja
+                      ? '全員おぼえられました。日をおいてもう一度ためすと、定着したかが分かります。'
+                      : 'You got everyone. Try again after a few days to see what really stuck.'),
+              style: const TextStyle(fontSize: 13, height: 1.5),
+            ),
+            if (due > 0) ...[
+              const SizedBox(height: 8),
+              Text(m.ja ? '🔁 復習の予定: $due人' : '🔁 Due for review: $due',
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w900)),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(m.ja ? 'とじる' : 'Close'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    Navigator.pop(context);
   }
 
   @override
@@ -130,6 +255,8 @@ class _StudyScreenState extends State<StudyScreen> {
         GestureDetector(
           onTap: () {
             Sfx.instance.pop();
+            // 📊 名前を見た＝この人に会った。あとの確認テストが定着率の対象になる。
+            if (!_revealed) _recordMeeting();
             setState(() => _revealed = !_revealed);
           },
           child: Container(

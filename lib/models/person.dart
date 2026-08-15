@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'surnames.dart';
+
 /// 顔画像の種類。描画方法を切り替えるために使う。
 /// - svg   : バンドルされたオリジナルSVG（assets/images/faces/*.svg）
 /// - asset : バンドルされたフリー素材の写真風イラスト（assets/images/char*.jpg）
@@ -354,6 +356,61 @@ List<Person> generateRecallPeople(int count,
       email: email,
     );
   });
+}
+
+/// 🎯 思い出しクイズの選択肢を4つに満たすための「実在しない人」の値を作る。
+///
+/// 出題できる人数が少ないと選択肢が正解＋1個などになってしまい、
+/// **覚えていなくても当たる**＝テストとして成立しなくなる。
+/// 実際に起きていたのは次の2つ:
+///   - 復習キュー（期限が来た人だけ）で残りが1〜2人のとき
+///   - 顔メモに2人しか登録していない状態での確認テスト
+///
+/// [like] には正解の文字列を渡す。名前は敬称の有無を正解にそろえるため
+/// （「佐藤さん」の中に「田中」が混じると、それだけで答えが割れてしまう）。
+List<String> recallDistractors(
+  RecallField field, {
+  required bool ja,
+  required int count,
+  String like = '',
+  Set<String> exclude = const <String>{},
+  Random? random,
+}) {
+  if (count <= 0) return const [];
+  final rng = random ?? Random();
+  final out = <String>[];
+  final seen = {...exclude};
+
+  if (field == RecallField.name) {
+    // 名前は実在しそうな苗字プールから借りる（造語だと練習にならない）
+    final honorific = ja && like.endsWith('さん') ? 'さん' : '';
+    final pool = [...commonNamePool(ja)]..shuffle(rng);
+    for (final s in pool) {
+      final v = '$s$honorific';
+      if (seen.contains(v)) continue;
+      seen.add(v);
+      out.add(v);
+      if (out.length >= count) break;
+    }
+    return out;
+  }
+
+  // 会社名・肩書・連絡先は、架空の人物を生成してその項目だけを借りる
+  for (var attempt = 0; attempt < 8 && out.length < count; attempt++) {
+    final filler = generateRecallPeople(
+      min(count + 2, kCharImageAssets.length),
+      ja: ja,
+      random: rng,
+    );
+    for (final p in filler) {
+      final v = recallFieldValue(p, field).trim();
+      if (v.isEmpty || seen.contains(v)) continue;
+      seen.add(v);
+      out.add(v);
+      if (out.length >= count) break;
+    }
+  }
+  return out;
 }
 
 /// 趣味クイズ用: 正解以外の選択肢を作る。

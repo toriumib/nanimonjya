@@ -19,6 +19,7 @@ import 'services/iap_service.dart'; // 💰 課金
 import 'services/interstitial_ad_helper.dart';
 import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
+import 'services/review_queue.dart'; // 🔁 日をまたいだ復習キュー
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
@@ -55,6 +56,10 @@ Future<void> main() async {
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
+  // 🔁 復習キューは「ホームの声かけ」「毎日の通知の文面」が起動直後に読むので、
+  //    ここで待って読む。以前はとっくんタブの initState でしか読んでおらず、
+  //    読み終わる前に0人として扱われて、復習どきの案内が出ないことがあった。
+  await ReviewQueue.instance.load();
   // 🧑‍🎨 顔メモは出演プールに混ざるので、ゲームを始める前に読んでおく。
   //    以前は顔メモ画面とキャラデッキ画面でしか読んでおらず、
   //    その2画面を開かずに対戦を始めると登録した人が出てこなかった。

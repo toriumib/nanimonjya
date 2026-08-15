@@ -45,9 +45,15 @@ class Bgm {
   /// すべての操作をこのチェーンに並べて、必ず1つずつ実行する。
   Future<void> _chain = Future<void>.value();
 
+  /// ⚠️ **このチェーンの中から、またチェーンに積む操作を呼んではいけない。**
+  ///    内側は「外側が終わってから動く」順番待ちに入るのに、
+  ///    外側は内側の完了を待つので、両者が永久に待ち合う（デッドロック）。
+  ///    実際に `restartCurrent()` が `_play()`（＝チェーンに積む）を
+  ///    呼んでいて、**曲を選び直すとBGMが二度と鳴らなくなっていた**。
+  ///    チェーンの中では、必ず素の [_playCore] / [_stopCore] を呼ぶこと。
   Future<void> _serialize(Future<void> Function() action) {
     final next = _chain.then((_) => action()).catchError((Object e, StackTrace s) {
-      print('BGM op failed: $e');
+      debugPrint('BGM op failed: $e');
       if (!kIsWeb) {
         try { FirebaseCrashlytics.instance.recordError(e, s); } catch (_) {}
       }
@@ -169,32 +175,54 @@ class Bgm {
     return kVictoryRandomPool[_rng.nextInt(kVictoryRandomPool.length)];
   }
 
-  Future<void> _play(String key, {double volume = 0.35}) {
-    return _serialize(() async {
-      if (!PlayerProfile.instance.bgmEnabled) {
-        _current = null;
-        try { await _player.stop(); } catch (_) {}
-        return;
+  Future<void> _play(String key, {double volume = 0.35}) =>
+      _serialize(() => _playCore(key, volume: volume));
+
+  /// 実際に鳴らす処理。**チェーンの中からだけ呼ぶこと**（[_serialize] 参照）。
+  Future<void> _playCore(String key, {double volume = 0.35}) async {
+    if (!PlayerProfile.instance.bgmEnabled) {
+      _current = null;
+      await _stopCore();
+      return;
+    }
+    if (_current == key && _player.playing) {
+      // 同じ曲でも場面によって音量がちがう（ホームは控えめ）。
+      // 鳴らし直さずに音量だけ合わせる。
+      if (_currentVolume != volume) {
+        try {
+          await _player.setVolume(volume);
+          _currentVolume = volume;
+        } catch (_) {}
       }
-      if (_current == key && _player.playing) return;
-      try {
-        // まず明示的に止めてから次の曲を読み込む。
-        // setAsset だけだと Web Audio API が前のソースを解放しきらず
-        // 新しい decode に失敗する（結果: 無音）。
-        await _player.stop();
-        await _player.setAsset(key);
-        await _player.setLoopMode(LoopMode.one);
-        await _player.setVolume(volume);
-        await _player.play();
-        _current = key;
-        _blocked = false;
-      } catch (e) {
-        _current = null;
-        _blocked = true;
-        try { await _player.stop(); } catch (_) {}
-        print('BGM ERROR: $key — $e');
-      }
-    });
+      return;
+    }
+    try {
+      // まず明示的に止めてから次の曲を読み込む。
+      // setAsset だけだと Web Audio API が前のソースを解放しきらず
+      // 新しい decode に失敗する（結果: 無音）。
+      await _player.stop();
+      await _player.setAsset(key);
+      await _player.setLoopMode(LoopMode.one);
+      await _player.setVolume(volume);
+      await _player.play();
+      _current = key;
+      _currentVolume = volume;
+      _blocked = false;
+    } catch (e) {
+      _current = null;
+      _blocked = true;
+      await _stopCore();
+      debugPrint('BGM ERROR: $key — $e');
+    }
+  }
+
+  /// いま設定している音量（同じ曲を鳴らし直さずに合わせるために覚えておく）。
+  double _currentVolume = -1;
+
+  Future<void> _stopCore() async {
+    try {
+      await _player.stop();
+    } catch (_) {}
   }
 
   /// ゲーム画面を離れるときに止める。
@@ -210,16 +238,22 @@ class Bgm {
     return _serialize(() async {
       _current = null;
       _mode = _BgmMode.none;
-      try {
-        await _player.stop();
-      } catch (_) {}
+      await _stopCore();
     });
   }
 
   /// 曲を選び直したときに、鳴っている曲を即座に差し替える。
-  Future<void> restartGameBgm() async {
-    _current = null;
-    await playGame();
+  ///
+  /// `_current` の消去もチェーンの中でやる。外でやると、まだ動いている
+  /// 前の操作が終わりぎわに `_current` を書き戻して、同じ曲だと判定されて
+  /// 差し替えが素通りすることがある。
+  Future<void> restartGameBgm() {
+    return _serialize(() async {
+      _current = null;
+      _mode = _BgmMode.game;
+      await _stopCore();
+      await _playCore(assetKey(PlayerProfile.instance.selectedBgm));
+    });
   }
 
   /// 🔊 いま鳴らしている場面のBGMを、選び直した曲でかけ直す。
@@ -230,15 +264,15 @@ class Bgm {
   Future<void> restartCurrent() async {
     return _serialize(() async {
       _current = null;
-      try { await _player.stop(); } catch (_) {}
+      await _stopCore();
       switch (_mode) {
         case _BgmMode.game:
-          await _play(assetKey(PlayerProfile.instance.selectedBgm));
+          await _playCore(assetKey(PlayerProfile.instance.selectedBgm));
         case _BgmMode.result:
-          await _play(assetKey(resultAsset()));
+          await _playCore(assetKey(resultAsset()));
         case _BgmMode.home:
         case _BgmMode.none:
-          await _play(assetKey(homeAsset()), volume: 0.22);
+          await _playCore(assetKey(homeAsset()), volume: 0.22);
       }
     });
   }

@@ -13,6 +13,10 @@ enum StatMode {
 
   /// 名刺記憶（ビジネス特訓の思い出しトレーニング）
   businessCard,
+
+  /// 顔メモ（自分で登録した**実在の人**の確認テスト）。
+  /// 架空の人物と混ぜると「本当に覚えたい人」の成績が見えなくなるので別枠にする。
+  faceMemo,
 }
 
 extension StatModeLabel on StatMode {
@@ -20,18 +24,21 @@ extension StatModeLabel on StatMode {
         StatMode.cpu => 'cpu',
         StatMode.nameCall => 'nameCall',
         StatMode.businessCard => 'businessCard',
+        StatMode.faceMemo => 'faceMemo',
       };
 
   String get labelJa => switch (this) {
         StatMode.cpu => 'CPU対戦',
         StatMode.nameCall => 'なまえがお',
         StatMode.businessCard => '名刺記憶',
+        StatMode.faceMemo => '顔メモ',
       };
 
   String get labelEn => switch (this) {
         StatMode.cpu => 'CPU Battle',
         StatMode.nameCall => 'Name Call',
         StatMode.businessCard => 'Biz Card Quiz',
+        StatMode.faceMemo => 'Face Memo',
       };
 
   String label(bool ja) => ja ? labelJa : labelEn;
@@ -40,6 +47,7 @@ extension StatModeLabel on StatMode {
         StatMode.cpu => '🤖',
         StatMode.nameCall => '📣',
         StatMode.businessCard => '📇',
+        StatMode.faceMemo => '📸',
       };
 
   static StatMode? fromId(String id) {
