@@ -40,7 +40,9 @@ class _JuicyButtonState extends State<JuicyButton> {
   @override
   Widget build(BuildContext context) {
     final edge = widget.edgeColor ?? _darken(widget.colors.last);
-    const edgeH = 4.0;
+    // 🖤 厚い「立体の縁」は玩具っぽさの正体なので薄くする。
+    //    押した感触は残したいので0にはせず、2pxだけ残す。
+    const edgeH = 2.0;
     final disabled = widget.onTap == null;
     return GestureDetector(
       onTapDown: disabled ? null : (_) => setState(() => _pressed = true),
@@ -63,10 +65,11 @@ class _JuicyButtonState extends State<JuicyButton> {
               color: edge,
               borderRadius: BorderRadius.circular(widget.radius),
               boxShadow: [
+                // 影は「浮いている」ではなく「置いてある」程度に。
                 BoxShadow(
-                  color: edge.withValues(alpha: 0.45),
-                  blurRadius: _pressed ? 3 : 8,
-                  offset: Offset(0, _pressed ? 1 : 4),
+                  color: Colors.black.withValues(alpha: _pressed ? 0.10 : 0.18),
+                  blurRadius: _pressed ? 4 : 12,
+                  offset: Offset(0, _pressed ? 1 : 3),
                 ),
               ],
             ),
@@ -79,9 +82,10 @@ class _JuicyButtonState extends State<JuicyButton> {
                   colors: widget.colors,
                 ),
                 borderRadius: BorderRadius.circular(widget.radius - 1),
+                // 白い太枠は子ども向けの合図。髪の毛ほどの明るい線に留める。
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  width: 1.2,
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
                 ),
               ),
               // 上半分にうっすら光沢

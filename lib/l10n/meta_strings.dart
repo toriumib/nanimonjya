@@ -871,7 +871,7 @@ This tab is where you get stronger on your own.
   String get saveCoinsPitch => ja
       ? 'コインを貯めて、キャラや音楽を変えよう！🪙'
       : 'Save up coins to unlock characters and music! 🪙';
-  String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
+  String get nameCallOnlineButton => ja ? 'オンライン' : 'Online';
 
   // 呼んで判定（原作のボードゲームと同じ流れ）
   String get refereePrompt =>
@@ -1145,7 +1145,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get battleTwoPlayerButton =>
       ja ? '👫 1台で2人であそぶ' : '👫 Two players, one phone';
   // 🎮 やってみるチュートリアル（読ませずに、やらせて覚えてもらう）
-  String get tutPlayTitle => ja ? '🎮 やってみよう' : '🎮 Try it';
+  String get tutPlayTitle => ja ? 'やってみよう' : 'Try it';
   String get tutPlaySkip => ja ? 'とばす' : 'Skip';
   String get tutPlayIntro => ja
       ? 'ルールはひとつだけです。\n\n'
@@ -1357,12 +1357,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       'permanently and your title records this awakening. This cannot be undone.';
   String get awakenDone => ja ? '覚醒した！🌌' : 'You have awakened! 🌌';
 
-  // 🛍 ショップ拡張（ほめボイス／お守り／名刺スキン）
+  // ショップ拡張（ほめボイス／装備アイテム／名刺スキン）
   String get shopVoicesTitle => ja ? '🎉 ほめボイス' : '🎉 Praise Voices';
   String get shopVoicesDesc => ja
       ? '正解や勝利のときに、声で褒めてくれます。今日のがんばりに、ひとこと。'
       : 'A voice praises you when you get it right. A word for your effort today.';
-  String get shopCharmsTitle => ja ? '🍀 お守り' : '🍀 Lucky Charms';
+  String get shopCharmsTitle => ja ? '装備アイテム' : 'Equipment';
   String get shopCharmsDesc => ja
       ? '1つだけ持てます。プレイが少しやさしくなったり、コインが増えたり。'
       : 'Equip one. Makes play a little kinder, or your coins a little more.';
@@ -1467,7 +1467,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get shopTry => ja ? '試し聞き' : 'Preview';
   String get shopBought => ja ? '手に入れた！🎉' : 'Unlocked! 🎉';
   String get charmSaved =>
-      ja ? '🛡️ お守りが守ってくれた！' : '🛡️ Your charm saved you!';
+      ja ? 'アイテムの効果で助かりました' : 'Your equipment saved you';
 
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
@@ -1616,15 +1616,15 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '$players人・$peopleキャラ・$copies枚'
       : '${players}P · $people chars · $copies cards';
   String get partyButtonLabel =>
-      ja ? '🎉 みんなで対戦（1台）' : '🎉 Party (1 phone)';
+      ja ? 'みんなで対戦（1台）' : 'Party (1 phone)';
   String get partyButtonHint => ja
       ? 'いちばん人気！友だちと名前を呼びあおう'
       : 'Most popular! Call out names with friends';
-  String get cpuButtonCompact => ja ? '🤖 CPUと対戦' : '🤖 Play vs CPU';
-  String get onlineButtonCompact => ja ? '🌐 オンライン' : '🌐 Online';
-  String get rankButtonCompact => ja ? '🏆 ランク' : '🏆 Ranked';
+  String get cpuButtonCompact => ja ? 'CPUと対戦' : 'Play vs CPU';
+  String get onlineButtonCompact => ja ? 'オンライン' : 'Online';
+  String get rankButtonCompact => ja ? 'ランク' : 'Ranked';
   String get trainingButtonCompact =>
-      ja ? '🏋️ ビジネス特訓' : '🏋️ Business Training';
+      ja ? 'ビジネス特訓' : 'Business Training';
   String get howManyPlayers => ja ? '何人であそぶ？' : 'How many players?';
   String get myPageTooltip => ja ? 'マイページ' : 'My Page';
   String get tutorialLabel => ja ? 'チュートリアル' : 'Tutorial';

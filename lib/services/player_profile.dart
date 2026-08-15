@@ -45,8 +45,11 @@ class PlayerProfile extends ChangeNotifier {
   ///    ままだったため、そのまま出していれば全員が無音になっていた。
   Set<String> unlockedBgm = {...kFreeBgmAssets};
   String selectedBgm = kDefaultGameBgmAsset;
-  Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
-  String selectedTheme = 'sunny';
+  // 🖤 既定は 'noir'（濃紺＋ゴールド）。'sunny' も最初から使える。
+  //    ⚠️ すでに遊んでいる人の選択は保存されているので上書きされない。
+  //       ここを変えても、変わるのは新規インストールの見た目だけ。
+  Set<String> unlockedThemes = {'noir', 'sunny'};
+  String selectedTheme = 'noir';
   String selectedResultBgm = kDefaultResultBgmAsset; // リザルト画面の曲
   /// 🏠 ホーム/試合前の曲。3場面（ホーム・試合中・リザルト）をそれぞれ選べる。
   /// 既定は [kHomeBgmRandom]（シチリアーノか運命をランダム）。
@@ -254,11 +257,12 @@ class PlayerProfile extends ChangeNotifier {
     );
     unlockedBgm = bgm.unlocked;
     selectedBgm = bgm.game;
-    unlockedThemes = (p.getStringList('unlockedThemes') ?? ['sunny']).toSet();
-    unlockedThemes.add('sunny');
-    selectedTheme = p.getString('selectedTheme') ?? 'sunny';
+    unlockedThemes =
+        (p.getStringList('unlockedThemes') ?? ['noir', 'sunny']).toSet();
+    unlockedThemes.addAll(['noir', 'sunny']); // 無料の2つは常に選べる
+    selectedTheme = p.getString('selectedTheme') ?? 'noir';
     if (!unlockedThemes.contains(selectedTheme)) {
-      selectedTheme = 'sunny';
+      selectedTheme = 'noir';
     }
     cheerLevel = p.getInt('cheerLevel') ?? 0;
     nickname = p.getString('nickname') ?? '';

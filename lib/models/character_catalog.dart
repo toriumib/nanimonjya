@@ -114,7 +114,7 @@ const List<GameCharacter> kExtraCharacters = [
   GameCharacter(id: 'c42', asset: 'assets/images/nissinIMGL0808_TP_V4.webp', emoji: '🍜', cost: 200),
   GameCharacter(id: 'c43', asset: 'assets/images/tuchimoto07100I9A6655_TP_V4.webp', emoji: '🧑‍🏫', cost: 220),
   // 📅 ログインを続けると手に入る4体（コインでも買えるが高い）
-  GameCharacter(id: 'c44', asset: 'assets/images/mikoFTHG2083_TP_V4.webp', emoji: '⛩️', cost: 600, feat: UnlockFeat.login3),
+  GameCharacter(id: 'c44', asset: 'assets/images/mikoFTHG2083_TP_V4.webp', emoji: '', cost: 600, feat: UnlockFeat.login3),
   GameCharacter(id: 'c45', asset: 'assets/images/miuFTHG2011_TP_V4.webp', emoji: '🌸', cost: 700, feat: UnlockFeat.login7),
   GameCharacter(id: 'c46', asset: 'assets/images/yotakasanFTHG0883_TP_V4.webp', emoji: '🏮', cost: 800, feat: UnlockFeat.login14),
   GameCharacter(id: 'c47', asset: 'assets/images/yuka522032_TP_V.jpg', emoji: '👑', cost: 900, feat: UnlockFeat.login30),

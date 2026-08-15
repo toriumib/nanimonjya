@@ -49,6 +49,8 @@ class _TopScreenState extends State<TopScreen>
   // まとめて命名のとき、名前を自分で入力せず自動でつけるか
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
+  /// CPU戦でなまえコールを選んでいるか（false = 神経衰弱、既定）。
+  bool _cpuNameCall = false;
   /// 1人あたりの札の枚数。2枚＝1往復、増やすほど同じ顔に何度も会う。
   int _copies = NameCallGame.defaultCopiesPerPerson;
 
@@ -306,7 +308,8 @@ class _TopScreenState extends State<TopScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => SafeArea(
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
           child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
@@ -314,6 +317,9 @@ class _TopScreenState extends State<TopScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // どちらのCPU戦を遊ぶか。既定は従来どおり神経衰弱。
+              _cpuGameToggle(m, setSheetState),
+              const SizedBox(height: 16),
               // 👥🎴 CPU戦では人数・枚数を選ばせない。
               //    難易度ごとに「覚える人数」と「持ち時間」が決まっていて
               //    （models/cpu_difficulty.dart が一次情報）、
@@ -335,12 +341,16 @@ class _TopScreenState extends State<TopScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(sheetContext);
+                      AppAnalytics.cpuGamePick(
+                          game: _cpuNameCall ? 'namecall' : 'pairs',
+                          level: lv.name);
                       Sfx.instance.fanfare();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => CpuEntryScreen(
                             level: lv,
+                            nameCall: _cpuNameCall,
                             peopleCount: _peopleCount,
                             copiesPerPerson: _copies,
                           ),
@@ -392,6 +402,84 @@ class _TopScreenState extends State<TopScreen>
           ),
         ),
       )),
+      ),
+    );
+  }
+
+  /// CPU戦で遊ぶゲームを選ぶ。既定は神経衰弱（従来どおり）。
+  Widget _cpuGameToggle(MetaStrings m, StateSetter setSheetState) {
+    Widget option(bool nameCall, String title, String desc) {
+      final selected = _cpuNameCall == nameCall;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () {
+            Sfx.instance.pop();
+            setSheetState(() => _cpuNameCall = nameCall);
+            setState(() {});
+            AppAnalytics.settingChange(
+                'cpu_game', nameCall ? 'namecall' : 'pairs');
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFF1B2130) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected
+                    ? const Color(0xFFB08D4F)
+                    : const Color(0xFFD5D8DE),
+                width: selected ? 1.6 : 1.2,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                        color: selected
+                            ? const Color(0xFFE9C87A)
+                            : const Color(0xFF394150))),
+                const SizedBox(height: 4),
+                Text(desc,
+                    style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
+                        color: selected
+                            ? Colors.white70
+                            : const Color(0xFF6B7280))),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(m.ja ? '遊びかた' : 'Game',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+                color: Color(0xFF6B7280))),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            option(false, m.ja ? 'ペアさがし' : 'Pair Match',
+                m.ja ? 'カードをめくって同じ人をそろえる' : 'Flip cards and match the pair'),
+            const SizedBox(width: 10),
+            option(true, m.ja ? 'なまえコール' : 'Name Call',
+                m.ja ? '再登場した顔の名前を4択で答える' : 'Recall the name from four choices'),
+          ],
+        ),
+      ],
     );
   }
 
@@ -1063,7 +1151,7 @@ class _TopScreenState extends State<TopScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: JuicyButton(
                       onTap: () => _pickLocalPlayers(context),
-                      colors: const [Color(0xFFF08A5D), Color(0xFFE8663C)],
+                      colors: const [Color(0xFFE0BE7E), Color(0xFFB4913F)], // 主役はゴールド
                       height: 72,
                       radius: 20,
                       child: Column(
@@ -1099,7 +1187,7 @@ class _TopScreenState extends State<TopScreen>
                       children: [
                         Expanded(child: _gradientButton(
                           label: m.cpuButtonCompact,
-                          colors: const [Color(0xFF8A5AC2), Color(0xFF6E44A8)],
+                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)], // 濃いスレート
                           height: 48,
                           fontSize: 13,
                           onTap: () => _pickCpuLevel(context),
@@ -1107,7 +1195,7 @@ class _TopScreenState extends State<TopScreen>
                         const SizedBox(width: 6),
                         Expanded(child: _gradientButton(
                           label: m.onlineButtonCompact,
-                          colors: const [Color(0xFFFFB65C), Color(0xFFFF9F45)],
+                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
                           height: 48,
                           fontSize: 13,
                           onTap: () {
@@ -1132,7 +1220,7 @@ class _TopScreenState extends State<TopScreen>
                       children: [
                         Expanded(child: _gradientButton(
                           label: m.rankButtonCompact,
-                          colors: const [Color(0xFFFFD46B), Color(0xFFE8A400)],
+                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
                           height: 46,
                           fontSize: 13,
                           onTap: () {
@@ -1146,7 +1234,7 @@ class _TopScreenState extends State<TopScreen>
                         const SizedBox(width: 6),
                         Expanded(child: _gradientButton(
                           label: m.trainingButtonCompact,
-                          colors: const [Color(0xFF4ECDC4), Color(0xFF2EAAA4)],
+                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
                           height: 46,
                           fontSize: 13,
                           onTap: () {
@@ -1171,7 +1259,7 @@ class _TopScreenState extends State<TopScreen>
                         Navigator.push(context, MaterialPageRoute(
                             builder: (_) => const NoahStoryScreen()));
                       },
-                      colors: const [Color(0xFF1D3A6B), Color(0xFF0F1D3D)],
+                      colors: const [Color(0xFF232C40), Color(0xFF141A26)],
                       height: 52,
                       radius: 14,
                       child: Row(

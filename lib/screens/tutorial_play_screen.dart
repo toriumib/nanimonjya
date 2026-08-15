@@ -198,10 +198,30 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
           automaticallyImplyLeading: false,
           actions: [
             if (_step != _Step.reward)
-              TextButton(
-                onPressed: _skip,
-                child: Text(m.tutPlaySkip,
-                    style: const TextStyle(color: Colors.white70)),
+              // ⏭ 小さな文字リンクだと押しどころが分からない。
+              //    指で押せる大きさ（最低48dp）と枠を与える。
+              Padding(
+                // ⚠️ AppBarの高さ(56dp)に収まる範囲で最大化する。
+                //    上下に余白を積むと文字が切れる。
+                padding:
+                    const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: TextButton(
+                  onPressed: _skip,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 0),
+                    minimumSize: const Size(88, 42),
+                    side: const BorderSide(color: Colors.white54, width: 1.2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
+                  ),
+                  child: Text(m.tutPlaySkip,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4)),
+                ),
               ),
           ],
         ),
@@ -243,9 +263,9 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
           onPressed: onTap,
           style: ElevatedButton.styleFrom(
             backgroundColor: color ?? const Color(0xFFE8663C),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 22),
             textStyle:
-                const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w900),
+                const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
           child: Text(label),
         ),
@@ -254,7 +274,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _intro(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🎮', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           _bubble(m.tutPlayIntro),
           const Spacer(),
@@ -336,7 +355,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _won(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🎉', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 12),
           _bubble(m.tutPlayWon(_names[0])),
           const SizedBox(height: 16),
@@ -347,7 +365,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFE6B54A), width: 1.6),
             ),
-            child: Text('🃏 ${m.cardsWonLabel} $_cardsWon',
+            child: Text('${m.cardsWonLabel} $_cardsWon',
                 style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w900)),
           ),
@@ -360,7 +378,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _reward(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🪙', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 12),
           Text(m.earnedCoins(_rewardCoins),
               textAlign: TextAlign.center,

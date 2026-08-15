@@ -8,7 +8,7 @@ import 'dart:math';
 /// 「持っていると気分が良くなる」方向のアイテムを扱う。
 ///
 /// - PraiseVoice : 正解・勝利のときに声で褒めてくれる（TTSで読み上げ）
-/// - LuckyCharm  : プレイに小さな効果がつくお守り（1つだけ装備）
+/// - LuckyCharm  : プレイに効果がつく装備アイテム（1つだけ装備）
 /// - CardSkin    : ビジネス特訓の名刺の見た目が変わる
 /// - PlayerTitle : 名前の下に出る称号（マイページ・結果画面に表示）
 ///
@@ -120,8 +120,8 @@ const List<PraiseVoice> kPraiseVoices = [
   PraiseVoice(
     id: 'miko',
     nameJa: '巫女さん',
-    nameEn: 'Shrine maiden',
-    emoji: '⛩️',
+    nameEn: 'Kimono',
+    emoji: '',
     cost: 400,
     linesJa: ['お見事です', 'よき心がけです', '清らかな集中ですね', '実を結んでいます'],
     linesEn: [
@@ -173,7 +173,12 @@ PraiseVoice praiseVoiceById(String id) => kPraiseVoices.firstWhere(
       orElse: () => kPraiseVoices.first,
     );
 
-/// 🍀 お守り。1つだけ装備でき、プレイに小さな効果がつく。
+/// 装備アイテム。1つだけ装備でき、プレイに効果がつく。
+///
+/// ⚠️ 「お守り」「招福」といった縁起・宗教めいた言い回しは使わない。
+///    このアプリは記憶の練習を扱うので、効果は運ではなく
+///    **何がどう変わるか**で言い切る（例: コインが2倍）。
+///    ⚠️ クラス名・IDは保存データと結びついているので変更しない。
 enum CharmEffect {
   /// 効果なし（未装備）
   none,
@@ -223,10 +228,10 @@ const List<LuckyCharm> kLuckyCharms = [
   //    残すのは「コインが2倍になる」1つだけ。効果がはっきりしていて、
   //    何のために買うのかが一目で分かる。
   LuckyCharm(
-    id: 'koban',
-    nameJa: '招福こばん',
-    nameEn: 'Lucky Coin',
-    emoji: '🪙',
+    id: 'koban', // ⚠️ IDは保存済みデータと対応するので変えない
+    nameJa: 'コイン2倍',
+    nameEn: 'Coin Doubler',
+    emoji: '',
     cost: 380,
     effect: CharmEffect.coinBoost,
     descJa: '手に入るコインが2倍になります。',
@@ -284,7 +289,7 @@ class DailyShop {
       {'id': 'daily_coins', 'ja': 'コイン200枚', 'en': '200 Coins', 'emoji': '🪙', 'cost': 200},
       {'id': 'daily_coins_big', 'ja': 'コイン500枚', 'en': '500 Coins', 'emoji': '💰', 'cost': 500},
       {'id': 'daily_voice', 'ja': 'ほめボイス1種', 'en': '1 Praise Voice', 'emoji': '🎤', 'cost': 120},
-      {'id': 'daily_charm', 'ja': 'お守り1種', 'en': '1 Lucky Charm', 'emoji': '🍀', 'cost': 150},
+      {'id': 'daily_charm', 'ja': '装備アイテム1種', 'en': '1 item', 'emoji': '', 'cost': 150},
       {'id': 'daily_bgm', 'ja': 'BGM1曲', 'en': '1 BGM track', 'emoji': '🎵', 'cost': 400},
     ];
     final rng = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)

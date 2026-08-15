@@ -10,6 +10,7 @@ import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
 import 'match_game_screen.dart';
+import 'name_call_screen.dart';
 import '../services/app_analytics.dart';
 
 /// ⚔️ CPU対戦のまえの「参戦」演出。
@@ -22,11 +23,15 @@ class CpuEntryScreen extends StatefulWidget {
   final int peopleCount;
   final int? copiesPerPerson;
 
+  /// true = なまえコールのCPU戦 / false = 神経衰弱のCPU戦（既定）。
+  final bool nameCall;
+
   const CpuEntryScreen({
     super.key,
     required this.level,
     required this.peopleCount,
     this.copiesPerPerson,
+    this.nameCall = false,
   });
 
   @override
@@ -59,7 +64,7 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
       PlayerProfile.instance.deckExcluded,
     );
     final rng = Random();
-    _rival = generateRecallPeople(1, ja: true, random: rng, charAssets: pool).first;
+    _rival = generateRecallPeople(1, ja: ja, random: rng, charAssets: pool).first;
     Sfx.instance.fanfare();
     // 2.4秒たったら自動で試合へ
     Future.delayed(const Duration(milliseconds: 2400), _go);
@@ -71,9 +76,20 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => MatchGameScreen(
-          cpuLevel: widget.level,
-        ),
+        // 🤖 どちらのCPU戦を始めるかは、難易度を選ぶ前に決めてもらう。
+        //    ・神経衰弱（既定）… 従来どおり。カードをめくってペアをそろえる
+        //    ・なまえコール    … 顔が再登場したら4択で答え、CPUより早ければ取れる
+        //    以前は神経衰弱に固定で、なまえコールのCPU戦は実装済みなのに
+        //    どこからも遊べなかった。
+        builder: (_) => widget.nameCall
+            ? NameCallScreen(
+                humanPlayers: 1,
+                quizMode: true, // ひとりで答えるので4択
+                cpuLevel: widget.level,
+                peopleCount: widget.peopleCount,
+                copiesPerPerson: widget.copiesPerPerson,
+              )
+            : MatchGameScreen(cpuLevel: widget.level),
       ),
     );
   }

@@ -54,6 +54,15 @@ Future<void> main() async {
     try { IapService.instance.init(); } catch (_) {}
     try { PushService.instance.init(); } catch (_) {}
   }
+  // 🧠 画像キャッシュの上限を絞る。
+  //
+  // ⚠️ Flutter の既定は 100MB / 1000枚。このアプリは顔を数十枚並べる画面が
+  //    複数あるので、既定のままだとキャッシュだけでヒープ（Androidは端末に
+  //    よって192MB程度）の半分以上を占め、実際に OutOfMemoryError が出ていた。
+  //    顔は表示サイズで復号する（widgets/face_view.dart の cacheWidth）ので、
+  //    1枚あたりは小さい。枚数を持つより、必要になったら読み直すほうが安全。
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 40 << 20; // 40MB
+  PaintingBinding.instance.imageCache.maximumSize = 120; // 枚数
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
   // 🔁 復習キューは「ホームの声かけ」「毎日の通知の文面」が起動直後に読むので、
@@ -144,8 +153,9 @@ class MyApp extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: accent,
           foregroundColor: Colors.white,
-          elevation: 6,
-          shadowColor: accent.withOpacity(0.4),
+          // 🖤 影を落として面で見せる。厚い影は子ども向けアプリの合図になる。
+          elevation: 2,
+          shadowColor: accent.withValues(alpha: 0.22),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
@@ -157,9 +167,10 @@ class MyApp extends StatelessWidget {
       ),
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
         ),
-        elevation: 4,
+        elevation: 1,
+        surfaceTintColor: Colors.transparent,
       ),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
