@@ -420,11 +420,64 @@ class _TopScreenState extends State<TopScreen>
                   const SizedBox(height: 16),
                   const Divider(height: 1),
                   const SizedBox(height: 14),
+                  // 🧍 ひとりで遊ぶ入口。
+                  //
+                  // ⚠️ ここが**丸ごと無かった**。`NameCallScreen(humanPlayers: 1,
+                  //    quizMode: true)` は実装済みなのに、ホームからは
+                  //    2〜4人ぶんのボタンしか無く、ひとりでは主役モードに
+                  //    たどり着けなかった（オンラインと顔メモ経由のみ）。
+                  //    チュートリアルが「1分で遊べる」と言っている以上、
+                  //    最初に押せるのはこれであるべき。
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      AppAnalytics.modePick('solo');
+                      Sfx.instance.fanfare();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NameCallScreen(
+                            humanPlayers: 1,
+                            quizMode: true, // ひとりのときは4択で答える
+                            peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3A7BD5),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                    ),
+                    child: Text(
+                      m.ja ? '🧍 ひとりで遊ぶ' : '🧍 Play solo',
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                   Text(
-                    m.howManyPlayers,
+                    m.ja
+                        ? '出てきた顔に名前をつけて、また出てきたら4択で思い出す'
+                        : 'Name each face, then recall it from four choices',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    m.ja ? '👥 ${m.howManyPlayers}' : '👥 ${m.howManyPlayers}',
                     textAlign: TextAlign.center,
                     style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                        const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    m.ja
+                        ? 'スマホ1台を回して、名前を声に出して呼び合う'
+                        : 'Pass one phone around and call the names out loud',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                   const SizedBox(height: 10),
                   Row(
