@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/name_call.dart';
 import 'package:nanimonjya/models/person.dart';
 
@@ -73,5 +74,28 @@ void main() {
     final people = generatePeople(8,
         ja: false, random: Random(4), charAssets: kCharImageAssets);
     expect(people.every((p) => kCharImageAssets.contains(p.face)), isTrue);
+  });
+
+  group('出演プール（買ったキャラの扱い）', () {
+    // 買えるキャラ（char14〜32）は日本のフリー素材。英語版の欧米系の顔ぶれに
+    // 混ざると、顔と名前がちぐはぐになって練習の邪魔になる。
+    final owned = {'c14', 'c15', 'c16'};
+
+    test('日本語版は、買ったキャラも出演プールに入る', () {
+      final pool = playablePool(true, owned);
+      expect(pool.length, greaterThan(kCharImageAssets.length),
+          reason: '買ったキャラが足されていない');
+      for (final a in kCharImageAssets) {
+        expect(pool.contains(a), isTrue);
+      }
+    });
+
+    test('英語版は、英語版の顔だけ（買った日本語版キャラは混ざらない）', () {
+      final pool = playablePool(false, owned);
+      expect(pool, kCharImageAssetsEn);
+      for (final a in unlockedExtraAssets(owned)) {
+        expect(pool.contains(a), isFalse, reason: '$a が混ざっている');
+      }
+    });
   });
 }

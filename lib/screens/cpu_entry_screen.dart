@@ -55,10 +55,7 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     final ja =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
     final pool = applyDeckFilter(
-      [
-        ...charImageAssetsFor(ja),
-        ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-      ],
+      playablePool(ja, PlayerProfile.instance.unlockedCharacters),
       PlayerProfile.instance.deckExcluded,
     );
     final rng = Random();

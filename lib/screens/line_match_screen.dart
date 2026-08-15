@@ -66,10 +66,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     // ロケールは context が要るのでここで解決する（initState では読めない）
     final ja = Localizations.localeOf(context).languageCode == 'ja';
     final pool = applyDeckFilter(
-      [
-        ...charImageAssetsFor(ja), // 🌍 英語版は欧米系の顔ぶれ
-        ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-      ],
+      playablePool(ja, PlayerProfile.instance.unlockedCharacters),
       PlayerProfile.instance.deckExcluded,
     );
     // ⚠️ generateImagePeople は name が空文字（なまえがおは各自が命名する

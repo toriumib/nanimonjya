@@ -150,6 +150,17 @@ List<String> applyDeckFilter(
   return kept.length >= minimum ? kept : pool;
 }
 
+/// 🎬 ゲームに出す顔の土台（基本の顔ぶれ＋買ったキャラ）。
+///
+/// ⚠️ **英語版には買ったキャラを混ぜない。**
+///    買えるキャラ（char14〜32）は日本のフリー素材なので、欧米系の顔ぶれの
+///    中に混ざると顔と名前がちぐはぐになり、名前を覚える練習の邪魔になる。
+///    （英語版の顔ぶれを入れた狙いそのものが崩れる）
+List<String> playablePool(bool ja, Set<String> unlockedIds) => [
+      ...charImageAssetsFor(ja),
+      if (ja) ...unlockedExtraAssets(unlockedIds),
+    ];
+
 /// 🎴 顔メモの人も含めた出演プールを組み立てる。
 ///
 /// 以前はキャラデッキに「自分で登録した人」の欄があるのに、
@@ -168,10 +179,10 @@ List<FaceRef> buildFacePool({
   bool ja = true,
 }) {
   final all = <FaceRef>[
-    // 🌍 基本の顔ぶれは表示言語に合わせる（英語版は欧米系）。
-    //    買ったキャラと顔メモの人は言語に関係なくそのまま出す。
-    for (final a in charImageAssetsFor(ja)) FaceRef.asset(a),
-    for (final a in unlockedExtraAssets(unlockedIds)) FaceRef.asset(a),
+    // 🌍 基本の顔ぶれと買ったキャラは [playablePool] の規則に従う
+    //    （英語版に日本語版の買ったキャラを混ぜない）。
+    //    顔メモの人は自分で登録した実在の相手なので、言語に関係なく出す。
+    for (final a in playablePool(ja, unlockedIds)) FaceRef.asset(a),
     ...customFaces,
   ];
   if (excluded.isEmpty) return all;

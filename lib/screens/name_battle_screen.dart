@@ -136,10 +136,7 @@ class _NameBattleScreenState extends State<NameBattleScreen>
       ja: ja,
       random: _rng,
       charAssets: applyDeckFilter(
-        [
-          ...charImageAssetsFor(ja), // 🌍 英語版は欧米系の顔ぶれ
-          ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-        ],
+        playablePool(ja, PlayerProfile.instance.unlockedCharacters),
         PlayerProfile.instance.deckExcluded,
       ),
     );

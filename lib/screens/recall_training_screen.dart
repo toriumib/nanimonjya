@@ -133,10 +133,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
 
   /// 出演プール = 基本12＋購入済みキャラ（キャラデッキでOFFにした人は除く）。
   List<String> _photoPool() => applyDeckFilter(
-        [
-          ...charImageAssetsFor(_ja), // 🌍 英語版は欧米系の顔ぶれ
-          ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-        ],
+        // 🌍 英語版は欧米系の顔ぶれだけ（買ったキャラは日本の素材なので混ぜない）
+        playablePool(_ja, PlayerProfile.instance.unlockedCharacters),
         PlayerProfile.instance.deckExcluded,
       );
 
@@ -346,33 +344,51 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     );
   }
 
-  // 実写の人物（顔＋体）を大きく見せるカード。頭が切れないよう上寄せでクロップ。
-  // アセット画像（架空）とアップロード写真（カスタム名簿）の両方に対応。
-  Widget _personPhoto(Person p, {double height = 300}) {
+  /// 実写の人物（顔＋体）を大きく見せるカード。
+  /// アセット画像（架空）とアップロード写真（カスタム名簿）の両方に対応。
+  ///
+  /// ⚠️ **顔を切らないこと。** 顔と名前を結びつけるのが目的なので、
+  ///    あごや額が切れていると練習にならない。
+  ///    以前は `width: double.infinity` + `BoxFit.cover` で横幅いっぱいに
+  ///    広げてから縦を切っていた。日本語版の写真は横長（800×533）なので
+  ///    切れ幅が小さく気づかなかったが、英語版で足した**正方形（512×512）の顔は
+  ///    口から下が切れていた**。画像の縦横比のまま、高さに収める。
+  ///    （横長の写真は横幅で頭打ちになるので、見え方はこれまでとほぼ同じ）
+  ///
+  /// [crop] を true にすると枠いっぱいに埋める。**枠の形が決まっている
+  /// 小さな一覧写真だけに使うこと**（そこは正方形なので顔は切れない）。
+  Widget _personPhoto(Person p, {double height = 300, bool crop = false}) {
     Widget fallback() => Container(
           height: height,
+          width: crop ? null : height, // 収める側は正方形で場所を取る
           color: const Color(0xFFEAF3FF),
-          child: const Icon(Icons.person, size: 90, color: Color(0xFF8FB4DC)),
+          child: Icon(Icons.person,
+              size: height * 0.6, color: const Color(0xFF8FB4DC)),
         );
+    final BoxFit fit = crop ? BoxFit.cover : BoxFit.contain;
+    final double? width = crop ? double.infinity : null;
+    final Alignment align = crop ? Alignment.topCenter : Alignment.center;
     final Widget img;
     if (p.kind == FaceKind.file && !kIsWeb) {
       img = Image.file(File(p.face),
           height: height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
+          width: width,
+          fit: fit,
+          alignment: align,
           errorBuilder: (_, __, ___) => fallback());
     } else if (p.kind == FaceKind.asset) {
       img = Image.asset(p.face,
           height: height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
+          width: width,
+          fit: fit,
+          alignment: align,
           errorBuilder: (_, __, ___) => fallback());
     } else {
       img = fallback();
     }
-    return ClipRRect(borderRadius: BorderRadius.circular(22), child: img);
+    final clipped =
+        ClipRRect(borderRadius: BorderRadius.circular(22), child: img);
+    return crop ? clipped : Center(child: clipped);
   }
 
   Widget _buildMeet(MetaStrings m) {
@@ -803,7 +819,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       SizedBox(
                         width: 64,
                         height: 64,
-                        child: _personPhoto(p, height: 64),
+                        // 64×64の正方形の枠なので、ここは埋めてよい
+                        child: _personPhoto(p, height: 64, crop: true),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
