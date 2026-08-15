@@ -16,6 +16,7 @@ import '../services/speech.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/coin_short_sheet.dart';
+import '../widgets/native_ad_card.dart';
 import 'character_deck_screen.dart';
 
 /// 🛍 キャラクターショップ。
@@ -229,6 +230,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    // 🧩 スクロールの中盤に1枚。買うかどうか迷っている
+                    //    グリッドの真上には置かず、判断が済んだ後ろに置く。
+                    const NativeAdCard(placement: 'shop'),
                     // 基本キャラ（最初から持っている12人）
                     Text(m.storeStarter,
                         style: const TextStyle(

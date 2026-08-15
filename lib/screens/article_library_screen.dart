@@ -9,6 +9,7 @@ import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/coin_short_sheet.dart';
+import '../widgets/native_ad_card.dart';
 import '../widgets/themed_background.dart';
 
 /// 📚 コインで読める読み物の一覧。
@@ -154,7 +155,14 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
                 Text(m.articleLibraryLead,
                     style: const TextStyle(fontSize: 12.5, height: 1.6)),
                 const SizedBox(height: 14),
-                for (final a in kPremiumArticles) _row(m, a, p.hasArticle(a.id)),
+                // 🧩 記事カードの間に1枚だけ広告をはさむ。
+                //    一覧の中で同じ矩形に馴染む形式なので、バナーより
+                //    読書の邪魔になりにくい。入れるのは1枚だけにする。
+                for (var i = 0; i < kPremiumArticles.length; i++) ...[
+                  _row(m, kPremiumArticles[i],
+                      p.hasArticle(kPremiumArticles[i].id)),
+                  if (i == 2) const NativeAdCard(placement: 'article_library'),
+                ],
                 const SizedBox(height: 10),
                 Text(m.articleDisclaimer,
                     style: const TextStyle(

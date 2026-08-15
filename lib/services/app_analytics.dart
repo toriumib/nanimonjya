@@ -80,6 +80,20 @@ class AppAnalytics {
   static void adRewardEarned(String placement) =>
       _log('ad_reward_earned', {'placement': placement});
 
+  /// 🧩 ネイティブ広告が実際に表示できたか。
+  ///
+  /// 一覧に差しこむ形式は「枠は置いたが在庫が無くて出ない」が起きる。
+  /// 出た数と出なかった数を場所ごとに分けて数えないと、
+  /// 差しこむ場所を増やすべきか減らすべきかが判断できない。
+  static void nativeAdResult({
+    required String placement,
+    required bool filled,
+  }) =>
+      _log('native_ad_result', {
+        'placement': placement,
+        'filled': filled ? 1 : 0,
+      });
+
   /// 「なぜ動画を見たのか」を残す。
   ///
   /// コインが足りずに広告へ誘導した瞬間を、**買おうとしていた商品と一緒に**
