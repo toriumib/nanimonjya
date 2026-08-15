@@ -12,9 +12,28 @@ import 'package:nanimonjya/models/noah_story.dart';
 /// 崩れると4択が実質2択になってしまう要点なのでテストで守る。
 void main() {
   group('キャスト', () {
-    test('8人いて、IDが重複していない', () {
-      expect(kNoahCast.length, 8);
-      expect(kNoahCast.map((c) => c.id).toSet().length, 8);
+    test('十六人いて、IDが重複していない', () {
+      expect(kNoahCast.length, 16);
+      expect(kNoahCast.map((c) => c.id).toSet().length, 16);
+    });
+
+    test('男女が8人ずつ（好みで絞っても8人残る）', () {
+      expect(kNoahCast.where((c) => c.male).length, 8);
+      expect(kNoahCast.where((c) => !c.male).length, 8);
+    });
+
+    test('全員が意識の理論を持ち、日英そろっている', () {
+      for (final c in kNoahCast) {
+        expect(c.theory, isNotEmpty, reason: c.id);
+        expect(c.theoryEn, isNotEmpty, reason: c.id);
+        expect(c.theoryShort, isNotEmpty, reason: c.id);
+        expect(c.theoryShortEn, isNotEmpty, reason: c.id);
+        expect(c.uploadEnding, isNotEmpty, reason: c.id);
+        expect(c.uploadEndingEn, isNotEmpty, reason: c.id);
+      }
+      // 理論が使い回されていない（16人＝16理論）
+      expect(kNoahCast.map((c) => c.theory).toSet().length, 16);
+      expect(kNoahCast.map((c) => c.theoryEn).toSet().length, 16);
     });
 
     test('出題に使う項目が全員そろっている（空欄だと3択が作れない）', () {
@@ -143,12 +162,12 @@ void main() {
   group('乗船定員（覚えるほど助かる人が増える）', () {
     test('全問正解で全員ぶんに届く', () {
       expect(noahCapacityFor(12, 12), kNoahCapacitySteps.last);
-      expect(noahCapacityFor(12, 12), 500);
+      expect(noahCapacityFor(12, 12), 16);
     });
 
     test('思い出せないと最初の計画のまま', () {
       expect(noahCapacityFor(0, 12), kNoahCapacitySteps.first);
-      expect(noahCapacityFor(0, 12), 12);
+      expect(noahCapacityFor(0, 12), 4);
     });
 
     test('思い出した数に応じて段階的に増える', () {
@@ -207,6 +226,9 @@ void main() {
     test('正解のセリフはキャラごとに違う（使い回しをしない）', () {
       final lines = kNoahCast.map(noahHitLineJa).toSet();
       expect(lines.length, kNoahCast.length);
+      // 英語側も同じく使い回さない
+      final linesEn = kNoahCast.map(noahHitLineEn).toSet();
+      expect(linesEn.length, kNoahCast.length);
     });
 
     test('出題のセリフは項目ごとに用意されている', () {
