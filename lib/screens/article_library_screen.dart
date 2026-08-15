@@ -32,8 +32,12 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('article_library');
-    _rewardAd.load();
-    RewardedInterstitialHelper.instance.load();
+    // 📊 2026-08のAdMobレポート: リワード 446リクエスト→14表示（3.1%）、
+    //    リワードインタースティシャルは19リクエスト→**0表示**だった。
+    //    画面を開いただけで読み込むと、ほぼ全部が空振りになる。
+    //    どちらも `showOrQueue` が「未準備なら届き次第そのまま再生」を
+    //    やってくれるので、**押されてから読む**で足りる。
+    //    （記事を1本も買わずに閉じる人のぶんが、まるごと無駄になっていた）
   }
 
   @override
@@ -114,7 +118,7 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'article_library'),
       appBar: AppBar(
         title: Text(m.articleLibraryTitle),
         actions: [
@@ -274,7 +278,7 @@ class _ArticleReaderScreenState extends State<_ArticleReaderScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'article_library'),
       appBar: AppBar(title: Text('${article.emoji} ${article.title(m.ja)}')),
       body: SafeArea(
         child: Container(

@@ -51,7 +51,7 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
     return ThemedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'avatar_editor'),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,

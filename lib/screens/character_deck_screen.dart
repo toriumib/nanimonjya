@@ -129,7 +129,7 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: const BannerAdSlot(),
+          bottomNavigationBar: const BannerAdSlot(placement: 'character_deck'),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [

@@ -348,7 +348,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF3F7FF),
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'turn_pairs'),
         appBar: AppBar(
           title: Text(m.turnPairsTitle),
           automaticallyImplyLeading: false,

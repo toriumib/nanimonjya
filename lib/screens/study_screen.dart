@@ -216,7 +216,7 @@ class _StudyScreenState extends State<StudyScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'study'),
       appBar: AppBar(
         title: Text(widget.quizMode ? m.quizTitle : m.studyTitle),
       ),

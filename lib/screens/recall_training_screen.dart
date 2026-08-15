@@ -330,7 +330,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'recall_training'),
       appBar: AppBar(title: Text(m.recallTitle)),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(

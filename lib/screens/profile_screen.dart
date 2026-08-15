@@ -46,7 +46,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('profile');
-    _rewardAd.load();
+    // 📊 マイページを開いた全員ぶん先読みしていたが、実際に見られるのはごく一部。
+    //    未準備でタップされても `showOrQueue` が届き次第そのまま再生するので、
+    //    ここでの先読みはやめる（空振りのリクエストを減らす）。
     // 画面を開いた時点で条件を満たす実績を解放
     WidgetsBinding.instance.addPostFrameCallback((_) {
       PlayerProfile.instance.refreshAchievements();
@@ -173,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = PlayerProfile.instance;
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'profile'),
       appBar: AppBar(
         title: Text(m.profileTitle),
         actions: [

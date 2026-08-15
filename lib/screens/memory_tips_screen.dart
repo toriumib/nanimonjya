@@ -139,7 +139,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     final isLast = _page == pages.length - 1;
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'memory_tips'),
       appBar: AppBar(
         title: Text(m.memoryTipsTitle),
         // タブとして表示するときは戻る矢印を出さない

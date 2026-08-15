@@ -136,7 +136,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     return Scaffold(
       // タブとして埋め込まれていても、HomeShell 側はバナーを持たないので
       // ここで出してよい（入れ子のScaffoldなので下タブの上に出る）。
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'shop'),
       appBar: AppBar(
         title: Text(m.storeTitle),
         automaticallyImplyLeading: !widget.embedded,

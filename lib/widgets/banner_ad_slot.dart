@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../services/ad_ids.dart';
+import '../services/app_analytics.dart';
 import '../services/player_profile.dart';
 
 /// 画面下部に置く共通バナー広告。
@@ -21,7 +22,10 @@ import '../services/player_profile.dart';
 ///    ずり上がると、押そうとした指が広告に当たる。誤操作であり、
 ///    誤タップを誘発する配置はポリシー違反にもなりうる。
 class BannerAdSlot extends StatefulWidget {
-  const BannerAdSlot({super.key});
+  /// どの画面のバナーか（分析用）。省略すると 'unknown'。
+  final String placement;
+
+  const BannerAdSlot({super.key, this.placement = 'unknown'});
 
   @override
   State<BannerAdSlot> createState() => _BannerAdSlotState();
@@ -52,6 +56,11 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
         width);
     if (size == null || !mounted) return; // 取れなければ広告を出さない
     setState(() => _slotHeight = size.height.toDouble());
+    // 📊 バナーは表示回数の9割以上を占めるのに、収益は数％しかない枠
+    //    （2026-08: 646表示で $0.16 = eCPM $0.25）。どの画面のバナーが
+    //    出ているのかを残しておかないと、消す・残すの判断ができない。
+    final placement = widget.placement;
+    AppAnalytics.adLoadRequested(format: 'banner', placement: placement);
     final ad = BannerAd(
       adUnitId: AdIds.banner,
       size: size,
@@ -62,10 +71,13 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
             ad.dispose();
             return;
           }
+          AppAnalytics.adShown(format: 'banner', placement: placement);
           setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
+          AppAnalytics.adSkipped(
+              format: 'banner', placement: placement, reason: 'no_fill');
           if (mounted) setState(() => _isLoaded = false);
         },
       ),

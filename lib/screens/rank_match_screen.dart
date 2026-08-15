@@ -402,7 +402,7 @@ class _RankMatchScreenState extends State<RankMatchScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF3F7FF),
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'rank_match'),
         appBar: AppBar(
           title: Text(m.rankMatchTitle),
           automaticallyImplyLeading: false,

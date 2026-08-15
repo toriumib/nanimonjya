@@ -281,7 +281,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _ja = m.ja;
     return Scaffold(
       backgroundColor: const Color(0xFF05070F),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'story_noah'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

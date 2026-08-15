@@ -477,8 +477,10 @@ class _TopScreenState extends State<TopScreen>
   void initState() {
     super.initState();
     AppAnalytics.screen('top');
+    // 🎁 ホームの「動画でコイン」はいちばん押される導線なので、ここだけは先読みする。
+    //    在庫は全画面で共有なので、2回呼んでも2本読むわけではない（_gachaAd.load() は
+    //    同じ在庫を見にいくだけの無駄呼び出しだったので外した）。
     _giftAd.load();
-    _gachaAd.load();
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),

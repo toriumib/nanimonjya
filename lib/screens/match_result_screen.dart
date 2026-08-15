@@ -121,7 +121,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
     final ja = m.ja;
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'match_result'),
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,

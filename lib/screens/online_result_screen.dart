@@ -168,7 +168,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     final rank = cpuRankForRating(_ratingAfter);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'online_result'),
       appBar: AppBar(
         title: Text(m.onlineMatchTitle),
         automaticallyImplyLeading: false,

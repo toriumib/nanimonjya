@@ -189,7 +189,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'line_match'),
       body: SafeArea(
         child: _phase == _Phase.memorize
             ? _memorizeView(m)

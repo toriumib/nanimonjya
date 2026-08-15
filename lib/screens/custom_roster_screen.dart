@@ -229,7 +229,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     final m = MetaStrings.of(context);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'custom_roster'),
       // 用途が分かるように、見出しは「顔メモ（会社・学校の人）」を出す。
       // タブ名（tabMemorize）は幅が狭いので短い「顔メモ」のまま。
       // ⚠️ 見出しは既定で22ptなので、このまま出すと横に収まらず切れる。

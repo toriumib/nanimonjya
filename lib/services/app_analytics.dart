@@ -11,17 +11,31 @@ class AppAnalytics {
   static FirebaseAnalytics get _fa => FirebaseAnalytics.instance;
 
   static void _log(String name, [Map<String, Object>? params]) {
-    // Analytics はWebでも動くが、失敗がUIに波及しないよう握りつぶす
-    _fa.logEvent(name: name, parameters: params).catchError((e) {
-      debugPrint('Analytics error ($name): $e');
-    });
+    // Analytics はWebでも動くが、失敗がUIに波及しないよう握りつぶす。
+    //
+    // ⚠️ `catchError` だけでは足りない。**`FirebaseAnalytics.instance` を
+    //    取り出すところ自体が投げる**（Firebase の初期化に失敗した端末、
+    //    そしてテスト環境）。main.dart は初期化を try で囲んでいるので、
+    //    初期化に失敗したまま起動しているとここで例外が飛び、
+    //    計測のために遊びが止まってしまう。同期側も囲む。
+    try {
+      _fa.logEvent(name: name, parameters: params).catchError((e) {
+        debugPrint('Analytics error ($name): $e');
+      });
+    } catch (e) {
+      debugPrint('Analytics unavailable ($name): $e');
+    }
   }
 
   /// 画面表示（どの画面で離脱するかの分析用）
   static void screen(String screenName) {
-    _fa
-        .logScreenView(screenName: screenName)
-        .catchError((e) => debugPrint('Analytics screen error: $e'));
+    try {
+      _fa
+          .logScreenView(screenName: screenName)
+          .catchError((e) => debugPrint('Analytics screen error: $e'));
+    } catch (e) {
+      debugPrint('Analytics unavailable (screen $screenName): $e');
+    }
     // 🩹 いまいる画面を Crashlytics にも残す。
     //
     // ⚠️ 2026-08 の時点で app_exception が 317件／11ユーザー

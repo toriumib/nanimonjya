@@ -50,7 +50,7 @@ class _RankingScreenState extends State<RankingScreen> {
     final myUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'ranking'),
       appBar: AppBar(title: Text('🏅 ${m.ranking}')),
       body: Container(
         decoration: const BoxDecoration(

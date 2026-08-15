@@ -106,7 +106,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
       ..sort((a, b) => widget.pairsWon[b].compareTo(widget.pairsWon[a]));
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'local_result'),
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,

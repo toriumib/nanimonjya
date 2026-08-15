@@ -11,7 +11,7 @@ class CognitiveInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'cognitive_info'),
       appBar: AppBar(title: Text(m.cognitiveInfoTitle)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

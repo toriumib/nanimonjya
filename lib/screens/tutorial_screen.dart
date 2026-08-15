@@ -633,7 +633,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   Widget _buildScaffold(
       bool ja, List<_TutorialPage> pages, bool isLast) {
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'tutorial'),
       appBar: AppBar(
         title: Text(ja ? 'あそびかた' : 'How to Play'),
         automaticallyImplyLeading: false,

@@ -34,7 +34,7 @@ class _ReportScreenState extends State<ReportScreen> {
     return ThemedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'report'),
         appBar: AppBar(
           title: Text(m.ja ? '📊 成績レポート' : '📊 Stats Report'),
           backgroundColor: Colors.transparent,

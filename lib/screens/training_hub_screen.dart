@@ -171,7 +171,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'training_hub'),
       appBar: AppBar(
         title: Text(m.tabTraining),
         actions: const [
