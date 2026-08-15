@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+193
+version: 2.5.0+194
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -46,13 +46,11 @@ dependencies:
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
   characters: ^1.4.0
-  # 💳 in_app_purchase は取り下げた。
-  # Play が Billing Library 8.0.0 以降を必須化したが、それを積む
-  # in_app_purchase_android は 0.4.0+11 以降すべて Dart 3.10（Flutter 3.35+）
-  # 必須で、本プロジェクトの Flutter 3.32 では解決できない。
-  # 依存を残すと11月以降アップデートが承認されないため削除する。
-  # 購入済みユーザーの adsRemoved は端末に残り、広告は出ないままになる。
-  # 課金を再開するときは Flutter を上げてから in_app_purchase: ^3.3.0 を入れる。
+  # 💳 課金。Play が Billing Library 8.0.0 以降を必須化したため一度取り下げていたが、
+  #    Flutter 3.38（Dart 3.10）に上げて復活させた。これより前の Dart では
+  #    in_app_purchase_android 0.4.0+11 以降が解決できない。
+  #    ⚠️ Flutter を 3.38 未満に戻すとここで解決に失敗する。
+  in_app_purchase: ^3.3.0
 
 
 dev_dependencies:

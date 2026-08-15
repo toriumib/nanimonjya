@@ -71,6 +71,21 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - **試合・特訓の結果画面**（match_result / local_result / online_result / recall_training の各result）に `widgets/store_cta.dart` の `StoreCtaCard`（「新しいキャラを仲間にしよう→ショップへ」誘導）を配置
 - レビュー依頼: `services/review_prompt.dart` の `maybeAskReview()`（1回きり、`reviewPrompted`でゲート）。勝利・全問正解などの好タイミングで呼ぶ。match_result側は従来通り閾値3ゲームで直接呼び出し
 
+### 💳 課金（in_app_purchase、2026-08 復活）
+
+- **Flutter 3.38.10 / Dart 3.10.9 が必須**。Play が Billing Library 8.0.0+ を必須化し、
+  それを積む `in_app_purchase_android` が Dart 3.10 を要求するため。
+  **Flutter を 3.38 未満に下げると `flutter pub get` が解決に失敗する**（3.35 でも Dart 3.9 なので不可）。
+- 実装は `lib/services/iap_service.dart`（一度スタブ化していたのを実装に戻した）。
+  商品は `coins-500` / `coins-1200` / `coins-3000`（消費型）、`remove-ads` / `premium`（買い切り）。
+- ⚠️ **Play Console に商品を登録して有効化しないと `queryProductDetails` が空を返し、
+  `IapService.available` が false のまま購入UIは出ない**（＝いまはまだ1円も入らない）。
+  商品IDは登録後に変更できないので、上のIDと完全一致させること。
+- ⚠️ Android は購入を3日以内に承認しないと自動返金される。承認は `completePurchase`。
+  `pending`（コンビニ払い等）では報酬を渡さず、完了もしない。
+- ⚠️ 復元（restorePurchases）で渡していいのは買い切りだけ。消費型まで渡すとコインが無限に増える。
+  プレミアムのおまけコインは `PlayerProfile.premiumCoinsGranted` で二重付与を止めている。
+
 ### 💰 収益導線（広告・課金の再点検、v2.3.0）
 - **インタースティシャル広告を有効化**（`services/interstitial_ad_helper.dart`。3プレイに1回、リザルト画面で表示）。main.dartで先読みを開始し、match_result/local_result/online_result/recall_trainingの各`initState`/終了処理で`InterstitialAdHelper.instance.onGameFinished()`を呼ぶ。以前はコード実装のみで呼び出しが無く完全に無効化されていた（なぜなぜ分析の結論: 収益ポイントがユーザーの感情が一番盛り上がる「結果が出た直後」に配置されていなかったことが根本原因）
 - **「動画でコイン2倍」ボタン**（`widgets/double_coins_button.dart`）を全リザルト画面の獲得コイン表示直後に設置。獲得コインが0の結果では非表示。リワード広告の視聴率が最も高い定番配置

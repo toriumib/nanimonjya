@@ -130,6 +130,11 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> deckExcluded = {};
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
+  /// 💎 プレミアムのおまけコインを渡したか。
+  /// プレミアムは買い切りなので、機種変更のたびに「購入の復元」で
+  /// 何度でも通る。解放系は何度通っても増えないが、コインだけは
+  /// これで止めないと復元のたびに増えてしまう。
+  bool premiumCoinsGranted = false;
   /// 🔔 復習リマインドの時刻（時。既定19時）。自分で決めた時刻のほうが
   /// 生活の合図と結びつけやすく、習慣として続きやすいとされる。
   int reminderHour = 19;
@@ -293,6 +298,7 @@ class PlayerProfile extends ChangeNotifier {
     weekStartDate = p.getString('weekStartDate') ?? '';
     _refreshWeek();
     adsRemoved = p.getBool('adsRemoved') ?? false;
+    premiumCoinsGranted = p.getBool('premiumCoinsGranted') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
     unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
@@ -709,6 +715,14 @@ class PlayerProfile extends ChangeNotifier {
   Future<void> setAdsRemoved(bool value) async {
     if (adsRemoved == value) return;
     adsRemoved = value;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 💎 プレミアムのおまけコインを渡した印をつける。
+  Future<void> setPremiumCoinsGranted(bool value) async {
+    if (premiumCoinsGranted == value) return;
+    premiumCoinsGranted = value;
     await _persist();
     notifyListeners();
   }
@@ -1162,6 +1176,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('weeklyLearned', weeklyLearned);
     await p.setString('weekStartDate', weekStartDate);
     await p.setBool('adsRemoved', adsRemoved);
+    await p.setBool('premiumCoinsGranted', premiumCoinsGranted);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);
     await p.setStringList('unlockedVoices', unlockedVoices.toList());

@@ -186,9 +186,17 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     const SizedBox(height: 16),
                     // 💳 広告除去
                     _removeAdsCard(m, p),
-                    if (IapService.instance.available) ...[
-                      const SizedBox(height: 16), _iapSection(m, p),
-                    ],
+                    // 💳 ストアにつながって商品が取れてから出す。
+                    //    起動直後はまだ取得中なので、取れた時点で描き直す。
+                    AnimatedBuilder(
+                      animation: IapService.instance,
+                      builder: (context, _) => IapService.instance.available
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: _iapSection(m, p),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                     const SizedBox(height: 18),
                     // ── 🔥 人気セクション ──
                     _sectionHeader(m.ja ? '🔥 人気＆お得' : '🔥 Trending', ''),
