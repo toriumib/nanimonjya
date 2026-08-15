@@ -1408,6 +1408,13 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '💎 広告なしでご利用いただけます。ありがとうございます！'
       : '💎 Ads are off. Thank you for your support!';
   String get restorePurchase => ja ? '購入を復元' : 'Restore purchase';
+  // 🪙 コインパック（消費型課金）
+  String get coinPackTitle => ja ? '🪙 コインをふやす' : '🪙 Get more coins';
+  String get coinPackDesc => ja
+      ? 'キャラ・きせかえ・BGM・読み物に使えます。動画を見て貯めることもできます。'
+      : 'Spend on characters, themes, music and articles. You can also earn coins by watching videos.';
+  String get coinPackPopular => ja ? 'おすすめ' : 'POPULAR';
+  String get coinPackBest => ja ? 'いちばんお得' : 'BEST VALUE';
   String get shopBgmTitle => ja ? '🎵 BGM' : '🎵 Music';
   String get shopBgmDesc => ja
       ? 'ゲーム中に流れる曲。コインで買うか、動画1本でも解放できます。'

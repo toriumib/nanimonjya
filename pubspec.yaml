@@ -5,7 +5,9 @@ publish_to: 'none'
 version: 2.5.0+148
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
+  # 💳 in_app_purchase_android（Billing Library 8 対応版）が Dart 3.10 を要求する。
+  #    Dart 3.10 は Flutter 3.35 に同梱。これより古い Flutter では pub get が通らない。
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -38,13 +40,9 @@ dependencies:
   flutter_animate: ^4.5.0  # ポップな演出アニメーション
   in_app_review: ^2.0.9  # ストアレビュー依頼
   image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
-  # 💳 in_app_purchase は取り下げた。
-  # Play が Billing Library 8.0.0 以降を必須化したが、それを積む
-  # in_app_purchase_android は 0.4.0+11 以降すべて Dart 3.10（Flutter 3.35+）
-  # 必須で、本プロジェクトの Flutter 3.32 では解決できない。
-  # 依存を残すとアップデート自体が承認されないため削除する。
-  # 購入済みユーザーの adsRemoved は端末に残り、広告は出ないままになる。
-  # 課金を再開するときは Flutter を上げてから in_app_purchase: ^3.3.0 を入れる。
+  # 💳 買い切り（広告除去）とコインパック。Billing Library 8 必須化に
+  #    対応するため Flutter 3.35+ / Dart 3.10 が前提（environment 参照）。
+  in_app_purchase: ^3.3.0
   google_mlkit_text_recognition: ^0.13.0  # 名刺のOCR取り込み（端末内処理・モバイル限定）
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）

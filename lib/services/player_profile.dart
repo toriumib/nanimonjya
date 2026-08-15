@@ -19,6 +19,8 @@ class PlayerProfile extends ChangeNotifier {
   // 永続化する値
   int coins = 0;
   int lifetimeCoins = 0;
+  /// 💳 課金で買ったコインの累計（LTVの分析用。ゲーム内の判定には使わない）
+  int paidCoinsLifetime = 0;
   int totalGames = 0;
   int highScore = 0;
   int onlineGames = 0; // オンライン対戦数
@@ -151,6 +153,7 @@ class PlayerProfile extends ChangeNotifier {
     final p = _prefs!;
     coins = p.getInt('coins') ?? 0;
     lifetimeCoins = p.getInt('lifetimeCoins') ?? 0;
+    paidCoinsLifetime = p.getInt('paidCoinsLifetime') ?? 0;
     totalGames = p.getInt('totalGames') ?? 0;
     highScore = p.getInt('highScore') ?? 0;
     onlineGames = p.getInt('onlineGames') ?? 0;
@@ -516,6 +519,24 @@ class PlayerProfile extends ChangeNotifier {
   /// レーティングのローカルミラーを更新（Firestore側の確定値を渡す）。
   Future<void> setRankRating(int rating) async {
     rankRating = rating;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 💳 課金で買ったコインを付与する。
+  ///
+  /// ⚠️ ここだけは **倍率を掛けない**。
+  ///    「1,000コイン」と書いて売ったものが、覚醒済みの人には 1,300 入る、
+  ///    という状態になると表示額と実額がずれる。売り物は額面どおりに渡す。
+  ///
+  /// ミッション進捗（missionCoinsEarned）にも入れない。
+  /// 課金で「今日60コイン稼ぐ」が達成されるのは筋が悪いため。
+  Future<void> grantPurchasedCoins(int amount) async {
+    if (amount <= 0) return;
+    coins += amount;
+    lifetimeCoins += amount;
+    paidCoinsLifetime += amount;
+    _checkAchievements();
     await _persist();
     notifyListeners();
   }
@@ -1041,6 +1062,7 @@ class PlayerProfile extends ChangeNotifier {
     if (p == null) return;
     await p.setInt('coins', coins);
     await p.setInt('lifetimeCoins', lifetimeCoins);
+    await p.setInt('paidCoinsLifetime', paidCoinsLifetime);
     await p.setInt('totalGames', totalGames);
     await p.setInt('highScore', highScore);
     await p.setInt('onlineGames', onlineGames);

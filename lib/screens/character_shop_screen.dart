@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 import '../l10n/meta_strings.dart';
@@ -10,6 +11,7 @@ import '../models/shop_items.dart';
 import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/player_profile.dart';
+import '../services/purchase_service.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
@@ -215,6 +217,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 💳 広告除去（買い切り）
                     _removeAdsCard(m, p),
                     const SizedBox(height: 20),
+                    // 🪙 コインパック。買いたいものを見る直前に置く。
+                    _coinPackSection(m),
                     // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
                     _sectionHeader(m.storeMore, m.storeCharsDesc),
                     GridView.count(
@@ -288,37 +292,201 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
 
   /// 💳 広告除去（買い切り）のカード。
   ///
-  /// Play が Billing Library 8.0.0 以降を必須化したが、対応版の
-  /// in_app_purchase は Dart 3.10 以上（Flutter 3.35+）を要求し、
-  /// 本プロジェクトの Flutter 3.32 では解決できない。
-  /// アップデート自体が承認されなくなるため、課金機能はいったん取り下げた。
-  ///
-  /// **すでに購入した人の権利は残す**: adsRemoved は端末に保存されたままで、
-  /// バナー・全画面広告の抑制もそのまま効く。ここではお礼だけ出す。
+  /// 購入済みならお礼を出すだけにする。
+  /// 未購入でも、ストアに繋がらない・商品が未登録のときは何も出さない
+  /// （押せないボタンを見せても混乱するだけなので）。
   Widget _removeAdsCard(MetaStrings m, PlayerProfile p) {
-    if (!p.adsRemoved) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEAF7F0),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF4ECDC4), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          const Text('💎', style: TextStyle(fontSize: 22)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(m.adsRemovedThanks,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF12705E))),
+    if (p.adsRemoved) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEAF7F0),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF4ECDC4), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            const Text('💎', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(m.adsRemovedThanks,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF12705E))),
+            ),
+          ],
+        ),
+      );
+    }
+    return AnimatedBuilder(
+      animation: PurchaseService.instance,
+      builder: (context, _) {
+        final svc = PurchaseService.instance;
+        final price = svc.removeAdsPrice;
+        // 商品が取れていない（Play Console未登録・審査中・ストア未接続）
+        if (!svc.available || price == null) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F0FF),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF8C7BFF), width: 1.5),
           ),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('💎', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m.removeAdsTitle,
+                            style: const TextStyle(
+                                fontSize: 14.5, fontWeight: FontWeight.w900)),
+                        Text(m.removeAdsDesc,
+                            style: const TextStyle(
+                                fontSize: 11.5, color: Colors.black54)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: svc.pending ? null : svc.buyRemoveAds,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B5CFF),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      minimumSize: const Size(0, 38),
+                    ),
+                    child: Text(svc.pending ? '…' : price,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w900)),
+                  ),
+                ],
+              ),
+              // 機種変更・再インストール用（ストアの要件でもある）
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: svc.pending ? null : svc.restore,
+                  child: Text(m.restorePurchase,
+                      style: const TextStyle(fontSize: 11.5)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 🪙 コインパック（消費型課金）の節。
+  ///
+  /// 置き場所はキャラのグリッドの**手前**。
+  /// 「欲しいものがあるのにコインが足りない」と気づく直前に見せる。
+  ///
+  /// 価格は必ずストアが返す [ProductDetails.price] を使う。
+  /// 通貨も税込み表記も国ごとに違うので、アプリ側で組み立ててはいけない。
+  Widget _coinPackSection(MetaStrings m) {
+    return AnimatedBuilder(
+      animation: PurchaseService.instance,
+      builder: (context, _) {
+        final svc = PurchaseService.instance;
+        final packs = svc.coinPacks;
+        // Play に商品が無い／ストアに繋がらないときは節ごと出さない
+        if (!svc.available || packs.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _sectionHeader(m.coinPackTitle, m.coinPackDesc),
+            for (final pack in packs) _coinPackRow(m, svc, pack),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _coinPackRow(
+      MetaStrings m, PurchaseService svc, ProductDetails product) {
+    final coins = PurchaseService.kCoinPacks[product.id] ?? 0;
+    final best = product.id == 'coins_large';
+    final popular = product.id == 'coins_medium';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: popular
+                  ? const Color(0xFFFFC93C)
+                  : const Color(0xFFD8E4F0),
+              width: popular ? 2 : 1.5),
+        ),
+        child: Row(
+          children: [
+            Text(best ? '🏆' : (popular ? '💰' : '🪙'),
+                style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text('🪙 $coins',
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w900)),
+                      ),
+                      if (popular) _packBadge(m.coinPackPopular, const Color(0xFFFFC93C)),
+                      if (best) _packBadge(m.coinPackBest, const Color(0xFF4ECDC4)),
+                    ],
+                  ),
+                  Text(product.title.isEmpty ? m.coinPackTitle : product.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed:
+                  svc.pending ? null : () => svc.buyCoinPack(product.id),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B5CFF),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                minimumSize: const Size(0, 38),
+              ),
+              child: Text(svc.pending ? '…' : product.price,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _packBadge(String label, Color color) => Container(
+        margin: const EdgeInsets.only(left: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(label,
+            style: const TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.white)),
+      );
 
   Widget _sectionHeader(String title, String desc) {
     return Padding(

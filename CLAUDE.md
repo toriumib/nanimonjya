@@ -78,7 +78,18 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 ### 💰 収益導線（広告・課金の再点検、v2.3.0）
 - **インタースティシャル広告を有効化**（`services/interstitial_ad_helper.dart`。3プレイに1回、リザルト画面で表示）。main.dartで先読みを開始し、match_result/local_result/online_result/recall_trainingの各`initState`/終了処理で`InterstitialAdHelper.instance.onGameFinished()`を呼ぶ。以前はコード実装のみで呼び出しが無く完全に無効化されていた（なぜなぜ分析の結論: 収益ポイントがユーザーの感情が一番盛り上がる「結果が出た直後」に配置されていなかったことが根本原因）
 - **「動画でコイン2倍」ボタン**（`widgets/double_coins_button.dart`）を全リザルト画面の獲得コイン表示直後に設置。獲得コインが0の結果では非表示。リワード広告の視聴率が最も高い定番配置
-- 無料コインギフト（top_screen.dart）のクールダウンを30分→15分に短縮（`PlayerProfile.giftCooldownMinutes`）。ショップの動画報酬は50→60コインに増額済み
+- 無料コインギフト（top_screen.dart）のクールダウンを30分→15分に短縮（`PlayerProfile.giftCooldownMinutes`）。**現在は0（待ち時間なし）**。リワード広告は本人が押して見るものなので回数制限を設けず、在庫が尽きた時点が自然な上限になる。ショップの動画報酬は50→60コインに増額済み
+
+### 💳 課金の復活とネイティブ広告（v2.6.0）
+- **`in_app_purchase: ^3.3.0` を復活**。取り下げていた理由（Billing Library 8必須化に対応する版が Dart 3.10 を要求）は **Flutter 3.35+ / `sdk: '>=3.10.0'` に上げて解消**。Android側の追加作業は不要（BILLING権限は manifest merge、`minifyEnabled false` なので proguard も不要）
+- `services/purchase_service.dart`: 非消費型 `remove_ads` ＋ **消費型コインパック3種**（`coins_small` 1,000 / `coins_medium` 3,500 / `coins_large` 10,000）。カタログは `PurchaseService.kCoinPacks`
+  - ⚠️ 消費型は `buyConsumable(autoConsume: true)`。`buyNonConsumable` と取り違えると一度買ったきり二度と買えない
+  - ⚠️ **`PurchaseStatus.restored` でコインパックを配らないこと**。消費型は復元対象外で、配ると再インストールのたびに無限増殖する。復元で処理してよいのは `remove_ads` だけ
+  - ⚠️ Play Console に同じIDの商品を登録しないと `queryProductDetails` が空を返し、購入UIは出ない（コードだけでは完結しない）
+- `PlayerProfile.grantPurchasedCoins()`: **倍率を掛けない**（売った額面と実際に入る額をずらさないため）。`missionCoinsEarned` にも入れない。累計は `paidCoinsLifetime`
+- **ネイティブ広告**（枠 `/9170475636`）を実装。`widgets/native_ad_card.dart` ＋ Android側の `res/layout/native_ad_small.xml` / `NativeAdFactorySmall.kt` / `MainActivity` での `registerNativeAdFactory("small")` の**3点セットが揃って初めて動く**（Dartだけ直しても表示されない）。差しこみはよみもの一覧・ショップ・自分の名簿の3か所のみ。ゲーム中の画面には入れない
+- **コイン不足→動画** の導線を `widgets/coin_short_sheet.dart` に共通化（`offerAdForCoins`）。報酬額は `kCoinAdReward`。article_library だけは単価の高いリワードインタースティシャル優先の自前実装を維持している
+- 🚪 アプリ起動広告（`app_open_ad_helper.dart`）は実装済みだが **main.dart:46 でコメントアウトのまま**。解禁は未判断
 
 ### 🌌 覚醒（プレステージ）システム（v2.3.0、無限リプレイ性）
 - 段位（cpuRating）は鬼段位到達後も伸ばせるが、目標が尽きる問題への対策。`PlayerProfile.canAwaken`（鬼段位帯=`kCpuRanks.last.minRating`以上 かつ `cpuOniWins >= 3`）で解放
@@ -155,6 +166,9 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 - フォント: ロゴ=Mochiy Pop One、本文=Zen Maru Gothic（google_fonts経由）
 
 ## 残タスク（要ユーザー対応）
+- **Flutter を 3.35+ に上げる**（`flutter upgrade`）。pubspec の `sdk: '>=3.10.0'` と `in_app_purchase` がこれを要求する。上げないと `pub get` が通らない。壊れやすい依存: `google_mobile_ads` / `just_audio` / `flutter_local_notifications` / `google_mlkit_text_recognition`。`flutter pub outdated` を見て必要な最小限だけ上げる（Firebase系は連鎖するので詰まるまで触らない）
+- **Play Console にアプリ内アイテムを4つ登録**: `remove_ads`（管理対象/非消費）、`coins_small` / `coins_medium` / `coins_large`（消費型）。**IDが1文字でも違うと購入UIが出ない**
+- **Play Console のストア表示名を「なまえがお」に変更**（`store_assets/store_copy_aso_v2.6.md` の案。アプリ側の表示名はコードで対応済み）
 - デプロイ済みの旧Cloud Functions（generateSimilarNames/synthesizeSpeech/startGameOnPlayerCount）の削除: `firebase login` 後に `firebase deploy --only functions --force`（ローカルの `function/index.js` は空にしてある）
 - App Check強制化はFirebaseコンソール作業（v2.1.0が行き渡ってから）
 - `firestore.rules` はデプロイ済みのまま変更していない（新オンラインは既存ルールの範囲内で動作する設計）。`funnyNames`/`rankings` のルールは残っているが実害なし

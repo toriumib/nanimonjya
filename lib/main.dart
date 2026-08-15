@@ -10,6 +10,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
 import 'services/bgm.dart'; // ホーム/ゲーム/リザルトのBGM
+import 'services/purchase_service.dart'; // 💳 広告除去とコインパックの課金
 import 'services/push_service.dart'; // 既存ユーザーへのお知らせプッシュ
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
@@ -55,6 +56,8 @@ Future<void> main() async {
   DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
   // 💳 課金の初期化。購入ストリームを張って、未処理の購入や復元も拾う（await不要）
+  //    中で kIsWeb を見ているので、Web では何もせず返る。
+  PurchaseService.instance.init();
   runApp(const MyApp());
 }
 
