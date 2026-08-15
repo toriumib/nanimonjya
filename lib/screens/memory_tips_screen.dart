@@ -30,6 +30,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('memory_tips');
+    AppAnalytics.readOpen('memory_tips');
   }
 
   @override
@@ -55,6 +56,81 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     InterstitialAdHelper.instance.onGameFinished();
   }
 
+  /// 📑 目次を開く。選んだ話へその場で飛ぶ。
+  ///
+  /// ページ送りの点（ドット）は「どのあたりか」しか分からず、
+  /// 読みたい話を探すのには使えない。題名で選べるようにする。
+  Future<void> _openContents(bool ja) async {
+    Sfx.instance.pop();
+    const pages = kMemoryTipPages;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        maxChildSize: 0.92,
+        builder: (ctx, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Row(
+                children: [
+                  const Text('📑', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Text(ja ? '目次' : 'Contents',
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w900)),
+                  const Spacer(),
+                  Text(ja ? '全${pages.length}話' : '${pages.length} articles',
+                      style: const TextStyle(
+                          fontSize: 12.5, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                itemCount: pages.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (ctx, i) {
+                  final p = pages[i];
+                  final current = i == _page;
+                  return ListTile(
+                    leading: Text(p.emoji,
+                        style: const TextStyle(fontSize: 22)),
+                    title: Text(
+                      ja ? p.titleJa : p.titleEn,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight:
+                            current ? FontWeight.w900 : FontWeight.w600,
+                        color: current ? const Color(0xFF3A7BD5) : null,
+                      ),
+                    ),
+                    trailing: current
+                        ? const Icon(Icons.play_arrow_rounded,
+                            color: Color(0xFF3A7BD5))
+                        : Text('${i + 1}',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black38)),
+                    onTap: () => Navigator.pop(ctx, i),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    // アニメーションで送ると17ページぶん流れてしまうので、直接跳ぶ
+    _pageController.jumpToPage(picked);
+    setState(() => _page = picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ja = Localizations.localeOf(context).languageCode == 'ja';
@@ -68,6 +144,15 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
         title: Text(m.memoryTipsTitle),
         // タブとして表示するときは戻る矢印を出さない
         automaticallyImplyLeading: !widget.embedded,
+        actions: [
+          // 📑 目次。17ページを1枚ずつ送るのは大変なので、
+          //    読みたい話へ直接飛べるようにする。
+          IconButton(
+            tooltip: ja ? '目次' : 'Contents',
+            icon: const Icon(Icons.list_alt_rounded),
+            onPressed: () => _openContents(ja),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -76,6 +161,12 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
               controller: _pageController,
               itemCount: pages.length,
               onPageChanged: (i) {
+                // 📊 何ページ目で閉じられるかを見る。全25話あるので、
+                //    開いた数だけでは、どこで飽きたのかが分からない。
+                AppAnalytics.readPage(articleId: 'memory_tips', page: i);
+                if (i == pages.length - 1) {
+                  AppAnalytics.readFinish('memory_tips');
+                }
                 setState(() => _page = i);
                 _countRead();
               },
@@ -86,23 +177,42 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: Column(
               children: [
+                // 進み具合。話数が多いので点を並べず、
+                // 「7 / 17」と細いバーで出す（点17個は数えられない）。
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    pages.length,
-                    (i) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: i == _page ? 22 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: i == _page
-                            ? const Color(0xFF3A7BD5)
-                            : Colors.grey.shade300,
+                  children: [
+                    Text('${_page + 1} / ${pages.length}',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF3A7BD5))),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: (_page + 1) / pages.length,
+                          minHeight: 6,
+                          backgroundColor: Colors.grey.shade300,
+                          valueColor: const AlwaysStoppedAnimation(
+                              Color(0xFF3A7BD5)),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    TextButton.icon(
+                      onPressed: () => _openContents(ja),
+                      icon: const Icon(Icons.list_alt_rounded, size: 18),
+                      label: Text(ja ? '目次' : 'Contents',
+                          style: const TextStyle(
+                              fontSize: 12.5, fontWeight: FontWeight.w900)),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 14),
                 // 📚 最後のページに、コインで読める記事の一覧を置く。

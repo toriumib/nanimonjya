@@ -21,6 +21,7 @@ import '../widgets/double_coins_button.dart';
 import '../widgets/store_cta.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 🧠 思い出しトレーニング
 ///
@@ -108,6 +109,9 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('recall_training');
+    AppAnalytics.recallStart(
+        count: widget.people?.length ?? 0, fields: widget.fields.length);
     if (widget.people != null && widget.people!.isNotEmpty) {
       _people = [...widget.people!]..shuffle(_rng);
     } else {
@@ -286,6 +290,12 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       Sfx.instance.fanfare();
     } else {
       Sfx.instance.coin();
+    }
+    // 📊 名刺覚えの結果。people が渡ってきているのは
+    //    「顔メモの名簿」または「間隔反復（復習）」から来た場合。
+    //    どちらも再訪の理由になるので、通常の特訓と分けて数える。
+    if (widget.people != null) {
+      AppAnalytics.spacedReviewDone(total: total, correct: _correct);
     }
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
     // 🔔 ここは「時間をおいて思い出す」を体験した直後。間隔をあけた復習が

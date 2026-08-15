@@ -7,15 +7,6 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-analyzer:
-  exclude:
-    - build/**
-    - android/**
-    - ios/**
-    - web/**
-    - windows/**
-    - macos/**
-    - linux/**
 include: package:flutter_lints/flutter.yaml
 
 linter:
@@ -36,3 +27,17 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+# 🚀 project_noa は独立した Flutter プロジェクト（ADV『PROJECT NOA』）。
+#    ここから解析すると pubspec が二重になって誤検知が出るので外す。
+#    あちらは project_noa/ の中で flutter analyze を回す。
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+    - project_noa/**

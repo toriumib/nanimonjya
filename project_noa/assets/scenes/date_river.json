@@ -1,0 +1,47 @@
+{
+  "id": "date_river",
+  "chapter": "ACT III ／ 川",
+  "bg": "ship_river",
+  "bgAge": 3,
+  "bgm": { "id": "date_water", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "水循環プラントの下層には、川がある。" },
+    { "t": "mono", "text": "流速は毎秒〇・三メートル。藻類リアクタの効率がいちばん良くなる速さだ。" },
+    { "t": "mono", "text": "つまりこの川は、風景のためではなく、酸素のためにある。" },
+    { "t": "mono", "text": "それでも、水の音は水の音だった。" },
+
+    { "t": "say", "name": "星野", "sprite": "hoshino/smile",
+      "text": "祖父が、川で星を撮る人だったんです。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/normal",
+      "text": "水面に映るほうが、空より綺麗なんだって。" },
+
+    { "t": "mono", "text": "彼女は水面を見ていた。船の天井の照明が、そこに散っている。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/tired",
+      "text": "……本物の星空、見せられなかったな。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/tired",
+      "text": "地上はもう、空が赤くて。祖父が死ぬまで、一度も。" },
+
+    { "t": "choice", "options": [
+      { "text": "着いたら、いちばんに撮りましょう", "jump": "" },
+      { "text": "その話、覚えておきます", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "星野", "sprite": "hoshino/surprise",
+      "text": "……覚えて、どうするんですか。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "覚えていないと、着いたときに思い出せないので。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/smile",
+      "text": "……そっか。そうですね。それは、そうだ。" },
+
+    { "t": "mono", "text": "彼女は連絡先を教えてくれた。ORB-1140。" },
+    { "t": "mono", "text": "祖父に付けていた番号を、そのまま自分のIDにしたのだという。" },
+    { "t": "say", "name": "星野", "sprite": "hoshino/normal",
+      "text": "東大の天文部でした。……祖父の後輩になりたくて。" },
+
+    { "t": "aff", "char": "hoshino", "d": 2 },
+    { "t": "flag", "set": "date_river_done" },
+    { "t": "memtest", "char": "hoshino", "field": "school" },
+
+    { "t": "jump", "to": "act3_date_pick2" }
+  ]
+}

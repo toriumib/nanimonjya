@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../l10n/meta_strings.dart';
 import 'app_analytics.dart';
 import 'daily_reminder.dart';
+import 'push_service.dart';
 import 'player_profile.dart';
 import 'sfx.dart';
 
@@ -130,6 +131,9 @@ Future<bool> maybeAskNotify(BuildContext context) async {
   // ここで初めてOSの許可を求める。断られたらONにはしない
   //（許可が無いのに「お知らせします」と表示だけ残るのを避ける）。
   final granted = await DailyReminder.instance.requestPermission();
+  // お知らせプッシュ（FCM）も同じ同意で受け取れるようにする。
+  // Android は権限がアプリ共通なので実質2度目は出ない。iOS は APNs の登録。
+  await PushService.instance.askPermission();
   await p.setNotifyOptIn(granted);
   AppAnalytics.notifyPrompt(shown: false, accepted: true, granted: granted);
   if (context.mounted) {

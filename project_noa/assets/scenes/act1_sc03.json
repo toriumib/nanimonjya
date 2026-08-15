@@ -1,0 +1,90 @@
+{
+  "id": "act1_sc03",
+  "chapter": "ACT I ／ 残りの人たち",
+  "bg": "dome_hall",
+  "bgAge": 0,
+  "bgm": { "id": "first_meeting", "fade": 1.0 },
+  "lines": [
+    { "t": "mono", "text": "名刺交換は、まだ半分だった。" },
+    { "t": "mono", "text": "残っているのは、表に出ない仕事をしている人たちだ。" },
+    { "t": "mono", "text": "船を飛ばす人より、船が壊れないようにする人のほうが多い。" },
+
+    { "t": "say", "name": "三隅", "sprite": "mikami/normal",
+      "text": "三隅千歳です。材料工学。船殻の電磁シールドを担当します。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/smile",
+      "text": "趣味は編み物。……笑うところじゃないですよ。同じ理屈なので。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/normal",
+      "text": "編み目が一つ抜けると、そこから全部ほどける。船と同じです。" },
+    { "t": "aff", "char": "mikami", "d": 1 },
+
+    { "t": "say", "name": "荒瀬", "sprite": "arase/normal",
+      "text": "荒瀬一徹。推進機構造部。溶接だ。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/normal",
+      "text": "……趣味も溶接だが、書いていいのか、これは。" },
+    { "t": "mono", "text": "書いてもらった。趣味と仕事が同じ人は、覚えやすい。" },
+    { "t": "aff", "char": "arase", "d": 1 },
+
+    { "t": "say", "name": "内海", "sprite": "utsumi/smile",
+      "text": "内海螢です。海洋モデリング室。着いたあとの海を計算します。" },
+    { "t": "say", "name": "内海", "sprite": "utsumi/normal",
+      "text": "趣味は潜水。……もう、潜る海が無いんですけどね。" },
+    { "t": "say", "name": "内海", "sprite": "utsumi/smile",
+      "text": "向こうにあるらしいので。それを計算するのが、いまの仕事です。" },
+    { "t": "aff", "char": "utsumi", "d": 1 },
+
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "神崎遼。放射線防護研究室。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "趣味は写経です。手を動かしていないと、考えすぎるので。" },
+    { "t": "aff", "char": "kanzaki", "d": 1 },
+
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "戸部果林でーす。航法ソフトウェア班。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "趣味はアナログゲーム。持ち込み枠、二キロぜんぶボードゲームです。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/surprise",
+      "text": "……二キロ？" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "三百三十年ですよ。娯楽がないほうが危ないです。" },
+    { "t": "mono", "text": "所長は少し考えて、通した。" },
+    { "t": "aff", "char": "tobe", "d": 1 },
+
+    { "t": "say", "name": "篠原", "sprite": "shinohara/normal",
+      "text": "篠原恭平。栄養化学。……要は、飯です。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "趣味は出汁と発酵。三百年もつ味を、いま仕込んでます。" },
+    { "t": "aff", "char": "shinohara", "d": 1 },
+
+    { "t": "say", "name": "小栗", "sprite": "oguri/normal",
+      "text": "小栗澪。音響・居住環境室です。" },
+    { "t": "say", "name": "小栗", "sprite": "oguri/normal",
+      "text": "趣味はチェロ。……積めないので、置いてきます。" },
+    { "t": "aff", "char": "oguri", "d": 1 },
+
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "安曇千尋です。発達教育設計室。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "……向こうで生まれた子に、教える係です。" },
+    { "t": "mono", "text": "まだ一人も生まれていない子どもの、先生。" },
+    { "t": "mono", "text": "この船でいちばん、先の話をしている人だった。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "趣味は紙芝居。持ち込みます。かさばらないので。" },
+    { "t": "aff", "char": "azumi", "d": 1 },
+
+    { "t": "mono", "text": "十六枚。全員ぶん、受け取った。" },
+    { "t": "mono", "text": "両手で受け取り、声に出さずに三回、頭の中で名前を繰り返す。" },
+    { "t": "mono", "text": "それを十六回。" },
+
+    { "t": "choice", "options": [
+      { "text": "全員、覚えられる気がする", "jump": "" },
+      { "text": "……三百三十年は、長い", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "忘れてもいい。忘れたら、また聞けばいい。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "聞ける相手がいるうちは、それでいいんだ。" },
+
+    { "t": "jump", "to": "act2_sc00" }
+  ]
+}

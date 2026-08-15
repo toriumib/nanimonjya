@@ -28,32 +28,35 @@ class GuideTalk extends StatelessWidget {
       hour: DateTime.now().hour,
       ja: ja,
     );
+    // ⚠️ ここは主役ではない。ホームの主役は遊ぶボタンなので、
+    //    声かけが場所を取りすぎるとボタンが画面外へ押し出される。
+    //    アイコン・文字・余白すべて控えめにして、1〜2行に収める。
     return Container(
-      margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-      padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
+      margin: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+      padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD8E4F0), width: 1.4),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD8E4F0), width: 1.2),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SvgPicture.asset(line.asset, width: 44, height: 44),
-          const SizedBox(width: 8),
+          SvgPicture.asset(line.asset, width: 28, height: 28),
+          const SizedBox(width: 7),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(line.speaker,
-                    style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF2B5CA5))),
-                const SizedBox(height: 2),
-                Text(line.text,
-                    style: const TextStyle(fontSize: 13, height: 1.5)),
-              ],
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                  text: '${line.speaker}: ',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, color: Color(0xFF2B5CA5)),
+                ),
+                TextSpan(text: line.text),
+              ]),
+              style: const TextStyle(fontSize: 11.5, height: 1.35),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -88,14 +91,12 @@ GuideLine pickGuideLine({
   GuideLine nana(String t) => GuideLine(ja ? 'ナナちゃん' : 'Nana', _nanaAsset, t);
   GuideLine hana(String t) => GuideLine(ja ? 'はなちゃん' : 'Hana', _hanaAsset, t);
 
-  // ① まだ一度も遊んでいない人には、まず1回終わらせてもらう
-  if (profile.totalGames == 0) {
-    return nana(ja
-        ? 'はじめまして！まずは1ゲームだけ、いっしょにやってみよ。4人からで大丈夫だよ。'
-        : "Hi! Let's just finish one game together — four faces is plenty to start.");
-  }
+  // ⚠️ 初回の「はじめまして！まずは1ゲームだけ〜」は外した。
+  //    はじめて開いた人にいちばん見せたいのは遊ぶボタンで、
+  //    そこへ説明を重ねると読まずに素通りされる。
+  //    遊びかたはチュートリアルとルールで足りる。
 
-  // ② 復習どきの人がいる。いちばん行動につながるので最優先
+  // ① 復習どきの人がいる。いちばん行動につながるので最優先
   if (dueCount > 0) {
     return hana(ja
         ? 'きのう覚えた$dueCount人、そろそろ忘れかけのころ。いま思い出すと、いちばん残るよ。'

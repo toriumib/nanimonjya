@@ -8,6 +8,16 @@
 /// アプリ内のどこかに必ずクレジットを出すこと（マイページの音楽クレジット欄）。
 library;
 
+// 📉 2026-08 に8曲（約19MB）を削除した。
+//    ノクターン / 練習曲Op.10-4 / エリーゼのために / 歓喜の歌 /
+//    バーニングハート / アイネ・クライネ / ハルジオン / test_bgm
+//    音声だけで38MBあり、アプリ全体の大きな塊になっていたため。
+//
+// ⚠️ **曲を消すときは、必ず player_profile 側の既定値と
+//    保存済みの選択（selectedBgm / selectedResultBgm / selectedHomeBgm /
+//    unlockedBgm）を確認すること。** 消したファイル名が残っていると無音になる。
+//    救済は [resolveBgm] で行う。
+
 class BgmItem {
   final String asset;
   final String nameJa;
@@ -30,22 +40,74 @@ class BgmItem {
 
 const List<BgmItem> kBgmCatalog = [
   // --- クラシック（パブリックドメイン） ---
-  BgmItem('op9-2-Nocturne.mp3', 'ノクターン Op.9-2', 'Nocturne Op.9-2', 0),
-  BgmItem('bgm_ode_to_joy.wav', '歓喜の歌', 'Ode to Joy', 150),
-  BgmItem('for_siciliano.mp3', 'シチリアーノ', 'Siciliano', 300),
-  BgmItem('bgm_fur_elise.wav', 'エリーゼのために', 'Für Elise', 400),
-  BgmItem('op.10-4.mp3', '練習曲 Op.10-4', 'Étude Op.10-4', 500),
-  BgmItem('bgm_eine_kleine.wav', 'アイネ・クライネ', 'Eine kleine Nachtmusik', 700),
+  BgmItem('for_siciliano.mp3', 'シチリアーノ', 'Siciliano', 0),
+  BgmItem('beethoven_5th.mp3', '運命（第5番）', 'Symphony No.5 "Fate"', 0),
   BgmItem('c00Chopin_Fantaisie-Impromptu.mp3', '幻想即興曲', 'Fantaisie-Impromptu', 800),
+  // --- そのほか ---
+  BgmItem('shining_star.mp3', 'シャイニングスター', 'Shining Star', 0),
   // --- 魔王魂（クレジット表記が必要） ---
-  BgmItem('05_halzion.mp3', 'ハルジオン', 'Halzion', 250, needsCredit: true),
-  BgmItem('08_burning_heart.mp3', 'バーニングハート', 'Burning Heart', 350,
-      needsCredit: true),
-  BgmItem('19_12345.mp3', '12345', '12345', 450, needsCredit: true),
+  BgmItem('19_12345.mp3', '12345', '12345', 0, needsCredit: true),
+  // --- 🏆 勝利のとき用（20秒に切り出した行進曲） ---
+  BgmItem('victory_pomp.mp3', '威風堂々', 'Pomp and Circumstance', 0),
+  BgmItem('victory_beethoven.mp3', '運命（勝利版）', 'Symphony No.5 (victory)', 0),
+  BgmItem('victory_gunkan.mp3', '軍艦マーチ', 'Warship March', 0),
+  BgmItem('victory_march.mp3', '義勇軍進行曲', 'March of the Volunteers', 0),
+];
+
+/// 🏆 勝ったときにランダムで流す曲。
+///
+/// [kResultBgmRandom] が選ばれているとき、この中から毎回引く。
+///
+/// ⚠️ **ここに載せる曲は [kFreeBgmAssets] にも入れること。**
+///    買っていない曲が勝手に鳴ってしまう。
+///
+/// ⚠️ 曲を減らしたいときは、この配列から外すだけでよい。
+///    カタログから消す必要はない（設定で個別に選べる状態は残る）。
+const List<String> kVictoryRandomPool = [
+  'victory_pomp.mp3',
+  'victory_beethoven.mp3',
+  'victory_gunkan.mp3',
+  'victory_march.mp3',
+];
+
+/// リザルトの曲に「おまかせ」を選んだときの目印。
+/// これのときは [kVictoryRandomPool] から毎回引く。
+const String kResultBgmRandom = 'random_victory';
+
+/// 🎁 最初から使える曲。
+///
+/// ⚠️ **ここに載せる曲は、必ず [kBgmCatalog] にも `assets/audio/` にも
+///    存在すること。** 片方でも欠けると、その人のBGMが無音になる。
+const List<String> kFreeBgmAssets = [
+  'for_siciliano.mp3', // ホームの既定（ランダムの片方）
+  'beethoven_5th.mp3', // ホームの既定（ランダムの片方）
+  'shining_star.mp3',
+  '19_12345.mp3',
+  // 🏆 勝利のとき用
+  ...kVictoryRandomPool,
 ];
 
 /// クレジット表記が必要な提供元があるか。
+/// ⚠️ true の曲が1曲でもある限り、アプリ内にクレジットを出すこと。
 bool get kHasCreditedBgm => kBgmCatalog.any((b) => b.needsCredit);
+
+/// カタログに載っているか（＝アセットが同梱されているか）。
+///
+/// ⚠️ **曲を削除したときに、保存済みの選択を救うために使う。**
+///    2026-08 にBGMを8曲消したとき、`selectedBgm` の既定が
+///    削除対象（`08_burning_heart.mp3`）のままだったため、
+///    そのまま出していれば全員が無音になるところだった。
+bool isKnownBgm(String asset) => kBgmCatalog.any((b) => b.asset == asset);
+
+/// 保存されていた曲が消えていたら、代わりの曲を返す。
+String resolveBgm(String saved, String fallback) =>
+    isKnownBgm(saved) ? saved : fallback;
+
+/// 🎮 試合中の既定曲。
+const String kDefaultGameBgmAsset = 'for_siciliano.mp3';
+
+/// 🏆 リザルトの既定。**おまかせ**（勝利曲からランダム）。
+const String kDefaultResultBgmAsset = kResultBgmRandom;
 
 /// 🏠 ホーム画面で流す曲。
 ///
@@ -53,6 +115,79 @@ bool get kHasCreditedBgm => kBgmCatalog.any((b) => b.needsCredit);
 ///
 /// 以前は魔王魂「ハルジオン」（アップテンポのロック）を流していたが、
 /// 記憶のトレーニングに集中したいアプリの性格に合わず落ち着かないため、
-/// 穏やかなクラシック（シチリアーノ・パブリックドメイン）に変更した。
-/// 副次的に、ホームで魔王魂の曲を使わなくなった。
+/// 穏やかなクラシック（パブリックドメイン）に変更した。
 const String kHomeBgmAsset = 'for_siciliano.mp3';
+
+/// 🎲 ホームで**ランダムに選ぶ**曲。
+///
+/// 毎回おなじ曲だと、起動のたびに同じ体験になって飽きる。
+/// 落ち着いたシチリアーノと、力の入る運命を交互に引かせる。
+///
+/// ⚠️ ここに載せる曲は [kFreeBgmAssets] にも入れること。
+///    買っていない曲が勝手に鳴ってしまう。
+const List<String> kHomeRandomPool = [
+  'for_siciliano.mp3',
+  'beethoven_5th.mp3',
+];
+
+/// マイページで「ホームの曲」に選べる特別な値。
+/// これが選ばれているときは [kHomeRandomPool] から毎回引く。
+const String kHomeBgmRandom = 'random';
+
+/// 保存されていたBGM設定一式。
+class BgmSelection {
+  final Set<String> unlocked;
+  final String game;
+  final String result;
+  final String home;
+
+  const BgmSelection({
+    required this.unlocked,
+    required this.game,
+    required this.result,
+    required this.home,
+  });
+}
+
+/// 💾 保存されていたBGM設定を、いまのカタログに合わせて直す。
+///
+/// ⚠️ **これが無いと、曲を消したときに無音になる。**
+///    保存されているのはファイル名なので、アプリから曲を消しても
+///    端末には古い名前が残る。それを再生しようとして何も鳴らない。
+///    2026-08 に8曲消したときに現実の危険になった。
+///
+/// ⚠️ 純粋関数にしてあるのは、テストを書くため。
+///    `PlayerProfile` はシングルトンで `load()` が一度しか走らないので、
+///    そちらでは「古い値から復帰する」試験が書けない。
+BgmSelection migrateBgmSelection({
+  required Iterable<String> savedUnlocked,
+  required String? savedGame,
+  required String? savedResult,
+  required String? savedHome,
+}) {
+  final unlocked = savedUnlocked.where(isKnownBgm).toSet()
+    ..addAll(kFreeBgmAssets);
+
+  // ⚠️ fallback が 'random…' のときは、ファイル名として検査しない。
+  String pick(String? saved, String fallback) {
+    if (saved == fallback) return fallback;
+    final v = resolveBgm(saved ?? fallback, fallback);
+    return unlocked.contains(v) ? v : fallback;
+  }
+
+  // 🎲 ホームとリザルトは 'random…' という**ファイル名ではない値**を取りうる。
+  //    先に見分けないと、カタログに無いとして弾かれてしまう。
+  final home = (savedHome == kHomeBgmRandom)
+      ? kHomeBgmRandom
+      : pick(savedHome, kHomeBgmRandom);
+  final result = (savedResult == kResultBgmRandom)
+      ? kResultBgmRandom
+      : pick(savedResult, kDefaultResultBgmAsset);
+
+  return BgmSelection(
+    unlocked: unlocked,
+    game: pick(savedGame, kDefaultGameBgmAsset),
+    result: result,
+    home: home,
+  );
+}

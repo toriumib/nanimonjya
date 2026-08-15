@@ -43,6 +43,9 @@ const int kCpuRatingFloor = 400;
 /// 鬼段位CPU（oni）を選択できるようになるレーティング。
 const int kOniUnlockRating = 1500;
 
+/// 神CPU（god）を選択できるようになるレーティング。鬼に3回勝つ必要がある。
+const int kGodUnlockRating = 2000;
+
 /// 覚醒回数を段位名に添える表示（例: "鬼段位 🌌×2"）。0回なら付けない。
 String rankLabelWithAwakenings(CpuRank rank, bool ja, int awakenings) {
   final base = '${rank.emoji} ${ja ? rank.nameJa : rank.nameEn}';

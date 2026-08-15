@@ -15,9 +15,11 @@ import '../widgets/face_view.dart';
 import 'avatar_editor_screen.dart';
 import 'name_call_screen.dart';
 import 'recall_training_screen.dart';
+import 'character_deck_screen.dart'; // 🎴 出演のON/OFF
 import 'study_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 import '../widgets/native_ad_card.dart';
 
 /// 「おぼえる」= 自分の名簿の管理画面。
@@ -39,6 +41,8 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('custom_roster');
+    AppAnalytics.faceMemoOpen(widget.startAvatar ? 'home' : 'tab');
     CustomRosterService.instance.load();
     if (widget.startAvatar) {
       // 一覧を挟まず、そのまま顔づくりへ入る
@@ -49,6 +53,8 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   }
 
   Future<void> _addPhoto(ImageSource source) async {
+    AppAnalytics.faceMemoAddStart(
+        source == ImageSource.camera ? 'camera' : 'photo');
     try {
       final picked =
           await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 80);
@@ -62,6 +68,9 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             builder: (_) => _EntryFormScreen(facePath: picked.path)),
       );
       if (result == null || result.entry.name.trim().isEmpty) return;
+      AppAnalytics.faceMemoAdded(
+          kind: source == ImageSource.camera ? 'camera' : 'photo',
+          fieldsFilled: _filledCount(result.entry));
       await CustomRosterService.instance.add(
         sourcePath: picked.path,
         draft: result.entry,
@@ -82,6 +91,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
   /// 特徴（メガネ・ほくろ・髪型）を選んで顔を組み立てれば、
   /// 写真が無くても顔と名前を結びつけて覚えられる。
   Future<void> _addAvatar() async {
+    AppAnalytics.faceMemoAddStart('avatar');
     final avatar = await Navigator.push<Avatar>(
       context,
       MaterialPageRoute(builder: (_) => const AvatarEditorScreen()),
@@ -92,11 +102,28 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
       MaterialPageRoute(builder: (_) => _EntryFormScreen(avatar: avatar)),
     );
     if (result == null || result.entry.name.trim().isEmpty) return;
+    AppAnalytics.faceMemoAdded(
+        kind: 'avatar', fieldsFilled: _filledCount(result.entry));
     await CustomRosterService.instance.add(
       draft: result.entry.copyWith(avatar: avatar.encode()),
       cardSourcePath: result.cardPath,
     );
     Sfx.instance.coin();
+  }
+
+  /// 📊 18項目のうち、いくつ埋まったか。
+  ///
+  /// 名前しか入れない人が多いのか、全部埋める人がいるのかで、
+  /// フォームを削るべきかどうかが決まる。
+  /// ⚠️ id と画像パスは「入力した項目」ではないので数えない。
+  static int _filledCount(CustomEntry e) {
+    const skip = {'id', 'imagePath', 'avatar', 'cardImagePath'};
+    var n = 0;
+    e.toJson().forEach((k, v) {
+      if (skip.contains(k)) return;
+      if (v is String && v.trim().isNotEmpty) n++;
+    });
+    return n;
   }
 
   /// 登録済みの人を開いて、項目を見る／直す。
@@ -159,9 +186,9 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             ListTile(
               leading: const Icon(Icons.face_retouching_natural,
                   color: Color(0xFF8A5AC2)),
-              title: const Text('顔メモをつくる（アバター）'),
+              title: const Text('似顔絵をつくる（写真が無いとき）'),
               subtitle: const Text(
-                  '写真が無くてもOK。メガネ・ほくろ・髪型で特徴を残せます',
+                  '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます',
                   style: TextStyle(fontSize: 11.5)),
               onTap: () {
                 Navigator.pop(sheetContext);
@@ -204,7 +231,16 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
 
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(),
-      appBar: AppBar(title: Text(m.tabMemorize)),
+      // 用途が分かるように、見出しは「顔メモ（会社・学校の人）」を出す。
+      // タブ名（tabMemorize）は幅が狭いので短い「顔メモ」のまま。
+      // ⚠️ 見出しは既定で22ptなので、このまま出すと横に収まらず切れる。
+      //    FittedBox で幅に合わせて縮める。
+      appBar: AppBar(
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(m.customTitle),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddSheet,
         icon: const Icon(Icons.add_a_photo),
@@ -233,16 +269,53 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                       child: Text(m.customDesc,
                           style: const TextStyle(fontSize: 13, height: 1.5)),
                     ),
+                    const SizedBox(height: 12),
+                    // 🎴 説明のすぐ下に置く。
+                    //    右上のアイコンだけだと気づかれず、
+                    //    「登録した人が対戦に出せる」ことに辿りつけない。
+                    _deckButton(),
                     const SizedBox(height: 16),
                     if (entries.length >= 2) _actionButtons(m, entries),
                     const SizedBox(height: 16),
+                    // 🧑‍🎨 まだ0人のとき。文字で「＋から追加してね」と書くだけだと、
+                    //    右下のボタンを押すまで似顔絵が作れることに気づけない。
+                    //    いちばんよく使う入口を、空の場所に大きく置く。
                     if (entries.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Text(
-                          m.customEmpty,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.black54),
+                        padding: const EdgeInsets.symmetric(vertical: 28),
+                        child: Column(
+                          children: [
+                            Text(
+                              m.customEmpty,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              onPressed: _addAvatar,
+                              icon: const Icon(
+                                  Icons.face_retouching_natural, size: 26),
+                              label: const Text('似顔絵をつくる'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF8A5AC2),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 26, vertical: 15),
+                                textStyle: const TextStyle(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              '職場の人の写真は撮りにくいもの。\n'
+                              'メガネ・ほくろ・髪型で特徴を残せます。',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.black54,
+                                  height: 1.5),
+                            ),
+                          ],
                         ),
                       )
                     else
@@ -270,10 +343,66 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     );
   }
 
+  /// 🎴 キャラデッキへの導線。
+  ///
+  /// ここで登録した人は、ふつうの「なまえがお」にもそのまま出てくる。
+  /// それを知らないと「知らない顔が出た」と驚くだけになるので、
+  /// **何が起きるか**と**どこで切り替えるか**を1つのボタンに込める。
+  Widget _deckButton() {
+    return Material(
+      color: const Color(0xFFEAF6FF),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Sfx.instance.pop();
+          Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => const CharacterDeckScreen()));
+        },
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF7FB6E8), width: 1.8),
+          ),
+          child: const Row(
+            children: [
+              Text('🎴', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'キャラデッキをひらく',
+                      style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF2B5CA5)),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'ここで登録した人は、ふつうの対戦にも出てきます。\n'
+                      '出す・出さないはキャラデッキで切り替えられます。',
+                      style: TextStyle(fontSize: 11.5, height: 1.45),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Color(0xFF2B5CA5)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _actionButtons(MetaStrings m, List<CustomEntry> entries) {
     final people = entries.map((e) => e.toPerson()).toList();
     return Column(
       children: [
+        // 🎴 キャラデッキへの導線は、説明文のすぐ下（_deckButton）に
+        //    1つだけ置く。ここにも同じ案内を出すと二重になる。
         Row(
           children: [
             Expanded(
@@ -323,7 +452,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
           child: Text(m.customRecallQuizButton),
         ),
         const SizedBox(height: 10),
-        // オフライン対戦（この名簿でなまえコール）: 2〜4人でみんなで
+        // オフライン対戦（この名簿でなまえがお）: 2〜4人でみんなで
         ElevatedButton(
           onPressed: () => _startCustomBattle(people),
           style: ElevatedButton.styleFrom(

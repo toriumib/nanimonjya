@@ -6,33 +6,38 @@ import '../services/ad_ids.dart';
 import '../services/app_analytics.dart';
 import '../services/player_profile.dart';
 
-/// 🧩 一覧の中に差しこむネイティブ アドバンス広告。
+/// 🧩 一覧やリザルトに差しこむネイティブ アドバンス広告。
 ///
 /// バナーより単価が高く、まわりのカードに馴染ませられるのが利点。
-/// そのぶん**広告だと分かる表示**（「広告」バッジ）が必須で、
-/// それは Android 側のレイアウト native_ad_small.xml に入れてある。
+/// そのぶん「広告」だと分かる表示が要るが、そこは **Google 公式テンプレート**
+/// （[NativeTemplateStyle]）が面倒を見てくれる。
 ///
-/// ⚠️ Dart だけでは動かない。次の3つがそろって初めて表示される:
-///   1. android/app/src/main/res/layout/native_ad_small.xml
-///   2. NativeAdFactorySmall.kt
-///   3. MainActivity.configureFlutterEngine での registerNativeAdFactory('small')
+/// ⚠️ **factoryId 方式（自前レイアウト）は採用していない。**
+///    自前でやると Android 側に3点セットが要る
+///    （res/layout の xml・NativeAdFactory の Kotlin・MainActivity での
+///    registerNativeAdFactory）。Dart だけ直しても直らない構造になり、
+///    壊れたときの原因究明が重い。見た目の自由度と引き換えに
+///    公式テンプレートへ寄せてある。**Android 側の追加実装はゼロ。**
 ///
-/// ⚠️ 高さは読み込む前から確保しておく（BannerAdSlot と同じ考え方）。
-///    あとから広告が届いて一覧がずり上がると、押そうとした指が広告に当たる。
-///    誤タップを誘発する配置はポリシー違反にもなりうる。
+/// ⚠️ 高さは読み込む前から確保する。あとから広告が挿入されて一覧がずり上がると、
+///    押そうとした指が広告に当たる。誤タップを誘発する配置はポリシー違反にも
+///    なりうる（BannerAdSlot と同じ考え方）。
 ///
 /// 出さない条件: Web／広告除去を買った人／本番IDが未設定のとき。
 class NativeAdCard extends StatefulWidget {
-  /// 分析用の場所名（'article_library' など）。
+  /// 分析用の場所名（'article_library' / 'result' など）。
+  /// どの面が埋まってどの面が埋まらないかを分けて数えるために使う。
   final String placement;
 
-  /// 確保しておく高さ。レイアウトの実寸に合わせてある。
-  final double height;
+  /// テンプレートの大きさ。
+  /// 一覧の途中に挟むときは [TemplateType.small]、
+  /// リザルトのように見せ場が取れるところは [TemplateType.medium]。
+  final TemplateType templateType;
 
   const NativeAdCard({
     super.key,
     required this.placement,
-    this.height = 116,
+    this.templateType = TemplateType.small,
   });
 
   @override
@@ -43,13 +48,21 @@ class _NativeAdCardState extends State<NativeAdCard> {
   NativeAd? _ad;
   bool _loaded = false;
   bool _failed = false;
+  bool _requested = false;
+
+  /// 読み込み前に確保しておく高さ（テンプレートの概算）。
+  double get _slotHeight =>
+      widget.templateType == TemplateType.medium ? 340 : 120;
 
   bool get _suppressed =>
       kIsWeb || !AdIds.nativeAvailable || PlayerProfile.instance.adsRemoved;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 1回だけ走らせる（BannerAdSlot と同じ作り）
+    if (_requested) return;
+    _requested = true;
     if (_suppressed) return;
     _load();
   }
@@ -57,8 +70,11 @@ class _NativeAdCardState extends State<NativeAdCard> {
   void _load() {
     final ad = NativeAd(
       adUnitId: AdIds.nativeAdvanced,
-      factoryId: 'small', // MainActivity で登録している ID
       request: const AdRequest(),
+      nativeTemplateStyle: NativeTemplateStyle(
+        templateType: widget.templateType,
+        cornerRadius: 16,
+      ),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           AppAnalytics.nativeAdResult(
@@ -93,16 +109,18 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   @override
   Widget build(BuildContext context) {
-    // 出さないと決まっている／読み込みに失敗が確定した ときは場所も取らない
+    // 出さないと決まっている／読み込み失敗が確定した ときは場所も取らない
     if (_suppressed || _failed) return const SizedBox.shrink();
-    // 読み込み中も高さは確保しておく。あとから広告が挿入されて
-    // 一覧がずり上がると、押そうとした指が広告に当たる（誤タップ）。
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: SizedBox(
-        height: widget.height,
+        height: _slotHeight,
+        width: double.infinity,
         child: (_loaded && _ad != null)
-            ? AdWidget(ad: _ad!)
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: AdWidget(ad: _ad!),
+              )
             : const SizedBox.shrink(),
       ),
     );

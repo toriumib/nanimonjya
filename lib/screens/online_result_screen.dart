@@ -19,6 +19,7 @@ import 'online_lobby_screen.dart';
 import 'ranking_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// オンライン同時レースの結果画面。
 /// 相手の結果が届くのを待ち、手数（同数ならタイム）で勝敗を決める。
@@ -29,7 +30,7 @@ class OnlineResultScreen extends StatefulWidget {
   final int myPairs;
 
   /// false（ペアさがし）: 手数が少ない方が勝ち（同数ならタイム）。
-  /// true（なまえコール）: 獲得枚数が多い方が勝ち（同数ならタイム）。
+  /// true（なまえがお）: 獲得枚数が多い方が勝ち（同数ならタイム）。
   final bool higherPairsWins;
 
   /// 🏆 ランクマッチか。true のときは Firestore のランキング
@@ -67,6 +68,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('online_result');
     widget.session.opponentResult.addListener(_onOpponentResult);
     _onOpponentResult(); // 既に届いている場合
     // 相手が長時間終わらない場合は勝ち扱い（切断・放置対策）
@@ -99,7 +101,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     final oppMs = (r['ms'] as num?)?.toInt() ?? 1 << 30;
     final oppPairs = (r['pairs'] as num?)?.toInt() ?? 0;
     if (widget.higherPairsWins) {
-      // なまえコール: 獲得枚数 → タイム
+      // なまえがお: 獲得枚数 → タイム
       if (widget.myPairs != oppPairs) {
         _decide(win: widget.myPairs > oppPairs);
       } else if (widget.myMs != oppMs) {
@@ -211,7 +213,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
         ValueListenableBuilder<int>(
           valueListenable: widget.session.opponentProgress,
           builder: (context, value, _) => Text(
-            // なまえコールは部屋ごとに出演人数が違うので、部屋の設定を使う
+            // なまえがおは部屋ごとに出演人数が違うので、部屋の設定を使う
             '🌐 $value/${widget.session.game == 'namecall' ? widget.session.peopleCount : OnlineMatchService.levelPairs} ${m.pairsUnit}',
             style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),

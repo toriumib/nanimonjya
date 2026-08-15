@@ -1,0 +1,65 @@
+{
+  "id": "act3_sc01",
+  "chapter": "ACT III ／ 第一覚醒期（第28年）",
+  "bg": "ship_corridor",
+  "bgAge": 1,
+  "bgm": { "id": "cold_wake", "fade": 2.0 },
+  "lines": [
+    { "t": "mono", "text": "発射の日のことは、あまり覚えていない。" },
+    { "t": "mono", "text": "十八番ホールのグリーンの真下から、船は空へ出た。" },
+    { "t": "mono", "text": "人類最後のティーショットだ、と誰かが言って、誰も笑わなかった。" },
+
+    { "t": "skip28y" },
+    { "t": "se", "id": "pod_open" },
+    { "t": "mono", "text": "——二十八年。" },
+    { "t": "mono", "text": "冷凍ポッドが開く音は、炭酸を開けた音に似ている。" },
+    { "t": "mono", "text": "体は覚えている。指も動く。" },
+    { "t": "mono", "text": "覚えていないのは、名前のほうだった。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "起きたか。……言っておくが、これは正常だ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "長期保存で、記憶がにじむ。誰の記憶かの区別が、あいまいになる。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "クロス・コンタミネーション、と呼んでいる。" },
+
+    { "t": "choice", "options": [
+      { "text": "治せるんですか", "jump": "" },
+      { "text": "……防ぐ方法は", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "薬は無い。あるのは、思い出す練習だけだ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "読み返すんじゃない。**思い出す**。目を閉じて、名前を言え。" },
+    { "t": "mono", "text": "——それは、私の仕事だった。" },
+
+    { "t": "bg", "id": "ship_lounge", "bgAge": 1 },
+    { "t": "mono", "text": "起きてきた人たちが、順に前を通る。" },
+    { "t": "mono", "text": "二十八年ぶりの顔。二十八年前の名刺。" },
+
+    { "t": "say", "name": "日比野", "sprite": "hibino/smile",
+      "text": "おはようございます。……覚えてます？" },
+    { "t": "memtest", "char": "hibino", "field": "name" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/smile",
+      "text": "よかった。窯の土、まだ持ってますよ。" },
+
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "……久しぶり、というには長すぎますね。" },
+    { "t": "memtest", "char": "kiryu", "field": "hobby" },
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "起きました？　ぬか床、まだ生きてます。三十年ぶりに混ぜました。" },
+    { "t": "memtest", "char": "mizuhara", "field": "affiliation" },
+
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "循環は問題ない。……盆栽のほうは、少し伸びた。" },
+    { "t": "memtest", "char": "tachibana", "field": "hobby" },
+
+    { "t": "mono", "text": "思い出せた人の顔は、はっきりしている。" },
+    { "t": "mono", "text": "思い出せなかった人の顔は、少しだけ、遠い。" },
+    { "t": "mono", "text": "それだけの違いが、三百三十年ぶんつづく。" },
+
+    { "t": "jump", "to": "act3_date_pick" }
+  ]
+}

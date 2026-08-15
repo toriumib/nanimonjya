@@ -1,0 +1,62 @@
+{
+  "id": "act2_sc01b",
+  "chapter": "ACT II ／ 船を、作り直す",
+  "bg": "engine_bay",
+  "bgAge": 0,
+  "bgm": { "id": "rebuild", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "定員が十二から百八になった、ということは。" },
+    { "t": "mono", "text": "船を、九倍の人が住めるように作り直す、ということだった。" },
+
+    { "t": "say", "name": "荒瀬", "sprite": "arase/tired",
+      "text": "……正気か。設計は三年前に凍結してるんだぞ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "凍結を解けばいい。生存率は百パーセントになった。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/tired",
+      "text": "人が死なんくなっただけで、鉄が増えるわけじゃない。" },
+
+    { "t": "mono", "text": "荒瀬一徹は、机を叩いたりはしなかった。" },
+    { "t": "mono", "text": "ただ、図面を広げて、線を一本ずつ数えはじめた。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/normal",
+      "text": "……居住区を増やすと、重心が上がる。回転が保たん。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/normal",
+      "text": "船殻を薄くできれば、そのぶん内側に回せます。" },
+    { "t": "say", "name": "三隅", "sprite": "mikami/tired",
+      "text": "……でも薄くすると、放射線が通ります。" },
+
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "そこは、私の仕事ですね。" },
+    { "t": "mono", "text": "神崎遼は、いつもどおり静かに言った。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "遮蔽を、水でやります。どうせ積む水です。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "居住区の外側に回して、壁として使えば、二役になる。" },
+
+    { "t": "choice", "options": [
+      { "text": "水が減ったら、壁が薄くなりませんか", "jump": "" },
+      { "text": "その水、飲むぶんと同じですよね", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/smile",
+      "text": "……いい質問です。減りません。循環しているので。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "橘さんの閉鎖系が九十九・二パーセントで回っている。" },
+    { "t": "say", "name": "神崎", "sprite": "kanzaki/normal",
+      "text": "つまり、飲んだぶんは壁に戻ってくる。" },
+    { "t": "mono", "text": "飲んだ水が、壁になる。壁が、また飲み水になる。" },
+    { "t": "mono", "text": "この船は、そういうふうに閉じている。" },
+
+    { "t": "aff", "char": "kanzaki", "d": 2 },
+    { "t": "aff", "char": "arase", "d": 1 },
+    { "t": "aff", "char": "mikami", "d": 1 },
+    { "t": "memtest", "char": "kanzaki", "field": "hobby" },
+    { "t": "memtest", "char": "arase", "field": "affiliation" },
+
+    { "t": "mono", "text": "——ただし、九十九・二では足りない。" },
+    { "t": "mono", "text": "残りの〇・八が、三百三十年で全部抜ける。" },
+    { "t": "mono", "text": "次に詰まったのは、そこだった。" },
+    { "t": "flag", "set": "act2_nitrogen_problem" },
+
+    { "t": "jump", "to": "act2_sc02" }
+  ]
+}

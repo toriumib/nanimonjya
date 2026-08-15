@@ -1,0 +1,99 @@
+{
+  "id": "act3_sc04",
+  "chapter": "ACT III ／ 名簿を読む夜",
+  "bg": "ship_archive",
+  "bgAge": 7,
+  "bgm": { "id": "roll_call", "fade": 2.0 },
+  "lines": [
+    { "t": "mono", "text": "覚醒期の最後の夜には、決まってやることがあった。" },
+    { "t": "mono", "text": "全員を集めて、名簿を読み上げる。" },
+    { "t": "mono", "text": "最初は私が勝手にやっていたことだが、いつのまにか行事になった。" },
+
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "はじまるぞー。飯は先に食っとけよ、二時間かかるからな。" },
+    { "t": "mono", "text": "五百人。ひとりずつ名前を呼ぶ。呼ばれた人が返事をする。" },
+    { "t": "mono", "text": "それだけの会だ。" },
+
+    { "t": "say", "name": "戸部", "sprite": "tobe/normal",
+      "text": "……効率で言えば、意味ないんですよね、これ。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "点呼なら、端末が三秒で終わらせます。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "端末は、呼びません。数えるだけです。" },
+    { "t": "say", "name": "戸部", "sprite": "tobe/smile",
+      "text": "……ですよねー。分かってて言いました。" },
+
+    { "t": "choice", "options": [
+      { "text": "呼ぶことに、意味があると思う", "jump": "" },
+      { "text": "……ただの習慣かもしれない", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "習慣、というのは馬鹿にできませんよ。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "思い出す練習を、間をあけて繰り返している。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/smile",
+      "text": "……記憶の残しかたとしては、たぶん最適に近い。" },
+    { "t": "aff", "char": "kiryu", "d": 1 },
+    { "t": "memtest", "char": "kiryu", "field": "affiliation" },
+
+    { "t": "bg", "id": "ship_hall", "bgAge": 7 },
+    { "t": "mono", "text": "名簿は、五百二十四人ぶんある。" },
+    { "t": "mono", "text": "けれど、返事が返ってくるのは五百人ぶんだ。" },
+    { "t": "mono", "text": "二十四人は、地上に残った人たちの名前。" },
+    { "t": "mono", "text": "招待状を渡して、断られた人たちだ。" },
+
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……この二十四人も、読み上げていいですか。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/surprise",
+      "text": "返事は無いぞ。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "はい。それでも、名簿には載っているので。" },
+
+    { "t": "mono", "text": "所長は、しばらく黙っていた。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "……読め。それは、君の仕事だ。" },
+    { "t": "aff", "char": "tsuchikura", "d": 1 },
+
+    { "t": "mono", "text": "その夜から、点呼は二時間半になった。" },
+    { "t": "mono", "text": "返事の返らない二十四人を読むあいだ、全員が黙っている。" },
+    { "t": "mono", "text": "それが、この船のいちばん静かな時間だった。" },
+    { "t": "flag", "set": "act3_roll_call_24" },
+
+    { "t": "bg", "id": "ship_lounge", "bgAge": 7 },
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "……向こうで生まれた子にも、これ、やらせますか。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "どうでしょう。押しつけるものでもない気がします。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "そうですね。……でも、たぶん勝手にやりますよ。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "子どもって、大人がやってることを真似するので。" },
+
+    { "t": "mono", "text": "三百年後の点呼を、私は見られない。" },
+    { "t": "mono", "text": "けれど、あるかもしれない、とは思えた。" },
+    { "t": "memtest", "char": "azumi", "field": "school" },
+
+    { "t": "bg", "id": "med_lab", "bgAge": 7 },
+    { "t": "mono", "text": "点呼のあと、冷凍室をひと回りするのが癖になっていた。" },
+    { "t": "mono", "text": "五百のポッド。ひとつずつ、番号札がついている。" },
+    { "t": "mono", "text": "気づくと、袖で一枚だけ拭いている。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "……毎晩やってるな、それ。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "え。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "番号札。毎晩ひとつ、磨いてる。順番に。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "……覚えがありません。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
+      "text": "だろうな。手のほうが覚えてるんだ。" },
+    { "t": "mono", "text": "五百枚を、順に。一周するのに一年半かかる計算だった。" },
+    { "t": "mono", "text": "何周したのかも、覚えていない。" },
+    { "t": "flag", "set": "mystery_tags_noticed" },
+    { "t": "aff", "char": "shirakawa", "d": 1 },
+
+    { "t": "jump", "to": "act4_sc00" }
+  ]
+}

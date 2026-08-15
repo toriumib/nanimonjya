@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart'; // TemplateType
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
@@ -18,10 +19,12 @@ import '../services/review_prompt.dart';
 import '../widgets/double_coins_button.dart';
 import '../widgets/roster_reveal.dart';
 import '../widgets/store_cta.dart';
+import '../widgets/native_ad_card.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// ローカル対戦（1台で2〜4人）の結果画面。獲得数のランキングを表示する。
-/// [nameCall] がtrueなら「なまえコール」（単位は枚、再戦もなまえコール）。
+/// [nameCall] がtrueなら「なまえがお」（単位は枚、再戦もなまえがお）。
 class LocalResultScreen extends StatefulWidget {
   final List<int> pairsWon; // index=プレイヤー番号
   final int level;
@@ -32,7 +35,7 @@ class LocalResultScreen extends StatefulWidget {
   final int peopleCount;
 
   /// 📇 この試合に出てきた人たち。結果で「誰が誰だったか」を見せる。
-  /// なまえコールは各自が名前をつけるので、[Person.name] ではなく
+  /// なまえがおは各自が名前をつけるので、[Person.name] ではなく
   /// つけられた名前を入れたコピーを渡すこと。
   final List<Person> people;
 
@@ -65,6 +68,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('local_result');
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
     Bgm.instance.playResult(); // 🎵 選んだリザルト曲（今までどこからも鳴っていなかった）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
@@ -222,6 +226,10 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                   RosterRevealCard(people: widget.people),
                   const SizedBox(height: 12),
                   const StoreCtaCard(),
+                  const SizedBox(height: 16),
+                  const NativeAdCard(
+                      placement: 'result_local',
+                      templateType: TemplateType.medium),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {

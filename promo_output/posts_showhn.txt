@@ -1,0 +1,21 @@
+Show HN: PetaName — A face & name memory training game built on cognitive science research
+
+Hi HN,
+
+I built PetaName because I kept forgetting people's names at work and it was getting embarrassing.
+
+The app combines a card-matching game with techniques from published memory research: elaborative encoding, the Baker-Baker technique, self-referential processing, spaced retrieval, and the production effect.
+
+What makes it different from other 'brain training' apps:
+- You can upload photos of REAL people you need to remember (colleagues, clients, classmates) and the app builds games around them
+- A business card mode with OCR, voice introductions, and a meet→delay→recall flow that mirrors real situations
+- Every mechanic is traceable to a specific published study (cited in-app)
+- No account required. Data stays on-device.
+
+Tech: Flutter + Firebase. Android + Web.
+
+Web: https://web-sigma-drab-72.vercel.app/
+Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya
+Source: (not open source, but happy to discuss the architecture)
+
+Cognitive science of name memory is genuinely fascinating — happy to discuss in the comments.

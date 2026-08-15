@@ -143,9 +143,13 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 - 終盤30秒は⚡2倍（`rushSeconds`）。にらみ合いのまま終わらせないため
 
 ## ビルド・リリース
+手順の詳細は `DEPLOY.md`、スマホから作業するときは `MOBILE.md` を見る。
 - **Android**: `scripts/bump_and_build.ps1`（versionCode自動+1してAABビルド）。出力: `build/app/outputs/bundle/release/app-release.aab`
-- 署名: `android/app/key.properties`（gitignore対象・ローカルPCのみ。keystoreは `key.jks`）
-- **Web**: `flutter build web --release` → Vercel (`vercel deploy --prod` in build/web) / Firebase Hosting
+- 署名: `android/app/key.properties` と `key.jks` は**どちらもgitignore対象・ローカルPCのみ**。
+  ⚠️ 以前 `key.jks` がコミットされていたので履歴から削除した（`.gitignore` に `*.jks`）。
+  **二度とリポジトリに入れないこと**。クラウド環境に鍵が無い＝スマホからAABは出せない、で正しい
+- **Web**: `flutter build web --release` → **`build/web` の中で** `npx vercel --prod`
+  （リポジトリのルートから叩くとファイル数上限15,000に引っかかる）
 - `web/app-ads.txt` はAdMob審査用。ビルドで build/web に自動コピーされる。消さないこと
 
 ## 重要な決まりごと
@@ -165,6 +169,120 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 - 日本語Windows環境: PowerShellでのファイル読み書きは .NET の UTF8Encoding を明示（Get/Set-ContentはUTF-8を破壊する）
 - フォント: ロゴ=Mochiy Pop One、本文=Zen Maru Gothic（google_fonts経由）
 
+## コード修正からリリースまでの手順
+
+コードを変更したら、必ずこの順で進める。**次のステップに進む前に問題があれば必ず直してからにすること。**
+**すべてのステップを連続で実行し、途中で止めない。**
+
+### 1. 静的チェック
+
+```bash
+flutter analyze
+```
+
+エラー/警告があれば修正する。info のみならOK。
+
+### 2. テスト
+
+```bash
+flutter test
+```
+
+全261テスト通過が必須。1件でも落ちたら修正。
+
+### 3. WebビルドとVercelデプロイ
+
+```bash
+flutter build web --release
+cd build/web && npx vercel --prod
+```
+
+`build/web/.vercel/project.json` がビルドで消えた場合は `DEPLOY.md` の手順で復元する。
+
+### 4. AABビルド（Android）
+
+⚠️ **AABはユーザーが明示的に指示したときだけビルドする。**
+通常のコード修正→コミットの流れでは `flutter analyze` + `flutter test` + WebビルドまででOK。
+AABビルドには時間がかかり、Play ConsoleのversionCodeも消費するため。
+
+```bash
+powershell.exe -ExecutionPolicy Bypass -File scripts/bump_and_build.ps1
+```
+
+出力: `build/app/outputs/bundle/release/app-release.aab`
+versionCode が自動で +1 される。Google Play Console にアップロードするときはこの AAB を使う。
+AAB はエミュレータに直接インストールできない。エミュレータで確認する場合は `flutter build apk --release` で APK をビルドし `adb install` する。
+
+### 5. エミュレータ確認（任意）
+
+```bash
+# APK ビルド
+flutter build apk --release
+
+# エミュレータ起動（起動済みなら不要）
+emulator -avd Pixel_6a_API_35 -no-boot-anim &
+
+# インストール
+adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk
+
+# 起動
+adb -s emulator-5554 shell monkey -p com.nanimonjya -c android.intent.category.LAUNCHER 1
+
+# スクリーンショット
+adb -s emulator-5554 exec-out screencap -p > emu_home.png
+```
+
+### 6. Google Play リリースノート作成
+
+`RELEASE_NOTES_vX.X.X.md` に日英両方で書く。
+- 「**サマリ**:」の後に行うことの全体的な要約を一文で
+- 「**変更点**:」に行ったことの箇条書き（日本語）
+- 「**Changes**:」に英語の箇条書き
+
+### 7. コミット＆プッシュ
+
+```bash
+git add -A
+git commit -m "〜を直す / 〜を追加"
+git push
+```
+
+コミットメッセージは日本語・一文で「何を直したか」を書く。
+**コミット前に `git status` で意図しないファイルが入っていないか確認する。**
+AAB や APK のビルド成果物は `.gitignore` されているはずだが、万が一ステージングに入っていたら `git reset` で外す。
+
+### 8. Google Play Console へのアップロード
+
+1. https://play.google.com/console を開く
+2. アプリ「ペタネーム」(com.nanimonjya) を選択
+3. 左メニュー「リリース」→「本番環境」
+4. 「新しいリリースを作成」
+5. AAB をアップロード（`build/app/outputs/bundle/release/app-release.aab`）
+6. リリースノート（ja / en）を貼り付け
+7. 「リリースを審査に送信」
+
+### 9. Vercel 本番確認
+
+デプロイ後に表示される Production URL（`https://web-sigma-drab-72.vercel.app`）をブラウザで開き、ホーム画面が正しく表示されることを確認する。
+
+### 一発実行（ステップ1〜7）
+
+```bash
+flutter analyze && \
+flutter test && \
+flutter build web --release && \
+cd build/web && npx vercel --prod && \
+cd ../.. && \
+powershell.exe -ExecutionPolicy Bypass -File scripts/bump_and_build.ps1 && \
+git add -A && \
+git commit -m "〜を直す" && \
+git push
+```
+
+⚠️ 途中でエラーが出たら、そこで止めて修正。最後まで通ったら Google Play Console へアップロード。
+
+---
+
 ## 残タスク（要ユーザー対応）
 - **Flutter を 3.35+ に上げる**（`flutter upgrade`）。pubspec の `sdk: '>=3.10.0'` と `in_app_purchase` がこれを要求する。上げないと `pub get` が通らない。壊れやすい依存: `google_mobile_ads` / `just_audio` / `flutter_local_notifications` / `google_mlkit_text_recognition`。`flutter pub outdated` を見て必要な最小限だけ上げる（Firebase系は連鎖するので詰まるまで触らない）
 - **Play Console にアプリ内アイテムを4つ登録**: `remove_ads`（管理対象/非消費）、`coins_small` / `coins_medium` / `coins_large`（消費型）。**IDが1文字でも違うと購入UIが出ない**
@@ -172,3 +290,56 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 - デプロイ済みの旧Cloud Functions（generateSimilarNames/synthesizeSpeech/startGameOnPlayerCount）の削除: `firebase login` 後に `firebase deploy --only functions --force`（ローカルの `function/index.js` は空にしてある）
 - App Check強制化はFirebaseコンソール作業（v2.1.0が行き渡ってから）
 - `firestore.rules` はデプロイ済みのまま変更していない（新オンラインは既存ルールの範囲内で動作する設計）。`funnyNames`/`rankings` のルールは残っているが実害なし
+
+---
+
+## 🔥 カイゼンタスクリスト (2026-08-10 調査)
+
+### 優先度: 今すぐ（バグ修正）
+
+#### BGM
+- [ ] **B1: `_unlockBgmByAd`が`restartGameBgm()`を呼んでいるバグ** — `character_shop_screen.dart:953` を `restartCurrent()` に修正。広告解除後ショップ内でゲームBGMが鳴り出す不整合
+- [ ] **B4: `profile_screen`のdisposeが`stop()`を無条件呼び出し** — タブ間で一瞬無音になる。`stopHome()`に変更
+- [ ] **B2: `selectResultBgm`の'19_12345.mp3'ハードコード除外を定数化**
+- [ ] **B3: `selectResultBgm`に`kResultBgmRandom`の早期リターンを追加**
+- [ ] **B5: `flutter clean`で削除済み音声8ファイル(~19MB)をbuildから除去**
+
+#### Analytics
+- [ ] **A5: `deck_open('unknown')`のfromパラメータを正しく設定** — face_memo/shop/profileのいずれか
+- [ ] **A6: `online_lobby_open`にlobby種別(friend/random/rank/turn)を渡す**
+- [ ] **A1: `deck_toggle`イベントを実装** — character_deck_screenのON/OFF切替時に発火
+- [ ] **A2: `online_lobby_leave`イベントを実装** — online_lobby_screenのdisposeで発火
+- [ ] **A3: `cognitive_info_screen`に`screen()`を追加**
+- [ ] **A4: `rulebook_screen`に`screen()`を追加**
+- [ ] **A7: App Open Adの分析イベント(load/show/skip)を追加**
+- [ ] **A8: Banner Adの分析イベント(load/show)を追加**
+
+#### L10n
+- [ ] **L3: AppLocalizationsJaの5つの未翻訳文字列を修正** — roomNotFound, roomFull, roomInGame, alreadyJoined, errorJoiningRoom に日本語訳を追加
+
+### 優先度: 次（機能強化）
+
+#### ストーリーモード「太陽系外脱出」(SFギャルゲー)
+- [ ] **S1: Noahストーリーの英語翻訳** — `noah_story.dart`(753行)の全ダイアログ・ナレーション・クイズ・エンディングを英訳
+- [ ] **S2: ストーリー画面UIの多言語化** — `noah_story_screen.dart`のハードコード日本語(設定/エンディング表示等)をMetaStrings化
+- [ ] **S3: 従来ストーリー(Nana&Hana)の英語翻訳** — `story.dart`の全チャプター・シーンを英訳
+- [ ] **S4: 従来ストーリー画面UIの多言語化** — `story_screen.dart`のハードコード日本語をMetaStrings化
+- [ ] **S5: 新エピソード追加** — 太陽系外脱出テーマの新チャプター
+
+#### 多国籍対応
+- [ ] **L4: MetaStringsをbool jaから言語コードベースにリファクタ** — 3言語目以降の追加を可能にする
+- [ ] **L5: top_screenのハードコード日本語をMetaStrings化** (`'もっと読む →'`等)
+- [ ] **L6: 新言語追加** — 優先度の高い言語（中国語・韓国語・スペイン語など）のarb追加
+
+#### 顔メモ多国籍対応
+- [ ] **F1: custom_roster_screenのフィールドラベル多言語化**
+- [ ] **F2: 名前フィールドの多言語入力対応**（英語名・中国語名などの入力バリデーション）
+- [ ] **F3: TTS音声の多言語対応確認** — `speech.dart`がja/en以外の言語に対応できるか検証
+
+### 優先度: 低（長期改善）
+
+#### Analytics
+- [ ] **A9: FirebaseAnalyticsObserverの整理** — 全画面が手動screen()を呼ぶならObserverは不要
+
+#### L10n
+- [ ] **arbとMetaStringsの統合を検討** — 現在2系統ある翻訳システムを1つに統合

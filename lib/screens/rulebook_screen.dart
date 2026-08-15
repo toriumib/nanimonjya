@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/emphasis_text.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -30,7 +31,7 @@ class RulebookScreen extends StatelessWidget {
             onPressed: () {
               final t = focus ?? RuleTopic.nameCall;
               Speech.instance
-                  .speak('${m.ruleTitle(t)}。${m.ruleBody(t)}', ja: m.ja);
+                  .speak(stripEmphasis('${m.ruleTitle(t)}。${m.ruleBody(t)}'), ja: m.ja);
             },
           ),
         ],
@@ -60,7 +61,9 @@ class RulebookScreen extends StatelessWidget {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(m.ruleBody(t),
+                    // ⚠️ ルール文には `**強調**` が書かれている。素の Text だと
+                    //    星印がそのまま出るので、太字にして描く。
+                    child: EmphasisText(m.ruleBody(t),
                         style: const TextStyle(fontSize: 13.5, height: 1.7)),
                   ),
                 ],

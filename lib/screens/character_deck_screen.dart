@@ -1,6 +1,4 @@
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
@@ -10,8 +8,10 @@ import '../services/custom_roster_service.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/face_view.dart'; // 写真・似顔絵・バンドル画像をまとめて描く
 import 'character_shop_screen.dart';
 import 'custom_roster_screen.dart';
+import '../services/app_analytics.dart';
 
 /// 🎴 キャラデッキ編集。
 /// ゲームに出てくる顔ぶれを自分で選べる画面。
@@ -29,37 +29,75 @@ class CharacterDeckScreen extends StatefulWidget {
 }
 
 class _DeckItem {
-  final String assetPath; // 保存キー兼画像パス
+  /// ON/OFFを覚えておくキー。
+  /// ⚠️ 画像パスと同じとはかぎらない。顔メモの似顔絵は画像パスを
+  ///    持たないので、`custom:<登録ID>` を使う（[FaceRef.deckKey]）。
+  final String deckKey;
   final String label;
-  final bool isFile; // 自分の写真（Fileから読む）か、バンドルassetか
-  const _DeckItem(this.assetPath, this.label, {this.isFile = false});
+
+  /// どう描くか。asset／file（自分の写真）／avatar（似顔絵）。
+  final FaceKind kind;
+
+  /// 画像パス、または似顔絵のJSON。
+  final String face;
+
+  const _DeckItem({
+    required this.deckKey,
+    required this.label,
+    required this.kind,
+    required this.face,
+  });
+
+  factory _DeckItem.asset(String path, String label) => _DeckItem(
+        deckKey: path,
+        label: label,
+        kind: FaceKind.asset,
+        face: path,
+      );
 }
 
 class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) CustomRosterService.instance.load();
+    AppAnalytics.screen('character_deck');
+    // 🎴 作ったアバターがここまで届いているかを見る（2026-08 は計測ゼロ）
+    AppAnalytics.deckOpen('unknown');
+    // 🌐 Web でも似顔絵の顔メモは使えるので、ここで kIsWeb を見ない。
+    //    （写真の登録だけがモバイル限定）
+    CustomRosterService.instance.load();
   }
 
   List<_DeckItem> _baseItems() => [
         for (var i = 0; i < kCharImageAssets.length; i++)
-          _DeckItem(kCharImageAssets[i], '${i + 1}'),
+          _DeckItem.asset(kCharImageAssets[i], '${i + 1}'),
       ];
 
   List<_DeckItem> _boughtItems(PlayerProfile profile) => [
         for (final c in kExtraCharacters)
           if (profile.unlockedCharacters.contains(c.id))
-            _DeckItem(c.asset, c.emoji),
+            _DeckItem.asset(c.asset, c.emoji),
       ];
 
-  List<_DeckItem> _myPhotoItems() {
-    if (kIsWeb) return const [];
-    return [
-      for (final e in CustomRosterService.instance.entries)
-        _DeckItem(e.imagePath, e.name, isFile: true),
-    ];
-  }
+  /// 🧑‍🎨 顔メモで登録した人。写真でも似顔絵でも出す。
+  ///
+  /// ⚠️ 以前はここで `e.imagePath` をキーにしていた。
+  ///    似顔絵だけの人は imagePath が空文字なので、**登録した全員が
+  ///    同じキーに潰れ**、1人OFFにすると似顔絵の人が全員消えていた。
+  ///    さらに Image.file(File('')) を errorBuilder 無しで描いていて、
+  ///    似顔絵の人は絵も出ていなかった。
+  List<_DeckItem> _myFaceItems() => [
+        for (final e in CustomRosterService.instance.entries)
+          () {
+            final ref = e.toFaceRef();
+            return _DeckItem(
+              deckKey: ref.deckKey,
+              label: e.name.isEmpty ? '？' : e.name,
+              kind: ref.kind,
+              face: ref.face,
+            );
+          }(),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +109,10 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
       builder: (context, _) {
         final base = _baseItems();
         final bought = _boughtItems(profile);
-        final mine = _myPhotoItems();
+        final mine = _myFaceItems();
         final all = [...base, ...bought, ...mine];
         final activeCount =
-            all.where((i) => !profile.deckExcluded.contains(i.assetPath)).length;
+            all.where((i) => !profile.deckExcluded.contains(i.deckKey)).length;
 
         return Scaffold(
           appBar: AppBar(
@@ -107,8 +145,8 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
                 emptyAction: _shopButton(m),
               ),
               const SizedBox(height: 20),
-              if (!kIsWeb)
-                _section(
+              // 🧑‍🎨 顔メモは Web でも似顔絵なら使えるので、ここを kIsWeb で隠さない。
+              _section(
                   m.deckSectionMine,
                   mine,
                   profile,
@@ -214,11 +252,11 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
   }
 
   Widget _tile(_DeckItem item, PlayerProfile profile) {
-    final on = !profile.deckExcluded.contains(item.assetPath);
+    final on = !profile.deckExcluded.contains(item.deckKey);
     return GestureDetector(
       onTap: () {
         Sfx.instance.pop();
-        profile.setDeckIncluded(item.assetPath, !on);
+        profile.setDeckIncluded(item.deckKey, !on);
       },
       child: Column(
         children: [
@@ -238,9 +276,19 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
                             0.2126, 0.7152, 0.0722, 0, 0, //
                             0, 0, 0, 1, 0,
                           ]),
-                    child: item.isFile
-                        ? Image.file(File(item.assetPath), fit: BoxFit.cover)
-                        : Image.asset(item.assetPath, fit: BoxFit.cover),
+                    // 写真・似顔絵・バンドル画像をまとめて FaceView に任せる。
+                    // 自前で Image.file を書いていたころは、似顔絵の人が
+                    // 空パスで読み込まれて絵が出なかった。
+                    child: FaceView(
+                      person: Person(
+                        face: item.face,
+                        kind: item.kind,
+                        name: item.label,
+                        hobby: '',
+                      ),
+                      size: 200,
+                      radius: 12,
+                    ),
                   ),
                 ),
                 if (!on)

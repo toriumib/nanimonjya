@@ -1,0 +1,23 @@
+{
+  "id": "act3_date_pick",
+  "chapter": "ACT III ／ 起きているあいだに",
+  "bg": "ship_lounge",
+  "bgAge": 3,
+  "bgm": { "id": "off_duty", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "覚醒期は二年ある。仕事だけをして過ごすには、長すぎる。" },
+    { "t": "mono", "text": "船の中には、地上の暮らしを真似た区画がいくつかあった。" },
+    { "t": "mono", "text": "本物ではない。けれど、本物のつもりで過ごすことはできる。" },
+
+    { "t": "mono", "text": "——今日は、どこへ行こうか。" },
+
+    { "t": "choice", "options": [
+      { "text": "🏬 百貨店（三層区画）", "jump": "date_department" },
+      { "text": "🌊 川（水循環プラント）", "jump": "date_river" },
+      { "text": "🎤 カラオケ（音響室）", "jump": "date_karaoke" },
+      { "text": "🍜 フードコート", "jump": "date_food" },
+      { "text": "🛍 買い出し（備蓄区画）", "jump": "date_shopping" },
+      { "text": "🎾 テニス（〇・五G室）", "jump": "date_tennis" }
+    ]}
+  ]
+}

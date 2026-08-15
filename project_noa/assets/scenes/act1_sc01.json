@@ -1,0 +1,67 @@
+{
+  "id": "act1_sc01",
+  "chapter": "ACT I ／ 焼ける地上",
+  "bg": "dome_office",
+  "bgAge": 0,
+  "bgm": { "id": "ambient_cooling", "fade": 1.5 },
+  "lines": [
+    { "t": "mono", "text": "ドームの朝は、鐘ではじまらない。" },
+    { "t": "mono", "text": "冷却塔がひとつ、また息を吹き返す音。それが朝だ。" },
+    { "t": "mono", "text": "地上は千二百度。鉛が溶ける温度の下で、人類は地下三キロに住んでいる。" },
+    { "t": "mono", "text": "残っているのは、十七人。" },
+
+    { "t": "se", "id": "door" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "全員そろったな。結論から言う。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "船に乗れるのは、十二名だ。" },
+
+    { "t": "fx", "kind": "shake" },
+    { "t": "mono", "text": "誰も、声を上げなかった。" },
+    { "t": "mono", "text": "十七人。椅子は十二。引き算のできない者は、この部屋にいない。" },
+
+    { "t": "choice", "options": [
+      { "text": "十二名……？", "jump": "" },
+      { "text": "物理の限界、ということですか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "推進剤と、閉鎖生態系の収支だ。恨むなら物理を恨め。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "……と、言いたいところだがな。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "この数字は、まだ動く。動かすのは君たちだ。" },
+
+    { "t": "mono", "text": "所長は、机の上に紙の束を置いた。" },
+    { "t": "mono", "text": "備蓄庫に最後まで残っていた紙で刷らせた、名刺だった。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "十六人ぶん、十枚ずつ。百六十枚ある。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "データはコピーだ。名刺は、手から手へ渡る。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "四十九光年先で最初に必要になるのは、たぶんそっちのほうだよ。" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "もうひとつ。この計画には、記録官を一名置く。" },
+    { "t": "mono", "text": "全員が、私を見た。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/surprise",
+      "text": "……何をする役だ、それは。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "覚える。顔と、名前と、その人がどこの誰であるかを。" },
+    { "t": "say", "name": "荒瀬", "sprite": "arase/tired",
+      "text": "端末でいいだろう、そんなもん。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "端末は、呼ばん。" },
+
+    { "t": "mono", "text": "それきり、誰も何も言わなかった。" },
+    { "t": "mono", "text": "納得したのではなく、意味が分からなかったのだと思う。" },
+    { "t": "mono", "text": "——私にも、まだ分かっていなかった。" },
+    { "t": "flag", "set": "act1_meeting_done" },
+    { "t": "mono", "text": "——記録官。それが、この船における私の肩書だ。" },
+    { "t": "mono", "text": "技術は持たない。持っているのは、顔と名前を覚えることだけ。" },
+    { "t": "mono", "text": "名刺を両手で受け取り、声に出さずに三回、頭の中で名前を繰り返す。" },
+    { "t": "mono", "text": "それが、私の流儀だった。" },
+
+    { "t": "jump", "to": "act1_sc02" }
+  ]
+}

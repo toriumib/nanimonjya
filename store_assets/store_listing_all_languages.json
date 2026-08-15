@@ -1,0 +1,124 @@
+{
+  "_note": "Google Play Store listing — ALL 27 languages. Short desc <80 chars each.",
+  "_last_updated": "2026-08-10",
+  "_app_version": "2.5.0 (versionCode 163)",
+
+  "languages": {
+    "ja-JP": {
+      "app_name": "なまえがお",
+      "short_description": "顔と名前の記憶ゲーム。写真と名刺で脳トレ。無料。"
+    },
+    "en-US": {
+      "app_name": "Name Call - Face & Name Memory",
+      "short_description": "Brain game: remember faces & names. Free. Photos, biz cards, quiz."
+    },
+    "ar": {
+      "app_name": "تذكر الوجوه - تدريب الذاكرة",
+      "short_description": "لعبة ذاكرة للوجوه والأسماء. مجانية، صور، تدريب."
+    },
+    "it-IT": {
+      "app_name": "Memory Name - Ricorda Volti",
+      "short_description": "Allena la memoria per volti e nomi. Gratis, foto, biglietti da visita."
+    },
+    "id": {
+      "app_name": "Ingat Nama - Latihan Memori",
+      "short_description": "Game otak ingat wajah & nama. Gratis dengan foto & kartu nama."
+    },
+    "uk": {
+      "app_name": "Запам'ятай обличчя",
+      "short_description": "Тренування пам'яті: обличчя та імена. Безкоштовно, фото, візитівки."
+    },
+    "nl-NL": {
+      "app_name": "Gezicht & Naam Geheugen Game",
+      "short_description": "Hersentraining voor gezichten en namen. Gratis, met foto's en quiz."
+    },
+    "sv-SE": {
+      "app_name": "Minnes Namn - Hjärnträning",
+      "short_description": "Hjärnträning: minns ansikten och namn. Gratis med foton och quiz."
+    },
+    "es-ES": {
+      "app_name": "Memory Name - Recuerda Caras",
+      "short_description": "Juego de memoria para caras y nombres. Gratis, fotos, tarjetas, quiz."
+    },
+    "es-419": {
+      "app_name": "Memory Name - Recuerda Caras",
+      "short_description": "Juego cerebral para recordar rostros y nombres. Gratis, fotos, quiz."
+    },
+    "sk": {
+      "app_name": "Pamäťová hra - Tváre a Mená",
+      "short_description": "Tréning mozgu na tváre a mená. Zadarmo s fotkami a kvízom."
+    },
+    "th": {
+      "app_name": "เกมจำชื่อ - ฝึกสมอง",
+      "short_description": "เกมฝึกสมองจำชื่อและใบหน้า ฟรี มีรูปและแบบทดสอบ"
+    },
+    "cs-CZ": {
+      "app_name": "Paměť jmen - Trénink mozku",
+      "short_description": "Hra na trénink paměti: obličeje a jména. Zdarma, fotky, kvíz."
+    },
+    "da-DK": {
+      "app_name": "Husk Navne - Hjernetræning",
+      "short_description": "Hjernetræning: husk ansigter og navne. Gratis med fotos og quiz."
+    },
+    "tr-TR": {
+      "app_name": "İsim Hafıza - Beyin Oyunu",
+      "short_description": "Yüzleri ve isimleri hatırlama oyunu. Ücretsiz, fotoğraflı, kartlı."
+    },
+    "de-DE": {
+      "app_name": "Gesichter & Namen Merkspiel",
+      "short_description": "Gehirntraining für Gesichter und Namen. Kostenlos, Fotos, Karten, Quiz."
+    },
+    "no-NO": {
+      "app_name": "Husk Navn - Hjernetrim",
+      "short_description": "Hjernetrim: husk ansikter og navn. Gratis med bilder og quiz."
+    },
+    "hu-HU": {
+      "app_name": "Név Memória - Agytorna",
+      "short_description": "Agytorna játék arcok és nevek megjegyzésére. Ingyenes, fotókkal."
+    },
+    "hi-IN": {
+      "app_name": "नाम याद - मेमोरी गेम",
+      "short_description": "चेहरे और नाम याद करने का दिमागी खेल। मुफ्त, फोटो, क्विज।"
+    },
+    "fi-FI": {
+      "app_name": "Muista Nimet - Aivopeli",
+      "short_description": "Aivopeli kasvojen ja nimien muistamiseen. Ilmainen, kuvat, visa."
+    },
+    "fr-FR": {
+      "app_name": "Memory Name - Retenez Visages",
+      "short_description": "Jeu cérébral pour mémoriser visages et noms. Gratuit, photos, quiz."
+    },
+    "iw-IL": {
+      "app_name": "זיכרון שמות - אימון מוח",
+      "short_description": "משחק מוח לזכירת פנים ושמות. חינם, תמונות, כרטיסי ביקור."
+    },
+    "vi": {
+      "app_name": "Game Nhớ Tên - Luyện Trí Nhớ",
+      "short_description": "Game luyện trí não nhớ mặt và tên. Miễn phí, có ảnh và câu đố."
+    },
+    "pt-BR": {
+      "app_name": "Memory Name - Jogo da Memória",
+      "short_description": "Jogo cerebral para rostos e nomes. Grátis, fotos, cartões, quiz."
+    },
+    "pl-PL": {
+      "app_name": "Gra Pamięć Imion - Trening",
+      "short_description": "Gra trenująca pamięć do twarzy i imion. Darmowa, zdjęcia, quiz."
+    },
+    "ro": {
+      "app_name": "Joc Memorie - Fețe și Nume",
+      "short_description": "Joc de antrenament cerebral: fețe și nume. Gratuit, fotografii, quiz."
+    },
+    "ru-RU": {
+      "app_name": "Запомни Имя - Тренировка",
+      "short_description": "Тренировка памяти: лица и имена. Бесплатно, фото, викторина."
+    },
+    "zh-CN": {
+      "app_name": "记名字 - 记忆力脑训练",
+      "short_description": "记忆面孔和名字的脑训练游戏。免费，照片，名片，问答。"
+    },
+    "ko-KR": {
+      "app_name": "이름 기억 - 두뇌 훈련",
+      "short_description": "얼굴과 이름 기억 두뇌 훈련 게임. 무료, 사진, 퀴즈."
+    }
+  }
+}

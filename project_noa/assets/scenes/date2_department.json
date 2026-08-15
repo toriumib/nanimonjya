@@ -1,0 +1,46 @@
+{
+  "id": "date2_department",
+  "chapter": "ACT III ／ 百貨店",
+  "bg": "ship_lounge",
+  "bgAge": 3,
+  "bgm": { "id": "date_soft", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "三層区画は、船の中でいちばん「地上らしい」場所だった。" },
+    { "t": "mono", "text": "百貨店のつもりで作られている。売っているものは、ない。" },
+    { "t": "mono", "text": "閉じた船の中に「新品」は存在しないからだ。" },
+    { "t": "mono", "text": "並んでいるのは、誰かが直したものばかり。" },
+
+    { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
+      "text": "この服、三代前の人のです。私が袖だけ直しました。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/smile",
+      "text": "……買うわけじゃないですよ。見て回るのが、楽しいだけで。" },
+
+    { "t": "mono", "text": "彼女は真空管ラジオの棚の前で、長く立ち止まった。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/normal",
+      "text": "兄が、こういうのを直す人でした。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/tired",
+      "text": "アップロードのとき、私は手を握れなかったんです。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/tired",
+      "text": "機材の配線を見ていて。……最後まで、仕事の顔をしていた。" },
+
+    { "t": "choice", "options": [
+      { "text": "いまからでも、握れますよ", "jump": "" },
+      { "text": "……お兄さんの声、いまも聞こえますか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "楠", "sprite": "kusunoki/surprise",
+      "text": "……ずるい言い方をしますね。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/smile",
+      "text": "ROB-0093。私の通信IDです。覚えておいてください。" },
+    { "t": "say", "name": "楠", "sprite": "kusunoki/smile",
+      "text": "呼ばれたら、いつでも出ますから。" },
+
+    { "t": "aff", "char": "kusunoki", "d": 2 },
+    { "t": "flag", "set": "date_department_done" },
+    { "t": "mono", "text": "——通信ID、ROB-0093。" },
+    { "t": "mono", "text": "声に出さずに三回。" },
+    { "t": "memtest", "char": "kusunoki", "field": "commId" },
+
+    { "t": "jump", "to": "act3_sc02" }
+  ]
+}

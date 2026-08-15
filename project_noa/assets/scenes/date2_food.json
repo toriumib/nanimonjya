@@ -1,0 +1,46 @@
+{
+  "id": "date2_food",
+  "chapter": "ACT III ／ フードコート",
+  "bg": "ship_food",
+  "bgAge": 3,
+  "bgm": { "id": "date_warm", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "フードコートの品書きは、正直に書いてある。" },
+    { "t": "mono", "text": "「昆虫たんぱくの唐揚げ風」「藻類ステーキ」。" },
+    { "t": "mono", "text": "隠さないほうが食べやすい、というのが篠原恭平の考えだった。" },
+
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "誤魔化すと、みんな一回で飽きるんです。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/normal",
+      "text": "本物じゃないと分かって食べるほうが、長くもつ。" },
+
+    { "t": "mono", "text": "醤油差しが置いてある。ラベルに手書きで年が書いてある。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "継ぎ足しですよ。地上で仕込んだぶんから、ずっと。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/normal",
+      "text": "……酵母は生きてます。三百年、船の中で生きてる。" },
+
+    { "t": "mono", "text": "私は、水原のぬか床のことを思い出した。" },
+    { "t": "mono", "text": "この船には、継ぎ足されているものが、いくつもある。" },
+
+    { "t": "choice", "options": [
+      { "text": "店を、やっていたんですか", "jump": "" },
+      { "text": "この味、どこかで食べた気がします", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "篠原", "sprite": "shinohara/tired",
+      "text": "……小さい店を。たたむとき、常連に挨拶できなかった。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/tired",
+      "text": "選抜の連絡が来て、三日で地下へ移されたので。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/normal",
+      "text": "だから、ここでは全員の顔と、好みを覚えてます。" },
+    { "t": "say", "name": "篠原", "sprite": "shinohara/smile",
+      "text": "……あなたと、同じ仕事ですね。" },
+
+    { "t": "aff", "char": "shinohara", "d": 2 },
+    { "t": "flag", "set": "date_food_done" },
+    { "t": "memtest", "char": "shinohara", "field": "affiliation" },
+
+    { "t": "jump", "to": "act3_sc02" }
+  ]
+}

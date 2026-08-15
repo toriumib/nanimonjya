@@ -1,0 +1,50 @@
+{
+  "id": "date_shopping",
+  "chapter": "ACT III ／ 買い出し（備蓄区画）",
+  "bg": "ship_archive",
+  "bgAge": 3,
+  "bgm": { "id": "date_quiet", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "備蓄区画は、船でいちばん静かな場所だ。" },
+    { "t": "mono", "text": "買い物、と呼んではいるが、実際は配給の受け取りに近い。" },
+    { "t": "mono", "text": "それでも二人で行くと、買い出しらしくなる。" },
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "塩、まだありますね。よかった。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/normal",
+      "text": "ぬか床、塩が切れると終わりなんです。三百年で一回でも切らしたら。" },
+
+    { "t": "mono", "text": "六十年もののぬか床を、彼女は冷凍カプセルで持ち込んでいた。" },
+    { "t": "mono", "text": "祖母から受け継いだものだという。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/normal",
+      "text": "食堂の醤油も、篠原さんが継ぎ足してますよね。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "……私のは、誰にも言ってないんですけど。" },
+    { "t": "flag", "set": "mystery_nukadoko_told" },
+
+    { "t": "choice", "options": [
+      { "text": "どうして黙っているんですか", "jump": "" },
+      { "text": "食堂の味、あれもですか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/tired",
+      "text": "……続けられなかったら、恥ずかしいので。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/tired",
+      "text": "私、一度あるんです。続けられなかったこと。" },
+    { "t": "mono", "text": "彼女は少し黙ってから、それ以上は言わなかった。" },
+    { "t": "mono", "text": "聞かないほうがいいことは、聞かない。" },
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/normal",
+      "text": "……着いたら、私が取り上げます。最初の子。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "そのために来たので。BIO-2236、覚えておいてください。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "産気づいたら、真夜中でも呼んでいいですから。" },
+
+    { "t": "aff", "char": "mizuhara", "d": 2 },
+    { "t": "flag", "set": "date_shopping_done" },
+    { "t": "memtest", "char": "mizuhara", "field": "commId" },
+
+    { "t": "jump", "to": "act3_date_pick2" }
+  ]
+}

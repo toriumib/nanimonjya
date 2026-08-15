@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cpu_difficulty.dart';
+import '../services/player_profile.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// チュートリアルを見終えたかどうかの保存キー。
 /// 初回起動時だけ自動で開き、一度終えたら二度と出さない。
@@ -41,6 +43,10 @@ Future<void> markTutorialDone() async {
 /// [kMaxTutorialRetries] 回であきらめて二度と出さない。
 const String kTutorialSkipsKey = 'tutorialSkips';
 const int kMaxTutorialRetries = 2;
+
+/// 🎁 読み切ったごほうびを受け取り済みか。二重取りを止めるための鍵。
+const String kTutorialRewardKey = 'tutorialRewardGiven';
+const int kTutorialRewardCoins = 60;
 
 Future<void> markTutorialSkipped() async {
   final p = await SharedPreferences.getInstance();
@@ -114,7 +120,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           points: ja
               ? [
                   '顔と名前をおぼえる ゲームだよ',
-                  'メインは「なまえコール」',
+                  'メインは「なまえがお」',
                   'ひとりでも、みんなでも あそべる',
                 ]
               : [
@@ -260,7 +266,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           guideAsset: 'assets/images/supporters/cheer_girl.svg',
           guideName: ja ? 'ナナちゃん' : 'Nana',
           // 💼 ここだけは仕事で使う人向けなので、漢字混じりの大人の文章にする。
-          //    ほかのページは子どもも一緒に遊ぶ「なまえコール」の説明なので
+          //    ほかのページは子どもも一緒に遊ぶ「なまえがお」の説明なので
           //    ひらがな中心のまま。
           title: ja ? '💼 一人のときは「名刺覚え」' : '🖇 Alone? Card Memory',
           points: ja
@@ -280,6 +286,39 @@ class _TutorialScreenState extends State<TutorialScreen> {
           illustration: '🖇️',
           screenshot: 'assets/images/tutorial/hook_office.png',
           gradient: const [Color(0xFFFFF6D8), Color(0xFFE8E3FF)],
+        ),
+        // 🧑‍🎨 顔メモ。ここがこのアプリのいちばんの機能なので、
+        //    「名刺覚え」のすぐ後ろに置いて、大人向けの話から続けて見せる。
+        //    ただし文章は子ども向けに書く。学校の友だちでも同じように使える。
+        _TutorialPage(
+          guideEmoji: '🧑‍🎨',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
+          guideName: ja ? 'はなちゃん' : 'Hana',
+          title: ja ? '🧑‍🎨 顔メモ ― かおを つくって おぼえる'
+              : '🧑‍🎨 Face Notes — build a face',
+          points: ja
+              ? [
+                  '👦 おぼえたい人の かおを じぶんで つくれるよ',
+                  '💇 かみがた・めがね・ほくろ を えらぶだけ',
+                  '🃏 つくった人は そのまま ゲームに 出てくる',
+                ]
+              : [
+                  '👦 Build the face of someone you want to remember',
+                  '💇 Just pick hair, glasses, a mole and more',
+                  '🃏 They show up in your games right away',
+                ],
+          note: ja
+              ? '「めがねで、かみが みじかくて、せが たかい人」——'
+                  'そうやって えらんでいくと、かおを よく見ることに なるよ。\n\n'
+                  '💼 大人の方へ：会社の同僚・取引先・お客様の登録にも使えます。'
+                  '顔写真での登録、名刺を撮っての自動読み取り（会社名・氏名）にも対応。'
+                  '名前・会社・誕生日・関係など18項目を残せます。'
+                  '登録した内容は端末の中だけに保存され、外部へ送信されません。'
+              : 'Picking the features makes you look at the face properly.\n\n'
+                  'For work: register colleagues and clients, snap a business '
+                  'card to auto-fill, keep 18 fields. Stored on your device only.',
+          illustration: '🧑‍🎨',
+          gradient: const [Color(0xFFE8FBE8), Color(0xFFFFF6D8)],
         ),
         // 🌐 オンラインは3つあって、それぞれ「誰と」「どう進むか」が違う。
         //    どれを押せばいいのか分からないまま知らない人と当たると、
@@ -305,6 +344,58 @@ class _TutorialScreenState extends State<TutorialScreen> {
               : 'In Friend match the host picks how many faces, and the guest gets the same. See 📖 Rules for details.',
           illustration: '🌐',
           gradient: const [Color(0xFFD8F0FF), Color(0xFFFFF6D8)],
+        ),
+        // 📚 よみもの。ゲームだけだと「なぜ覚えられるのか」が分からないまま
+        //    上手くならない。コツを読める場所があることを先に知らせる。
+        _TutorialPage(
+          guideEmoji: '📚',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
+          guideName: ja ? 'ナナちゃん' : 'Nana',
+          title: ja ? '📚 よみもの ― おぼえる コツ' : '📚 Reading — how memory works',
+          points: ja
+              ? [
+                  '🧠 なまえを おぼえる コツが よめるよ',
+                  '🔬 けんきゅうで わかった ことを やさしく かいてある',
+                  '😴 「おぼえたら ねる」と いい って ホント？',
+                ]
+              : [
+                  '🧠 Tips for remembering names',
+                  '🔬 Based on published research, explained simply',
+                  '😴 Is it true that sleeping helps you remember?',
+                ],
+          note: ja
+              ? 'テスト効果、精緻化、自己関連づけ、ベイカー錯誤、睡眠と記憶の関係など。'
+                  '出典は著者・発表年・掲載誌まで書いてあります。'
+                  '効果には個人差があり、医療目的のものではありません。'
+              : 'Testing effect, elaboration, self-reference, the Baker/baker '
+                  'paradox, sleep and memory — each with its source cited. '
+                  'Results vary; this is not medical advice.',
+          illustration: '📚',
+          gradient: const [Color(0xFFE8E3FF), Color(0xFFD8F0FF)],
+        ),
+        // 🚀 ものがたりモードは「覚えること」がそのまま物語を動かす。
+        //    遊び方のページの最後に置いて、ひと通り分かった人に紹介する。
+        _TutorialPage(
+          guideEmoji: '👧',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
+          guideName: ja ? 'ナナちゃん' : 'Nana',
+          title: ja ? '🚀 ものがたりモード' : '🚀 Story Mode',
+          points: ja
+              ? [
+                  '📇 出会った人から 名刺をもらって 名前と趣味を きく',
+                  '🧠 また会ったとき 3つの中から えらんで 思い出す',
+                  '💞 覚えているほど なかよくなって 結末が かわる',
+                ]
+              : [
+                  '📇 Meet people and receive their cards',
+                  '🧠 Recall their name and hobby from 3 choices',
+                  '💞 The more you remember, the better the ending',
+                ],
+          note: ja
+              ? '太陽がふくらんだ 遠い未来。地球をはなれる 船にのって、49光年さきの星をめざす お話です。覚えた人の数だけ、いっしょに行ける人が ふえていきます。'
+              : 'A story set in the far future: board a ship bound for a star 49 light-years away. The more names you remember, the more people can come along.',
+          illustration: '🚀',
+          gradient: const [Color(0xFF0B1020), Color(0xFF12203C)],
         ),
       ];
 
@@ -379,6 +470,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('tutorial');
     // 途中で閉じた人を最初からやり直させない（離脱の大きな原因）
     savedTutorialPage().then((saved) {
       if (!mounted || saved <= 0) return;
@@ -416,7 +508,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
         title: Text(ja ? 'あそびかたを とじる？' : 'Close the guide?'),
         content: Text(ja
             ? 'とちゅうまで 読んだところは おぼえてあるよ。\n'
-                'あとで 📖ルールブック から いつでも 読めます。'
+                'あとで 📖ルール から いつでも 読めます。'
             : 'Your place is saved. You can read it any time from the 📖 Rulebook.'),
         actions: [
           TextButton(
@@ -441,8 +533,76 @@ class _TutorialScreenState extends State<TutorialScreen> {
     } else {
       await markTutorialDone();
       await saveTutorialPage(0); // 読み切ったので進捗は畳む
+      await _grantReward();
     }
     if (mounted) Navigator.pop(context);
+  }
+
+  /// 🎁 最後まで読んだ人へのごほうび。
+  ///
+  /// 説明を読むのは、それ自体は楽しくない。読み切った瞬間に何も起きないと
+  /// 「読んで損した」で終わるので、その場でコインを渡して次の行動につなげる。
+  ///
+  /// ⚠️ 一度きり。`kTutorialRewardKey` で二重取りを止める。
+  ///    ここを外すと、チュートリアルを開き直すだけでコインが無限に増える。
+  Future<void> _grantReward() async {
+    final p = await SharedPreferences.getInstance();
+    if (p.getBool(kTutorialRewardKey) ?? false) return;
+    await p.setBool(kTutorialRewardKey, true);
+    await PlayerProfile.instance.grantBonusCoins(kTutorialRewardCoins);
+    if (!mounted) return;
+
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFFFFF8E6),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🎉', style: TextStyle(fontSize: 56)),
+            const SizedBox(height: 10),
+            Text(
+              ja ? 'ぜんぶ よめたね！' : 'You read it all!',
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFB4326E)),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE9A8),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Text(
+                '🪙 +$kTutorialRewardCoins',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF8A6100)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              ja
+                  ? 'コインは 🛍ショップで あたらしい なかまと こうかんできるよ'
+                  : 'Spend coins in the shop to unlock new characters',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(ja ? 'やった！' : 'Nice!',
+                style: const TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -521,25 +681,49 @@ class _TutorialScreenState extends State<TutorialScreen> {
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: Column(
               children: [
+                // ⭐ 進みぐあいを星で見せる。
+                //    以前は小さな点だったが、点が増えても「進んでいる」
+                //    感じがせず、最後まで読む人が少なかった。
+                //    読んだページが星で埋まっていくほうが、次を押したくなる。
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    pages.length,
-                    (i) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: i == _page ? 22 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: i == _page
-                            ? const Color(0xFFFF4FA3)
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
+                  children: List.generate(pages.length, (i) {
+                    final done = i <= _page;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: TweenAnimationBuilder<double>(
+                        // key を進捗で変えて、埋まった瞬間だけ跳ねさせる
+                        key: ValueKey('star$i$done'),
+                        tween: Tween(begin: done ? 0.4 : 1.0, end: 1.0),
+                        duration: const Duration(milliseconds: 320),
+                        curve: Curves.elasticOut,
+                        builder: (_, v, child) =>
+                            Transform.scale(scale: v, child: child),
+                        child: Icon(
+                          done ? Icons.star_rounded : Icons.star_outline_rounded,
+                          size: i == _page ? 26 : 20,
+                          color: done
+                              ? const Color(0xFFFFC02E)
+                              : Colors.grey.shade300,
+                        ),
                       ),
-                    ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isLast
+                      ? (ja ? 'ぜんぶ よんだ！🎉' : 'All done! 🎉')
+                      : (ja
+                          ? 'あと ${pages.length - 1 - _page} ページ！'
+                          : '${pages.length - 1 - _page} to go!'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFB4326E),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

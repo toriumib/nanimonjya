@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/meta_strings.dart';
 import '../models/story.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 📖 ストーリーモード。
 ///
@@ -40,11 +42,12 @@ class _StoryScreenState extends State<StoryScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('story_legacy');
     SharedPreferences.getInstance().then((p) {
       final saved = p.getInt(storyLineKey(widget.chapter.id)) ?? 0;
       if (!mounted || saved <= 0) return;
       setState(() => _index = saved.clamp(0, widget.chapter.scenes.length - 1));
-    });
+    }).catchError((_) {});
   }
 
   Future<void> _next() async {
@@ -77,6 +80,7 @@ class _StoryScreenState extends State<StoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final m = MetaStrings.of(context);
     final scene = widget.chapter.scenes[_index];
     return Scaffold(
       backgroundColor: const Color(0xFF1B2233),
@@ -85,7 +89,9 @@ class _StoryScreenState extends State<StoryScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text('第${widget.chapter.number}話  ${widget.chapter.title}',
+        title: Text(
+            m.ja ? '第${widget.chapter.number}話  ${widget.chapter.title}'
+                : 'Ch.${widget.chapter.number}  ${widget.chapter.title}',
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
       ),
       body: GestureDetector(
@@ -102,7 +108,7 @@ class _StoryScreenState extends State<StoryScreen> {
                     const AlwaysStoppedAnimation<Color>(Color(0xFFFF4FA3)),
               ),
               Expanded(child: _stage(scene)),
-              _finished ? _finishCard() : _textBox(scene),
+              _finished ? _finishCard(m.ja) : _textBox(scene, m.ja),
             ],
           ),
         ),
@@ -128,7 +134,7 @@ class _StoryScreenState extends State<StoryScreen> {
     );
   }
 
-  Widget _textBox(StoryScene scene) {
+  Widget _textBox(StoryScene scene, bool ja) {
     final name = switch (scene.speaker) {
       Speaker.nana => 'ナナ',
       Speaker.hana => 'ハナ',
@@ -175,22 +181,22 @@ class _StoryScreenState extends State<StoryScreen> {
           ),
           if (scene.source != null) ...[
             const SizedBox(height: 8),
-            Text('出典: ${scene.source}',
+            Text(ja ? '出典: ${scene.source}' : 'Source: ${scene.source}',
                 style:
                     const TextStyle(fontSize: 10.5, color: Colors.black45)),
           ],
           const SizedBox(height: 6),
-          const Align(
+          Align(
             alignment: Alignment.centerRight,
-            child: Text('タップでつづき ▶',
-                style: TextStyle(fontSize: 11, color: Colors.black38)),
+            child: Text(ja ? 'タップでつづき ▶' : 'Tap to continue ▶',
+                style: const TextStyle(fontSize: 11, color: Colors.black38)),
           ),
         ],
       ),
     );
   }
 
-  Widget _finishCard() {
+  Widget _finishCard(bool ja) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(14),
@@ -215,8 +221,8 @@ class _StoryScreenState extends State<StoryScreen> {
           const SizedBox(height: 4),
           Text(
             widget.chapter.number >= kStoryChapterCount
-                ? 'つづきは準備中です。'
-                : 'つぎの話が読めます。',
+                ? (ja ? 'つづきは準備中です。' : 'More chapters coming soon.')
+                : (ja ? 'つぎの話が読めます。' : 'The next chapter is ready.'),
             style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
           const SizedBox(height: 12),
@@ -225,7 +231,7 @@ class _StoryScreenState extends State<StoryScreen> {
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(46),
             ),
-            child: const Text('とじる'),
+            child: Text(ja ? 'とじる' : 'Close'),
           ),
         ],
       ),
@@ -257,16 +263,21 @@ class _StoryListScreenState extends State<StoryListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final m = MetaStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('📖 ストーリー')),
+      appBar: AppBar(
+          title: Text(m.ja ? '📖 ストーリー' : '📖 Story')),
       bottomNavigationBar: const BannerAdSlot(),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          const Text(
-            '名前が覚えられないナナと、同期のハナの話です。'
-            '読むだけで、覚えるコツが少しずつ分かります。',
-            style: TextStyle(fontSize: 12.5, height: 1.6, color: Colors.black54),
+          Text(
+            m.ja
+                ? '名前が覚えられないナナと、同期のハナの話です。'
+                    '読むだけで、覚えるコツが少しずつ分かります。'
+                : 'A story about Nana, who struggles with names, and her colleague Hana. '
+                    'As you read, you\'ll pick up memory tips along the way.',
+            style: const TextStyle(fontSize: 12.5, height: 1.6, color: Colors.black54),
           ),
           const SizedBox(height: 14),
           for (final c in kStoryChapters)
@@ -277,11 +288,15 @@ class _StoryListScreenState extends State<StoryListScreen> {
               child: ListTile(
                 leading: Text(_done.contains(c.id) ? '📗' : '📘',
                     style: const TextStyle(fontSize: 26)),
-                title: Text('第${c.number}話  ${c.title}',
+                title: Text(
+                    m.ja ? '第${c.number}話  ${c.title}'
+                        : 'Ch.${c.number}  ${c.title}',
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w900)),
                 subtitle: Text(
-                    _done.contains(c.id) ? '読了' : '🪙+${c.reward}',
+                    _done.contains(c.id)
+                        ? (m.ja ? '読了' : 'Read')
+                        : '🪙+${c.reward}',
                     style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () async {
@@ -296,10 +311,11 @@ class _StoryListScreenState extends State<StoryListScreen> {
               ),
             ),
           const SizedBox(height: 8),
-          const Text(
-            'つづきは順番に増えていきます。',
+          Text(
+            m.ja ? 'つづきは順番に増えていきます。'
+                : 'More chapters will be added in order.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.black38),
+            style: const TextStyle(fontSize: 12, color: Colors.black38),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import '../models/person.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// おぼえるモード: アップした写真＋名前を覚える学習＆確認テスト。
 /// [quizMode] false=学習（フラッシュカード）, true=クイズ（写真→4択で名前当て）。
@@ -37,6 +38,7 @@ class _StudyScreenState extends State<StudyScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('study');
     _order = [...widget.people]..shuffle(_rng);
     if (widget.quizMode) _prepareChoices();
   }
@@ -143,7 +145,10 @@ class _StudyScreenState extends State<StudyScreen> {
                 FaceView(person: _current, size: 200, radius: 18),
                 const SizedBox(height: 12),
                 Text(
-                  _revealed ? _current.name : 'タップで名前をひょうじ',
+                  _revealed ? _current.name
+                      : (MetaStrings.of(context).ja
+                          ? 'タップで名前をひょうじ'
+                          : 'Tap to reveal name'),
                   style: TextStyle(
                     fontSize: _revealed ? 26 : 14,
                     fontWeight: FontWeight.w900,

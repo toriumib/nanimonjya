@@ -10,7 +10,7 @@ import 'dart:math';
 enum FaceKind { svg, asset, file, avatar }
 
 /// 「人物」1人分。顔（画像）・名前・趣味を持つ。
-/// なまえコールでは名前はプレイヤーがつけるので [name] は使わない場合もある。
+/// なまえがおでは名前はプレイヤーがつけるので [name] は使わない場合もある。
 class Person {
   final String face; // 画像パス（svg/画像アセット/ファイル）
   final FaceKind kind;
@@ -77,7 +77,7 @@ const List<String> kFaceAssets = [
   'assets/images/faces/face12.svg',
 ];
 
-/// フリー素材のキャラ画像一覧（12種）。なまえコール用。
+/// フリー素材のキャラ画像一覧（12種）。なまえがお用。
 const List<String> kCharImageAssets = [
   'assets/images/char1.jpg',
   'assets/images/char2.jpg',
@@ -159,8 +159,35 @@ List<Person> generatePeople(
   });
 }
 
-/// なまえコール用: フリー素材のキャラ画像で人物を生成する。
-/// なまえコールは名前をプレイヤーがつけるので name はプレースホルダ。
+/// 🎴 出演プールに入れられる「顔」1つぶん。
+///
+/// バンドルのキャラ画像だけでなく、顔メモで登録した写真や似顔絵も
+/// 同じ土俵で扱えるようにするための入れもの。
+///
+/// [deckKey] はキャラデッキのON/OFFを覚えておくための一意なキー。
+/// 画像アセットはパスがそのまま一意になるが、**顔メモの似顔絵は
+/// 画像パスを持たない**（空文字）ので、パスをキーに使うと全員が
+/// 同じキーに潰れてしまう。登録IDをもとにした `custom:<id>` を使う。
+class FaceRef {
+  final String deckKey;
+  final FaceKind kind;
+
+  /// 画像パス、またはアバターのJSON（[FaceKind.avatar] のとき）。
+  final String face;
+
+  const FaceRef({
+    required this.deckKey,
+    required this.kind,
+    required this.face,
+  });
+
+  /// バンドルのキャラ画像から作る（いちばん多い使いかた）。
+  factory FaceRef.asset(String path) =>
+      FaceRef(deckKey: path, kind: FaceKind.asset, face: path);
+}
+
+/// なまえがお用: フリー素材のキャラ画像で人物を生成する。
+/// なまえがおは名前をプレイヤーがつけるので name はプレースホルダ。
 List<Person> generateImagePeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
@@ -177,6 +204,39 @@ List<Person> generateImagePeople(int count,
       hobby: '',
     );
   });
+}
+
+/// なまえがお用: 顔メモで登録した人も混ぜて生成する。
+///
+/// [generateImagePeople] との違いは、写真・似顔絵といった
+/// **画像アセット以外の顔**も出演できること。
+/// 顔メモに登録した人を、ふだんの対戦にもそのまま出せるようにする。
+///
+/// 足りないときはバンドルのキャラ画像で埋める（プールが少ないせいで
+/// ゲームが始まらない、という事故を避ける）。
+List<Person> generatePeopleFromFaces(int count,
+    {required List<FaceRef> faces, Random? random}) {
+  final rng = random ?? Random();
+  final pool = [...faces];
+  if (pool.length < count) {
+    final have = pool.map((f) => f.deckKey).toSet();
+    for (final a in kCharImageAssets) {
+      if (pool.length >= count) break;
+      if (have.contains(a)) continue;
+      pool.add(FaceRef.asset(a));
+    }
+  }
+  pool.shuffle(rng);
+  final n = min(count, pool.length);
+  return List.generate(
+    n,
+    (i) => Person(
+      face: pool[i].face,
+      kind: pool[i].kind,
+      name: '',
+      hobby: '',
+    ),
+  );
 }
 
 /// 「どこで出会ったか」の文脈プール（思い出しトレーニング用）。

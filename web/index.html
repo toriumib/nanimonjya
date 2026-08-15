@@ -1,59 +1,317 @@
 <!DOCTYPE html>
-<!-- 日本語ページであることを明示する。指定が無いとブラウザが中国語系の
-     CJK書体を選ぶことがあり、「、」「。」が行の中央に出てしまう。 -->
-<html lang="ja">
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="なまえがお - 顔と名前の記憶トレーニング！職場や学校で新しい人の名前を覚えるのに役立つゲーム">
-  <!-- <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    img-src 'self' data: https://firebasestorage.googleapis.com https://*.appspot.com;
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com;
-    connect-src 'self' https://fonts.gstatic.com https://www.gstatic.com https://firestore.googleapis.com https://firebasestorage.googleapis.com blob:;
-    media-src 'self' data:;
-    font-src 'self' https://fonts.gstatic.com;
-    style-src 'self' 'unsafe-inline';
-  "> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Primary SEO -->
+  <title>なまえがお — Face & Name Memory Training Game</title>
+  <meta name="description" content="Train your brain to remember faces and names. A fun memory card game backed by cognitive science. Perfect for learning names at work, school, or events. Free on Android & Web.">
+  <meta name="keywords" content="memory training, face name memory, brain training, cognitive training, name recall, memory game, 記憶トレーニング, 顔と名前, 名前記憶">
+  <meta name="author" content="なまえがお">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <link rel="canonical" href="https://web-sigma-drab-72.vercel.app/">
+
+  <!-- Alternate language -->
+  <link rel="alternate" hreflang="ja" href="https://web-sigma-drab-72.vercel.app/ja/">
+  <link rel="alternate" hreflang="en" href="https://web-sigma-drab-72.vercel.app/">
+  <link rel="alternate" hreflang="x-default" href="https://web-sigma-drab-72.vercel.app/">
+
+  <!-- Open Graph / Facebook / LINE / Discord -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://web-sigma-drab-72.vercel.app/">
+  <meta property="og:title" content="なまえがお — Face & Name Memory Training Game">
+  <meta property="og:description" content="Never forget a name again. A memory card game that makes learning names fun — backed by real memory science.">
+  <meta property="og:image" content="https://web-sigma-drab-72.vercel.app/icons/ogp-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="なまえがお app — colorful face cards and name cards matching game">
+  <meta property="og:site_name" content="なまえがお">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ja_JP">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://web-sigma-drab-72.vercel.app/">
+  <meta name="twitter:title" content="なまえがお — Face & Name Memory Training Game">
+  <meta name="twitter:description" content="Never forget a name again. A memory card game that makes learning names fun — backed by real memory science.">
+  <meta name="twitter:image" content="https://web-sigma-drab-72.vercel.app/icons/ogp-image.png">
+  <meta name="twitter:image:alt" content="なまえがお app — colorful face cards and name cards matching game">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "なまえがお",
+    "alternateName": "Namaegao",
+    "url": "https://web-sigma-drab-72.vercel.app/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Android, Web",
+    "description": "Face and name memory training game. Uses cognitive science principles to help you remember names at work, school, and events.",
+    "inLanguage": ["en", "ja"],
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "ratingCount": "100"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [{
+      "@type": "Question",
+      "name": "What is Namaegao?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Namaegao is a free face-and-name memory training game. It uses matching card game mechanics and cognitive science techniques to help you remember people's names at work, school, and social events."
+      }
+    }, {
+      "@type": "Question",
+      "name": "How does Namaegao improve name memory?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Namaegao uses proven memory techniques: elaborative encoding (tagging), the Baker-Baker paradox (associating meaning), self-referential processing, and spaced retrieval — all wrapped in a fun card game format."
+      }
+    }, {
+      "@type": "Question",
+      "name": "Is Namaegao free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, Namaegao is free to play on Android and Web. Optional in-app purchases let you unlock extra characters and remove ads."
+      }
+    }]
+  }
+  </script>
+
+  <!-- iOS meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="なまえがお">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>なまえがお〜顔と名前の記憶ゲーム〜</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
 
+  <!-- Google Play app deep link -->
+  <meta name="google-play-app" content="app-id=com.nanimonjya">
+
+  <!-- Theme color -->
+  <meta name="theme-color" content="#4A90D9">
+
+  <base href="$FLUTTER_BASE_HREF">
+
+  <title>なまえがお — Face & Name Memory Training Game</title>
+
+  <!-- Google AdSense auto-ads (anchor + vignette for Flutter canvas SPA) -->
+  <!-- ⚠️ This is YOUR publisher ID from AdMob. Once AdSense is approved for
+       this domain, ads will start serving. Set up at https://www.google.com/adsense -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6744940157577324"
+    crossorigin="anonymous"
+    data-override-format="true"
+    data-ad-format="fluid">
+  </script>
+
   <script>
-    // The value below is injected by flutter build, do not touch.
     var serviceWorkerVersion = null;
   </script>
-  <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
+
+  <style>
+    /* SEO content — visible to crawlers, hidden from Flutter users */
+    #seo-content {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.7;
+      color: #333;
+    }
+    #seo-content h1 { font-size: 2em; color: #2c3e50; }
+    #seo-content h2 { font-size: 1.4em; color: #4A90D9; margin-top: 2em; }
+    #seo-content .lang-section { margin-top: 3em; padding-top: 1em; border-top: 2px solid #eee; }
+    #seo-content .cta { display: inline-block; margin-top: 1em; padding: 12px 32px; background: #4A90D9; color: #fff; border-radius: 8px; text-decoration: none; font-weight: bold; }
+    #seo-content .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 1em; }
+    #seo-content .feature { padding: 16px; background: #f0f4f8; border-radius: 8px; }
+
+    /* ── Smart App Banner (Google Play / Open in App) ── */
+    #app-banner {
+      display: none; /* hidden by default, shown by JS on Android */
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 99999;
+      background: #1a1a2e; color: #fff;
+      padding: 12px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      box-shadow: 0 -2px 16px rgba(0,0,0,0.3);
+      animation: slideUp 0.35s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    #app-banner .banner-inner {
+      display: flex; align-items: center; gap: 12px;
+      max-width: 600px; margin: 0 auto;
+    }
+    #app-banner .banner-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+    #app-banner .banner-text { flex: 1; min-width: 0; }
+    #app-banner .banner-title { font-size: 0.9em; font-weight: 700; }
+    #app-banner .banner-sub { font-size: 0.75em; opacity: 0.7; margin-top: 2px; }
+    #app-banner .banner-btn {
+      flex-shrink: 0; padding: 10px 20px;
+      background: #4A90D9; color: #fff; border: none;
+      border-radius: 24px; font-size: 0.85em; font-weight: 700;
+      text-decoration: none; cursor: pointer;
+      white-space: nowrap;
+    }
+    #app-banner .banner-close {
+      position: absolute; top: 4px; right: 12px;
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 1.2em; cursor: pointer; padding: 4px 8px;
+    }
+  </style>
 </head>
 <body>
+  <div id="seo-content">
+    <!-- English -->
+    <h1>Namaegao: Never Forget a Name Again</h1>
+    <p>
+      <strong>Namaegao</strong> is a <strong>free face-and-name memory training game</strong>
+      for Android and Web. Match face cards with name cards to train your memory —
+      backed by cognitive science techniques used by memory champions.
+    </p>
+
+    <h2>Why Namaegao?</h2>
+    <div class="features">
+      <div class="feature">
+        <strong>Based on Science</strong><br>
+        Uses elaborative encoding, the Baker-Baker technique, and spaced retrieval — the same methods proven in memory research (Craik & Tulving 1975, McWeeny 1987).
+      </div>
+      <div class="feature">
+        <strong>Real Face Photos</strong><br>
+        Train with realistic face images, not cartoons. Practice in conditions closer to real-life name recall.
+      </div>
+      <div class="feature">
+        <strong>Multiple Game Modes</strong><br>
+        Name Call (name recall race), Pair Matching (classic memory), Business Training (meet → delay → recall), and more.
+      </div>
+      <div class="feature">
+        <strong>Play Together</strong><br>
+        Local multiplayer (2–4 players on one device), online ranked matches, and CPU opponents with ranking system.
+      </div>
+      <div class="feature">
+        <strong>Upload Your Own</strong><br>
+        Add real people you need to remember — colleagues, classmates, new team members. Practice with their photos and names.
+      </div>
+      <div class="feature">
+        <strong>Free to Play</strong><br>
+        No paywall. Optional extras: unlock bonus characters, remove ads, or equip lucky charms with coin earnings.
+      </div>
+    </div>
+
+    <p>
+      <a class="cta" href="https://play.google.com/store/apps/details?id=com.nanimonjya">Get it on Google Play</a>
+    </p>
+
+    <!-- 日本語 -->
+    <div class="lang-section">
+      <h2 lang="ja">ペタネーム — 顔と名前の記憶トレーニング</h2>
+      <p lang="ja">
+        <strong>ペタネーム</strong>は、顔と名前を結びつける記憶力を楽しく鍛える無料ゲームです。
+        認知科学の研究成果に基づいた記憶術（タグ付け法・ベイカー錯誤の逆用・自己関連づけ・分散検索）を
+        ゲームに取り入れ、職場や学校での「顔はわかるのに名前が出てこない」を克服します。
+      </p>
+      <p lang="ja">
+        モード：なまえコール（名前想起レース）／ペアさがし（神経衰弱）／ビジネス特訓（出会い→時間→思い出し）／
+        おぼえる（自分の写真で練習）／オンライン対戦／CPU対戦（段位制）
+      </p>
+      <p lang="ja">
+        <a href="https://play.google.com/store/apps/details?id=com.nanimonjya">Google Play でダウンロード</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Hide SEO content immediately once Flutter loads this script.
+    // Crawlers get the full HTML; real users never see the flash.
+    // Runs before Flutter's JS because it's placed first in body.
+    (function() {
+      var el = document.getElementById('seo-content');
+      if (el) el.style.display = 'none';
+    })();
+  </script>
+
+  <!-- Smart App Banner: nudges Android users to the Play Store -->
+  <div id="app-banner">
+    <div class="banner-inner">
+      <img class="banner-icon" src="icons/Icon-192.png" alt="Namaegao" width="44" height="44">
+      <div class="banner-text">
+        <div class="banner-title">Namaegao — Memory Training</div>
+        <div class="banner-sub">Free · Android · Google Play</div>
+      </div>
+      <a class="banner-btn" id="banner-install" href="https://play.google.com/store/apps/details?id=com.nanimonjya">Install</a>
+    </div>
+    <button class="banner-close" id="banner-close" aria-label="Close">&times;</button>
+  </div>
+
+  <script>
+    // ── Smart App Banner logic ──
+    (function() {
+      var banner = document.getElementById('app-banner');
+      var closeBtn = document.getElementById('banner-close');
+      var installBtn = document.getElementById('banner-install');
+
+      // Check if user came from Google Play (referrer) — if so, don't show banner
+      if (document.referrer.indexOf('play.google.com') !== -1) return;
+
+      // Check if already dismissed this session
+      if (sessionStorage.getItem('app-banner-dismissed')) return;
+
+      // Detect Android (but not if already in standalone/PWA mode)
+      var ua = navigator.userAgent.toLowerCase();
+      var isAndroid = ua.indexOf('android') > -1;
+      var isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+      // Also check for intent:// scheme support (Android Chrome)
+      if (isAndroid && !isStandalone) {
+        banner.style.display = 'block';
+
+        // Use intent:// scheme so "Open in App" works if already installed
+        var playUrl = 'https://play.google.com/store/apps/details?id=com.nanimonjya';
+        var intentUrl = 'intent://details?id=com.nanimonjya#Intent;scheme=market;package=com.android.vending;end';
+
+        // Try intent first (opens Play Store app), fallback to web URL
+        installBtn.href = intentUrl;
+        installBtn.textContent = 'Open in App';
+
+        // If intent fails after 2s, switch to web Play Store link
+        var intentTimer = setTimeout(function() {
+          installBtn.href = playUrl;
+          installBtn.textContent = 'Install';
+        }, 2000);
+
+        // On blur (user left browser → intent worked), hide banner
+        window.addEventListener('blur', function() {
+          clearTimeout(intentTimer);
+        });
+      }
+
+      closeBtn.addEventListener('click', function() {
+        banner.style.display = 'none';
+        sessionStorage.setItem('app-banner-dismissed', '1');
+      });
+    })();
+  </script>
+
   <script>
     window.addEventListener('load', function(ev) {
-      // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,

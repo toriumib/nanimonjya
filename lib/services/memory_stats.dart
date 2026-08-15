@@ -8,7 +8,7 @@ enum StatMode {
   /// CPU対戦（ペアさがしのCPU戦）
   cpu,
 
-  /// なまえコール
+  /// なまえがお
   nameCall,
 
   /// 名刺記憶（ビジネス特訓の思い出しトレーニング）
@@ -24,9 +24,17 @@ extension StatModeLabel on StatMode {
 
   String get labelJa => switch (this) {
         StatMode.cpu => 'CPU対戦',
-        StatMode.nameCall => 'なまえコール',
+        StatMode.nameCall => 'なまえがお',
         StatMode.businessCard => '名刺記憶',
       };
+
+  String get labelEn => switch (this) {
+        StatMode.cpu => 'CPU Battle',
+        StatMode.nameCall => 'Name Call',
+        StatMode.businessCard => 'Biz Card Quiz',
+      };
+
+  String label(bool ja) => ja ? labelJa : labelEn;
 
   String get emoji => switch (this) {
         StatMode.cpu => '🤖',
@@ -142,7 +150,7 @@ class MemoryStats extends ChangeNotifier {
     //
     // ⚠️ 最初は「すでに1回答えたことがある」「別の日に会った」に限っていたが、
     //    それだと定着率がほぼ永久に「—」のままになった。
-    //    なまえコールは1人につき命名1回＋想起1回なので、想起が
+    //    なまえがおは1人につき命名1回＋想起1回なので、想起が
     //    毎回「1回目の回答」に数えられ、分母が増えなかったため。
     //    命名・おぼえタイム・名刺交換で「会った」ことを記録している以上、
     //    そのあとの想起は立派な2回目の遭遇なので、これを数える。

@@ -12,6 +12,7 @@ import '../widgets/banner_ad_slot.dart';
 import '../widgets/face_view.dart';
 import 'rulebook_screen.dart';
 import 'training_report_screen.dart';
+import '../services/app_analytics.dart';
 
 /// 🖇 一人特訓（線むすび）。
 /// 左に顔、右に名前を並べ、指でドラッグして線でつなぐ。
@@ -29,6 +30,12 @@ class LineMatchScreen extends StatefulWidget {
 enum _Phase { memorize, connect }
 
 class _LineMatchScreenState extends State<LineMatchScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.screen('line_match');
+  }
+
   final Random _rng = Random();
   final Stopwatch _clock = Stopwatch();
 
@@ -65,7 +72,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
       ],
       PlayerProfile.instance.deckExcluded,
     );
-    // ⚠️ generateImagePeople は name が空文字（なまえコールは各自が命名する
+    // ⚠️ generateImagePeople は name が空文字（なまえがおは各自が命名する
     //    仕様のため）。線むすびは名前を表示して結ぶので、名前が入る
     //    generateRecallPeople を使う。
     // デッキが少ないときは出演人数をデッキに合わせる（基本12人への

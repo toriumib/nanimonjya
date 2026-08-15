@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ad_ids.dart';
+import 'app_analytics.dart';
 import 'app_open_ad_helper.dart';
 import 'player_profile.dart';
 
@@ -12,16 +13,16 @@ class InterstitialAdHelper {
   InterstitialAdHelper._();
   static final InterstitialAdHelper instance = InterstitialAdHelper._();
 
-  static const int playsPerAd = 3; // 何プレイごとに全画面広告を出すか
+  static const int playsPerAd = 2; // 何プレイごとに全画面広告を出すか
   static const String _prefsKey = 'playsSinceInterstitial';
 
   /// 🚦 前に出してから、最低これだけ間をあける（秒）。
   ///
-  /// 「3プレイに1回」だけだと、短い試合を続けざまに終えたときに
+  /// 「2プレイに1回」だけだと、短い試合を続けざまに終えたときに
   /// 全画面広告が立て続けに出る。全画面はいちばん嫌われやすい形なので、
   /// **回数**と**時間**の両方で止める（フリークエンシーキャップ）。
   /// 出しすぎて遊ぶのをやめられたら、その先の広告収入ごと失う。
-  static const int minIntervalSeconds = 90;
+  static const int minIntervalSeconds = 60;
   static const String _lastShownKey = 'interstitialLastShownMs';
 
   InterstitialAd? _ad;
@@ -34,6 +35,8 @@ class InterstitialAdHelper {
   void load() {
     if (!available || _loading || _ad != null) return;
     _loading = true;
+    AppAnalytics.adLoadRequested(
+        format: 'interstitial', placement: 'result');
     InterstitialAd.load(
       adUnitId: AdIds.interstitial,
       request: const AdRequest(),
@@ -88,10 +91,21 @@ class InterstitialAdHelper {
       );
       await prefs.setInt(_lastShownKey, now);
       AppOpenAdHelper.instance.suspended = true;
+      AppAnalytics.adShown(format: 'interstitial', placement: 'result');
       await ad.show();
     } else {
-      // まだ回数前 or 広告未準備（未準備なら読み込んでおき、次の機会に出す）
-      if (plays >= playsPerAd) load();
+      // あと1プレイで出る、またはもう出るはずの段階でまだ読めていない
+      load();
+      if (plays >= playsPerAd) {
+        // 広告の準備ができていない・クールダウン中 → カウンタを進めず次回に持ち越す。
+        // ここで plays を保存すると、次回起動時にも _ad が null なのに
+        // plays だけが増え続けてしまう（SharedPreferencesは永続だが _ad はメモリ）
+        AppAnalytics.adSkipped(
+            format: 'interstitial',
+            placement: 'result',
+            reason: tooSoon ? 'cooldown' : 'not_loaded');
+        plays = playsPerAd; // 進めずにここで止める
+      }
     }
     await prefs.setInt(_prefsKey, plays);
   }

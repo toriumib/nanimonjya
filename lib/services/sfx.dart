@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -58,13 +57,19 @@ class Sfx {
           await p.setAsset('assets/audio/$a');
           players.add(p);
         } catch (e) {
-          debugPrint('SFX preload failed ($a): $e');
+          // releaseモードでも見えるようにprintを使う
+          print('SFX preload failed ($a): $e');
         }
       }
       if (players.isNotEmpty) {
         _pool[a] = players;
         _cursor[a] = 0;
+      } else {
+        print('SFX: no players loaded for $a — sound will be silent');
       }
+    }
+    if (_pool.isEmpty) {
+      print('SFX: ALL sounds failed to preload. Audio will be completely silent.');
     }
   }
 
@@ -74,22 +79,19 @@ class Sfx {
       if (!_ready) await preload();
       final players = _pool[asset];
       if (players == null || players.isEmpty) {
-        // プールを作れなかった音（ファイル欠損など）は鳴らさず黙って諦める。
-        // ここで使い捨てAudioPlayerを作ると、連打のたびに生成されて
-        // `Platform player ... already exists` で落ちるため。
+        // プールを作れなかった音（ファイル欠損/エミュレータのROM不足等）は
+        // 初回の1回だけprintに出す（以降は連打ノイズになるので黙る）
         return;
       }
       final idx = _cursor[asset]!;
       _cursor[asset] = (idx + 1) % players.length;
       final player = players[idx];
       await player.setVolume(volume);
-      try {
-        await player.setSpeed(speed);
-      } catch (_) {}
+      try { await player.setSpeed(speed); } catch (_) {}
       await player.seek(Duration.zero);
       await player.play();
     } catch (e) {
-      debugPrint('SFX play failed ($asset): $e');
+      print('SFX play failed ($asset): $e');
     }
   }
 

@@ -78,7 +78,8 @@ class _Card {
   _Card(this.person, this.isFace);
 }
 
-class _NameBattleScreenState extends State<NameBattleScreen> {
+class _NameBattleScreenState extends State<NameBattleScreen>
+    with WidgetsBindingObserver {
   bool get _twoPlayer => widget.humanPlayers >= 2;
   bool get _combined => widget.cardStyle == BattleCardStyle.combined;
   bool get _faceOnly => widget.cardStyle == BattleCardStyle.faceOnly;
@@ -122,10 +123,13 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Timer? _cpuTimer;
   int _coinsEarned = 0;
   bool _rewarded = false;
+  bool _finished = false;
+  DateTime? _leftAt;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
     _people = generatePeople(
       _pairs,
@@ -159,7 +163,7 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
         MemoryStats.instance.recordMeeting(
             itemKey: MemoryStats.keyOf(face: p.face, name: p.name));
       }
-    });
+    }).catchError((_) {});
     _rosterTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
@@ -176,11 +180,51 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: _modeName,
+        reason: 'quit',
+        progressPct: _progressPct,
+        people: _pairs,
+      );
+    }
     _rosterTimer?.cancel();
     _battleTimer?.cancel();
     _cpuTimer?.cancel();
     Bgm.instance.stopGame();
     super.dispose();
+  }
+
+  String get _modeName =>
+      _twoPlayer ? 'name_battle_2p' : 'name_battle';
+
+  int get _progressPct {
+    if (_phase == _Phase.roster) return 0;
+    if (_phase == _Phase.memory) return 30;
+    if (_phase == _Phase.briefing) return 60;
+    if (_phase == _Phase.battle) return 80;
+    return 100;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: _modeName,
+        progressPct: _progressPct,
+        card: _squads[0].length + _squads[1].length,
+        totalCards: _pairs * 2,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: _modeName,
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
   }
 
   // ─────────────── 🃏 神経衰弱 ───────────────
@@ -302,6 +346,14 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   Future<void> _finish() async {
     if (_rewarded) return;
     _rewarded = true;
+    _finished = true;
+    final modeName = _modeName;
+    AppAnalytics.gameExit(
+      mode: modeName,
+      reason: 'completed',
+      progressPct: 100,
+      people: _pairs,
+    );
     setState(() => _phase = _Phase.result);
     await MemoryStats.instance.finishSession(StatMode.cpu);
     await PlayerProfile.instance.addWeeklyLearned(_squads[0].length);
@@ -324,6 +376,29 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
 
   // ─────────────── UI ───────────────
 
+  void _confirmQuit(MetaStrings m) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(m.quitTitle),
+        content: Text(m.quitOfflineBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(m.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomeShell()),
+              (route) => false,
+            ),
+            child: Text(m.quitGame),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _sideName(MetaStrings m, int side) {
     if (_twoPlayer) return side == 0 ? 'P1' : 'P2';
     return side == 0 ? m.you : m.battleFoe;
@@ -332,7 +407,13 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
   @override
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
-    return Scaffold(
+    final canPop = _phase == _Phase.result;
+    return PopScope(
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmQuit(m);
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF3F7FF),
       bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
@@ -370,7 +451,7 @@ class _NameBattleScreenState extends State<NameBattleScreen> {
           _Phase.result => _resultView(m),
         },
       ),
-    );
+      ));
   }
 
   Widget _rosterView(MetaStrings m) {

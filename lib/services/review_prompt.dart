@@ -1,5 +1,6 @@
 import 'package:in_app_review/in_app_review.dart';
 
+import 'app_analytics.dart';
 import 'player_profile.dart';
 
 /// これ未満のプレイ回数では絶対に頼まない（呼び出し側が0を渡しても守る）。
@@ -39,9 +40,32 @@ Future<void> maybeAskReview({int minGames = 3}) async {
     final review = InAppReview.instance;
     if (await review.isAvailable()) {
       await p.markReviewPrompted();
+      // 📊 出そうとした回数を残す。
+      //    requestReview() は Google 側の割り当てで**何も出ないことがあり**、
+      //    しかもアプリからは成功と区別がつかない。せめて
+      //    「何回声をかけたか」だけでも見えるようにしておかないと、
+      //    レビューが増えない原因が導線なのか割り当てなのか判断できない。
+      AppAnalytics.reviewPromptShown();
       await review.requestReview();
     }
   } catch (_) {
     // レビューAPIが使えない環境では何もしない
+  }
+}
+
+/// ⭐ 自分から「評価する」を押したときに、ストアのページを開く。
+///
+/// [maybeAskReview] との違いは2つ。
+/// - **必ずストアのページを開く**。アプリ内ダイアログ（`requestReview`）は
+///   Google の割り当てにかかると黙って何も出ないので、
+///   自分から押した人にまで「押したのに何も起きない」を見せない。
+/// - **自動の依頼回数を消費しない**。手動で開いたからといって、
+///   あとから来る良いタイミングでの依頼を減らす理由はない。
+Future<void> openStoreReview() async {
+  try {
+    AppAnalytics.reviewPromptShown();
+    await InAppReview.instance.openStoreListing();
+  } catch (_) {
+    // ストアが無い環境（Web・エミュレータ等）では何もしない
   }
 }

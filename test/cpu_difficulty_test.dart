@@ -55,6 +55,11 @@ void main() {
   });
 
   group('山札の組み立て（groupSize）', () {
+    // ⚠️ **既定の枚数に依存させない。**
+    //    以前は defaultCopiesPerPerson が2である前提で山札の長さを
+    //    直書きしていたため、既定を5に変えただけで4本まとめて落ちた。
+    //    ここで見たいのは「並び順」なので、枚数は明示して固定する。
+    const copies = 2;
     List<Person> people(int n) => [
           for (var i = 0; i < n; i++)
             Person(face: 'f$i', kind: FaceKind.asset, name: 'p$i', hobby: ''),
@@ -62,7 +67,10 @@ void main() {
 
     test('groupSize=1 なら「1人おぼえて、すぐその人が出る」', () {
       final g = NameCallGame(
-          people: people(4), rng: Random(1), groupSize: 1);
+          people: people(4),
+          rng: Random(1),
+          groupSize: 1,
+          copiesPerPerson: copies);
       expect(g.deck.length, 8);
       // 2枚ずつ同じ人が並ぶ
       for (var i = 0; i < g.deck.length; i += 2) {
@@ -72,7 +80,10 @@ void main() {
 
     test('groupSize=2 なら 2人おぼえてから 2人ぶん出題される', () {
       final g = NameCallGame(
-          people: people(4), rng: Random(2), groupSize: 2);
+          people: people(4),
+          rng: Random(2),
+          groupSize: 2,
+          copiesPerPerson: copies);
       expect(g.deck.length, 8);
       // 前半4枚＝1組目。命名2枚と想起2枚が同じ顔ぶれになる
       expect(g.deck.sublist(0, 2).toSet(), g.deck.sublist(2, 4).toSet());
@@ -86,14 +97,20 @@ void main() {
 
     test('groupSize=4（鬼）は 4人おぼえてから 4人ぶん出題される', () {
       final g = NameCallGame(
-          people: people(8), rng: Random(3), groupSize: 4);
+          people: people(8),
+          rng: Random(3),
+          groupSize: 4,
+          copiesPerPerson: copies);
       expect(g.deck.sublist(0, 4).toSet(), g.deck.sublist(4, 8).toSet());
       expect(g.deck.sublist(8, 12).toSet(), g.deck.sublist(12, 16).toSet());
     });
 
     test('人数が groupSize で割り切れなくても全員ぶん出る', () {
       final g = NameCallGame(
-          people: people(5), rng: Random(4), groupSize: 4);
+          people: people(5),
+          rng: Random(4),
+          groupSize: 4,
+          copiesPerPerson: copies);
       expect(g.deck.length, 10);
       // 端数の1人も命名＋想起の2枚ある
       final counts = <Person, int>{};
@@ -105,7 +122,8 @@ void main() {
     });
 
     test('groupSize=0（既定）は従来どおり全部シャッフル', () {
-      final g = NameCallGame(people: people(6), rng: Random(5));
+      final g = NameCallGame(
+          people: people(6), rng: Random(5), copiesPerPerson: copies);
       expect(g.deck.length, 12);
       final counts = <Person, int>{};
       for (final p in g.deck) {
@@ -116,10 +134,21 @@ void main() {
   });
 
   group('登場人数', () {
-    test('既定は4人、スライダーは4〜15', () {
-      expect(NameCallGame.peopleCount, 4);
+    test('既定は6人×5枚（山札30枚）、スライダーは4〜15', () {
+      // 2026-08 の完走率改善で12→6に引き下げ。name_call.dart 参照。
+      expect(NameCallGame.peopleCount, 6);
+      expect(NameCallGame.defaultCopiesPerPerson, 5);
+      expect(
+          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson, 30);
       expect(NameCallGame.minSelectableCount, 4);
       expect(NameCallGame.maxSelectableCount, 15);
+      // 既定が選べる範囲に収まっているか（ここがずれると初期値が clamp される）
+      expect(NameCallGame.peopleCount,
+          inInclusiveRange(NameCallGame.minSelectableCount,
+              NameCallGame.maxSelectableCount));
+      expect(NameCallGame.defaultCopiesPerPerson,
+          inInclusiveRange(NameCallGame.minCopiesPerPerson,
+              NameCallGame.maxCopiesPerPerson));
     });
 
     test('最大人数ぶんの顔が用意されている', () {
@@ -196,9 +225,16 @@ void main() {
             Person(face: 'f$i', kind: FaceKind.asset, name: 'p$i', hobby: ''),
         ];
 
-    test('既定は2枚（命名1回＋想起1回）', () {
+    test('既定は5枚（命名1回＋想起4回）', () {
       final g = NameCallGame(people: people(4), rng: Random(21));
-      expect(g.copiesPerPerson, 2);
+      expect(g.copiesPerPerson, NameCallGame.defaultCopiesPerPerson);
+      expect(g.totalCards, 4 * NameCallGame.defaultCopiesPerPerson);
+      expect(g.deck.length, g.totalCards);
+    });
+
+    test('最小の2枚なら、命名1回＋想起1回で終わる', () {
+      final g = NameCallGame(
+          people: people(4), rng: Random(21), copiesPerPerson: 2);
       expect(g.totalCards, 8);
       expect(g.deck.length, 8);
     });

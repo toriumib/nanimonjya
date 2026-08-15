@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
 import '../models/achievement.dart';
@@ -20,10 +19,12 @@ import 'story_screen.dart';
 import 'player_selection_screen.dart';
 import '../services/reward_ad_helper.dart';
 import '../services/rewarded_interstitial_helper.dart';
+import '../services/review_prompt.dart'; // ⭐ ストアのレビューを開く
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/coin_short_sheet.dart';
 import '../widgets/stamp_calendar.dart';
+import '../services/app_analytics.dart';
 
 /// 🛠 開発者モードの合言葉。動作確認と画面撮影のためのもの。
 const String _kDevPassphrase = 'Toriumi';
@@ -45,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('profile');
     _rewardAd.load();
     // 画面を開いた時点で条件を満たす実績を解放
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -55,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     // 試聴で鳴らした曲をマイページから出るときに止める
-    Bgm.instance.stop();
+    Bgm.instance.stopHome();
     _rewardAd.dispose();
     super.dispose();
   }
@@ -191,36 +193,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             _dailyBonusCard(m, profile),
-            const SizedBox(height: 16),
-            _missionsCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _statsCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _awakenCard(m, profile),
-            const SizedBox(height: 16),
-            _titleCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
+            _missionsCard(m, profile),
+            const SizedBox(height: 14),
+            // ── カスタマイズ ──
+            _sectionHeader('🎨 ${m.ja ? "カスタマイズ" : "Customize"}'),
             _themeCard(m, profile),
-            const SizedBox(height: 16),
-            _dogCard(m, profile),
-            const SizedBox(height: 16),
-            _cheerCard(m, profile),
-            const SizedBox(height: 16),
-            _costumeCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _achievementsCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
+            // ── 設定 ──
+            _sectionHeader('⚙️ ${m.ja ? "設定" : "Settings"}'),
             _reminderCard(m, profile),
-            const SizedBox(height: 16),
-            _devModeCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _bgmCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _homeMusicCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _resultMusicCard(m, profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _supportCard(m),
+            const SizedBox(height: 14),
+            _devModeCard(m, profile),
             const SizedBox(height: 24),
           ],
         ),
@@ -269,6 +267,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// セクション見出し
+  Widget _sectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(top: 2, bottom: 4),
+    child: Text(title,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
+            color: Color(0xFF3A7BD5))),
+  );
+
   /// 🎁 デイリーで手に入るもの（コイン・キャラ）を絵で並べる。
   /// 顔は実際のキャラ画像を使う。「誰がもらえるか」が想像できるほうが押される。
   Widget _rewardPreview() {
@@ -299,9 +305,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const Text('🙂', style: TextStyle(fontSize: 24))),
               ),
             ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'コインとキャラが もらえます',
+              MetaStrings.of(context).ja ? 'コインとキャラが もらえます' : 'Earn coins & characters',
               textAlign: TextAlign.right,
               style: TextStyle(
                   fontSize: 11.5,
@@ -450,7 +456,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.auto_stories_rounded),
-              label: const Text('📖 ストーリー'),
+              label: Text(MetaStrings.of(context).ja ? '📖 ストーリー' : '📖 Story'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7A5AC2),
                 foregroundColor: Colors.white,
@@ -473,7 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.rocket_launch_rounded),
-              label: const Text('🚀 プロジェクト・ノア'),
+              label: Text(MetaStrings.of(context).ja ? '🚀 プロジェクト・ノア' : '🚀 Project Noah'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1D3A6B),
                 foregroundColor: Colors.white,
@@ -497,7 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.insights_rounded),
-              label: const Text('📊 成績レポート'),
+              label: Text(MetaStrings.of(context).ja ? '📊 成績レポート' : '📊 Stats Report'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2E9E5B),
                 foregroundColor: Colors.white,
@@ -717,52 +723,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // 称号一覧（累計コインで自動ランクアップ）
-  Widget _titleCard(MetaStrings m, PlayerProfile p) {
-    final ja = m.ja;
-    final current = currentTitle(p.lifetimeCoins);
-    return _sectionCard(
-      title: '👑 ${m.titles}',
-      child: Column(
-        children: kPlayerTitles.map((t) {
-          final unlocked = p.lifetimeCoins >= t.requiredLifetimeCoins;
-          final isCurrent = t.requiredLifetimeCoins ==
-              current.requiredLifetimeCoins;
-          return Opacity(
-            opacity: unlocked ? 1.0 : 0.4,
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Text(
-                unlocked ? t.emoji : '🔒',
-                style: const TextStyle(fontSize: 26),
-              ),
-              title: Text(
-                ja ? t.nameJa : t.nameEn,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isCurrent ? const Color(0xFFB8860B) : null,
-                ),
-              ),
-              subtitle: Text(
-                unlocked
-                    ? (isCurrent ? m.currentTitleLabel : m.unlocked)
-                    : m.coinsToUnlock(
-                        t.requiredLifetimeCoins - p.lifetimeCoins,
-                      ),
-              ),
-              trailing: isCurrent
-                  ? const Icon(Icons.star, color: Color(0xFFFFB300))
-                  : Text(
-                      '🪙${t.requiredLifetimeCoins}',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   // ホーム画面のきせかえ（コインで解放）
   Widget _themeCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
@@ -851,89 +811,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             trailing: trailing,
           );
           }),
-        ],
-      ),
-    );
-  }
-
-  // 応援わんちゃん図鑑（累計コインで自動解放）
-  Widget _dogCard(MetaStrings m, PlayerProfile p) {
-    final ja = m.ja;
-    return _sectionCard(
-      title: '🐾 ${m.dogSquad}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(m.dogSquadDesc, style: const TextStyle(fontSize: 13)),
-          const SizedBox(height: 10),
-          // 🐶 なつき度（あそぶほど上がって声援が変化）
-          Row(
-            children: [
-              Text(
-                '${dogBond(p.dogAffection).emoji} ${m.bondLabel}: '
-                '${ja ? dogBond(p.dogAffection).nameJa : dogBond(p.dogAffection).nameEn}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: dogBondProgress(p.dogAffection),
-                    minHeight: 8,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFFFF8FB4)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: kDogCompanions.map((d) {
-              final unlocked =
-                  p.lifetimeCoins >= d.requiredLifetimeCoins;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: unlocked
-                          ? const Color(0xFFFFF3D6)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: unlocked
-                            ? const Color(0xFFE6B54A)
-                            : Colors.grey.shade400,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: unlocked
-                          ? SvgPicture.asset(d.asset, width: 50, height: 50)
-                          : const Text('🔒',
-                              style: TextStyle(fontSize: 26)),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    unlocked
-                        ? (ja ? d.nameJa : d.nameEn)
-                        : '🪙${d.requiredLifetimeCoins}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
         ],
       ),
     );
@@ -1036,134 +913,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             reward: 40,
           ),
           // ※オンライン対戦ミッションはv2.0.0のルール刷新で撤去
-        ],
-      ),
-    );
-  }
-
-  // 🎽 応援団の衣装ショップ（コインで解放＆着せ替え）
-  Widget _costumeCard(MetaStrings m, PlayerProfile p) {
-    final ja = m.ja;
-    return _sectionCard(
-      title: '🎽 ${m.cheerCostume}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(m.cheerCostumeDesc, style: const TextStyle(fontSize: 13)),
-          const SizedBox(height: 6),
-          ...kCheerCostumes.map((c) {
-            final owned = p.unlockedCostumes.contains(c.id);
-            final selected = p.selectedCostume == c.id;
-            Widget trailing;
-            if (selected) {
-              trailing = Chip(
-                label: Text(m.selected),
-                backgroundColor: const Color(0xFFD7F5D7),
-              );
-            } else if (owned) {
-              trailing = OutlinedButton(
-                onPressed: () {
-                  p.selectCostume(c.id);
-                  Sfx.instance.pop();
-                },
-                child: Text(m.select),
-              );
-            } else {
-              trailing = ElevatedButton(
-                onPressed: () async {
-                  final ok = await p.unlockCostume(c.id, c.cost);
-                  if (!mounted) return;
-                  if (ok) {
-                    Sfx.instance.fanfare();
-                    p.selectCostume(c.id); // 買ったら即着せ替え
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(m.unlocked)));
-                  } else {
-                    await offerAdForCoins(context,
-                        ad: _rewardAd,
-                        cost: c.cost,
-                        category: 'costume',
-                        itemId: c.id);
-                    if (mounted) setState(() {});
-                  }
-                },
-                child: Text('${c.cost}🪙'),
-              );
-            }
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: c.zoneGradient),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: selected
-                        ? const Color(0xFF4A7A2A)
-                        : Colors.grey.shade300,
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Text(c.accessory.isEmpty ? '🎓' : c.accessory,
-                      style: const TextStyle(fontSize: 20)),
-                ),
-              ),
-              title: Text(ja ? c.nameJa : c.nameEn,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(
-                (ja ? c.cheersJa.first : c.cheersEn.first),
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-              trailing: trailing,
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _cheerCard(MetaStrings m, PlayerProfile p) {
-    return _sectionCard(
-      title: '📣 ${m.cheerSquad}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(m.cheerSquadDesc, style: const TextStyle(fontSize: 13)),
-          const SizedBox(height: 12),
-          // 全メンバーを並べて紹介
-          Center(
-            child: Wrap(
-              spacing: 14,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: kAllCheerMembers
-                  .map((a) => Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3F8),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: const Color(0xFFFFC9E0), width: 1.5),
-                        ),
-                        child:
-                            SvgPicture.asset(a, width: 48, height: 48),
-                      ))
-                  .toList(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              m.cheerAllJoined,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFB4326E),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1389,8 +1138,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 await p.selectBgm(b.asset);
                 Sfx.instance.pop();
-                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする
-                Bgm.instance.restartGameBgm();
+                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする。
+                // ⚠️ ここで restartGameBgm() を呼んではいけない。
+                //    マイページは「ホームのタブ」なので、ゲーム用の場面に
+                //    切り替わってしまい、タブを移った瞬間にホームの曲へ戻る。
+                //    選ぶたびに違う曲が鳴って、順番に流れているように見える。
+                Bgm.instance.preview(b.asset);
               },
               child: Text(m.select),
             );
@@ -1434,11 +1187,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _homeMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
     final options = <MapEntry<String, String>>[
-      // 既定曲は買っていなくても常に選べる
-      MapEntry(kHomeBgmAsset, ja ? 'シチリアーノ（既定）' : 'Siciliano (default)'),
+      // 🎲 既定。起動のたびにシチリアーノか運命を引く
+      MapEntry(kHomeBgmRandom,
+          ja ? 'おまかせ（シチリアーノ / 運命）' : 'Shuffle (Siciliano / Fate)'),
       ...kBgmCatalog
-          .where((b) =>
-              b.asset != kHomeBgmAsset && p.unlockedBgm.contains(b.asset))
+          .where((b) => p.unlockedBgm.contains(b.asset))
           .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
     ];
     return _sectionCard(
@@ -1466,8 +1219,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: () async {
                         await p.selectHomeBgm(o.key);
                         Sfx.instance.pop();
-                        // 選んだ曲をその場で鳴らして確認できるようにする
-                        Bgm.instance.playHome();
+                        // ホームの曲はいまこの画面で鳴っているものなので、
+                        // その場で本当に差し替える（試聴ではなく本番）。
+                        await Bgm.instance.restartCurrent();
                       },
                       child: Text(m.select),
                     ),
@@ -1480,9 +1234,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _resultMusicCard(MetaStrings m, PlayerProfile p) {
     final ja = m.ja;
-    // 選択肢: シャイニングスター（常時）＋BGMショップでアンロック済みの曲
+    // 🎲 既定は「おまかせ」。選ぶとその曲だけが鳴る。
     final options = <MapEntry<String, String>>[
-      MapEntry('shining_star.mp3', ja ? 'シャイニングスター' : 'Shining Star'),
+      MapEntry(kResultBgmRandom,
+          ja ? 'おまかせ（勝利の行進曲から）' : 'Shuffle (victory marches)'),
       ...kBgmCatalog
           .where((b) => p.unlockedBgm.contains(b.asset))
           .map((b) => MapEntry(b.asset, ja ? b.nameJa : b.nameEn)),
@@ -1509,9 +1264,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: const Color(0xFFD7F5D7),
                     )
                   : OutlinedButton(
-                      onPressed: () {
-                        p.selectResultBgm(o.key);
+                      onPressed: () async {
+                        await p.selectResultBgm(o.key);
                         Sfx.instance.pop();
+                        // 結果画面の曲も、選んだらすぐ聴けるようにする
+                        // （鳴らないと選べたのか分からない）。
+                        Bgm.instance.preview(o.key);
                       },
                       child: Text(m.select),
                     ),
@@ -1536,6 +1294,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(m.supportBody, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 12),
+            // ⭐ お金をかけずにいちばん助かるのがレビュー。
+            //    支援ボタンより先に、こちらを置く。
+            //    自動のレビュー依頼は Google の割り当てで出ないことがあるので、
+            //    「自分から書きに行ける場所」を必ず用意しておく。
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Sfx.instance.pop();
+                  openStoreReview();
+                },
+                icon: const Text('⭐', style: TextStyle(fontSize: 18)),
+                label: Text(m.storeRate),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFB300),
+                  foregroundColor: Colors.black87,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              m.ja
+                  ? 'ひとことでも書いてもらえると、見つけてもらいやすくなります。'
+                  : 'Even one line helps other people find the app.',
+              style: const TextStyle(fontSize: 11.5, color: Colors.black54),
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

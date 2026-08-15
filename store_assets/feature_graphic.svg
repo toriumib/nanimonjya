@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="50%" stop-color="#16213e"/>
+      <stop offset="100%" stop-color="#0f3460"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFC02E"/>
+      <stop offset="100%" stop-color="#FF6A3D"/>
+    </linearGradient>
+    <linearGradient id="tag1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8F0FE"/>
+    </linearGradient>
+    <linearGradient id="tag2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFE8E0"/>
+    </linearGradient>
+    <linearGradient id="tag3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0F4E8"/>
+    </linearGradient>
+    <linearGradient id="tag4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8E0FF"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Background particles -->
+  <circle cx="120" cy="80" r="1.5" fill="#5AD1FF" opacity="0.3"/>
+  <circle cx="350" cy="420" r="1" fill="#FFC02E" opacity="0.4"/>
+  <circle cx="780" cy="60" r="1.5" fill="#7DFFB0" opacity="0.3"/>
+  <circle cx="900" cy="400" r="1" fill="#5AD1FF" opacity="0.25"/>
+  <circle cx="200" cy="350" r="2" fill="#FFC02E" opacity="0.2"/>
+  <circle cx="650" cy="450" r="1.5" fill="#7DFFB0" opacity="0.3"/>
+  <circle cx="450" cy="60" r="1" fill="#5AD1FF" opacity="0.35"/>
+  <circle cx="50" cy="300" r="1" fill="#FFC02E" opacity="0.3"/>
+
+  <!-- Title area -->
+  <text x="512" y="68" text-anchor="middle" font-family="MochiyPopOne, sans-serif" font-size="32" font-weight="900" fill="url(#gold)">なまえがお</text>
+  <text x="512" y="95" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="13" fill="#8899BB" letter-spacing="3">顔と名前の記憶トレーニングゲーム</text>
+
+  <text x="512" y="120" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-size="10" fill="#556688">Face &amp; Name Memory Training Game</text>
+
+  <!-- 4 name tags row -->
+  <!-- Tag 1 -->
+  <g transform="translate(122, 130)" filter="url(#shadow)">
+    <rect x="0" y="0" width="170" height="150" rx="16" fill="url(#tag1)" stroke="#3A7BD5" stroke-width="2"/>
+    <circle cx="85" cy="30" r="8" fill="#3A7BD5"/>
+    <line x1="85" y1="30" x2="85" y2="48" stroke="#3A7BD5" stroke-width="2"/>
+    <circle cx="85" cy="80" r="28" fill="none" stroke="#3A7BD5" stroke-width="2"/>
+    <circle cx="76" cy="74" r="3" fill="#3A7BD5"/>
+    <circle cx="94" cy="74" r="3" fill="#3A7BD5"/>
+    <path d="M 74 88 Q 85 100 96 88" fill="none" stroke="#3A7BD5" stroke-width="2"/>
+    <text x="85" y="122" text-anchor="middle" font-family="Zen Maru Gothic" font-size="9" font-weight="900" fill="#3A7BD5">佐藤さん</text>
+    <rect x="45" y="132" width="80" height="2" rx="1" fill="#D8E4F0"/>
+  </g>
+
+  <!-- Tag 2 -->
+  <g transform="translate(312, 130)" filter="url(#shadow)">
+    <rect x="0" y="0" width="170" height="150" rx="16" fill="url(#tag2)" stroke="#E8663C" stroke-width="2"/>
+    <circle cx="85" cy="30" r="8" fill="#E8663C"/>
+    <line x1="85" y1="30" x2="85" y2="48" stroke="#E8663C" stroke-width="2"/>
+    <circle cx="85" cy="80" r="28" fill="none" stroke="#E8663C" stroke-width="2"/>
+    <circle cx="76" cy="74" r="3" fill="#E8663C"/>
+    <circle cx="94" cy="74" r="3" fill="#E8663C"/>
+    <path d="M 74 88 Q 85 100 96 88" fill="none" stroke="#E8663C" stroke-width="2"/>
+    <text x="85" y="122" text-anchor="middle" font-family="Zen Maru Gothic" font-size="9" font-weight="900" fill="#E8663C">James</text>
+    <rect x="45" y="132" width="80" height="2" rx="1" fill="#FFD0C0"/>
+  </g>
+
+  <!-- Tag 3 -->
+  <g transform="translate(502, 130)" filter="url(#shadow)">
+    <rect x="0" y="0" width="170" height="150" rx="16" fill="url(#tag3)" stroke="#2E9E5B" stroke-width="2"/>
+    <circle cx="85" cy="30" r="8" fill="#2E9E5B"/>
+    <line x1="85" y1="30" x2="85" y2="48" stroke="#2E9E5B" stroke-width="2"/>
+    <circle cx="85" cy="80" r="28" fill="none" stroke="#2E9E5B" stroke-width="2"/>
+    <circle cx="76" cy="74" r="3" fill="#2E9E5B"/>
+    <circle cx="94" cy="74" r="3" fill="#2E9E5B"/>
+    <path d="M 74 88 Q 85 100 96 88" fill="none" stroke="#2E9E5B" stroke-width="2"/>
+    <text x="85" y="122" text-anchor="middle" font-family="Zen Maru Gothic" font-size="9" font-weight="900" fill="#2E9E5B">Marie</text>
+    <rect x="45" y="132" width="80" height="2" rx="1" fill="#C0E8D0"/>
+  </g>
+
+  <!-- Tag 4 -->
+  <g transform="translate(692, 130)" filter="url(#shadow)">
+    <rect x="0" y="0" width="170" height="150" rx="16" fill="url(#tag4)" stroke="#8A5AC2" stroke-width="2"/>
+    <circle cx="85" cy="30" r="8" fill="#8A5AC2"/>
+    <line x1="85" y1="30" x2="85" y2="48" stroke="#8A5AC2" stroke-width="2"/>
+    <circle cx="85" cy="80" r="28" fill="none" stroke="#8A5AC2" stroke-width="2"/>
+    <circle cx="76" cy="74" r="3" fill="#8A5AC2"/>
+    <circle cx="94" cy="74" r="3" fill="#8A5AC2"/>
+    <path d="M 74 88 Q 85 100 96 88" fill="none" stroke="#8A5AC2" stroke-width="2"/>
+    <text x="85" y="122" text-anchor="middle" font-family="Zen Maru Gothic" font-size="9" font-weight="900" fill="#8A5AC2">Suzuki</text>
+    <rect x="45" y="132" width="80" height="2" rx="1" fill="#D8C8F0"/>
+  </g>
+
+  <!-- Bottom row: quiz / match text -->
+  <text x="512" y="320" text-anchor="middle" font-family="Zen Maru Gothic" font-size="14" font-weight="900" fill="#D0D8E8">👆 名札を見て覚える → 顔が出たら名前を当てる</text>
+  <text x="512" y="346" text-anchor="middle" font-family="Zen Maru Gothic" font-size="11" fill="#667799">Meet. Memorize. Recall. — Backed by Cognitive Science (MacLeod 2010 · Craik &amp; Tulving 1975)</text>
+
+  <!-- Bottom divider -->
+  <rect x="180" y="370" width="664" height="1" rx="0.5" fill="#334466"/>
+
+  <!-- Feature bullets -->
+  <g transform="translate(0, 395)">
+    <text x="180" y="20" font-family="Zen Maru Gothic" font-size="12" fill="#8899BB" text-anchor="middle">📣 なまえコール</text>
+    <text x="180" y="42" font-family="Zen Maru Gothic" font-size="10" fill="#667799" text-anchor="middle">名前を覚えるゲーム</text>
+
+    <text x="340" y="20" font-family="Zen Maru Gothic" font-size="12" fill="#8899BB" text-anchor="middle">🤖 CPU対戦</text>
+    <text x="340" y="42" font-family="Zen Maru Gothic" font-size="10" fill="#667799" text-anchor="middle">難易度5段階</text>
+
+    <text x="512" y="20" font-family="Zen Maru Gothic" font-size="12" fill="#8899BB" text-anchor="middle">🧠 名刺覚え</text>
+    <text x="512" y="42" font-family="Zen Maru Gothic" font-size="10" fill="#667799" text-anchor="middle">ビジネス特訓</text>
+
+    <text x="684" y="20" font-family="Zen Maru Gothic" font-size="12" fill="#8899BB" text-anchor="middle">📚 歴史上の人物</text>
+    <text x="684" y="42" font-family="Zen Maru Gothic" font-size="10" fill="#667799" text-anchor="middle">15名の偉人</text>
+
+    <text x="860" y="20" font-family="Zen Maru Gothic" font-size="12" fill="#8899BB" text-anchor="middle">🚀 SFストーリー</text>
+    <text x="860" y="42" font-family="Zen Maru Gothic" font-size="10" fill="#667799" text-anchor="middle">プロジェクト・ノア</text>
+  </g>
+
+  <!-- Bottom: Free + Google Play -->
+  <text x="512" y="475" text-anchor="middle" font-family="Zen Maru Gothic" font-size="11" fill="#5AD1FF">完全無料で遊べます — Google Play でダウンロード</text>
+</svg>

@@ -1,0 +1,56 @@
+{
+  "id": "act5_sc03",
+  "chapter": "ACT V ／ 着陸",
+  "bg": "lhs1140_terminator",
+  "bgAge": 10,
+  "bgm": { "id": "landfall", "fade": 3.0 },
+  "lines": [
+    { "t": "fx", "kind": "flash" },
+    { "t": "mono", "text": "土倉源三。" },
+    { "t": "mono", "text": "声に出したとたん、台帳の欄が埋まった。" },
+    { "t": "mono", "text": "書いたのは私の手だが、思い出したのは十六人ぶんの記憶だった。" },
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/surprise",
+      "text": "……ああ。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "そうだ。それが、私の名前だ。" },
+    { "t": "aff", "char": "tsuchikura", "d": 1 },
+
+    { "t": "mono", "text": "点呼がはじまる。" },
+    { "t": "mono", "text": "五百人ぶんの名前を、順に読み上げていく。" },
+    { "t": "mono", "text": "返事が返るたびに、この星に降りる人がひとり増える。" },
+
+    { "t": "bg", "id": "ship_hall", "bgAge": 10 },
+    { "t": "mono", "text": "五百二十四人ぶんの名簿を、順に読む。" },
+    { "t": "mono", "text": "返事が返ってくるのは五百人。あとの二十四人は、地上に残った人たちだ。" },
+    { "t": "mono", "text": "その二十四人を読むあいだ、全員が黙っている。" },
+    { "t": "mono", "text": "百年以上つづけてきた、この船でいちばん静かな時間。" },
+    { "t": "mono", "text": "今日でおしまいになる。" },
+
+    { "t": "say", "name": "安曇", "sprite": "azumi/normal",
+      "text": "……これ、向こうでも続けます？" },
+
+    { "t": "choice", "options": [
+      { "text": "続けます", "jump": "" },
+      { "text": "決めるのは、生まれてくる子たちでいい", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "そうですね。押しつけるものでもないですし。" },
+    { "t": "say", "name": "安曇", "sprite": "azumi/smile",
+      "text": "……でも、たぶん勝手にやりますよ。あの子たち。" },
+    { "t": "aff", "char": "azumi", "d": 1 },
+
+    { "t": "mono", "text": "点呼が終わった。" },
+    { "t": "mono", "text": "台帳を閉じて、初めて外を見た。" },
+
+    { "t": "bg", "id": "lhs1140_shore", "bgAge": 10 },
+    { "t": "mono", "text": "LHS 1140 b。" },
+    { "t": "mono", "text": "潮汐ロックされた星の、昼と夜の境目。ターミネータ。" },
+    { "t": "mono", "text": "永遠の夕暮れの帯だけが、ちょうどいい温度をしている。" },
+    { "t": "mono", "text": "重力は一・九G。外骨格なしでは、まだ歩けない。" },
+    { "t": "mono", "text": "それでも——着いた。" },
+
+    { "t": "ending" }
+  ]
+}

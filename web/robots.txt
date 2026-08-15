@@ -1,0 +1,12 @@
+Sitemap: https://web-sigma-drab-72.vercel.app/sitemap.xml
+
+User-agent: *
+Allow: /
+Disallow: /firebase-messaging-sw.js
+
+# Crawl-delay for friendly bots
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /

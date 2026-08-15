@@ -52,3 +52,29 @@ android/app/key.properties
 
 # Node (Cloud Functions)
 node_modules/
+.vercel
+
+# 🔐 署名鍵。これを失う・漏らすとPlayの同じアプリを二度と更新できない。
+# ローカルPCとオフラインのバックアップだけに置き、リポジトリには入れない。
+# （以前 key.jks がコミットされていたので、履歴から削除したうえで再発を防ぐ）
+key.jks
+*.jks
+*.keystore
+
+# エミュレータのスクリーンショット（デバッグ用）
+emu_*.png
+emulator_screenshot.png
+
+# Hyper-V セットアップスクリプト（環境依存）
+enable_hyperv.bat
+enable_hyperv.ps1
+install_hyperv.ps1
+check_vms.ps1
+create_kali_vm.ps1
+create_vm.ps1
+disable_hyperv.bat
+
+# SNS認証情報（パスワードを含むためコミット禁止）
+scripts/.auto_poster_config.json
+scripts/client_secret.json
+scripts/.youtube_token.pickle

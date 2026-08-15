@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!--
-      ネイティブ広告の「広告」バッジ。AdMob のポリシーで表示が必須。
-      端末の言語が日本語以外なら values/ の既定（英語）が使われる。
-    -->
-    <string name="native_ad_badge">Ad</string>
-</resources>

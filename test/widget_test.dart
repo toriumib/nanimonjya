@@ -1,6 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+import 'package:nanimonjya/l10n/meta_strings.dart';
+import 'package:nanimonjya/widgets/celebration.dart';
+import 'package:nanimonjya/widgets/combo_badge.dart';
+import 'package:nanimonjya/widgets/emphasis_text.dart';
 import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/person.dart';
 
@@ -104,6 +109,125 @@ void main() {
       expect(choices, hasLength(3));
       expect(choices.toSet(), hasLength(3));
       expect(choices, contains(person.hobby));
+    });
+  });
+
+
+  group('EmphasisText', () {
+    const base = TextStyle(fontSize: 14);
+
+    test('`**…**` を太字のスパンに分ける', () {
+      final spans = parseEmphasis('あ**い**う', base);
+      expect(spans.map((s) => s.text).toList(), ['あ', 'い', 'う']);
+      expect(spans[1].style!.fontWeight, FontWeight.w900);
+      expect(spans[0].style, isNull);
+    });
+
+    test('閉じていない `**` は、消さずにそのまま出す', () {
+      // 消すと文章が途中で欠ける。星印が残るほうがまだ読める。
+      final spans = parseEmphasis('あ**いう', base);
+      expect(spans.map((s) => s.text).join(), 'あ**いう');
+    });
+
+    test('強調が無ければ1つのスパンにまとめる', () {
+      expect(parseEmphasis('ふつうの文', base).length, 1);
+    });
+
+    test('読み上げ用には `**` を落とす', () {
+      expect(stripEmphasis('あ**い**う'), 'あいう');
+    });
+  });
+
+  test('画面に出る文言に、生の `**` を残さない', () {
+    // ⚠️ このアプリに Markdown のレンダラは無い。素の Text に渡すと
+    //    星印がそのまま画面に出る（実際にチュートリアルで出ていた）。
+    //    `**` を書くなら EmphasisText で描くこと。
+    for (final ja in [true, false]) {
+      final m = MetaStrings(ja);
+      // ルール文とチュートリアルの文言は EmphasisText 経由なので対象外。
+      // ここでは「素の Text に渡している画面の文言」を見張る。
+      expect(m.customEmpty.contains('**'), isFalse);
+      expect(m.customDesc.contains('**'), isFalse);
+      expect(m.tutPlayStart.contains('**'), isFalse);
+    }
+  });
+
+  group('ComboBadge', () {
+    Widget wrap(int n) => MaterialApp(home: Scaffold(body: ComboBadge(combo: n)));
+
+    testWidgets('1連続以下では何も出さない', (t) async {
+      for (final n in [0, 1]) {
+        await t.pumpWidget(wrap(n));
+        expect(find.textContaining('れんぞく'), findsNothing, reason: 'combo=$n');
+      }
+    });
+
+    testWidgets('2連続から出る', (t) async {
+      await t.pumpWidget(wrap(2));
+      await t.pumpAndSettle();
+      expect(find.text('2 れんぞく'), findsOneWidget);
+    });
+
+    testWidgets('5連続から見た目と文言が変わる', (t) async {
+      await t.pumpWidget(wrap(4));
+      await t.pumpAndSettle();
+      expect(find.text('4 れんぞく'), findsOneWidget);
+
+      await t.pumpWidget(wrap(5));
+      await t.pumpAndSettle();
+      // 🔥 が付く＝「熱い」表示に切り替わっている
+      expect(find.text('🔥 5 れんぞく！'), findsOneWidget);
+    });
+
+    testWidgets('しきい値は定数と一致している', (t) async {
+      // ⚠️ ここを緩めると毎回出て、ただの正解表示になる
+      expect(ComboBadge.minToShow, 2);
+      expect(ComboBadge.hotAt, 5);
+    });
+  });
+
+  group('お祝い演出', () {
+    testWidgets('カード獲得の帯は文字を出す', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: GetBanner(text: 'カードゲット！'))));
+      await t.pump(const Duration(milliseconds: 300));
+      expect(find.text('カードゲット！'), findsOneWidget);
+    });
+
+    testWidgets('帯は操作を邪魔しない', (t) async {
+      // ⚠️ お祝いの上からボタンが押せなくなると、テンポが死ぬ
+      var tapped = false;
+      await t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Stack(children: [
+            Center(
+                child: ElevatedButton(
+                    onPressed: () => tapped = true, child: const Text('押す'))),
+            const Positioned.fill(child: GetBanner(text: 'カードゲット！')),
+          ]),
+        ),
+      ));
+      await t.pump(const Duration(milliseconds: 300));
+      await t.tap(find.text('押す'));
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('勝利演出は文字と紙吹雪を出す', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: VictoryBurst(text: 'クリア！'))));
+      await t.pump(const Duration(milliseconds: 300));
+      expect(find.text('クリア！'), findsOneWidget);
+      expect(find.byType(Confetti), findsOneWidget);
+      await t.pump(const Duration(seconds: 2)); // 後始末まで流す
+    });
+
+    testWidgets('数字は0から目標まで上がる', (t) async {
+      await t.pumpWidget(const MaterialApp(
+          home: Scaffold(body: CountUpText(value: 60))));
+      await t.pump(); // 開始直後は0
+      expect(find.text('0'), findsOneWidget);
+      await t.pump(const Duration(milliseconds: 900));
+      expect(find.text('60'), findsOneWidget);
     });
   });
 }

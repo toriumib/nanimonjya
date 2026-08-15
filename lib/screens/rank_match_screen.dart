@@ -56,7 +56,8 @@ class _Question {
   const _Question(this.person, this.answer, this.choices);
 }
 
-class _RankMatchScreenState extends State<RankMatchScreen> {
+class _RankMatchScreenState extends State<RankMatchScreen>
+    with WidgetsBindingObserver {
   late final Random _rng = Random(widget.session.seed);
   late final List<Person> _people;
   late final Map<Person, String> _roster;
@@ -82,6 +83,8 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
   bool _reported = false;
 
   Timer? _readyTimeout;
+  bool _finished = false;
+  DateTime? _leftAt;
 
   /// 結果表示（先取・とられた・おてつき）を消すタイマー。
   ///
@@ -94,6 +97,7 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
     // 🌐 両端末で顔ぶれを一致させる必要があるので、購入キャラもデッキ編集も
     //    混ぜず、誰でも持っている基本の顔だけを使う。
@@ -122,7 +126,7 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
         MemoryStats.instance.recordMeeting(
             itemKey: MemoryStats.keyOf(face: p.face, name: _roster[p]!));
       }
-    });
+    }).catchError((_) {});
 
     _index = widget.session.cardIndex.value;
     widget.session.cardIndex.addListener(_onIndexChanged);
@@ -148,6 +152,15 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!_finished) {
+      AppAnalytics.gameExit(
+        mode: 'rank_match',
+        reason: 'quit',
+        progressPct: _progressPct,
+        people: _people.length,
+      );
+    }
     widget.session.cardIndex.removeListener(_onIndexChanged);
     widget.session.claims.removeListener(_onClaimsChanged);
     widget.session.readyCount.removeListener(_onReadyChanged);
@@ -157,6 +170,36 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
     _flashTimer?.cancel();
     Bgm.instance.stopGame();
     super.dispose();
+  }
+
+  int get _progressPct {
+    if (_phase == _Phase.memorize) return 0;
+    if (_phase == _Phase.readyWait) return 10;
+    if (_phase == _Phase.buzz) {
+      if (_questionCount == 0) return 50;
+      return 10 + _index * 80 ~/ _questionCount;
+    }
+    return 100;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_finished) return;
+    if (state == AppLifecycleState.paused) {
+      _leftAt = DateTime.now();
+      AppAnalytics.gameBackground(
+        mode: 'rank_match',
+        progressPct: _progressPct,
+        card: _index,
+        totalCards: _questionCount,
+      );
+    } else if (state == AppLifecycleState.resumed && _leftAt != null) {
+      AppAnalytics.gameResume(
+        mode: 'rank_match',
+        awaySeconds: DateTime.now().difference(_leftAt!).inSeconds,
+      );
+      _leftAt = null;
+    }
   }
 
   /// おぼえタイムを進める。
@@ -310,10 +353,17 @@ class _RankMatchScreenState extends State<RankMatchScreen> {
   Future<void> _finish() async {
     if (_reported) return;
     _reported = true;
+    _finished = true;
     _buzzTimer?.cancel();
     setState(() => _phase = _Phase.finished);
     await MemoryStats.instance.finishSession(StatMode.nameCall);
     AppAnalytics.gameEnd(mode: 'rank_match', topScore: _myCards);
+    AppAnalytics.gameExit(
+      mode: 'rank_match',
+      reason: 'completed',
+      progressPct: 100,
+      people: _people.length,
+    );
     await PlayerProfile.instance.addWeeklyLearned(_myCards);
     final elapsedMs = DateTime.now()
         .difference(widget.session.startedAt)

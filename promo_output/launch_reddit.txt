@@ -1,0 +1,37 @@
+=== r/InternetIsBeautiful ===
+[OC] PetaName — a free web app that trains your brain to remember faces & names, built on cognitive science. Upload photos of real people you need to remember. No signup required.
+
+https://web-sigma-drab-72.vercel.app/
+
+=== r/selfimprovement ===
+I built a free tool to fix the #1 social anxiety trigger: forgetting someone's name.
+
+PetaName is a memory training app that uses techniques from published research — not just another match-3 'brain game.'
+
+It has a mode where you upload real people you need to remember (coworkers, classmates, clients) and builds memory games around THEM.
+
+Another mode simulates a business meeting: meet → delay → recall, with voice introductions and business card OCR.
+
+Free. No account. Web + Android.
+https://web-sigma-drab-72.vercel.app/
+
+=== r/AndroidApps ===
+[DEV] PetaName — I built a face & name memory training game. Real cognitive science, not buzzwords. OCR for business cards. Avatar builder. Online ranked play. Story mode. Completely free.
+
+Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya
+Web: https://web-sigma-drab-72.vercel.app/
+
+=== r/androiddev ===
+[SHOW] Built PetaName with Flutter + Firebase (Firestore, Crashlytics, Analytics, Auth, Cloud Functions). 
+
+Features: real-time online races (lockstep), turn-based replay system (replay from move log), OCR (google_mlkit), TTS introductions, in-app purchases, AdMob mediation, custom avatar builder, and a full sci-fi story mode with branching endings.
+
+AMA about the tech stack.
+https://play.google.com/store/apps/details?id=com.nanimonjya
+
+=== r/japanlife ===
+[OC] 人の名前を覚えるのが苦手な人のためのアプリ「ペタネーム」を作りました。
+
+顔写真を登録して、その人で神経衰弱ができる無料アプリです。名刺OCR、音声の自己紹介、オンライン対戦もあります。
+
+Google Play: https://play.google.com/store/apps/details?id=com.nanimonjya

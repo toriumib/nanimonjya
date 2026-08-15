@@ -1,7 +1,11 @@
+import 'dart:math';
+
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../models/bgm_catalog.dart';
 import 'player_profile.dart';
 
 /// 🎵 BGMの再生を1か所にまとめたサービス。
@@ -42,8 +46,11 @@ class Bgm {
   Future<void> _chain = Future<void>.value();
 
   Future<void> _serialize(Future<void> Function() action) {
-    final next = _chain.then((_) => action()).catchError((Object e) {
-      debugPrint('BGM op failed: $e');
+    final next = _chain.then((_) => action()).catchError((Object e, StackTrace s) {
+      print('BGM op failed: $e');
+      if (!kIsWeb) {
+        try { FirebaseCrashlytics.instance.recordError(e, s); } catch (_) {}
+      }
     });
     _chain = next;
     return next;
@@ -98,9 +105,36 @@ class Bgm {
   Future<void> playHome() {
     _mode = _BgmMode.home;
     // 🏠 ホームの曲はマイページで選べる（3場面それぞれ設定できる）
-    return _play(assetKey(PlayerProfile.instance.selectedHomeBgm),
-        volume: 0.22);
+    return _play(assetKey(homeAsset()), volume: 0.22);
   }
+
+  /// いまホームで鳴らすべき曲。
+  ///
+  /// 🎲 設定が [kHomeBgmRandom] のときは [kHomeRandomPool] から引く。
+  /// 毎回おなじ曲だと起動のたびに同じ体験になるので、既定はこちら。
+  ///
+  /// ⚠️ **同じ曲を引き直したときに鳴らし直さない。**
+  ///    [_play] は同じアセットなら何もしないので、タブを行き来しても
+  ///    曲が頭から鳴り直すことはない。逆に、別の曲を引くと切り替わる。
+  ///    なので**曲を選ぶのは「ホームBGMが止まっているとき」だけ**にする。
+  ///    そうしないとタブを押すたびに曲がガチャガチャ変わる。
+  String homeAsset() {
+    final chosen = PlayerProfile.instance.selectedHomeBgm;
+    if (chosen != kHomeBgmRandom) return chosen;
+    // すでにプールの曲が鳴っているなら、それを続ける
+    final playing = _current;
+    if (playing != null) {
+      for (final a in kHomeRandomPool) {
+        if (playing == assetKey(a)) return a;
+      }
+    }
+    _homePick ??= kHomeRandomPool[_rng.nextInt(kHomeRandomPool.length)];
+    return _homePick!;
+  }
+
+  /// この起動で引いたホームの曲。アプリを開き直すと引き直す。
+  String? _homePick;
+  final Random _rng = Random();
 
   /// ホームBGMだけを止める（ゲーム画面が先に鳴らし始めていたら何もしない）。
   Future<void> stopHome() async {
@@ -118,34 +152,47 @@ class Bgm {
   /// いなかったため、ここで使う。
   Future<void> playResult() {
     _mode = _BgmMode.result;
-    return _play(assetKey(PlayerProfile.instance.selectedResultBgm));
+    return _play(assetKey(resultAsset()));
+  }
+
+  /// 🏆 勝ったときに鳴らす曲。
+  ///
+  /// 設定が [kResultBgmRandom] のときは [kVictoryRandomPool] から引く。
+  /// **設定で1曲を選んだら、その曲だけが鳴る。**
+  ///
+  /// ⚠️ ホーム（[homeAsset]）とちがって、**毎回引き直してよい**。
+  ///    リザルトは試合が終わるたびに1回だけ鳴る場面なので、
+  ///    同じ曲が続くより、毎回変わるほうが嬉しい。
+  String resultAsset() {
+    final chosen = PlayerProfile.instance.selectedResultBgm;
+    if (chosen != kResultBgmRandom) return chosen;
+    return kVictoryRandomPool[_rng.nextInt(kVictoryRandomPool.length)];
   }
 
   Future<void> _play(String key, {double volume = 0.35}) {
     return _serialize(() async {
-      // 🔇 マイページでBGMを切っている人には何も鳴らさない。
-      // （効果音は別設定なので、ここでは止めない）
       if (!PlayerProfile.instance.bgmEnabled) {
         _current = null;
-        try {
-          await _player.stop();
-        } catch (_) {}
+        try { await _player.stop(); } catch (_) {}
         return;
       }
       if (_current == key && _player.playing) return;
       try {
+        // まず明示的に止めてから次の曲を読み込む。
+        // setAsset だけだと Web Audio API が前のソースを解放しきらず
+        // 新しい decode に失敗する（結果: 無音）。
         await _player.stop();
         await _player.setAsset(key);
         await _player.setLoopMode(LoopMode.one);
         await _player.setVolume(volume);
-        _current = key;
         await _player.play();
+        _current = key;
+        _blocked = false;
       } catch (e) {
-        // Webの自動再生ブロックや、曲ファイルが無い場合。無音で続行し、
-        // 最初のタップで鳴らし直せるよう印をつける。
         _current = null;
         _blocked = true;
-        debugPrint('BGM play failed ($key): $e');
+        try { await _player.stop(); } catch (_) {}
+        print('BGM ERROR: $key — $e');
       }
     });
   }
@@ -177,21 +224,23 @@ class Bgm {
 
   /// 🔊 いま鳴らしている場面のBGMを、選び直した曲でかけ直す。
   ///
-  /// ⚠️ ショップは「ホームのタブ」の中にあるので、曲を選んだあとに
-  /// [restartGameBgm] を呼ぶと**ゲーム用の曲**が鳴り出してしまい、
-  /// 画面を移動した瞬間にホームの曲へ戻る（＝選んだのに変わらない、に見える）。
-  /// いまの場面に合わせてかけ直す。
+  /// 即座に前の曲を止めて新しい曲を鳴らす。
+  /// `_current = null` + `_player.stop()` を先にやってから
+  /// play系に渡すので、`_play`内の「同じ曲ならスキップ」に引っかからない。
   Future<void> restartCurrent() async {
-    _current = null;
-    switch (_mode) {
-      case _BgmMode.game:
-        await playGame();
-      case _BgmMode.result:
-        await playResult();
-      case _BgmMode.home:
-      case _BgmMode.none:
-        await playHome();
-    }
+    return _serialize(() async {
+      _current = null;
+      try { await _player.stop(); } catch (_) {}
+      switch (_mode) {
+        case _BgmMode.game:
+          await _play(assetKey(PlayerProfile.instance.selectedBgm));
+        case _BgmMode.result:
+          await _play(assetKey(resultAsset()));
+        case _BgmMode.home:
+        case _BgmMode.none:
+          await _play(assetKey(homeAsset()), volume: 0.22);
+      }
+    });
   }
 
   /// ▶️ 試聴。持っていない曲でも鳴らせる（買う前に聴けないと選べないため）。

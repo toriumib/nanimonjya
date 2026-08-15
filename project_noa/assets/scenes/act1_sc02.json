@@ -1,0 +1,57 @@
+{
+  "id": "act1_sc02",
+  "chapter": "ACT I ／ 名刺交換の儀",
+  "bg": "dome_hall",
+  "bgAge": 0,
+  "bgm": { "id": "first_meeting", "fade": 1.2 },
+  "lines": [
+    { "t": "mono", "text": "名刺交換は、儀式のようにおこなわれた。" },
+    { "t": "mono", "text": "順番を決めたのは所長ではなく、じゃんけんだった。" },
+    { "t": "mono", "text": "こんなときでも、人は順番を決めるのにじゃんけんを使う。" },
+
+    { "t": "say", "name": "日比野", "sprite": "hibino/normal",
+      "text": "量子推進研究所の、日比野楓です。" },
+    { "t": "say", "name": "日比野", "sprite": "hibino/smile",
+      "text": "趣味は陶芸。……船に窯を積めないか、まだ諦めてません。" },
+    { "t": "mono", "text": "ひびの、かえで。陶芸。量子推進研究所。" },
+    { "t": "mono", "text": "声に出さずに三回。" },
+    { "t": "aff", "char": "hibino", "d": 1 },
+
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "桐生悟。量子意識研究所です。" },
+    { "t": "say", "name": "桐生", "sprite": "kiryu/normal",
+      "text": "趣味は囲碁。……相手がいないので、最近は詰碁ばかりですが。" },
+    { "t": "aff", "char": "kiryu", "d": 1 },
+
+    { "t": "say", "name": "水原", "sprite": "mizuhara/smile",
+      "text": "水原紗耶香です。宇宙発生生物学研究所。" },
+    { "t": "say", "name": "水原", "sprite": "mizuhara/normal",
+      "text": "趣味はメダカ飼育。……笑わないでくださいね。あの子たち、強いんですよ。" },
+    { "t": "aff", "char": "mizuhara", "d": 1 },
+
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "橘宗一郎。閉鎖生態系工学センター。" },
+    { "t": "say", "name": "橘", "sprite": "tachibana/normal",
+      "text": "趣味は盆栽だ。……妻が育てていたやつを、引き継いだだけだがな。" },
+    { "t": "aff", "char": "tachibana", "d": 1 },
+
+    { "t": "mono", "text": "名刺は、思っていたよりずっと重かった。" },
+    { "t": "mono", "text": "紙が重いのではない。返せないものを受け取ったからだ。" },
+
+    { "t": "choice", "options": [
+      { "text": "全員ぶん、覚えます", "jump": "" },
+      { "text": "……覚えきれるでしょうか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/smile",
+      "text": "覚えろとは言っていない。呼べ、と言っている。" },
+    { "t": "say", "name": "土倉", "sprite": "tsuchikura/normal",
+      "text": "名前は、覚えるものじゃない。呼ぶものだ。" },
+    { "t": "mono", "text": "所長の名刺は、最後まで回ってこなかった。" },
+    { "t": "mono", "text": "十六人ぶん、十枚ずつ。百六十枚。" },
+    { "t": "mono", "text": "——足りている。足りていないのは、所長のぶんだけだ。" },
+    { "t": "flag", "set": "noticed_no_tsuchikura_card" },
+
+    { "t": "jump", "to": "act1_sc03" }
+  ]
+}

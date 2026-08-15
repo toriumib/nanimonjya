@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
+import 'services/app_analytics.dart';
 import 'services/app_toast.dart'; // 広告のお礼など全画面共通のトースト
 import 'services/bgm.dart'; // ホーム/ゲーム/リザルトのBGM
 import 'services/purchase_service.dart'; // 💳 広告除去とコインパックの課金
@@ -15,10 +16,11 @@ import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
 import 'services/rewarded_interstitial_helper.dart';
-import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
+import 'services/app_open_ad_helper.dart';
+import 'services/interstitial_ad_helper.dart';
+import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
-import 'services/interstitial_ad_helper.dart'; // 3プレイに1回のリザルト全画面広告
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
 // 多言語対応のために追加
@@ -27,32 +29,44 @@ import 'l10n/app_localizations.dart'; // ★追加: 生成されるファイル�
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // 📱 Bluestacks等でGoogle Play Servicesが無いとFirebase initが例外を投げる。
+  //    アプリ本体は広告・分析なしで動かす（落とさない）。
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {}
+  // ⏱ 初回起動の時刻を控える（初回ゲーム開始までの秒数を測るため）
+  AppAnalytics.rememberFirstOpen();
   if (!kIsWeb) {
-    // Crashlytics: 未捕捉のFlutterエラー/非同期エラーを自動送信（Web非対応）
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-    MobileAds.instance.initialize(); // google_mobile_ads は Web 非対応
-    InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
-    // 🚪 アプリ起動広告は**いったん止めている**。
-    //    枠（/9282156275）も実装（services/app_open_ad_helper.dart）も
-    //    あるので、再開したくなったら import を戻して次の1行を足すだけでよい。
-    //      import 'services/app_open_ad_helper.dart';
-    //      AppOpenAdHelper.instance.start();
-    //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
-    //    ほかの手を整えてから判断する。
-    RewardedInterstitialHelper.instance.load();
-    PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
+    // Bluestacks等のエミュレータではGoogle Play Servicesが無いことがあり、
+    // Firebase/MobileAdsの初期化で例外が出てアプリごと落ちる。
+    // どの初期化がコケてもアプリ本体は起動するように個別に守る。
+    try {
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+    } catch (_) {}
+
+    try { MobileAds.instance.initialize(); } catch (_) {}
+    try { AppOpenAdHelper.instance.start(); } catch (_) {}
+    try { InterstitialAdHelper.instance.load(); } catch (_) {}
+    try { RewardedInterstitialHelper.instance.load(); } catch (_) {}
+    try { PushService.instance.init(); } catch (_) {}
   }
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
+  // 🧑‍🎨 顔メモは出演プールに混ざるので、ゲームを始める前に読んでおく。
+  //    以前は顔メモ画面とキャラデッキ画面でしか読んでおらず、
+  //    その2画面を開かずに対戦を始めると登録した人が出てこなかった。
+  await CustomRosterService.instance.load();
   // ※ゲーム中に recordMeeting/record を呼ぶので、遊び始める前に必ず読んでおく
   //   （読む前に書くと、あとから load() が上書きして記録が消える）
   DeepLinkService.instance.init(); // 合言葉リンクからの入室を監視
-  DailyReminder.instance.init(); // 🎁デイリーボーナスのリマインド通知（await不要）
+  // 🔔 通知の初期化は**起動時にやらない**。
+  //    初回起動でいきなりOSの許可ダイアログが出て、遊ぶ前に
+  //    判断を迫られる。断られるとAndroidでは二度と出せない。
+  //    予約が必要になった時点（同意後）に DailyReminder が自分で初期化する。
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
   // 💳 課金の初期化。購入ストリームを張って、未処理の購入や復元も拾う（await不要）
   //    中で kIsWeb を見ているので、Web では何もせず返る。
@@ -62,6 +76,14 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  /// 🌐 Web版で保存された言語コードを Locale に変換。
+  /// null のときは端末の言語に従う。
+  static Locale? _webLocaleOf(String? code) => switch (code) {
+    'en' => const Locale('en'),
+    'ja' => const Locale('ja'),
+    _ => null,
+  };
 
   // 選択中のきせかえテーマの accent 色でアプリ全体のテーマを組み立てる
   ThemeData _buildTheme(Color accent) {
@@ -176,6 +198,9 @@ class MyApp extends StatelessWidget {
       home: const HomeShell(),
       debugShowCheckedModeBanner: false,
 
+      // 🌐 Web版で言語を切り替えられるようにする。
+      //    webLocaleCode が null なら端末の言語に従う。
+      locale: _webLocaleOf(PlayerProfile.instance.webLocaleCode),
       // ★ここから追加: 多言語対応の設定★
       localizationsDelegates: const [
         AppLocalizations.delegate,

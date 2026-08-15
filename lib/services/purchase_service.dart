@@ -38,14 +38,19 @@ class PurchaseService extends ChangeNotifier {
 
   /// 🪙 コインパック（消費型）。商品ID → もらえるコイン。
   ///
-  /// 額の決め方: 既存の使い道はキャラ 120〜900、テーマ/衣装 〜1,200、
-  /// BGM 〜800、記事 120〜180。全部そろえると概算 15,000〜20,000 コイン。
+  /// 額の決め方: 単価を低く抑えて入口を広げる方針。
+  /// 既存の使い道はキャラ 120〜900、テーマ 〜1,200、BGM 〜800、記事 120〜180
+  /// なので、いちばん小さいパックでもキャラが数体買える。
   /// いちばん大きいパックでも**全部は埋まらない**量にして、
   /// 買ったあとの目標が消えないようにしてある。
+  ///
+  /// ⚠️ ID にハイフンは使えない（Play の商品IDは小文字・数字・
+  ///    アンダースコア・ピリオドのみ）。以前 `coins-500` と書かれていたが、
+  ///    そのままでは Play Console に登録できない。
   static const Map<String, int> kCoinPacks = {
-    'coins_small': 1000,
-    'coins_medium': 3500,
-    'coins_large': 10000,
+    'coins_small': 500,
+    'coins_medium': 1200,
+    'coins_large': 3000,
   };
 
   /// 表示順（安い順）。Play から返る順は保証されないので自前で持つ。
@@ -97,6 +102,26 @@ class PurchaseService extends ChangeNotifier {
         for (final id in kCoinPackOrder)
           if (productById(id) != null) productById(id)!,
       ];
+
+  /// 表示用の価格文字列。取れていなければ空文字。
+  /// ⚠️ 価格は必ずここ（ストアが返す値）から取ること。
+  ///    通貨も税込み表記も国ごとに違うので、アプリ側で組み立ててはいけない。
+  String priceFor(String id) => productById(id)?.price ?? '';
+
+  /// 商品IDを見て適切な購入方式に振り分ける。
+  /// 開始できたら true（購入の成否は purchaseStream 側で決まる）。
+  Future<bool> buy(String id) async {
+    if (productById(id) == null || _pending) return false;
+    if (id == removeAdsId) {
+      await buyRemoveAds();
+      return true;
+    }
+    if (kCoinPacks.containsKey(id)) {
+      await buyCoinPack(id);
+      return true;
+    }
+    return false;
+  }
 
   Future<void> init() async {
     if (kIsWeb) return; // Web はストア非対応

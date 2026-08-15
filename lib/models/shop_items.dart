@@ -1,3 +1,7 @@
+library;
+
+import 'dart:math';
+
 /// 🛍 ショップの拡張アイテム。
 ///
 /// キャラ購入（character_catalog.dart）に加えて、
@@ -9,7 +13,6 @@
 /// - PlayerTitle : 名前の下に出る称号（マイページ・結果画面に表示）
 ///
 /// いずれも購入状態は PlayerProfile に保存する。
-library;
 
 /// 🎉 ほめボイス。正解や勝利のときに、選んだキャラの口調で褒めてくれる。
 class PraiseVoice {
@@ -239,3 +242,228 @@ LuckyCharm luckyCharmById(String id) => kLuckyCharms.firstWhere(
 
 // 🗑 名刺スキン（CardSkin）は廃止した。名刺の配色が変わるだけで、
 //    覚える練習には効かず、ショップの項目数だけを増やしていた。
+
+// ═══════════════ 🏪 日替わりショップ ═══════════════
+
+class DailyShopItem {
+  final String id;
+  final String nameJa;
+  final String nameEn;
+  final String emoji;
+  final int originalCost;
+  final int discountCost; // 割引後の価格（0なら動画で無料）
+
+  const DailyShopItem({
+    required this.id,
+    required this.nameJa,
+    required this.nameEn,
+    required this.emoji,
+    required this.originalCost,
+    required this.discountCost,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+  int get discount => originalCost - discountCost;
+}
+
+class DailyShop {
+  final String date; // yyyy-mm-dd
+  final List<DailyShopItem> items;
+
+  const DailyShop({required this.date, required this.items});
+
+  bool get isToday => date == _today();
+
+  static String _today() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  static DailyShop generate(int seed) {
+    final tpls = <Map<String, Object>>[
+      {'id': 'daily_coins', 'ja': 'コイン200枚', 'en': '200 Coins', 'emoji': '🪙', 'cost': 200},
+      {'id': 'daily_coins_big', 'ja': 'コイン500枚', 'en': '500 Coins', 'emoji': '💰', 'cost': 500},
+      {'id': 'daily_voice', 'ja': 'ほめボイス1種', 'en': '1 Praise Voice', 'emoji': '🎤', 'cost': 120},
+      {'id': 'daily_charm', 'ja': 'お守り1種', 'en': '1 Lucky Charm', 'emoji': '🍀', 'cost': 150},
+      {'id': 'daily_bgm', 'ja': 'BGM1曲', 'en': '1 BGM track', 'emoji': '🎵', 'cost': 400},
+    ];
+    final rng = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+        .millisecondsSinceEpoch ~/ 86400000;
+    final r = seed + rng;
+    final items = <DailyShopItem>[];
+    for (final tpl in tpls) {
+      final cost = tpl['cost'] as int;
+      items.add(DailyShopItem(
+        id: tpl['id'] as String,
+        nameJa: tpl['ja'] as String,
+        nameEn: tpl['en'] as String,
+        emoji: tpl['emoji'] as String,
+        originalCost: cost,
+        discountCost: ((cost * (0.3 + (r % 5) / 10.0)) / 10).round() * 10,
+      ));
+    }
+    return DailyShop(date: _today(), items: items);
+  }
+}
+
+// ═══════════════ ⚡ コインブースト ═══════════════
+
+class CoinBoost {
+  static const int cost = 20;
+  static const double multiplier = 2.0;
+
+  static String name(bool ja) => ja ? '⚡ コイン2倍ブースト' : '⚡ Coin x2 Boost';
+  static String desc(bool ja) => ja
+      ? '次の1ゲームだけ、獲得コインが2倍になります。重ねがけできません。'
+      : 'Doubles coins earned in your next game. Cannot be stacked.';
+}
+
+// ═══════════════ 🎰 ガチャ ═══════════════
+
+class Gacha {
+  static const int cost = 40; // 1回40コイン
+  static const int multiCost = 100; // 3回100コイン
+
+  static String name(bool ja) => ja ? '🎰 おなまえガチャ' : '🎰 Name Gacha';
+  static String desc(bool ja) => ja
+      ? '1回40コイン。レアなキャラや名刺スキンが当たります。3連100コイン。'
+      : '40 coins per pull. Win rare characters & card skins! 3-pull for 100.';
+
+  /// Returns prize. null = ハズレ（コイン一部返還）
+  static ({String? id, String? type, int coinsBack}) pull(Random rng) {
+    final roll = rng.nextDouble();
+    if (roll < 0.05) return (id: 'jackpot', type: 'legendary_chara', coinsBack: 0); // 5% 神引き
+    if (roll < 0.20) return (id: 'rare', type: 'rare_voice', coinsBack: 0); // 15% レア
+    if (roll < 0.50) return (id: 'normal', type: 'random_chara', coinsBack: 0); // 30% 通常
+    return (id: null, type: null, coinsBack: 15); // 50% ハズレ（15コイン返還）
+  }
+}
+
+// ═══════════════ 🔥 連続ログイン保険 ═══════════════
+
+class StreakSaver {
+  static const int cost = 80;
+
+  static String name(bool ja) => ja ? '🔥 ログイン保険' : '🔥 Streak Saver';
+  static String desc(bool ja) => ja
+      ? 'うっかりログインを忘れても連続日数が途切れません。購入後、次に途切れそうなときに自動で消費されます。'
+      : 'If you miss a day, your streak is protected. Auto-consumed once when needed.';
+}
+
+// ═══════════════ 🧢 アバターアクセサリー ═══════════════
+
+class AvatarAccessory {
+  final String id;
+  final String emoji;
+  final String nameJa;
+  final String nameEn;
+  final int cost;
+  final int avatarBit; // AvatarパラメータのどのビットをONにするか
+
+  const AvatarAccessory({
+    required this.id,
+    required this.emoji,
+    required this.nameJa,
+    required this.nameEn,
+    required this.cost,
+    required this.avatarBit,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+}
+
+const List<AvatarAccessory> kAvatarAccessories = [
+  AvatarAccessory(id: 'acc_glasses_round', emoji: '👓', nameJa: '丸メガネ', nameEn: 'Round Glasses', cost: 30, avatarBit: 1),
+  AvatarAccessory(id: 'acc_glasses_square', emoji: '🕶', nameJa: '四角メガネ', nameEn: 'Square Glasses', cost: 30, avatarBit: 2),
+  AvatarAccessory(id: 'acc_hat_cap', emoji: '🧢', nameJa: 'キャップ', nameEn: 'Cap', cost: 40, avatarBit: 3),
+  AvatarAccessory(id: 'acc_hat_crown', emoji: '👑', nameJa: 'クラウン（プレミア）', nameEn: 'Crown (Premium)', cost: 100, avatarBit: 4),
+  AvatarAccessory(id: 'acc_hat_tophat', emoji: '🎩', nameJa: 'トップハット', nameEn: 'Top Hat', cost: 50, avatarBit: 5),
+  AvatarAccessory(id: 'acc_neck_tie', emoji: '👔', nameJa: 'ネクタイ', nameEn: 'Necktie', cost: 30, avatarBit: 6),
+  AvatarAccessory(id: 'acc_ear_headphones', emoji: '🎧', nameJa: 'ヘッドホン', nameEn: 'Headphones', cost: 40, avatarBit: 7),
+  AvatarAccessory(id: 'acc_mask_ninja', emoji: '🥷', nameJa: 'ニンジャマスク', nameEn: 'Ninja Mask', cost: 60, avatarBit: 8),
+  AvatarAccessory(id: 'acc_scarf_red', emoji: '🧣', nameJa: '赤いマフラー', nameEn: 'Red Scarf', cost: 35, avatarBit: 9),
+  AvatarAccessory(id: 'acc_wing_angel', emoji: '👼', nameJa: '天使の羽（激レア）', nameEn: 'Angel Wings (UR)', cost: 200, avatarBit: 10),
+];
+
+// ═══════════════ 🌟 神スキン ═══════════════
+
+class GodSkin {
+  final String id;
+  final String emoji;
+  final String nameJa;
+  final String nameEn;
+  final int cost;
+  final String descJa;
+  final String descEn;
+
+  const GodSkin({
+    required this.id,
+    required this.emoji,
+    required this.nameJa,
+    required this.nameEn,
+    required this.cost,
+    required this.descJa,
+    required this.descEn,
+  });
+
+  String name(bool ja) => ja ? nameJa : nameEn;
+  String desc(bool ja) => ja ? descJa : descEn;
+}
+
+const List<GodSkin> kGodSkins = [
+  GodSkin(
+    id: 'god_skin_golden',
+    emoji: '✨',
+    nameJa: '黄金の記憶',
+    nameEn: 'Golden Memory',
+    cost: 500,
+    descJa: 'なまえがおの名簿が金色に輝きます。全キャラに金色のオーラ。',
+    descEn: 'Your roster shines in gold. All characters get a golden aura.',
+  ),
+  GodSkin(
+    id: 'god_skin_cosmic',
+    emoji: '🌌',
+    nameJa: '宇宙の織り手',
+    nameEn: 'Cosmic Weaver',
+    cost: 800,
+    descJa: '時空を超えた記憶の支配者。背景が星空に。覚えた数だけ星が増える。',
+    descEn: 'Master of spacetime memory. Starfield background. Stars multiply with each name learned.',
+  ),
+  GodSkin(
+    id: 'god_skin_neon',
+    emoji: '💜',
+    nameJa: 'ネオン・ゴッド',
+    nameEn: 'Neon God',
+    cost: 600,
+    descJa: 'サイバーパンクの神。ネオンの輝きと共に名前を覚える。',
+    descEn: 'Cyberpunk deity. Learn names with neon brilliance.',
+  ),
+];
+
+// ═══════════════ 💀 ハードコアモードチケット ═══════════════
+
+class HardcoreTicket {
+  static const int cost = 30;
+
+  static String name(bool ja) => ja ? '💀 ハードコアチケット' : '💀 Hardcore Ticket';
+  static String desc(bool ja) => ja
+      ? '1回だけハードコアモードでプレイ。選択肢が1つ減り、制限時間が半分に。成功報酬3倍。'
+      : 'One hardcore game: -1 choice option, half the time limit, 3x rewards.';
+}
+
+// ═══════════════ 🎯 スタンプラリー ═══════════════
+
+class StampRally {
+  static const int targetDays = 7;
+
+  static String title(bool ja, int days) => ja
+      ? '🎯 動画スタンプラリー ($days/$targetDays)'
+      : '🎯 Ad Watch Streak ($days/$targetDays)';
+
+  static String desc(bool ja) => ja
+      ? '毎日1回リワード広告を見るとスタンプがたまります。$targetDays日連続でレジェンドキャラをプレゼント！'
+      : 'Watch 1 rewarded ad daily to earn stamps. $targetDays consecutive days = Legendary Character!';
+
+  static bool canClaim(int streak, Set<String> unlockedCharacters) =>
+      streak >= targetDays;
+}

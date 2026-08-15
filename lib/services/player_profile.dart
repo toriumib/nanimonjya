@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
@@ -40,13 +42,17 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> stampDates = {};
   static const int _maxStamps = 90;
   Set<String> unlockedAchievements = {};
-  Set<String> unlockedBgm = {'op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3'}; // デフォルトBGMは最初から解放
-  String selectedBgm = '08_burning_heart.mp3';
+  /// ⚠️ **既定値は必ず [kFreeBgmAssets] から取ること。**
+  ///    2026-08 に曲を8つ消したとき、ここが削除対象のファイル名の
+  ///    ままだったため、そのまま出していれば全員が無音になっていた。
+  Set<String> unlockedBgm = {...kFreeBgmAssets};
+  String selectedBgm = kDefaultGameBgmAsset;
   Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
   String selectedTheme = 'sunny';
-  String selectedResultBgm = '19_12345.mp3'; // リザルト画面の曲
+  String selectedResultBgm = kDefaultResultBgmAsset; // リザルト画面の曲
   /// 🏠 ホーム/試合前の曲。3場面（ホーム・試合中・リザルト）をそれぞれ選べる。
-  String selectedHomeBgm = kHomeBgmAsset;
+  /// 既定は [kHomeBgmRandom]（シチリアーノか運命をランダム）。
+  String selectedHomeBgm = kHomeBgmRandom;
   int cheerLevel = 0; // チア応援団のレベル（0=なし、コインでアップグレード）
   String nickname = ''; // ランキング表示名
   int rankRating = 1000; // ランダムマッチのレーティング（Firestoreミラー）
@@ -62,6 +68,7 @@ class PlayerProfile extends ChangeNotifier {
   int cpuNormalWins = 0;
   int cpuHardWins = 0;
   int cpuOniWins = 0;
+  int cpuGodWins = 0;
   /// 全問正解でCPUに勝ったことがあるか（実績キャラの解放条件）
   bool hadPerfectCpuWin = false;
   int bestQuizAccuracyPct = 0; // 1ゲーム内のベスト正答率(0-100)
@@ -92,6 +99,20 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
+
+  /// 🌐 Web版で選んだ言語（nullなら端末の言語に従う）。
+  /// shared_preferences に保存して次回も引き継ぐ。
+  String? _webLocaleCode;
+  String? get webLocaleCode => _webLocaleCode;
+  Future<void> setWebLocale(String? code) async {
+    _webLocaleCode = code;
+    if (code == null) {
+      await _prefs?.remove('webLocale');
+    } else {
+      await _prefs?.setString('webLocale', code);
+    }
+    notifyListeners();
+  }
 
   /// 🎁 今日のキャラガチャを引いた日（yyyy-mm-dd）。
   /// 「1日1回タダで1体引ける」という戻ってくる理由を作るための仕組み。
@@ -135,6 +156,62 @@ class PlayerProfile extends ChangeNotifier {
   bool devMode = false;
   String selectedCharm = 'none';
 
+  // 🏪 日替わりショップ
+  String dailyShopDate = '';
+  Set<String> dailyShopBought = {}; // 今日買った日替わり品のID
+
+  // 🎯 動画視聴スタンプラリー
+  int adWatchStreak = 0;
+  String lastAdWatchDate = '';
+  Set<String> adStreakRewardsClaimed = {}; // 受け取り済みの日数報酬
+
+  // ⚡ コインブースト（次の1ゲームだけ2倍）
+  bool coinBoostActive = false;
+
+  // 🧢 アバターアクセサリー
+  Set<String> unlockedAccessories = {};
+  String? selectedAccessory;
+
+  // 🔥 ログイン保険
+  bool streakSaverOwned = false;
+
+  /// 🎯 動画スタンプ: 今日すでに動画を見たか
+  bool get adWatchedToday {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    return lastAdWatchDate == d;
+  }
+
+  /// 🎯 スタンプラリーの今日の日数
+  int get adStreakDay => adWatchStreak.clamp(1, 7);
+
+  /// 🎯 動画視聴を記録。今日まだなら+1
+  Future<void> recordAdWatch() async {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    if (lastAdWatchDate == d) return; // 今日もう見た
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final y = '${yesterday.year}-${yesterday.month}-${yesterday.day}';
+    if (lastAdWatchDate == y) {
+      adWatchStreak = (adWatchStreak + 1).clamp(1, 7);
+    } else {
+      adWatchStreak = 1;
+    }
+    lastAdWatchDate = d;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 📅 日替わりショップの日付が変わったらリセット
+  void refreshDailyShop() {
+    final today = DateTime.now();
+    final d = '${today.year}-${today.month}-${today.day}';
+    if (dailyShopDate != d) {
+      dailyShopDate = d;
+      dailyShopBought.clear();
+    }
+  }
+
   // 📋 デイリーミッション（日付が変わるとリセット）
   String missionDate = '';
   int missionPlays = 0; // 今日あそんだ回数
@@ -165,14 +242,16 @@ class PlayerProfile extends ChangeNotifier {
     bestSessionStreak = p.getInt('bestSessionStreak') ?? 0;
     lastLoginDate = p.getString('lastLoginDate') ?? '';
     unlockedAchievements = (p.getStringList('achievements') ?? []).toSet();
-    unlockedBgm =
-        (p.getStringList('unlockedBgm') ?? ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']).toSet();
-    // 各場面の既定曲は最初から鳴らせるようにしておく
-    unlockedBgm.addAll(const ['op9-2-Nocturne.mp3', '08_burning_heart.mp3', '19_12345.mp3']);
-    selectedBgm = p.getString('selectedBgm') ?? '08_burning_heart.mp3';
-    if (!unlockedBgm.contains(selectedBgm)) {
-      selectedBgm = '08_burning_heart.mp3';
-    }
+    // 🎵 **消した曲を選んだままの人を救う。**（migrateBgmSelection のコメント参照）
+    //    ホーム・リザルトの設定はこの下でも読むので、まとめてここで直す。
+    final bgm = migrateBgmSelection(
+      savedUnlocked: p.getStringList('unlockedBgm') ?? const [],
+      savedGame: p.getString('selectedBgm'),
+      savedResult: p.getString('selectedResultBgm'),
+      savedHome: p.getString('selectedHomeBgm'),
+    );
+    unlockedBgm = bgm.unlocked;
+    selectedBgm = bgm.game;
     unlockedThemes = (p.getStringList('unlockedThemes') ?? ['sunny']).toSet();
     unlockedThemes.add('sunny');
     selectedTheme = p.getString('selectedTheme') ?? 'sunny';
@@ -195,6 +274,7 @@ class PlayerProfile extends ChangeNotifier {
     cpuNormalWins = p.getInt('cpuNormalWins') ?? 0;
     cpuHardWins = p.getInt('cpuHardWins') ?? 0;
     cpuOniWins = p.getInt('cpuOniWins') ?? 0;
+    cpuGodWins = p.getInt('cpuGodWins') ?? 0;
     hadPerfectCpuWin = p.getBool('hadPerfectCpuWin') ?? false;
     bestQuizAccuracyPct = p.getInt('bestQuizAccuracyPct') ?? 0;
     bestAvgReactionMs = p.getInt('bestAvgReactionMs') ?? 0;
@@ -234,17 +314,20 @@ class PlayerProfile extends ChangeNotifier {
     missionOnline = p.getInt('missionOnline') ?? 0;
     missionClaimed = (p.getStringList('missionClaimed') ?? []).toSet();
     _refreshMissions();
-    selectedHomeBgm = p.getString('selectedHomeBgm') ?? kHomeBgmAsset;
-    if (selectedHomeBgm != kHomeBgmAsset &&
-        !unlockedBgm.contains(selectedHomeBgm)) {
-      selectedHomeBgm = kHomeBgmAsset;
-    }
-    selectedResultBgm = p.getString('selectedResultBgm') ?? '19_12345.mp3';
-    // シャイニングスター以外はBGMショップでアンロック済みの曲のみ許可
-    if (selectedResultBgm != '19_12345.mp3' &&
-        !unlockedBgm.contains(selectedResultBgm)) {
-      selectedResultBgm = '19_12345.mp3';
-    }
+    selectedHomeBgm = bgm.home;
+    selectedResultBgm = bgm.result;
+    _webLocaleCode = p.getString('webLocale');
+    // 🏪 日替わりショップ + スタンプラリー
+    dailyShopDate = p.getString('dailyShopDate') ?? '';
+    dailyShopBought = (p.getStringList('dailyShopBought') ?? []).toSet();
+    adWatchStreak = p.getInt('adWatchStreak') ?? 0;
+    lastAdWatchDate = p.getString('lastAdWatchDate') ?? '';
+    adStreakRewardsClaimed = (p.getStringList('adStreakRewards') ?? []).toSet();
+    coinBoostActive = p.getBool('coinBoost') ?? false;
+    unlockedAccessories = (p.getStringList('unlockedAccessories') ?? []).toSet();
+    selectedAccessory = p.getString('selectedAccessory');
+    streakSaverOwned = p.getBool('streakSaver') ?? false;
+    refreshDailyShop();
     _loaded = true;
     _refreshDailyState();
   }
@@ -960,16 +1043,16 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// リザルト画面の曲を選択（シャイニングスター or アンロック済みクラシック曲）
-  /// 🏠 ホーム/試合前の曲を選ぶ。既定曲は未購入でも選べる。
+  /// 🏠 ホーム/試合前の曲を選ぶ。既定曲・おまかせは未購入でも選べる。
   Future<void> selectHomeBgm(String asset) async {
-    if (asset != kHomeBgmAsset && !unlockedBgm.contains(asset)) return;
+    if (asset != kHomeBgmAsset && asset != kHomeBgmRandom && !unlockedBgm.contains(asset)) return;
     selectedHomeBgm = asset;
     await _persist();
     notifyListeners();
   }
 
   Future<void> selectResultBgm(String asset) async {
-    if (asset != '19_12345.mp3' && !unlockedBgm.contains(asset)) return;
+    if (asset != kDefaultResultBgmAsset && !unlockedBgm.contains(asset)) return;
     selectedResultBgm = asset;
     await _persist();
     notifyListeners();
@@ -1092,6 +1175,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('cpuNormalWins', cpuNormalWins);
     await p.setInt('cpuHardWins', cpuHardWins);
     await p.setInt('cpuOniWins', cpuOniWins);
+    await p.setInt('cpuGodWins', cpuGodWins);
     await p.setInt('bestQuizAccuracyPct', bestQuizAccuracyPct);
     await p.setInt('bestAvgReactionMs', bestAvgReactionMs);
     await p.setInt('soloTrainingSessions', soloTrainingSessions);
@@ -1125,6 +1209,100 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('missionCoinsEarned', missionCoinsEarned);
     await p.setInt('missionOnline', missionOnline);
     await p.setStringList('missionClaimed', missionClaimed.toList());
+    // 🏪 日替わりショップ + スタンプラリー
+    await p.setString('dailyShopDate', dailyShopDate);
+    await p.setStringList('dailyShopBought', dailyShopBought.toList());
+    await p.setInt('adWatchStreak', adWatchStreak);
+    await p.setString('lastAdWatchDate', lastAdWatchDate);
+    await p.setStringList('adStreakRewards', adStreakRewardsClaimed.toList());
+    await p.setBool('coinBoost', coinBoostActive);
+    await p.setStringList('unlockedAccessories', unlockedAccessories.toList());
+    if (selectedAccessory != null) await p.setString('selectedAccessory', selectedAccessory!);
+    await p.setBool('streakSaver', streakSaverOwned);
+  }
+
+  /// 🎰 ガチャを引く
+  Future<({String? id, String? type, int coinsBack})> pullGacha() async {
+    if (coins < Gacha.cost) return (id: null, type: null, coinsBack: 0);
+    final rng = Random();
+    final result = Gacha.pull(rng);
+    coins -= Gacha.cost;
+    if (result.coinsBack > 0) coins += result.coinsBack;
+    final cid = result.id;
+    if (cid != null) {
+      if (result.type == 'random_chara') {
+        final pool = kExtraCharacters.where((c) => !unlockedCharacters.contains(c.id)).toList();
+        if (pool.isNotEmpty) unlockedCharacters.add(pool[rng.nextInt(pool.length)].id);
+      } else if (result.type == 'rare_voice') {
+        final pool = kPraiseVoices.where((v) => v.id != 'none' && !unlockedVoices.contains(v.id)).toList();
+        if (pool.isNotEmpty) unlockedVoices.add(pool[rng.nextInt(pool.length)].id);
+      } else if (cid == 'jackpot') {
+        unlockedAccessories.add('acc_wing_angel');
+        grantBonusCoins(100);
+      }
+    }
+    await _persist();
+    notifyListeners();
+    return result;
+  }
+
+  /// 🔥 ログイン保険: 購入
+  Future<bool> buyStreakSaver() async {
+    if (coins < StreakSaver.cost || streakSaverOwned) return false;
+    coins -= StreakSaver.cost;
+    streakSaverOwned = true;
+    await _persist();
+    notifyListeners();
+    return true;
+  }
+
+  /// 🔥 ログイン忘れ時に保険消費
+  Future<void> maybeUseStreakSaver() async {
+    if (!streakSaverOwned) return;
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    final y = '${yesterday.year}-${yesterday.month}-${yesterday.day}';
+    final dayBefore = today.subtract(const Duration(days: 2));
+    final d2 = '${dayBefore.year}-${dayBefore.month}-${dayBefore.day}';
+    // 昨日も一昨日もログインなし＝2日空いたら保険発動
+    if (lastLoginDate != y && lastLoginDate == d2 && dailyStreak > 1) {
+      streakSaverOwned = false;
+      // 日付を昨日に補正して連続を維持
+      lastLoginDate = y;
+      await _persist();
+      notifyListeners();
+    }
+  }
+
+  /// ⚡ コインブーストを有効化
+  Future<void> activateCoinBoost() async {
+    if (coinBoostActive) return;
+    if (coins < 20) return;
+    coins -= 20;
+    coinBoostActive = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// ⚡ コインブーストを使って消費
+  int applyBoost(int amount) {
+    if (!coinBoostActive) return amount;
+    coinBoostActive = false;
+    final doubled = amount * 2;
+    _persist(); // fire and forget
+    notifyListeners();
+    return doubled;
+  }
+
+  /// 📅 日替わりショップで購入
+  Future<bool> buyDailyShopItem(String itemId, int cost) async {
+    if (coins < cost) return false;
+    if (dailyShopBought.contains(itemId)) return false;
+    coins -= cost;
+    dailyShopBought.add(itemId);
+    await _persist();
+    notifyListeners();
+    return true;
   }
 }
 

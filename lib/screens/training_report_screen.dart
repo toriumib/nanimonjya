@@ -9,6 +9,7 @@ import 'memory_tips_screen.dart';
 import 'home_shell.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/roster_reveal.dart';
+import '../services/app_analytics.dart';
 
 /// 一人特訓モード（顔と名前の神経衰弱）終了後のトレーニングレポート。
 /// 勝敗ではなく、一致成功率・手数効率・判断時間などの自己記録をフィードバックする。
@@ -25,7 +26,7 @@ class TrainingReportScreen extends StatefulWidget {
   /// この回に出てきた人たち。結果画面で「誰が誰だったか」を見せるために使う。
   ///
   /// 数字だけ返されても、どの顔を取り違えたのかが分からないと直しようがない。
-  /// 名前が空のPerson（なまえコール用の生成器）を渡しても意味がないので、
+  /// 名前が空のPerson（なまえがお用の生成器）を渡しても意味がないので、
   /// 名前が入っているものだけを渡すこと。空リストなら一覧を出さない。
   final List<Person> people;
 
@@ -58,6 +59,7 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('training_report');
     WidgetsBinding.instance.addPostFrameCallback((_) => _grantRewards());
   }
 

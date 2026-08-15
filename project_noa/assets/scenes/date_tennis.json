@@ -1,0 +1,54 @@
+{
+  "id": "date_tennis",
+  "chapter": "ACT III ／ テニス（〇・五G室）",
+  "bg": "ship_corridor",
+  "bgAge": 3,
+  "bgm": { "id": "date_light", "fade": 1.0 },
+  "lines": [
+    { "t": "mono", "text": "回転区画の外周に、重力が半分しかない部屋がある。" },
+    { "t": "mono", "text": "本当は資材置き場だが、誰かが線を引いてコートにした。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "運動は要る。三百年寝るからこそ、起きてるあいだに動かないと。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
+      "text": "……という建前で、私が一番やりたいだけだが。" },
+
+    { "t": "mono", "text": "球は、思ったところへ飛ばない。" },
+    { "t": "mono", "text": "回転している部屋の中では、まっすぐ打った球が横へ逃げる。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "コリオリだ。慣れるしかない。地球のテニスとは別の競技だと思え。" },
+
+    { "t": "mono", "text": "何度か打ち合ううちに、彼が壁を指した。" },
+    { "t": "mono", "text": "塗装が剥げた場所に、細かい傷が並んでいる。" },
+    { "t": "mono", "text": "——「また明日」。" },
+    { "t": "mono", "text": "同じ字が、いくつも。筆跡が全部ちがう。" },
+
+    { "t": "choice", "options": [
+      { "text": "これは、誰が", "jump": "" },
+      { "text": "……全員ぶん、ありますね", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "発射の前の夜だ。順番に、ひとりずつ刻んだ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/tired",
+      "text": "三百三十年後に会うのに、『また明日』はないだろうと言ったんだが。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "……全員、それがいいと言った。" },
+    { "t": "flag", "set": "mystery_tomorrow_seen" },
+
+    { "t": "mono", "text": "眠って、起きて、また眠る。" },
+    { "t": "mono", "text": "その繰り返しの中では、二十八年も一晩と変わらない。" },
+    { "t": "mono", "text": "だから「また明日」で、合っているのだ。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "……私は慶應の医学部でな。走るのは、そのころからの癖だ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
+      "text": "患者を三人、冷凍で失った。走らないと、寝られなかった。" },
+
+    { "t": "aff", "char": "shirakawa", "d": 2 },
+    { "t": "flag", "set": "date_tennis_done" },
+    { "t": "memtest", "char": "shirakawa", "field": "school" },
+
+    { "t": "jump", "to": "act3_date_pick2" }
+  ]
+}

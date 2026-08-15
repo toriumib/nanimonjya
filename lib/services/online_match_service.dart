@@ -40,7 +40,7 @@ class OnlineMatchService {
   /// 人数を選ばせると「同じ設定の相手が見つからない」だけになる。
   static const int rankPeopleCount = 8;
 
-  /// なまえコールのオンライン既定人数（フレンドマッチはここから変えられる）。
+  /// なまえがおのオンライン既定人数（フレンドマッチはここから変えられる）。
   static const int defaultOnlinePeople = 8;
 
   /// おぼえタイム(秒)。両端末で共通の締切を計算する。
@@ -50,7 +50,7 @@ class OnlineMatchService {
         'rank' => people * 3,
         'turnpairs' => levelPairs * 3,
         'pairs' => levelPairs * 3,
-        // なまえコールは「出たとき命名」なので事前のおぼえタイムは無い
+        // なまえがおは「出たとき命名」なので事前のおぼえタイムは無い
         _ => 0,
       };
 
@@ -137,7 +137,7 @@ class OnlineMatchService {
 
   /// ランダムマッチ: 待機中の部屋を探して入る。無ければ自分で作って待つ。
   ///
-  /// なまえコールのランダムマッチは**人数がそろっている部屋だけ**に入る。
+  /// なまえがおのランダムマッチは**人数がそろっている部屋だけ**に入る。
   /// 人数が違うと盤面がずれて勝負にならないため。
   Future<PendingRoom> findRandomMatch({
     required String nickname,
@@ -279,7 +279,7 @@ class OnlineMatchSession {
   final bool isRandomMatch;
   final String game; // 'pairs' | 'namecall' | 'rank' | 'turnpairs'
 
-  /// 何人おぼえる部屋か（なまえコール＝出演人数、ペア系＝ペア数）。
+  /// 何人おぼえる部屋か（なまえがお＝出演人数、ペア系＝ペア数）。
   final int peopleCount;
 
   /// ターン制で自分が何番目の手番か（0=先手）。

@@ -5,6 +5,7 @@ import '../services/player_profile.dart';
 import '../services/ranking_service.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// ランダムマッチの全体ランキング画面。
 class RankingScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _RankingScreenState extends State<RankingScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('ranking');
     _nameCtrl = TextEditingController(text: PlayerProfile.instance.nickname);
   }
 

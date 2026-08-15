@@ -1,10 +1,12 @@
+import 'person.dart'; // 出演プールの顔（FaceRef）とバンドルのキャラ画像
+
 /// コインで購入して仲間にできる「追加キャラ」カタログ。
 ///
 /// 画像は assets/images/char14.webp 〜 char32.webp（pubspec の assets/images/ で
 /// ディレクトリごとバンドルされるため、ファイルを置くだけで有効化される）。
 /// 未配置のうちは購入時にシルエット表示となる（クラッシュはしない）。
 ///
-/// 購入したキャラは「なまえコール」と「ビジネス特訓」の出演プールに加わり、
+/// 購入したキャラは「なまえがお」と「ビジネス特訓」の出演プールに加わり、
 /// 出会える顔ぶれが増える（ルールは変えない）。
 /// 🏆 コインでは買えず、腕前で解放するキャラの条件。
 enum UnlockFeat {
@@ -146,4 +148,34 @@ List<String> applyDeckFilter(
       if (!excluded.contains(a)) a,
   ];
   return kept.length >= minimum ? kept : pool;
+}
+
+/// 🎴 顔メモの人も含めた出演プールを組み立てる。
+///
+/// 以前はキャラデッキに「自分で登録した人」の欄があるのに、
+/// 実際のゲームは `kCharImageAssets` と購入キャラしか見ていなかった。
+/// つまり**登録した人をONにしても対戦には出てこなかった**。
+/// ここで1本にまとめて、デッキの意思がそのまま出演に効くようにする。
+///
+/// [customFaces] は `CustomRosterService.instance.entries` の `toFaceRef()`。
+/// 除外の判定は [FaceRef.deckKey] で行う（画像パスではない。理由は
+/// `CustomEntry.toFaceRef` のコメントを参照）。
+List<FaceRef> buildFacePool({
+  required Set<String> unlockedIds,
+  required Set<String> excluded,
+  List<FaceRef> customFaces = const [],
+  int minimum = 4,
+}) {
+  final all = <FaceRef>[
+    for (final a in kCharImageAssets) FaceRef.asset(a),
+    for (final a in unlockedExtraAssets(unlockedIds)) FaceRef.asset(a),
+    ...customFaces,
+  ];
+  if (excluded.isEmpty) return all;
+  final kept = [
+    for (final f in all)
+      if (!excluded.contains(f.deckKey)) f,
+  ];
+  // 絞りすぎてゲームが成立しないときは、除外を無視する（既存の方針と同じ）
+  return kept.length >= minimum ? kept : all;
 }

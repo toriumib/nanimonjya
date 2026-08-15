@@ -3,22 +3,22 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/meta_strings.dart';
+import '../models/historical_figures.dart';
 import '../models/person.dart';
 import '../services/review_queue.dart';
 import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/memory_tip_ticker.dart';
 import 'custom_roster_screen.dart';
+import 'ai_clone_screen.dart';
+import '../services/custom_roster_service.dart';
 import 'package:flutter/foundation.dart';
 import 'cognitive_info_screen.dart';
-import 'line_match_screen.dart';
-import 'match_game_screen.dart';
-import 'name_battle_screen.dart';
-import 'online_lobby_screen.dart';
 import 'recall_training_screen.dart';
 import 'rulebook_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// 「とっくん」タブ: 一人特訓（神経衰弱ベース）と記憶術トレーニング。
 class TrainingHubScreen extends StatefulWidget {
@@ -41,6 +41,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('training_hub');
     ReviewQueue.instance.load(); // 期限が来ている人がいるか読み込む
     if (widget.active) _maybeExplain();
   }
@@ -97,123 +98,6 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   static const String _explainedKey = 'trainingHubExplained';
   // 覚える項目。会社名＋名前が基本、他はオプション。
   final Set<RecallField> _fields = {RecallField.name, RecallField.company};
-
-  void _start({bool mnemonic = false}) {
-    Sfx.instance.pop();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MatchGameScreen(
-          level: _level,
-          mnemonicGuide: mnemonic,
-        ),
-      ),
-    );
-  }
-
-  /// 🃏 1台で2人で遊ぶとき、カードの作りをえらんでから始める。
-  ///
-  /// 「顔札×名札」は顔と名前を結びつけていないと取れず、練習として効くが
-  /// 難しい。「トランプ式」は同じ札を2枚そろえるだけなので、
-  /// 小さい子や初めての人とでも成立する。どちらも残す。
-  void _pickBattleStyle() {
-    final m = MetaStrings.of(context);
-    Sfx.instance.pop();
-    void start(BattleCardStyle style) {
-      Navigator.pop(context);
-      Sfx.instance.fanfare();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => NameBattleScreen(humanPlayers: 2, cardStyle: style),
-        ),
-      );
-    }
-
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(m.battleStylePickTitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 14),
-              _styleTile(
-                label: m.battleStyleSplit,
-                desc: m.battleStyleSplitDesc,
-                color: const Color(0xFF3A7BD5),
-                onTap: () => start(BattleCardStyle.faceAndName),
-              ),
-              const SizedBox(height: 10),
-              _styleTile(
-                label: m.battleStyleCombined,
-                desc: m.battleStyleCombinedDesc,
-                color: const Color(0xFFE8663C),
-                onTap: () => start(BattleCardStyle.combined),
-              ),
-              const SizedBox(height: 10),
-              _styleTile(
-                label: m.battleStyleFaceOnly,
-                desc: m.battleStyleFaceOnlyDesc,
-                color: const Color(0xFF2E9E5B),
-                onTap: () => start(BattleCardStyle.faceOnly),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _styleTile({
-    required String label,
-    required String desc,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color, width: 1.6),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w900,
-                    color: color)),
-            const SizedBox(height: 4),
-            Text(desc,
-                style: const TextStyle(fontSize: 12, height: 1.5)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 🖇 線むすび特訓。めくる運に左右されず、顔から名前を引き出す形で判定する。
-  void _startLineMatch() {
-    Sfx.instance.pop();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => LineMatchScreen(level: _level)),
-    );
-  }
 
   /// 🔁 期限が来ている人だけで思い出しトレーニングを始める。
   /// 顔と名前だけを問うので、出題項目は name に絞る。
@@ -358,6 +242,9 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                     );
                   },
                 ),
+                // 💼 WhoWas — ビジネスパーソン向け顔記憶。名刺→想起。
+                _whoWasCard(m),
+                const SizedBox(height: 16),
                 _card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,112 +337,6 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(m.soloTrainingTitle,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 4),
-                      Text(m.soloTrainingDesc,
-                          style: const TextStyle(
-                              fontSize: 12.5, color: Colors.black54)),
-                      const SizedBox(height: 12),
-                      // 🖇 線むすびを一人特訓の主役に（顔→名前を自力で引き出す形）
-                      ElevatedButton(
-                        onPressed: _startLineMatch,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4ECDC4),
-                          minimumSize: const Size.fromHeight(46),
-                        ),
-                        child: Text(m.lineMatchButton),
-                      ),
-                      // 🗑「特訓スタート！」は撤去。同じカードに似たボタンが
-                      //    3つ並んでいて、何が違うのか分からない状態だった。
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () => _start(mnemonic: true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE8A400),
-                          minimumSize: const Size.fromHeight(46),
-                        ),
-                        child: Text(m.mnemonicTrainingButton),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        m.mnemonicTrainingDesc,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black45),
-                        textAlign: TextAlign.center,
-                      ),
-                      // 🔁 同じ盤面をオンラインの相手と交互にめくる。
-                      //    同時レースだと急かされて記憶術を試す間がないので、
-                      //    記憶術トレーニングにはターン制のほうを用意する。
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          Sfx.instance.fanfare();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const OnlineLobbyScreen(
-                                  game: 'turnpairs'),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8A5AC2),
-                          minimumSize: const Size.fromHeight(46),
-                        ),
-                        child: Text(m.turnPairsButton),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        m.turnPairsDesc,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black45),
-                        textAlign: TextAlign.center,
-                      ),
-                      // ⚔️ ベータ: 覚えたことがそのまま強さになるモード
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          Sfx.instance.fanfare();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const NameBattleScreen()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE8663C),
-                          minimumSize: const Size.fromHeight(46),
-                        ),
-                        child: Text('${m.battleTitle}（${m.betaBadge}）'),
-                      ),
-                      const SizedBox(height: 8),
-                      // 👫 1台を回して2人で。神経衰弱を交互にめくって
-                      //    取り合い、そのままふたり同時にバトルする。
-                      OutlinedButton(
-                        onPressed: _pickBattleStyle,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFE8663C),
-                          minimumSize: const Size.fromHeight(44),
-                        ),
-                        child: Text(m.battleTwoPlayerButton),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        m.battleDesc,
-                        style: const TextStyle(
-                            fontSize: 11.5, color: Colors.black45),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
                 // 📇 実物の名刺＋顔写真で特訓する導線。
                 // ホーム画面の小さなボタンからしか行けず気づかれにくかったので、
                 // 名刺特訓の本拠地であるここにも置く（モバイル限定機能）。
@@ -587,9 +368,45 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
                               );
                             },
                             icon: const Icon(Icons.face_retouching_natural),
-                            label: const Text('🧑‍🎨 顔メモをつくる'),
+                            label: Text(MetaStrings.of(context).ja
+                                ? '🧑‍🎨 顔メモをつくる（会社・学校の人）'
+                                : '🧑‍🎨 Create Face Note (Work/School)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF8A5AC2),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(48),
+                              textStyle: const TextStyle(
+                                  fontSize: 14.5, fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // 📚 歴史上の人物
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Sfx.instance.pop();
+                              final people = generateHistoricalPeople(
+                                  ja: MetaStrings.of(context).ja);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => RecallTrainingScreen(
+                                        level: 1,
+                                        fields: {
+                                          RecallField.name,
+                                          RecallField.company,
+                                        },
+                                        people: people)),
+                              );
+                            },
+                            icon: const Icon(Icons.school_rounded),
+                            label: Text(MetaStrings.of(context).ja
+                                ? '📚 歴史上の人物をおぼえる'
+                                : '📚 Learn Historical Figures'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B4513),
                               foregroundColor: Colors.white,
                               minimumSize: const Size.fromHeight(48),
                               textStyle: const TextStyle(
@@ -673,6 +490,230 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 💼 WhoWas — ビジネス向け: 名刺を撮って顔と名前を覚える。
+  /// 「会議前に5分でおさらい」を目指す導線。
+  Widget _whoWasCard(MetaStrings m) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('💼',
+                  style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(m.ja ? 'WhoWas — 名刺を覚える' : 'WhoWas — Remember faces',
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white)),
+                    Text(m.ja
+                        ? '「この人だれだっけ？」にもう言わせない'
+                        : 'Never say "who was that?" again',
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            height: 1.3,
+                            color: Color(0xFFA0B4D0))),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFC02E),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(m.ja ? 'NEW' : 'NEW',
+                    style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1A1A2E))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // 3ステップの説明
+          Row(
+            children: [
+              _stepBadge('1', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '写真を撮るか名刺を読み取る' : 'Scan a card or take a photo',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _stepBadge('2', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '5分のクイズで顔と名前を覚える' : '5-min quiz to lock in the face & name',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _stepBadge('3', const Color(0xFF5AD1FF)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    m.ja ? '会議の前におさらい通知が届く' : 'Get a refresher before your meeting',
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFD0D8E8))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 🤖 AIクローン
+          OutlinedButton.icon(
+            onPressed: () {
+              Sfx.instance.fanfare();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiCloneScreen()),
+              );
+            },
+            icon: const Icon(Icons.auto_awesome, size: 16),
+            label: Text(m.ja ? '🤖 AIの自分を作る（新機能）' : '🤖 Create your AI clone (NEW)',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF5AD1FF),
+              side: const BorderSide(color: Color(0xFF5AD1FF)),
+              minimumSize: const Size.fromHeight(40),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Sfx.instance.fanfare();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const CustomRosterScreen(startAvatar: true)),
+                    );
+                  },
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: Text(m.ja ? '📸 名刺・顔を登録' : '📸 Register card & face',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5AD1FF),
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Sfx.instance.fanfare();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => RecallTrainingScreen(
+                              level: 1,
+                              fields: const {RecallField.name, RecallField.company},
+                              people: CustomRosterService.instance.toPeople())),
+                    );
+                  },
+                  icon: const Icon(Icons.quiz, size: 18),
+                  label: Text(m.ja ? '🧠 いますぐおさらい' : '🧠 Quick review now',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 📅 カレンダー連携ティーザー
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D1B33),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF2A3A5A)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today,
+                    size: 16, color: Color(0xFF5AD1FF)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                      m.ja
+                          ? '📅 近日: カレンダー連携で会議前に自動おさらい'
+                          : '📅 Coming soon: auto-refresher before meetings',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFF8899BB))),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepBadge(String text, Color color) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: color)),
     );
   }
 

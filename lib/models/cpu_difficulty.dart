@@ -108,6 +108,28 @@ const Map<String, CpuDifficulty> kCpuDifficulties = {
     cpuMissPct: 3,
     emoji: '👹',
   ),
+  'god': CpuDifficulty(
+    groupSize: 5,
+    answerSeconds: 4,
+    winBonus: 360,
+    coinsPerCorrect: 25,
+    perfectBonus: 200,
+    cpuMinMs: 800,
+    cpuVarianceMs: 600,
+    cpuMissPct: 0,
+    emoji: '⚡',
+  ),
+  'ultimate': CpuDifficulty(
+    groupSize: 10,
+    answerSeconds: 3,
+    winBonus: 720,
+    coinsPerCorrect: 50,
+    perfectBonus: 500,
+    cpuMinMs: 500,
+    cpuVarianceMs: 300,
+    cpuMissPct: 0,
+    emoji: '🌌',
+  ),
 };
 
 /// CpuLevel（enum）や 'easy' などの文字列から設定を引く。

@@ -10,6 +10,7 @@ import 'match_game_screen.dart';
 import 'online_lobby_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../services/app_analytics.dart';
 
 /// あそぶモードの選択画面。
 /// 一人特訓（レベル1〜3・記憶術ガイドあり/なし）と、CPU対戦（難易度4段階）を選ぶ。
@@ -21,6 +22,12 @@ class PlayerSelectionScreen extends StatefulWidget {
 }
 
 class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppAnalytics.screen('player_selection');
+  }
+
   int _level = 1; // 1..3 → 4/6/8ペア
   int _localPlayers = 2; // みんなで対戦の人数（2〜4）
 
@@ -182,7 +189,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               border: Border.all(color: const Color(0xFFE8663C), width: 2),
             ),
             child: Text(
-              '$n人',
+              m.ja ? '$n人' : '${n}P',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w900,
@@ -264,18 +271,23 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
         final profile = PlayerProfile.instance;
         final rank = cpuRankForRating(profile.cpuRating);
         final oniUnlocked = profile.cpuRating >= kOniUnlockRating;
+        final godUnlocked = profile.cpuOniWins >= 3;
+        final ultimateUnlocked = true; // 最初から開放
 
         Widget cpuButton(String label, CpuLevel level, Color color,
             {bool locked = false}) {
+          final lockedHint = level == CpuLevel.ultimate
+              ? m.ultimateLockedHint(5)
+              : level == CpuLevel.god
+                  ? m.godLockedHint(3)
+                  : m.oniLockedHint(kOniUnlockRating);
           return ElevatedButton(
             onPressed: locked ? null : () => _start(cpu: level),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               minimumSize: const Size.fromHeight(44),
             ),
-            child: Text(locked
-                ? '$label 🔒 ${m.oniLockedHint(kOniUnlockRating)}'
-                : label),
+            child: Text(locked ? '$label 🔒 $lockedHint' : label),
           );
         }
 
@@ -322,6 +334,14 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               const SizedBox(height: 8),
               cpuButton(m.cpuOni, CpuLevel.oni, const Color(0xFFC62828),
                   locked: !oniUnlocked),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuGod, CpuLevel.god,
+                  const Color(0xFFFFD700),
+                  locked: !godUnlocked),
+              const SizedBox(height: 8),
+              cpuButton(m.cpuUltimate, CpuLevel.ultimate,
+                  const Color(0xFF1A0033),
+                  locked: !ultimateUnlocked),
             ],
           ),
         );

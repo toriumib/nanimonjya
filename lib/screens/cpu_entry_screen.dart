@@ -9,8 +9,8 @@ import '../models/person.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/face_view.dart';
-import 'match_game_screen.dart' show CpuLevel;
-import 'name_call_screen.dart';
+import 'match_game_screen.dart';
+import '../services/app_analytics.dart';
 
 /// ⚔️ CPU対戦のまえの「参戦」演出。
 ///
@@ -42,11 +42,14 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     CpuLevel.normal: [Color(0xFF3A7BD5), Color(0xFF17408B)],
     CpuLevel.hard: [Color(0xFFE8663C), Color(0xFF9C2F10)],
     CpuLevel.oni: [Color(0xFF8A5AC2), Color(0xFF3D1E6B)],
+    CpuLevel.god: [Color(0xFFFFD700), Color(0xFF8B0000)],
+    CpuLevel.ultimate: [Color(0xFF4A0E7A), Color(0xFF1A0033)],
   };
 
   @override
   void initState() {
     super.initState();
+    AppAnalytics.screen('cpu_entry');
     // 対戦相手の顔は、いま出演できるキャラから1人選ぶ
     final pool = applyDeckFilter(
       [
@@ -68,11 +71,8 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => NameCallScreen(
+        builder: (_) => MatchGameScreen(
           cpuLevel: widget.level,
-          quizMode: true,
-          peopleCount: widget.peopleCount,
-          copiesPerPerson: widget.copiesPerPerson,
         ),
       ),
     );

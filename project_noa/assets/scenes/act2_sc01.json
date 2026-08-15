@@ -1,0 +1,62 @@
+{
+  "id": "act2_sc01",
+  "chapter": "ACT II ／ さよならの手紙",
+  "bg": "dome_lab",
+  "bgAge": 0,
+  "bgm": { "id": "twelve_chairs", "fade": 1.5 },
+  "lines": [
+    { "t": "mono", "text": "第三年。" },
+    { "t": "mono", "text": "誰も口にしないまま、全員が同じものを書いていた。" },
+    { "t": "mono", "text": "「さよならの手紙」。乗れなかった側が、乗る側へ渡すための手紙だ。" },
+    { "t": "mono", "text": "十七人が、十七通を書いている。誰に宛てるかも決めずに。" },
+
+    { "t": "bg", "id": "med_lab", "bgAge": 0 },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/tired",
+      "text": "……また落ちた。生存率、八十二パーセント。" },
+    { "t": "mono", "text": "白川冬也。宇宙医学研究所。冷凍睡眠の担当。" },
+    { "t": "mono", "text": "彼は「大丈夫」という言葉を、決して使わない医師だった。" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "三百三十年だ。八十二パーセントでは、着く前に四人が死ぬ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "だから定員は十二なんだ。減ることを前提に組んである。" },
+
+    { "t": "choice", "options": [
+      { "text": "……被験者の名前を、呼んでみたらどうですか", "jump": "" },
+      { "text": "数字ではなく、人として見てはどうですか", "jump": "" }
+    ]},
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/surprise",
+      "text": "……は？" },
+    { "t": "mono", "text": "私は台帳を開いた。冷凍ポッドの番号と、その中身の名前。" },
+    { "t": "mono", "text": "白川は番号でしか呼んでいなかった。三番。七番。十一番。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "三番は、内海螢さんです。潜水が趣味の。" },
+    { "t": "say", "name": "記録官", "sprite": "",
+      "text": "七番は神崎遼さん。毎朝、写経をしている人です。" },
+
+    { "t": "fx", "kind": "flash" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/surprise",
+      "text": "……待て。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "潜水。……肺だ。潜水をやる人間は、低酸素の耐性が違う。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "写経。姿勢。同じ姿勢を長時間。……血流の分布が、違う。" },
+    { "t": "mono", "text": "彼は椅子を蹴って立ち上がった。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
+      "text": "番号じゃない。一人ずつ、体が違う。凍結の速度を、一人ずつ変える。" },
+
+    { "t": "aff", "char": "shirakawa", "d": 2 },
+    { "t": "mono", "text": "——三か月後。" },
+    { "t": "mono", "text": "アルデヒド安定化冷凍保存、生存率百パーセント。" },
+    { "t": "mono", "text": "定員は、十二から百八になった。" },
+    { "t": "flag", "set": "capacity_108" },
+
+    { "t": "say", "name": "白川", "sprite": "shirakawa/normal",
+      "text": "……礼は言わない。あんたは名簿を読んだだけだ。" },
+    { "t": "say", "name": "白川", "sprite": "shirakawa/smile",
+      "text": "だが。読める人間がいなければ、俺は番号のまま三百年やっていた。" },
+
+    { "t": "jump", "to": "act2_sc01b" }
+  ]
+}
