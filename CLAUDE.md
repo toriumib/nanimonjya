@@ -71,6 +71,21 @@ Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は
 - **試合・特訓の結果画面**（match_result / local_result / online_result / recall_training の各result）に `widgets/store_cta.dart` の `StoreCtaCard`（「新しいキャラを仲間にしよう→ショップへ」誘導）を配置
 - レビュー依頼: `services/review_prompt.dart` の `maybeAskReview()`（1回きり、`reviewPrompted`でゲート）。勝利・全問正解などの好タイミングで呼ぶ。match_result側は従来通り閾値3ゲームで直接呼び出し
 
+### 🌍 英語版の顔ぶれ（2026-08 追加）
+
+- 表示言語が英語のときは `kCharImageAssetsEn`（`assets/images/en/en1〜16.webp`）を使う。
+  切り替えは `charImageAssetsFor(bool ja)` の1か所。素材は StyleGAN2 が生成した
+  実在しない人の顔なので肖像権の問題は起きない。
+- 英語版の姓も欧米系（`_namePoolEn` = Smith / Johnson …）に変えた。
+  **日本語版のローマ字読み（Sato / Tanaka）ではない。** 顔と名前がちぐはぐだと
+  そこに引っかかって、名前を覚える練習の邪魔になる。
+  `_namePoolJa` と件数をそろえること（`generateRecallPeople` が同じ添字で日英を引く）。
+- ⚠️ **オンライン対戦では言語で顔を変えない。** 相手と表示言語が違うと顔ぶれが
+  食い違い、同じ盤面にならない。`rank_match` / `turn_pairs` / `match_game` の
+  オンライン分岐は `kCharImageAssets` を直接渡したままにすること。
+- ⚠️ 枚数は `kCharImageAssets`（15枚）以上を保つ。足りないと
+  `assert(count <= pool.length)` で落ちる。テストは `test/en_faces_test.dart`。
+
 ### 💳 課金（in_app_purchase、2026-08 復活）
 
 - **Flutter 3.38.10 / Dart 3.10.9 が必須**。Play が Billing Library 8.0.0+ を必須化し、

@@ -279,7 +279,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// 🎁 デイリーで手に入るもの（コイン・キャラ）を絵で並べる。
   /// 顔は実際のキャラ画像を使う。「誰がもらえるか」が想像できるほうが押される。
   Widget _rewardPreview() {
-    final faces = kCharImageAssets.take(4).toList();
+    final faces = charImageAssetsFor(MetaStrings.of(context).ja).take(4).toList();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(

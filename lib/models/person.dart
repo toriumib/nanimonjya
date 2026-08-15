@@ -103,6 +103,47 @@ const List<String> kCharImageAssets = [
   //    別のキャラを指してしまう。
 ];
 
+/// 🌍 英語版で出てくる顔（16枚）。
+///
+/// 日本語版の顔ぶれのまま英語の名前（Smith / Johnson…）を付けると、
+/// 顔と名前が結びつきにくい。名前を覚える練習なのに、
+/// **顔と名前がちぐはぐだと、そこに引っかかって記憶の邪魔になる**。
+/// 表示言語が英語のときはこちらのプールを使う。
+///
+/// 素材は StyleGAN2 が生成した実在しない人の顔（Karras et al.）。
+/// 実在の人物ではないので肖像権の問題が起きない。
+///
+/// ⚠️ **枚数は [kCharImageAssets] 以上を保つこと。**
+///    なまえコールは最大 `NameCallGame.maxPeople` 人ぶんの顔を要求するので、
+///    足りないと `assert(count <= pool.length)` で落ちる。
+const List<String> kCharImageAssetsEn = [
+  'assets/images/en/en1.webp',
+  'assets/images/en/en2.webp',
+  'assets/images/en/en3.webp',
+  'assets/images/en/en4.webp',
+  'assets/images/en/en5.webp',
+  'assets/images/en/en6.webp',
+  'assets/images/en/en7.webp',
+  'assets/images/en/en8.webp',
+  'assets/images/en/en9.webp',
+  'assets/images/en/en10.webp',
+  'assets/images/en/en11.webp',
+  'assets/images/en/en12.webp',
+  'assets/images/en/en13.webp',
+  'assets/images/en/en14.webp',
+  'assets/images/en/en15.webp',
+  'assets/images/en/en16.webp',
+];
+
+/// 表示言語に合った基本の顔プールを返す。
+///
+/// ⚠️ **オンライン対戦では使わないこと。** 相手と表示言語が違うと
+///    顔ぶれが食い違い、同じ盤面にならない。オンラインは今までどおり
+///    [kCharImageAssets] を直接渡す（`rank_match` / `turn_pairs` /
+///    `match_game` のオンライン分岐）。
+List<String> charImageAssetsFor(bool ja) =>
+    ja ? kCharImageAssets : kCharImageAssetsEn;
+
 /// 名前プール（日本でよくある姓。記憶術の読み物の例とも対応）。
 const List<String> _namePoolJa = [
   '佐藤', '田中', '松本', '鈴木', '高橋', '渡辺',
@@ -110,10 +151,14 @@ const List<String> _namePoolJa = [
   '山田', '佐々木', '山口', '斎藤', '井上', '木村',
 ];
 
+/// 英語版の姓。**日本語版のローマ字読み（Sato / Tanaka…）ではない。**
+/// 顔ぶれを欧米系にしたので、名前もそろえないと顔と名前が結びつかず、
+/// 「名前を覚える」練習の邪魔になる。件数は [_namePoolJa] と同じにする
+/// （`generateRecallPeople` が同じ添字で日英を引くため）。
 const List<String> _namePoolEn = [
-  'Sato', 'Tanaka', 'Matsumoto', 'Suzuki', 'Takahashi', 'Watanabe',
-  'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida',
-  'Yamada', 'Sasaki', 'Yamaguchi', 'Saito', 'Inoue', 'Kimura',
+  'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia',
+  'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Wilson', 'Anderson',
+  'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee',
 ];
 
 /// 趣味プール（属性クイズ用）。
@@ -144,7 +189,8 @@ List<Person> generatePeople(
 }) {
   final rng = random ?? Random();
   final useReal = charAssets == null || charAssets.length >= count;
-  final pool = useReal ? (charAssets ?? kCharImageAssets) : kFaceAssets;
+  // 🌍 プールを渡されなかったときは、表示言語に合った顔を使う
+  final pool = useReal ? (charAssets ?? charImageAssetsFor(ja)) : kFaceAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
   final namePool = ja ? _namePoolJa : _namePoolEn;
@@ -194,7 +240,7 @@ List<Person> generateImagePeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
   final pool = (charAssets == null || charAssets.length < count)
-      ? kCharImageAssets
+      ? charImageAssetsFor(ja) // 🌍 英語版は欧米系の顔ぶれ
       : charAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
@@ -321,7 +367,7 @@ List<Person> generateRecallPeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
   final pool = (charAssets == null || charAssets.length < count)
-      ? kCharImageAssets
+      ? charImageAssetsFor(ja) // 🌍 英語版は欧米系の顔ぶれ
       : charAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
@@ -398,7 +444,7 @@ List<String> recallDistractors(
   // 会社名・肩書・連絡先は、架空の人物を生成してその項目だけを借りる
   for (var attempt = 0; attempt < 8 && out.length < count; attempt++) {
     final filler = generateRecallPeople(
-      min(count + 2, kCharImageAssets.length),
+      min(count + 2, charImageAssetsFor(ja).length),
       ja: ja,
       random: rng,
     );

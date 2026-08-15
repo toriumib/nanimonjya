@@ -67,7 +67,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     final ja = Localizations.localeOf(context).languageCode == 'ja';
     final pool = applyDeckFilter(
       [
-        ...kCharImageAssets,
+        ...charImageAssetsFor(ja), // 🌍 英語版は欧米系の顔ぶれ
         ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
       ],
       PlayerProfile.instance.deckExcluded,

@@ -190,10 +190,11 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       ja: ja,
       random: _rng,
       charAssets: _isOnline
+          // 🌐 オンラインは相手と顔ぶれを合わせる必要があるので言語で変えない
           ? kCharImageAssets
           : applyDeckFilter(
               [
-                ...kCharImageAssets,
+                ...charImageAssetsFor(ja), // 🌍 英語版は欧米系の顔ぶれ
                 ...unlockedExtraAssets(
                     PlayerProfile.instance.unlockedCharacters),
               ],

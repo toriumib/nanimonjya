@@ -105,6 +105,7 @@ class _RankMatchScreenState extends State<RankMatchScreen>
       OnlineMatchService.rankPeopleCount,
       ja: ja,
       random: _rng,
+      // 🌐 オンラインは相手と顔ぶれを合わせる必要があるので言語で変えない
       charAssets: kCharImageAssets,
     );
     // 🏷 名前は実際に多い苗字100から配る。造語だと「実在しそうな名前を

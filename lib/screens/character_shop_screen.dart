@@ -256,7 +256,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       crossAxisSpacing: 8,
                       childAspectRatio: 0.9,
                       children: [
-                        for (final a in kCharImageAssets) _ownedThumb(a),
+                        for (final a in charImageAssetsFor(m.ja))
+                          _ownedThumb(a),
                       ],
                     ),
                     const SizedBox(height: 20),

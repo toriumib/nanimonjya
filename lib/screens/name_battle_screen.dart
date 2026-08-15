@@ -137,7 +137,7 @@ class _NameBattleScreenState extends State<NameBattleScreen>
       random: _rng,
       charAssets: applyDeckFilter(
         [
-          ...kCharImageAssets,
+          ...charImageAssetsFor(ja), // 🌍 英語版は欧米系の顔ぶれ
           ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
         ],
         PlayerProfile.instance.deckExcluded,

@@ -2,7 +2,7 @@ name: nanimonjya
 description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+196
+version: 2.5.0+197
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -65,6 +65,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    # 🌍 英語版で出てくる顔（StyleGAN2 が生成した実在しない人）。
+    #    Flutter はサブフォルダを自動でたどらないので、ここに書く必要がある。
+    - assets/images/en/
     - assets/images/supporters/
     - assets/images/faces/
     # チュートリアルで使う実際のゲーム画面のスクショ

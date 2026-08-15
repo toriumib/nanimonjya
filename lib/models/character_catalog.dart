@@ -165,9 +165,12 @@ List<FaceRef> buildFacePool({
   required Set<String> excluded,
   List<FaceRef> customFaces = const [],
   int minimum = 4,
+  bool ja = true,
 }) {
   final all = <FaceRef>[
-    for (final a in kCharImageAssets) FaceRef.asset(a),
+    // 🌍 基本の顔ぶれは表示言語に合わせる（英語版は欧米系）。
+    //    買ったキャラと顔メモの人は言語に関係なくそのまま出す。
+    for (final a in charImageAssetsFor(ja)) FaceRef.asset(a),
     for (final a in unlockedExtraAssets(unlockedIds)) FaceRef.asset(a),
     ...customFaces,
   ];

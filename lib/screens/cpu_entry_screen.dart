@@ -51,9 +51,12 @@ class _CpuEntryScreenState extends State<CpuEntryScreen> {
     super.initState();
     AppAnalytics.screen('cpu_entry');
     // 対戦相手の顔は、いま出演できるキャラから1人選ぶ
+    // 🌍 対戦相手の顔も表示言語に合わせる（英語版は欧米系）
+    final ja =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ja';
     final pool = applyDeckFilter(
       [
-        ...kCharImageAssets,
+        ...charImageAssetsFor(ja),
         ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
       ],
       PlayerProfile.instance.deckExcluded,

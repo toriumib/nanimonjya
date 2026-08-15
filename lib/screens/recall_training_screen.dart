@@ -134,7 +134,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   /// 出演プール = 基本12＋購入済みキャラ（キャラデッキでOFFにした人は除く）。
   List<String> _photoPool() => applyDeckFilter(
         [
-          ...kCharImageAssets,
+          ...charImageAssetsFor(_ja), // 🌍 英語版は欧米系の顔ぶれ
           ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
         ],
         PlayerProfile.instance.deckExcluded,
