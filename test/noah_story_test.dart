@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nanimonjya/models/avatar.dart';
+import 'package:nanimonjya/models/noah_save.dart';
 import 'package:nanimonjya/models/noah_story.dart';
 
 /// 🚀 ストーリーモード「プロジェクト・ノア」のロジック。
@@ -283,6 +284,83 @@ void main() {
         expect(Avatar.decode(c.avatar.encode()).encode(), c.avatar.encode(),
             reason: c.id);
       }
+    });
+  });
+  _saveAndEndingTests();
+}
+
+/// 💾 途中セーブと、統合で足した結末の回帰テスト。
+void _saveAndEndingTests() {
+  group('途中セーブ', () {
+    test('書き出して読み直すと同じ中身になる', () {
+      const data = NoahSaveData(
+        phase: 'recall',
+        gender: 'female',
+        pref: 'all',
+        castIds: ['hibino', 'kiryu'],
+        talkableIds: ['hibino'],
+        metIds: ['hibino'],
+        affection: {'hibino': 2},
+        remembered: {
+          'hibino': ['name', 'hobby']
+        },
+        mysterySolved: 1,
+        index: 1,
+        line: 0,
+        correct: 3,
+        total: 4,
+        noteTitles: [],
+        noteIndex: 0,
+        mysteryCulpritIds: ['hibino'],
+        mysteryChoiceIds: [
+          ['hibino', 'kiryu']
+        ],
+        mysteryIndex: 0,
+        qTargetId: 'kiryu',
+        qField: 'name',
+        qChoices: ['桐生 悟', '日比野 楓', '楠 玲'],
+      );
+      final back = NoahSaveData.decode(data.encode())!;
+      expect(back.phase, 'recall');
+      expect(back.castIds, ['hibino', 'kiryu']);
+      expect(back.correct, 3);
+      expect(back.mysterySolved, 1);
+      // ⚠️ 出題中の3択も残ること。作り直せると答えを引き直せてしまう
+      expect(back.qChoices, hasLength(3));
+      expect(back.question()?.target.id, 'kiryu');
+    });
+
+    test('壊れた文字列でも落ちない', () {
+      expect(NoahSaveData.decode(null), isNull);
+      expect(NoahSaveData.decode(''), isNull);
+      expect(NoahSaveData.decode('{壊れている'), isNull);
+      expect(NoahSaveData.decode('{"v":999}'), isNull); // 版が違う
+    });
+  });
+
+  group('統合で足した結末', () {
+    test('全部そろえば真エンド（世界線Ω）', () {
+      final r = resolveNoahEnding({'hibino': 5, 'kiryu': 2},
+          divergence: 1.0, romantic: true);
+      expect(r.ending, NoahEnding.trueEnd);
+    });
+
+    test('恋愛を選ばなければ見守りエンド（失敗の lonely とは別）', () {
+      final r = resolveNoahEnding({'hibino': 5, 'kiryu': 2},
+          divergence: 0.5, romantic: false);
+      expect(r.ending, NoahEnding.watching);
+      expect(r.partner?.id, 'hibino'); // いちばん覚えていた人の理論が採られる
+    });
+
+    test('覚えられなかったときは今までどおり lonely', () {
+      final r = resolveNoahEnding({'hibino': 0}, divergence: 0, romantic: true);
+      expect(r.ending, NoahEnding.lonely);
+    });
+
+    test('世界線は思い出した割合で決まり、1.0を超えない', () {
+      expect(noahDivergence({'a': {NoahField.name}}, 2), 0.5);
+      expect(noahDivergence({'a': {NoahField.name}}, 1, extra: 5), 1.0);
+      expect(noahDivergence(const {}, 0), 0); // 0除算しない
     });
   });
 }

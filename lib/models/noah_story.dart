@@ -737,6 +737,15 @@ enum NoahEnding {
   /// 子孫に「顔が似すぎて見分けつかない」と笑われる（恨まれるほどではない）。
   bitter,
 
+  /// 🌟 世界線Ω。全員の全項目と船内の謎まで、ひとつ残らず思い出した。
+  /// 転送権を使う理由が消える（誰も引っ越す必要がない）。
+  trueEnd,
+
+  /// 🛰️ 見守りエンド。恋愛を選ばなかったルート。
+  /// **失敗ではなく、選んで行く場所**。いちばんよく覚えていた人の理論が採られ、
+  /// 自分が最初に引っ越して、十六人を見守る側にまわる。
+  watching,
+
   /// 誰の名前もほとんど覚えられなかった。
   /// 一人だけロケット同乗係として、穏やかに船と乗員のお世話をして過ごす。
   /// やがてマインドアップロードがロボットへ完了し、そのままお世話を続ける。
@@ -771,8 +780,40 @@ const int kNoahLonelyThreshold = 6;
 /// ハッピーエンドに必要な「1位と2位の差」。
 const int kNoahLeadNeeded = 3;
 
-NoahResult resolveNoahEnding(Map<String, int> affection) {
+/// 結末を決める。
+///
+/// [divergence] は世界線の一致度（1.0 で真エンド）。
+/// [romantic] が false のときは恋愛を選ばなかったルートなので、
+/// 見守りエンドに寄せる（**失敗の lonely とは別物**）。
+NoahResult resolveNoahEnding(
+  Map<String, int> affection, {
+  double divergence = 0,
+  bool romantic = true,
+}) {
   final total = affection.values.fold<int>(0, (a, b) => a + b);
+
+  final ranked0 = affection.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+
+  // 🌟 全部そろっていれば、恋愛の有無に関わらず真エンド。
+  if (divergence >= kNoahTrueEndDivergence && ranked0.isNotEmpty) {
+    return NoahResult(
+      ending: NoahEnding.trueEnd,
+      totalAffection: total,
+      partner: noahCharacterById(ranked0.first.key),
+    );
+  }
+
+  // 🛰️ 恋愛を選ばなかったなら見守りエンド。
+  //    いちばんよく覚えていた人の理論が採択される。
+  if (!romantic && ranked0.isNotEmpty && total >= kNoahLonelyThreshold) {
+    return NoahResult(
+      ending: NoahEnding.watching,
+      totalAffection: total,
+      partner: noahCharacterById(ranked0.first.key),
+    );
+  }
+
   if (total < kNoahLonelyThreshold) {
     return NoahResult(ending: NoahEnding.lonely, totalAffection: total);
   }
@@ -2756,3 +2797,32 @@ const List<NoahLine> kNoahConsciousnessEn = [
   NoahLine(NoahVoice.chara, '—The thing we had been calling "moving house."'),
   NoahLine(NoahVoice.narration, 'This person had been saying so for three hundred and thirty years. It had simply taken three hundred and thirty years to become provable.'),
 ];
+
+// ── 🌐 世界線（どれだけ思い出せたか） ──────────────────
+
+double noahDivergence(
+  Map<String, Set<NoahField>> remembered,
+  int askable, {
+  int extra = 0,
+}) {
+  if (askable <= 0) return 0;
+  var hit = extra;
+  for (final fields in remembered.values) {
+    hit += fields.length;
+  }
+  final d = hit / askable;
+  return d > 1 ? 1 : d;
+}
+
+String noahWorldLineJa(double divergence) {
+  if (divergence >= kNoahTrueEndDivergence) return 'Ω';
+  if (divergence >= 0.6) return 'γ';
+  if (divergence >= 0.3) return 'α';
+  return 'β';
+}
+
+String noahDivergenceLabel(double d) => d.toStringAsFixed(6);
+
+/// 世界線の記号はギリシャ文字なので言語で変えない。
+/// 見出し語だけ言語で切り替える。
+String noahWorldLineLabel(bool ja) => ja ? '世界線' : 'World line';
