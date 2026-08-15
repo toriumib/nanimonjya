@@ -71,7 +71,20 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   @override
   Widget build(BuildContext context) {
+    // 💎 広告除去を買った瞬間に消えるよう、購入状態を聞いておく（バナーと同じ）
+    return ListenableBuilder(
+      listenable: PlayerProfile.instance,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     if (kIsWeb || PlayerProfile.instance.adsRemoved || !AdIds.nativeAvailable) {
+      if (_ad != null) {
+        _ad?.dispose();
+        _ad = null;
+        _isLoaded = false;
+      }
       return const SizedBox.shrink();
     }
     if (_isLoaded && _ad != null) {

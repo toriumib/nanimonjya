@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -180,6 +181,7 @@ class Bgm {
 
   /// 実際に鳴らす処理。**チェーンの中からだけ呼ぶこと**（[_serialize] 参照）。
   Future<void> _playCore(String key, {double volume = 0.35}) async {
+    _cancelPreviewWatch(); // 場面の曲に切り替わるので、試聴の見張りは用済み
     if (!PlayerProfile.instance.bgmEnabled) {
       _current = null;
       await _stopCore();
@@ -236,6 +238,7 @@ class Bgm {
   /// 無条件に止める。プレイヤー自体は使い回すので dispose しない。
   Future<void> stop() {
     return _serialize(() async {
+      _cancelPreviewWatch();
       _current = null;
       _mode = _BgmMode.none;
       await _stopCore();
@@ -279,21 +282,44 @@ class Bgm {
 
   /// ▶️ 試聴。持っていない曲でも鳴らせる（買う前に聴けないと選べないため）。
   ///
-  /// 場面の設定（[_mode]）は変えないので、試聴をやめて画面を移れば
-  /// もとの曲に戻る。
+  /// 場面の設定（[_mode]）は変えないので、試聴が終わればその場面の曲に戻る。
   Future<void> preview(String fileName) {
     return _serialize(() async {
+      _cancelPreviewWatch();
+      // 🔇 「音楽を鳴らす」をオフにしている人には、試聴でも鳴らさない。
+      //    ショップの▶はこの設定を見ていなかったので、消したはずの音が出ていた。
+      if (!PlayerProfile.instance.bgmEnabled) return;
       try {
         await _player.stop();
         await _player.setAsset(assetKey(fileName));
         await _player.setLoopMode(LoopMode.off);
         await _player.setVolume(0.4);
         _current = null; // 試聴後にかけ直せるよう、鳴っている曲の記録は残さない
-        await _player.play();
+        _currentVolume = 0.4;
+        // ⚠️ `play()` の Future は**曲が終わるまで返らない**。
+        //    ここで await すると試聴のあいだチェーンが詰まり、
+        //    別の曲の試聴もタブ移動のBGM切り替えも、曲が終わるまで効かなくなる。
+        unawaited(_player.play());
+        // 試聴が終わったら場面の曲に戻す。黙ったままにすると
+        //「試聴したらBGMが止まった」になる。
+        _previewWatch = _player.processingStateStream.listen((s) {
+          if (s == ProcessingState.completed) {
+            _cancelPreviewWatch();
+            restartCurrent();
+          }
+        });
       } catch (e) {
         debugPrint('BGM preview failed ($fileName): $e');
       }
     });
+  }
+
+  /// 試聴の終わりを見張っている購読。次の再生・停止が来たら捨てる。
+  StreamSubscription<ProcessingState>? _previewWatch;
+
+  void _cancelPreviewWatch() {
+    _previewWatch?.cancel();
+    _previewWatch = null;
   }
 }
 

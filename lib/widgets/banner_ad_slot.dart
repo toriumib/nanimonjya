@@ -82,8 +82,24 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
 
   @override
   Widget build(BuildContext context) {
+    // 💎 「広告除去を買ったのに、その画面の広告が消えない」を防ぐ。
+    //    購入は買った画面（ショップ）で起きるので、いちばん見られる場面。
+    //    PlayerProfile の変化を聞いて、その場で消す。
+    return ListenableBuilder(
+      listenable: PlayerProfile.instance,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     // 広告を出さない環境では場所も取らない
     if (kIsWeb || PlayerProfile.instance.adsRemoved) {
+      // 読み込み済みのバナーが残っていたら、その場で捨てる
+      if (_bannerAd != null) {
+        _bannerAd?.dispose();
+        _bannerAd = null;
+        _isLoaded = false;
+      }
       return const SizedBox.shrink();
     }
     return SafeArea(

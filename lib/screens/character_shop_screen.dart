@@ -1457,7 +1457,19 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
           // ▶️ 試聴は持っていない曲でもできる。
           //    買う前に聴けないと、どれを選べばいいか分からない。
           IconButton(
-            onPressed: () => Bgm.instance.preview(b.asset),
+            onPressed: () {
+              // 🔇 音楽オフのまま押すと「壊れている」ように見えるので、
+              //    鳴らない理由と、どこで戻せるかを伝える。
+              if (!p.bgmEnabled) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(m.ja
+                      ? '音楽がオフになっています（マイページの「🎵 音楽を鳴らす」でオンにできます）'
+                      : 'Music is off. Turn on "🎵 Play music" on My Page.'),
+                ));
+                return;
+              }
+              Bgm.instance.preview(b.asset);
+            },
             icon: const Icon(Icons.play_arrow_rounded, size: 22),
             tooltip: m.shopTry,
             color: const Color(0xFF3A7BD5),
@@ -1473,7 +1485,11 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () async {
                 Sfx.instance.pop();
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartCurrent();
+                // ⚠️ ここで restartCurrent() を呼ぶと**ホームの曲**が鳴る。
+                //    ショップは自分の曲を持たない画面なので、場面の曲＝ホームの曲。
+                //    いま選んだのはゲーム中の曲なので、選んだ曲をその場で鳴らす
+                //    （マイページの曲選びと同じ扱い）。
+                Bgm.instance.preview(b.asset);
               },
               child: Text(m.shopEquip,
                   style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -1495,7 +1511,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () => _buyGeneric(
                   () => p.unlockBgm(b.asset, b.cost), b.cost, () async {
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartCurrent();
+                Bgm.instance.preview(b.asset); // 買った曲をその場で聴かせる
               }),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFC93C),
@@ -1519,7 +1535,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final playedNow = await _rewardAd.showOrQueue(onReward: () async {
       await p.unlockBgm(b.asset, 0); // 広告視聴分なのでコインは引かない
       await p.selectBgm(b.asset);
-      Bgm.instance.restartCurrent();
+      Bgm.instance.preview(b.asset); // 解放した曲をその場で聴かせる
       Sfx.instance.reward();
       if (mounted) {
         ScaffoldMessenger.of(context)

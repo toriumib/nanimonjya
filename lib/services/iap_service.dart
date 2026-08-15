@@ -41,7 +41,14 @@ class IapService extends ChangeNotifier {
   IapService._();
   static final IapService instance = IapService._();
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  /// ⚠️ **遅延生成にすること。**
+  ///    `InAppPurchase.instance` はその場でプラットフォーム側の実装を登録し、
+  ///    課金の接続まで始める。フィールドで直接持つと、
+  ///    `IapService.instance` に触れただけでそれが走ってしまい、
+  ///    Web（課金の実装が無い）やテストでは例外になる。
+  ///    ショップ画面は build から `available` を読むので、そこで落ちる。
+  InAppPurchase? _iapOrNull;
+  InAppPurchase get _iap => _iapOrNull ??= InAppPurchase.instance;
 
   /// ストアに登録されている商品の情報。
   List<ProductDetails> _products = [];
@@ -237,6 +244,11 @@ class IapService extends ChangeNotifier {
       method: restored ? 'iap_restore' : 'iap',
     );
   }
+
+  /// テスト用: プレミアム特典の付与だけを直接呼ぶ。
+  /// （購入ストリームは実機のストアがないと流せないため）
+  @visibleForTesting
+  Future<void> deliverPremiumForTest() => _deliverPremium();
 
   /// プレミアム特典を全部付与する。
   ///

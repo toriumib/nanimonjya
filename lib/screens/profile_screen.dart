@@ -1259,7 +1259,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Sfx.instance.pop();
                         // 結果画面の曲も、選んだらすぐ聴けるようにする
                         // （鳴らないと選べたのか分からない）。
-                        Bgm.instance.preview(o.key);
+                        // ⚠️ 「おまかせ」は曲名ではなく目印なので、そのまま
+                        //    渡すと存在しないファイルを読みにいって無音になり、
+                        //    しかもホームの曲まで止まったままになる。
+                        //    実際に鳴る曲へ解決してから渡す。
+                        Bgm.instance.preview(
+                          o.key == kResultBgmRandom
+                              ? Bgm.instance.resultAsset()
+                              : o.key,
+                        );
                       },
                       child: Text(m.select),
                     ),
