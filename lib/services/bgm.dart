@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../models/bgm_catalog.dart';
 import 'player_profile.dart';
 
 /// 🎵 BGMの再生を1か所にまとめたサービス。

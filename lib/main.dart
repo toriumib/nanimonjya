@@ -1,7 +1,6 @@
 import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // アプリ全体のフォント刷新
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_shell.dart'; // タブシェル（ホーム）
 import 'package:firebase_core/firebase_core.dart';
@@ -15,7 +14,6 @@ import 'services/push_service.dart'; // 既存ユーザーへのお知らせプ�
 import 'services/player_profile.dart'; // コイン/戦績のローカル状態
 import 'models/cosmetics.dart'; // きせかえテーマの accent 色
 import 'services/deep_link_service.dart'; // 合言葉リンクからの入室
-import 'services/app_open_ad_helper.dart';
 import 'services/rewarded_interstitial_helper.dart';
 import 'services/daily_reminder.dart'; // デイリーボーナスのリマインド通知
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
@@ -41,10 +39,11 @@ Future<void> main() async {
     InterstitialAdHelper.instance.load(); // 3プレイに1回、リザルト表示時に先読み済みを表示
     // 🚪 アプリ起動広告は**いったん止めている**。
     //    枠（/9282156275）も実装（services/app_open_ad_helper.dart）も
-    //    あるので、再開したくなったら次の1行を戻すだけでよい。
+    //    あるので、再開したくなったら import を戻して次の1行を足すだけでよい。
+    //      import 'services/app_open_ad_helper.dart';
+    //      AppOpenAdHelper.instance.start();
     //    起動のたびに全画面が出るのは効きも大きいが嫌われ方も大きいので、
     //    ほかの手を整えてから判断する。
-    // AppOpenAdHelper.instance.start();
     RewardedInterstitialHelper.instance.load();
     PushService.instance.init(); // 📣 既存ユーザーへのお知らせプッシュ（await不要）
   }

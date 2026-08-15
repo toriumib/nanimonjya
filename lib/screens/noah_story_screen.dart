@@ -107,13 +107,32 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
 
   // ── 💾 セーブ ──
 
-  bool _hasSave = false;
+  /// 読み込み済みの途中セーブ。無ければ null。
+  /// これがあるとき、最初の画面に「つづきから」を出す。
+  NoahSaveData? _save;
+  bool get _hasSave => _save != null;
 
   @override
   void initState() {
     super.initState();
     NoahSaveStore.instance.load().then((s) {
-      if (mounted) setState(() => _hasSave = s != null);
+      if (mounted) setState(() => _save = s);
+    });
+  }
+
+  /// 途中から再開する。壊れたセーブなら捨てて最初から始める。
+  void _resumeFromSave() {
+    final s = _save;
+    if (s == null) return;
+    Sfx.instance.pop();
+    setState(() {
+      _resume(s);
+      // _resume は cast が空なら何もせず返る（＝setup のまま）。
+      // その場合は読めないセーブなので、持っておかずに消す。
+      if (_phase == _Phase.setup) {
+        NoahSaveStore.instance.clear();
+        _save = null;
+      }
     });
   }
 
@@ -237,6 +256,10 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _mysteryIndex = 0;
     _mysteryPicked = null;
     _phase = _Phase.prologue;
+    // 前の周回のセーブは捨てる。残すと「つづきから」が
+    // 始めたばかりの周ではなく古い周を指してしまう。
+    _save = null;
+    NoahSaveStore.instance.clear();
   }
 
   void _next() {
@@ -343,7 +366,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           _grantReward();
           // 読み終えた周回のセーブは残さない（結果画面から再開しても意味がない）
           NoahSaveStore.instance.clear();
-          _hasSave = false;
+          _save = null;
         case _Phase.ending:
           // タブの中では閉じられないので、最初から遊べるように戻す
           if (widget.embedded) {
@@ -560,6 +583,36 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                 style: TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
           ),
           const SizedBox(height: 22),
+          // 💾 途中セーブがあるときだけ出す。一周が長いので、
+          //    中断して戻れないと詰む。
+          if (_hasSave) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _resumeFromSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFC93C),
+                  foregroundColor: const Color(0xFF3A2A00),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+                child: const Text('つづきから'),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: Text(_save!.summaryJa,
+                  style: const TextStyle(
+                      fontSize: 11.5, color: Color(0xFF8FA3C8))),
+            ),
+            const SizedBox(height: 18),
+            const Center(
+              child: Text('― または、はじめから ―',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF5C6B8A))),
+            ),
+            const SizedBox(height: 14),
+          ],
           _pickerCard(
             'あなたは',
             [
