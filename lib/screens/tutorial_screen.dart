@@ -465,15 +465,17 @@ class _TutorialScreenState extends State<TutorialScreen> {
           // ⏭ スキップは**押せる大きさ**にする。以前は小さな文字リンクで、
           //    読み飛ばしたい人が押しどころを探す羽目になっていた。
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+            // ⚠️ AppBarの高さ(56dp)に収まる範囲で最大化する。
+            //    上下に余白を積むと文字が切れる。
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
             child: TextButton(
               onPressed: _confirmSkip,
               // AppBarの地色が濃いので、既定色のままだと文字が沈む。白で固定する。
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                minimumSize: const Size(96, 48), // 指で押せる最小の大きさ
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                minimumSize: const Size(88, 42), // 指で押せる大きさ
                 side: const BorderSide(color: Colors.white54, width: 1.2),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24)),

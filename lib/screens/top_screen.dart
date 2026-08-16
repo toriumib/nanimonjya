@@ -54,6 +54,163 @@ class _TopScreenState extends State<TopScreen>
   /// 1人あたりの札の枚数。2枚＝1往復、増やすほど同じ顔に何度も会う。
   int _copies = NameCallGame.defaultCopiesPerPerson;
 
+
+  // ── 🖤 ホームの落ち着いた作り ──────────────────────────
+  //
+  // 色数を絞る。地は濃紺、文字は白、効かせる色はゴールド1色だけ。
+  // 四角を色で塗り分けるのをやめ、**余white・区切り線・文字の大きさ**で
+  // 順番を示す。絵文字は使わない。
+  static const Color _gold = Color(0xFFE9C87A);
+  static const Color _hairline = Color(0x22FFFFFF);
+
+  /// 節の見出し。小さく、字間を広く、控えめに。
+  Widget _sectionLabel(String text) => Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 10),
+        child: Text(
+          text.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.0,
+            color: Color(0x99FFFFFF),
+          ),
+        ),
+      );
+
+  /// 一覧の1行。左に名前と説明、右に細い矢印。
+  Widget _modeRow({
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool primary = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: primary ? 20 : 16,
+                      fontWeight: primary ? FontWeight.w700 : FontWeight.w600,
+                      letterSpacing: 0.3,
+                      color: primary ? _gold : Colors.white,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: Color(0x8CFFFFFF),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 13, color: primary ? _gold : const Color(0x66FFFFFF)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 遊びかたの一覧。区切りは髪の毛ほどの線1本だけ。
+  Widget _modeList(MetaStrings m) {
+    final rows = <Widget>[
+      _modeRow(
+        primary: true,
+        title: m.partyButtonLabel,
+        subtitle: m.partyButtonHint,
+        onTap: () => _pickLocalPlayers(context),
+      ),
+      _modeRow(
+        title: m.cpuButtonCompact,
+        subtitle: m.ja ? 'CPUと1対1。難易度で人数と持ち時間が変わります' : 'One on one. Difficulty changes faces and time',
+        onTap: () => _pickCpuLevel(context),
+      ),
+      _modeRow(
+        title: m.onlineButtonCompact,
+        subtitle: m.ja ? '合言葉で友だちと、または誰かと' : 'With a friend by passphrase, or a stranger',
+        onTap: () {
+          Sfx.instance.fanfare();
+          AppAnalytics.modePick('online_friend');
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => OnlineLobbyScreen(
+                      game: 'namecall', initialPeople: _peopleCount)));
+        },
+      ),
+      if (!kIsWeb)
+        _modeRow(
+          title: m.rankButtonCompact,
+          subtitle: m.ja ? '勝つとレートが上がります' : 'Win to raise your rating',
+          onTap: () {
+            Sfx.instance.fanfare();
+            AppAnalytics.modePick('rank');
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const OnlineLobbyScreen(game: 'rank')));
+          },
+        ),
+      _modeRow(
+        title: m.trainingButtonCompact,
+        subtitle: m.ja ? '名刺で自己紹介 → 時間をおく → 思い出す' : 'Meet by business card, wait, then recall',
+        onTap: () {
+          Sfx.instance.pop();
+          AppAnalytics.modePick('training_hub');
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const TrainingHubScreen()));
+        },
+      ),
+      _modeRow(
+        title: m.ja ? 'ノベル' : 'Novel',
+        subtitle: m.ja ? '覚えた名前が物語に効いてくる読み物' : 'A story where the names you learn matter',
+        onTap: () {
+          Sfx.instance.fanfare();
+          AppAnalytics.modePick('story');
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const NoahStoryScreen()));
+        },
+      ),
+    ];
+
+    final children = <Widget>[];
+    for (var i = 0; i < rows.length; i++) {
+      children.add(rows[i]);
+      if (i != rows.length - 1) {
+        children.add(const Divider(height: 1, thickness: 1, color: _hairline));
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _sectionLabel(m.ja ? '遊ぶ' : 'Play'),
+          ...children,
+          if (kIsWeb) ...[
+            const SizedBox(height: 16),
+            _playStoreBadge(),
+          ],
+        ],
+      ),
+    );
+  }
+
   /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
   Widget _gradientButton({
     required String label,
@@ -201,26 +358,30 @@ class _TopScreenState extends State<TopScreen>
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
-            color: active ? activeColor : Colors.grey.shade400,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white, width: 1.5),
+            // 塗りつぶしをやめ、細い枠だけにする。
+            // ここは主役ではないので、地の色に沈ませておく。
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: active ? _gold.withValues(alpha: 0.55) : _hairline,
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 13)),
-              const SizedBox(width: 3),
               Flexible(
                 child: Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: active ? fgColor : Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                    color: active ? _gold : const Color(0x8CFFFFFF),
                   ),
                 ),
               ),
@@ -932,52 +1093,42 @@ class _TopScreenState extends State<TopScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              const Positioned.fill(child: SeasonalDecor()),
+              // 🍂 季節の飾りは、落ち着いた地の上では文字に重なって
+              //    読みづらくなるだけなので出さない。
+              if (!homeTheme.darkBackground)
+                const Positioned.fill(child: SeasonalDecor()),
               Positioned(top: 8, right: 8, child: _topBar()),
               Positioned(top: 8, left: 8, child: _webLocaleToggle()),
               SingleChildScrollView(child: Column(
                 children: [
                   const SizedBox(height: 6),
-                  // タイトルロゴ＋キャッチコピー（コンパクト）
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: OutlinedText(
-                      localizations.appTitle,
-                      strokeWidth: 4,
-                      strokeColor: Colors.white,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontFamily: 'MochiyPopOne',
-                        fontSize: 24,
-                        color: homeTheme.titleColor,
-                        letterSpacing: 0.5,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(2, 2),
-                            blurRadius: 0,
-                            color: homeTheme.titleShadow,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 400.ms, curve: Curves.easeOut)
-                      .scale(
-                        begin: const Offset(0.8, 0.8),
-                        end: const Offset(1, 1),
-                        duration: 400.ms,
-                        curve: Curves.elasticOut,
-                      ),
+                  // 名前は大きく細く、字間を広げて置く。
+                  // 縁取りや影で飾らない（飾るほど安く見える）。
+                  const SizedBox(height: 14),
                   Text(
-                    m.tagline,
+                    localizations.appTitle,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 6.0,
                       color: homeTheme.titleColor,
                     ),
+                  ).animate().fadeIn(duration: 500.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 8),
+                  Container(width: 28, height: 1, color: _gold),
+                  const SizedBox(height: 8),
+                  Text(
+                    m.tagline,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.6,
+                      color: Color(0x99FFFFFF),
+                    ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 16),
                   // 🗣 ななちゃん・はなちゃんのひとこと（マスコット左右）
                   AnimatedBuilder(
                     animation: _bounceController,
@@ -1145,135 +1296,10 @@ class _TopScreenState extends State<TopScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  // 🎉 みんなで対戦（ジャイアントボタン）
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: JuicyButton(
-                      onTap: () => _pickLocalPlayers(context),
-                      colors: const [Color(0xFFE0BE7E), Color(0xFFB4913F)], // 主役はゴールド
-                      height: 72,
-                      radius: 20,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            m.partyButtonLabel,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              shadows: [Shadow(offset: Offset(0, 1.5), color: Color(0x55000000))],
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            m.partyButtonHint,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // 2×2 グリッド
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Expanded(child: _gradientButton(
-                          label: m.cpuButtonCompact,
-                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)], // 濃いスレート
-                          height: 48,
-                          fontSize: 13,
-                          onTap: () => _pickCpuLevel(context),
-                        )),
-                        const SizedBox(width: 6),
-                        Expanded(child: _gradientButton(
-                          label: m.onlineButtonCompact,
-                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
-                          height: 48,
-                          fontSize: 13,
-                          onTap: () {
-                            Sfx.instance.fanfare();
-                            AppAnalytics.modePick('online_friend');
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => OnlineLobbyScreen(game: 'namecall', initialPeople: _peopleCount),
-                            ));
-                          },
-                        )),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // 🌐 Web: ランク/特訓の代わりにGoogle Playバッジ
-                  // 📱 それ以外: ランクマッチ＋ビジネス特訓
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: kIsWeb
-                        ? _playStoreBadge()
-                        : Row(
-                      children: [
-                        Expanded(child: _gradientButton(
-                          label: m.rankButtonCompact,
-                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
-                          height: 46,
-                          fontSize: 13,
-                          onTap: () {
-                            Sfx.instance.fanfare();
-                            AppAnalytics.modePick('rank');
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const OnlineLobbyScreen(game: 'rank'),
-                            ));
-                          },
-                        )),
-                        const SizedBox(width: 6),
-                        Expanded(child: _gradientButton(
-                          label: m.trainingButtonCompact,
-                          colors: const [Color(0xFF2C3446), Color(0xFF1B2130)],
-                          height: 46,
-                          fontSize: 13,
-                          onTap: () {
-                            Sfx.instance.pop();
-                            AppAnalytics.modePick('training_hub');
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const TrainingHubScreen(),
-                            ));
-                          },
-                        )),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // 🚀 プロジェクト・ノア（SFストーリー）
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: JuicyButton(
-                      onTap: () {
-                        Sfx.instance.fanfare();
-                        AppAnalytics.modePick('story');
-                        Navigator.push(context, MaterialPageRoute(
-                            builder: (_) => const NoahStoryScreen()));
-                      },
-                      colors: const [Color(0xFF232C40), Color(0xFF141A26)],
-                      height: 52,
-                      radius: 14,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('🚀', style: TextStyle(fontSize: 22)),
-                          const SizedBox(width: 8),
-                          Text(m.ja ? 'SFノベルを読む' : 'Read SF Novel',
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 18),
+                  // モードは一覧で見せる（色分けした四角を並べない）
+                  _modeList(m),
+                  const SizedBox(height: 20),
                   // 🧑‍🎨 顔メモ — 大きく常設
                   _faceMemoCard(m),
                   const SizedBox(height: 8),
