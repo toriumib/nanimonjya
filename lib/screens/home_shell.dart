@@ -164,7 +164,37 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           const ProfileScreen(), // マイページ
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      // 🖤 タブは線画アイコン＋小さな文字。選択中だけゴールドで示す。
+      //    絵文字は端末ごとに絵柄が変わるうえ、色数が増えて散らかる。
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: const Color(0xFF141A26),
+          indicatorColor: const Color(0x33E9C87A),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          height: 66,
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: 10.5,
+              letterSpacing: 0.2,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+              color: states.contains(WidgetState.selected)
+                  ? const Color(0xFFE9C87A)
+                  : const Color(0x99FFFFFF),
+            ),
+          ),
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              size: 22,
+              color: states.contains(WidgetState.selected)
+                  ? const Color(0xFFE9C87A)
+                  : const Color(0x99FFFFFF),
+            ),
+          ),
+        ),
+        child: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) {
           Sfx.instance.pop();
@@ -182,33 +212,40 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
         },
         destinations: [
           NavigationDestination(
-            icon: const Text('📣', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.campaign_outlined),
+            selectedIcon: const Icon(Icons.campaign),
             label: m.tabNameCall,
           ),
           NavigationDestination(
-            icon: const Text('🏋️', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.badge_outlined),
+            selectedIcon: const Icon(Icons.badge),
             label: m.tabTraining,
           ),
           NavigationDestination(
-            icon: const Text('🛍', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.shopping_bag_outlined),
+            selectedIcon: const Icon(Icons.shopping_bag),
             label: m.tabShop,
           ),
           // ⚠️ ここは children の並び（index 3 = よみもの、4 = ものがたり）と
           //    そろえること。以前ラベルだけ逆になっていて、
           //    「ものがたり」を押すと読み物が開く状態になっていた。
           NavigationDestination(
-            icon: const Text('📚', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
             label: m.tabRead,
           ),
           NavigationDestination(
-            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
             label: m.tabStory,
           ),
           NavigationDestination(
-            icon: const Text('🏆', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
             label: m.tabMyPage,
           ),
         ],
+      ),
       ),
     );
   }

@@ -1540,17 +1540,17 @@ class _TopScreenState extends State<TopScreen>
           },
           child: Container(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE8F8F5), Color(0xFFFFF8E6)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1E8A82), width: 2),
+              // 塗りつぶしをやめ、地に沈む枠だけのカードにする。
+              color: Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _hairline, width: 1),
             ),
-            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
             child: Row(
               children: [
-                const Text('🧑‍🎨', style: TextStyle(fontSize: 40)),
-                const SizedBox(width: 12),
+                const Icon(Icons.person_add_alt_1_outlined,
+                    size: 26, color: _gold),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1558,23 +1558,27 @@ class _TopScreenState extends State<TopScreen>
                     children: [
                       Text(m.faceMemoCardTitle,
                           style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w900,
-                              color: Color(0xFF12645E))),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3,
+                              color: Colors.white)),
                       const SizedBox(height: 3),
                       Text(m.faceMemoCardBody,
                           style: const TextStyle(
-                              fontSize: 11.5, height: 1.35,
-                              color: Color(0xFF555555))),
+                              fontSize: 12, height: 1.4,
+                              color: Color(0x8CFFFFFF))),
                       const SizedBox(height: 3),
                       Text(m.faceMemoCardHint(count),
                         style: const TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w700,
-                            color: Color(0xFF1E8A82)),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: _gold),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Color(0xFF1E8A82)),
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    size: 13, color: Color(0x66FFFFFF)),
               ],
             ),
           ),
