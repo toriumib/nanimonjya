@@ -114,7 +114,7 @@ class MetaStrings {
       : 'Face & Name Memory Training';
 
   // 🎁 無料コインチェスト
-  String get freeGift => ja ? '動画で無料コイン🎁' : 'Free coins (video) 🎁';
+  String get freeGift => ja ? '動画で無料コイン' : 'Free coins (video)';
   String get giftReady => ja ? 'プレゼントがとどいたよ！' : 'A gift is ready!';
   String giftGot(int n) => ja ? '🎉 $nコインもらったよ！' : '🎉 Got $n coins!';
   String giftWaitMin(int m) => ja ? 'つぎは約$m分後' : 'Next in ~${m}min';
@@ -1655,10 +1655,10 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get offerGuideLater => ja ? 'あとで' : 'Later';
   String get offerGuideRead => ja ? '読む' : 'Read';
   String get playReviewLabel => ja ? '⭐ 評価する' : '⭐ Rate app';
-  String get watchAdGetChar => ja ? '📺 動画でキャラGET' : '📺 Ad → Char';
+  String get watchAdGetChar => ja ? '動画でキャラ獲得' : 'Ad for a character';
   String get faceMemoCardTitle => ja
-      ? '🧑‍🎨 顔メモ — 会った人を忘れない'
-      : '🧑‍🎨 Face Notes — Never forget a face';
+      ? '顔メモ — 会った人を忘れない'
+      : 'Face Notes — Never forget a face';
   String get faceMemoCardBody => ja
       ? '写真か似顔絵で顔をつくって名前を登録。そのまま覚える練習や対戦ができるよ。'
       : 'Create a face from a photo or avatar, add a name, then study or play with them.';

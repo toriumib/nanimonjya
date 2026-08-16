@@ -188,10 +188,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+      backgroundColor: const Color(0xFFF7F5F2),
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
           children: [
             _dailyBonusCard(m, profile),
             const SizedBox(height: 14),
@@ -202,13 +203,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _missionsCard(m, profile),
             const SizedBox(height: 14),
             // ── カスタマイズ ──
-            _sectionHeader('🎨 ${m.ja ? "カスタマイズ" : "Customize"}'),
+            _sectionHeader(m.ja ? 'カスタマイズ' : 'Customize'),
             _themeCard(m, profile),
             const SizedBox(height: 10),
             _achievementsCard(m, profile),
             const SizedBox(height: 14),
             // ── 設定 ──
-            _sectionHeader('⚙️ ${m.ja ? "設定" : "Settings"}'),
+            _sectionHeader(m.ja ? '設定' : 'Settings'),
             _reminderCard(m, profile),
             const SizedBox(height: 10),
             _bgmCard(m, profile),
@@ -248,32 +249,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // ── 落ち着いた作り（ホームと同じ作法）────────────────────
+  //
+  // ホームは濃紺＋ゴールド。こちらは本文が黒なので地は明るいままにし、
+  // **影を落とす・枠を細くする・見出しを小さく字間を広くする**の3点で
+  // 同じ表情にそろえる。効かせる色はゴールド1色。
+  static const Color _gold = Color(0xFFB08D4F);
+  static const Color _line = Color(0x22000000);
+
   Widget _sectionCard({required String title, required Widget child}) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _line, width: 1),
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+              // 見出し先頭の絵文字は落とす。節ごとに絵柄と色が増えると散らかる。
+              title.replaceAll(
+                  RegExp(r'^[^\p{L}\p{N}]+', unicode: true), ''),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
+                  color: Color(0xFF6B7280))),
+          const SizedBox(height: 8),
+          Container(width: 24, height: 1, color: _gold),
+          const SizedBox(height: 14),
+          child,
+        ],
       ),
     );
   }
 
   /// セクション見出し
   Widget _sectionHeader(String title) => Padding(
-    padding: const EdgeInsets.only(top: 2, bottom: 4),
-    child: Text(title,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
-            color: Color(0xFF3A7BD5))),
+    padding: const EdgeInsets.only(top: 10, bottom: 8, left: 2),
+    child: Text(title.toUpperCase(),
+        style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.0,
+            color: Color(0xFF9AA0A6))),
   );
 
   /// 🎁 デイリーで手に入るもの（コイン・キャラ）を絵で並べる。
@@ -283,16 +304,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFF6D8), Color(0xFFFFE3EE)],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFFD46B), width: 1.5),
+        color: const Color(0xFFFBF9F5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _line, width: 1),
       ),
       child: Row(
         children: [
-          const Text('🪙', style: TextStyle(fontSize: 26)),
-          const SizedBox(width: 8),
+          const Icon(Icons.paid_outlined, size: 22, color: _gold),
+          const SizedBox(width: 10),
           for (final f in faces)
             Padding(
               padding: const EdgeInsets.only(right: 6),

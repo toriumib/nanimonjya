@@ -88,7 +88,10 @@ class _TopScreenState extends State<TopScreen>
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        // 1画面に収めるため、行の高さは詰める。
+        // 説明文は主役の行だけに残し、他は名前だけにする
+        // （説明が全部の行に並ぶと、読むものが増えて逆に選びにくい）。
+        padding: EdgeInsets.symmetric(vertical: primary ? 14 : 11),
         child: Row(
           children: [
             Expanded(
@@ -104,7 +107,7 @@ class _TopScreenState extends State<TopScreen>
                       color: primary ? _gold : Colors.white,
                     ),
                   ),
-                  if (subtitle.isNotEmpty) ...[
+                  if (primary && subtitle.isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
@@ -1207,99 +1210,10 @@ class _TopScreenState extends State<TopScreen>
                     },
                   ),
                   // 👉 つぎの一歩
-                  // 📊 いまの実績（継続の動機づけ）
-                  AnimatedBuilder(
-                    animation: PlayerProfile.instance,
-                    builder: (context, _) {
-                      final p = PlayerProfile.instance;
-                      final line = m.weeklyStatsLine(p.weeklyLearned, p.dailyStreak);
-                      // 次のログインキャラまでの進捗
-                      final loginCharHint = _loginCharProgress(p.dailyStreak);
-                      if (line.isEmpty && loginCharHint == null) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
-                        child: Column(
-                          children: [
-                            if (line.isNotEmpty)
-                              Text(
-                                line,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF8A6A1E),
-                                ),
-                              ),
-                            if (loginCharHint != null) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                loginCharHint,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFFC26A00),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  // 離脱防止ダイアログ
-                  // 💡 ルールひとこと＋📖 詳細リンク
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 2, 8, 0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              m.ruleSummary,
-                              style: const TextStyle(fontSize: 10, height: 1.35, color: Color(0xFF555555)),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: () {
-                            Sfx.instance.pop();
-                            AppAnalytics.modePick('rulebook');
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const RulebookScreen(),
-                            ));
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF3A7BD5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              m.viewFullRules,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 10),
                   // モードは一覧で見せる（色分けした四角を並べない）
                   _modeList(m),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   // 🧑‍🎨 顔メモ — 大きく常設
                   _faceMemoCard(m),
                   const SizedBox(height: 8),

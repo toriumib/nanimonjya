@@ -157,19 +157,15 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFF3D6), Color(0xFFFFE3B0)],
-                          begin: Alignment.topLeft, end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: const Color(0xFFFFC93C).withValues(alpha: 0.2), blurRadius: 8),
-                        ],
-                        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+                        // 黄色い塗りと影をやめ、白地に細い枠。
+                        // 残高は数字そのものを大きく見せれば足りる。
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Color(0x22000000), width: 1),
                       ),
                       child: Column(children: [
                         Row(children: [
-                          const Text('🪙', style: TextStyle(fontSize: 28)),
+                          const Icon(Icons.paid_outlined, size: 24, color: _gold),
                           const SizedBox(width: 8),
                           Text(m.storeCoins(p.coins),
                               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
@@ -222,7 +218,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 🌟 神スキン
                     _godSkinCard(m, p),
                     const SizedBox(height: 8),
-                    // 💀 ハードコア
+                    // 高難度チケット
                     _hardcoreTicketCard(m, p),
                     const SizedBox(height: 8),
                     // 🎯 スタンプラリー
@@ -307,23 +303,27 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   Widget _dailyShopCard(MetaStrings m, PlayerProfile p) {
     p.refreshDailyShop();
     final shop = DailyShop.generate(42);
-    return Card(
-      color: const Color(0xFFFFF9E6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0xFFFFC02E), width: 2),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0x22000000), width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              const Text('🏪', style: TextStyle(fontSize: 22)),
-              const SizedBox(width: 8),
+              const Icon(Icons.local_offer_outlined, size: 20, color: _gold),
+              const SizedBox(width: 10),
               Expanded(child: Text(
-                m.ja ? '本日限定！日替わり割引' : 'TODAY ONLY! Daily Deals',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF5A4A1E)),
+                m.ja ? '本日限定の割引' : "Today's deals",
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                    color: Color(0xFF2C3446)),
               )),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -521,7 +521,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
-  // ═══════════════ 💀 ハードコアチケット ═══════════════
+  // ═══════════════ 高難度チケット ═══════════════
 
   Widget _hardcoreTicketCard(MetaStrings m, PlayerProfile p) {
     return Card(
@@ -533,7 +533,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(children: [
-          const Text('💀', style: TextStyle(fontSize: 30)),
+          const Icon(Icons.speed, size: 26, color: Color(0xFFB08D4F)),
           const SizedBox(width: 10),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,7 +555,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               if (mounted) {
                 setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(m.ja ? '💀 ハードコア発動！次のゲームの報酬3倍' : '💀 Hardcore active! 3x rewards next game!')),
+                  SnackBar(content: Text(m.ja ? '高難度モード発動。次のゲームの報酬が3倍になります' : 'Hard mode is on. Triple rewards next game.')),
                 );
               }
             },
@@ -566,7 +566,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
             ),
-            child: Text('🪙${HardcoreTicket.cost}'),
+            child: Text('${HardcoreTicket.cost}'),
           ),
         ]),
       ),
@@ -1092,18 +1092,30 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
+  // ── 落ち着いた作り（ホーム・マイページと同じ作法）──────────
+  //    見出しは小さく字間を広く。効かせる色はゴールド1色。
+  static const Color _gold = Color(0xFFB08D4F);
+
   Widget _sectionHeader(String title, String desc) {
+    // 見出しの先頭に付いていた絵文字は落とす（節ごとに色と絵柄が増えて散らかる）
+    final plain = title.replaceAll(RegExp(r'^[^\p{L}\p{N}]+', unicode: true), '');
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 2),
+          Text(plain.toUpperCase(),
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2.0,
+                  color: Color(0xFF9AA0A6))),
+          const SizedBox(height: 6),
+          Container(width: 24, height: 1, color: _gold),
+          const SizedBox(height: 8),
           Text(desc,
-              style: const TextStyle(fontSize: 11.5, color: Colors.black54)),
+              style: const TextStyle(
+                  fontSize: 12, height: 1.4, color: Color(0xFF6B7280))),
         ],
       ),
     );

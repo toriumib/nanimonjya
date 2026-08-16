@@ -445,14 +445,14 @@ const List<GodSkin> kGodSkins = [
   ),
 ];
 
-// ═══════════════ 💀 ハードコアモードチケット ═══════════════
+// ═══════════════ 高難度チケット ═══════════════
 
 class HardcoreTicket {
   static const int cost = 30;
 
-  static String name(bool ja) => ja ? '💀 ハードコアチケット' : '💀 Hardcore Ticket';
+  static String name(bool ja) => ja ? '高難度チケット' : 'Hard Mode Ticket';
   static String desc(bool ja) => ja
-      ? '1回だけハードコアモードでプレイ。選択肢が1つ減り、制限時間が半分に。成功報酬3倍。'
+      ? '1回だけ高難度で挑戦。選択肢が1つ減り、制限時間が半分になります。成功時の報酬は3倍。'
       : 'One hardcore game: -1 choice option, half the time limit, 3x rewards.';
 }
 
