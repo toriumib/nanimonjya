@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
 import '../services/bgm.dart';
@@ -635,7 +636,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7E0),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

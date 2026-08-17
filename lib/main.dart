@@ -21,6 +21,7 @@ import 'services/custom_roster_service.dart';
 import 'services/memory_stats.dart'; // 📊 成績レポートの集計（速さ・正確性・定着率）
 import 'services/review_queue.dart'; // 🔁 日をまたいだ復習キュー
 import 'services/sfx.dart'; // 効果音（起動時プリロードで即発音）
+import 'widgets/app_style.dart'; // 🎨 見た目の決まりごと（色・文字・カード）
 import 'widgets/route_transitions.dart'; // 全画面共通のスライド＋フェード遷移
 
 // 多言語対応のために追加
@@ -136,7 +137,7 @@ class MyApp extends StatelessWidget {
         secondary: const Color(0xFF4ECDC4), // ポップシアン
         tertiary: const Color(0xFFFFD93D), // サニーイエロー
       ),
-      scaffoldBackgroundColor: const Color(0xFFFFF9EC), // クリーム色の背景
+      scaffoldBackgroundColor: AppStyle.canvas, // 明るい灰白（白はまぶしい）
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: AppBarTheme(
         backgroundColor: accent,
@@ -149,28 +150,51 @@ class MyApp extends StatelessWidget {
           color: Colors.white,
         ),
       ),
+      // 🎨 ここを変えると全画面に効く。個々の画面で色と影を作り込まない。
+      //    決まりは widgets/app_style.dart に書いてある。
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: accent,
           foregroundColor: Colors.white,
-          // 🖤 影を落として面で見せる。厚い影は子ども向けアプリの合図になる。
-          elevation: 2,
-          shadowColor: accent.withValues(alpha: 0.22),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
+          // 影は落とす。厚い影は子ども向けアプリの合図になる。
+          elevation: 0,
+          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 22),
           textStyle: const TextStyle(
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w700,
             fontSize: 16,
+            letterSpacing: 0.3,
           ),
         ),
       ),
-      cardTheme: CardThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppStyle.gold,
+          side: const BorderSide(color: AppStyle.gold, width: 1.2),
+          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            letterSpacing: 0.3,
+          ),
         ),
-        elevation: 1,
+      ),
+      // カードは影ではなく細い枠で区切る
+      cardTheme: CardThemeData(
+        color: AppStyle.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppStyle.line, width: 1),
+        ),
+        elevation: 0,
+        margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppStyle.line,
+        thickness: 1,
+        space: 1,
       ),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(

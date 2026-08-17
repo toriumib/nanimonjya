@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/cpu_rank.dart';
 import '../models/person.dart';
 import '../services/bgm.dart';
@@ -247,39 +248,35 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
   }
 
   Widget _scoreCard(MetaStrings m) {
-    Widget side(String emoji, String label, int score, Color color) {
+    // 得点は色で競わせず、**数字の大きさ**で見せる。
+    // 勝った側だけゴールドにして、どちらが上かは1色で示す。
+    Widget side(String emoji, String label, int score, bool won) {
+      final c = won ? AppStyle.gold : AppStyle.textMuted;
       return Expanded(
         child: Column(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 34)),
             Text(label,
-                style: TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w900, color: color)),
-            CountUp(
-              score,
-              style: TextStyle(
-                  fontSize: 34, fontWeight: FontWeight.w900, color: color),
-            ),
+                style: AppStyle.sectionLabel.copyWith(color: c)),
+            const SizedBox(height: 6),
+            CountUp(score, style: AppStyle.figure.copyWith(color: c)),
             Text(m.pairsUnit,
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                style: const TextStyle(
+                    fontSize: 11, color: AppStyle.textFaint)),
           ],
         ),
       );
     }
 
     return Card(
-      elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 22),
         child: Row(
           children: [
-            side('😀', m.you, widget.myPairs, const Color(0xFF3A7BD5)),
-            const Text('VS',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.grey)),
-            side('🤖', m.cpuLabel, widget.cpuPairs, const Color(0xFF8A5AC2)),
+            side('', m.you, widget.myPairs,
+                widget.myPairs >= widget.cpuPairs),
+            Container(width: 1, height: 46, color: AppStyle.line),
+            side('', m.cpuLabel, widget.cpuPairs,
+                widget.cpuPairs > widget.myPairs),
           ],
         ),
       ),
@@ -291,9 +288,9 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3EDFF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF8A5AC2), width: 1.5),
+        color: AppStyle.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -340,7 +337,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3D6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6B54A), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Text(
         '🪙 ${m.earnedCoins(_coinsEarned)}',
@@ -359,7 +356,7 @@ class _MatchResultScreenState extends State<MatchResultScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7E0),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Wrap(
         spacing: 8,

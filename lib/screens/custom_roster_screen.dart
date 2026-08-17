@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/person.dart';
 import '../models/avatar.dart';
 import '../services/card_ocr_service.dart';
@@ -262,8 +263,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                            color: const Color(0xFFD8E4F0), width: 1.5),
+                        border: Border.all(color: AppStyle.line, width: 1),
                       ),
                       child: Text(m.customDesc,
                           style: const TextStyle(fontSize: 13, height: 1.5)),
@@ -545,7 +545,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
+          border: Border.all(color: AppStyle.line, width: 1),
         ),
         child: Column(
           children: [

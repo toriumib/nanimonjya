@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/memory_tips.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import 'article_library_screen.dart';
 import '../services/app_analytics.dart';
 import '../services/sfx.dart';
@@ -195,7 +196,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                           minHeight: 6,
                           backgroundColor: Colors.grey.shade300,
                           valueColor: const AlwaysStoppedAnimation(
-                              Color(0xFF3A7BD5)),
+                              AppStyle.gold),
                         ),
                       ),
                     ),
@@ -231,7 +232,6 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                       },
                       icon: const Icon(Icons.menu_book_rounded),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE8A400),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         textStyle: const TextStyle(
@@ -263,7 +263,6 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3A7BD5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(
                         fontSize: 17,
@@ -293,13 +292,11 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: p.gradient,
-          ),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white, width: 3),
+          // 読み物は文字が主役。色のグラデーションと白い太枠をやめ、
+          // 白地＋細い枠にして、本文の可読性に場所を譲る。
+          color: AppStyle.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppStyle.line, width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
