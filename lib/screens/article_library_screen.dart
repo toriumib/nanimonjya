@@ -49,7 +49,8 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   Future<void> _open(PremiumArticle a) async {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
-    if (!p.hasArticle(a.id)) {
+    // 🧑💻 開発者モードではロックを無視して全部読める（動作確認用）。
+    if (!p.devMode && !p.hasArticle(a.id)) {
       final ok = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(

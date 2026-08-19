@@ -459,4 +459,339 @@ const List<PremiumArticle> kPremiumArticles = [
     ],
     gradient: [Color(0xFFFFEFE3), Color(0xFFFFF9E3)],
   ),
+
+  // ── 2026年の研究を軸にした新章（1記事1000コイン） ──
+  PremiumArticle(
+    id: 'a11_facememorable',
+    emoji: '😀',
+    cost: 1000,
+    titleJa: '顔そのものに「覚えやすさ」がある',
+    titleEn: 'Some faces are simply easier to remember',
+    leadJa: '名前を覚えやすい顔と、覚えにくい顔がある——これはあなたの努力の問題だけではない、という研究です。',
+    leadEn:
+        'Some faces are simply easier to remember. New research shows memorability is a property of the face itself.',
+    bodyJa: '''「顔を覚えられないのは、自分の記憶力のせいだ」と思っていませんか。2026年の研究は、**覚えやすさは顔側に備わっている**という見方を支えています。
+
+**覚えやすい顔という概念**
+人々が「あの顔は覚えやすい」と感じるのは、偶然ではありません。ある顔がどれだけ人々の記憶に残るか（**メモラビリティ**）は、顔ごとに比較的安定して測れると報告されています。じっくり見た時間やモチベーションの違いを超えて、顔そのものの特徴が効いています。
+
+**覚えやすい顔は名前も覚えやすい**
+2026年に報告された研究では、顔が覚えやすい（メモラビリティが高い）と、その顔に結びついた**名前も思い出しやすい**ことが示されました。顔の印象が強いほど、名前という無味乾燥なラベルを引っかける「フック」が強くなる、という考え方と整合します。
+
+🎯 だからこのアプリは
+・覚えやすい顔（メモラビリティの高い顔）を優先して出しています
+・「覚えられないのは自分のせい」と落ち込まず、**顔と名前の結びつき**に意識を向けましょう
+
+🔬 出典: Cook, R. (2026). Easily remembered faces makes a person's name easier to remember. Hamilton College. / The face-memorability advantage in face-name recall (2026).''',
+    bodyEn: '''"I just can't remember faces" — but what if memorability is a property of the face, not just your effort?
+
+**The concept of memorability**
+Whether a face lingers in memory is surprisingly stable and measurable across people. Some faces are intrinsically more memorable, independent of how long you look at them.
+
+**Memorable faces, memorable names**
+A 2026 study found that memorable faces also make the attached names easier to recall. A stronger visual hook gives the arbitrary name label something to hang on to.
+
+🎯 Why this app
+・We feature high-memorability faces.
+・Don't blame yourself — build stronger face–name links instead.
+
+🔬 Sources: Cook, R. (2026). Hamilton College. / The face-memorability advantage in face-name recall (2026).''',
+    sources: [
+      'Cook, R. (2026). Easily remembered faces makes a person\'s name easier to remember. Hamilton College.',
+      'The Face-Memorability Advantage in Face-Name Recall (2026).',
+    ],
+    gradient: [Color(0xFFE3F2FF), Color(0xFFE8F9E8)],
+  ),
+  PremiumArticle(
+    id: 'a12_gaze',
+    emoji: '👀',
+    cost: 1000,
+    titleJa: '顔と名前、どちらを先に見ているか',
+    titleEn: 'Where do your eyes go first?',
+    leadJa: '人と会ったときの視線の動きが、名前を覚えるかどうかに関係している、という2026年の研究です。',
+    leadEn:
+        'Where you look when you meet someone may predict whether you remember their name.',
+    bodyJa: '''会ったとき、あなたは相手のどこを見ていますか。2026年の研究は、**顔・名前（名札）・背景情報のどれに視線を向けたか**が、顔と名前の結びつきに影響することを報告しています。
+
+**視線は覚え方を決める**
+実験では、顔写真とその人の情報（名前・職業など）を同時に見せ、視線を追跡しながら後にどれだけ覚えているかを測りました。**顔に視線を集中させた人ほど、顔と名前の結びつきが強く残った**と報告されています。あちこちに視線が散るより、顔をしっかり見る方が効くようです。
+
+**背景情報は補助輪**
+職業などの「その人らしさ」は、名前を引っかける手がかりになりますが、顔をよく見ないと情報だけが浮いたままになります。まず顔に注目し、そこへ名前を「くっつける」意識が大事、という結果です。
+
+🎯 だからこのアプリは
+・おぼえタイムに顔を大きく出し、視線が自然に顔へ集まる作りにしています
+・あなたも「まず顔、次に名前」の順で見てください
+
+🔬 出典: Getting to know you: Gaze behaviours and biographical information in face–name associations (2026).''',
+    bodyEn: '''Where do your eyes go when you meet someone? A 2026 study tracked gaze during face–name learning and found that people who looked at the face longer formed stronger face–name associations.
+
+Background info like occupation helps, but only if the face itself is well attended. Look at the face first, then attach the name.
+
+🔬 Source: Getting to know you: Gaze behaviours and biographical information in face–name associations (2026).''',
+    sources: [
+      'Getting to know you: Gaze behaviours and biographical information in face–name associations (2026).',
+    ],
+    gradient: [Color(0xFFE0F4F4), Color(0xFFEAF0FF)],
+  ),
+  PremiumArticle(
+    id: 'a13_sleepface',
+    emoji: '😴',
+    cost: 1000,
+    titleJa: '眠ると顔が覚えられる（系統的レビュー）',
+    titleEn: 'Sleep strengthens face learning',
+    leadJa: '顔の学習と記憶の固定化に睡眠がどれだけ効くかをまとめた、2026年の系統的レビューです。',
+    leadEn:
+        'A 2026 systematic review on whether sleep strengthens face learning and memory consolidation.',
+    bodyJa: '''「顔を覚えた夜、ぐっすり眠ったほうが覚えが良い」——これを多くの研究からまとめたレビューが2026年に出ました。
+
+**睡眠と顔の記憶固定化**
+系統的レビューは、睡眠が**顔の記憶**の固定化に一貫してプラスの影響を持つと報告しています。起きている間に入った顔の情報は、眠っている間に安定した記憶として整理されていきます。
+
+**名前まで届くか**
+顔の記憶そのものに睡眠が効くことは複数の研究が支持していますが、名前のような言語情報への効果は顔ほど単純ではない、とレビューは注意を促しています。顔と名前は**別々に**固定化が進むという見方です。
+
+🎯 だからこのアプリは
+・覚えたその日の夜、しっかり眠るのをおすすめします
+・「顔は覚えた、名前が出てこない」のは正常。次の日にもう一度、が効きます
+
+🔬 出典: Ke, Z., & Yuan, J. (2026). The role of sleep in strengthening face learning and memory consolidation: A systematic review.''',
+    bodyEn: '''A 2026 systematic review concludes that sleep consistently supports the consolidation of face memories.
+
+Faces stabilize during sleep, though names (verbal labels) may consolidate on a different timescale. If you remember the face but not the name the next morning, that is normal — another pass the next day is what works.
+
+🔬 Source: Ke & Yuan (2026). The role of sleep in strengthening face learning and memory consolidation: A systematic review.''',
+    sources: [
+      'Ke, Z., & Yuan, J. (2026). The role of sleep in strengthening face learning and memory consolidation: A systematic review.',
+    ],
+    gradient: [Color(0xFFE8E4FF), Color(0xFFE0F4F4)],
+  ),
+  PremiumArticle(
+    id: 'a14_tle',
+    emoji: '🧠',
+    cost: 1000,
+    titleJa: '顔と名前のつながりは、脳のどこで',
+    titleEn: 'Where the brain binds a face to a name',
+    leadJa: '側頭葉てんかんの研究から、顔と名前を結びつける脳の仕組みが見えてきました。',
+    leadEn:
+        'Studies of temporal lobe epilepsy reveal where the brain binds faces to names.',
+    bodyJa: '''顔と名前を「くっつける」作業を脳がどこでやっているか。てんかん患者の研究から、その片鱗が分かってきています。
+
+**側頭葉が要のひとつ**
+2026年の研究は、右半球起始の側頭葉てんかんの患者で、顔と名前の**連合記憶**（face–name associative memory）がどう傷つくかを報告しています。側頭葉内側部は、別々の情報（顔という視覚、名前という言語）を**ひとつの記憶として束ねる**ことに深く関わっている、という見方を支持します。
+
+**「名前が思い出せない」と「顔が思い出せない」は別**
+顔は思い出せるのに名前が出てこない（その逆も）——これは連合記憶が複数の段階に分かれていることを示しています。どちらかが欠けても、もう片方は比較的保たれうるのです。
+
+🎯 だからこのアプリは
+・顔と名前をペアで繰り返し見せるのは、脳の連合記憶に沿った形です
+・「名前だけ出ない」ときは、顔に戻って名前を1回言い直すのが最短です
+
+🔬 出典: Face–name associative memory in temporal lobe epilepsy: Region-specific insights in right-hemisphere onset (2026).''',
+    bodyEn: '''A 2026 study of right-hemisphere-onset temporal lobe epilepsy examined how face–name associative memory is impaired. The medial temporal lobe binds separate information (a face, a name) into one memory.
+
+Faces and names can fail independently. If the name escapes you, go back to the face and re-say the name once.
+
+🔬 Source: Face–name associative memory in temporal lobe epilepsy: Region-specific insights in right-hemisphere onset (2026).''',
+    sources: [
+      'Face–name associative memory in temporal lobe epilepsy: Region-specific insights in right-hemisphere onset (2026).',
+    ],
+    gradient: [Color(0xFFE4ECFF), Color(0xFFF0E8FF)],
+  ),
+  PremiumArticle(
+    id: 'a15_retrieval2',
+    emoji: '🔁',
+    cost: 1000,
+    titleJa: '思い出すこと自体が、いちばん強い勉強',
+    titleEn: 'Retrieval is the strongest study method',
+    leadJa: '読み返すより、思い出す。テスト効果と呼ばれるこの原則は、記憶研究で最も再現性の高い知見のひとつです。',
+    leadEn:
+        'Testing beats re-reading. The testing effect is one of the most replicated findings in memory research.',
+    bodyJa: '''「読み返すのが勉強」と思っていませんか。実験の結果は一貫して逆を向いています。
+
+**読むより、思い出す**
+古典的な実験では、文章を読んでから再読したグループより、**思い出しテスト**をしたグループのほうが、1週間後の定着が大幅に良かったと報告されています。読むのは「分かった気」を作るだけで、実際の定着には効きにくいのです。
+
+**なぜ思い出すと強くなるか**
+思い出すたびに記憶が**再構築**され、次に思い出しやすくなると考えられています。取り出す練習をした記憶ほど、後から取り出しやすい。道具は使うほど手になじむ、と同じ理屈です。
+
+🎯 だからこのアプリは
+・おぼえタイム（見る）→ 思い出す（テスト）の往復で構成しています
+・ここで出てくる4択は、読み返しよりずっと強い学習です
+
+🔬 出典: Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. Psychological Science, 17(3).''',
+    bodyEn: '''Re-reading feels productive but builds little. Testing yourself — retrieval — dramatically improves long-term retention (the testing effect).
+
+Each retrieval rebuilds the memory and makes the next retrieval easier.
+
+🎯 This app alternates study time with recall. The four-choice quiz is far stronger learning than re-reading.
+
+🔬 Source: Roediger & Karpicke (2006). Psychological Science, 17(3).''',
+    sources: [
+      'Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning. Psychological Science, 17(3).',
+    ],
+    gradient: [Color(0xFFE3F2E8), Color(0xFFFFF3E0)],
+  ),
+  PremiumArticle(
+    id: 'a16_self2',
+    emoji: '🪞',
+    cost: 1000,
+    titleJa: '「自分ごと」にすると忘れない',
+    titleEn: 'Self-reference makes memories stick',
+    leadJa: '情報を「自分に関係あるか」で処理すると、覚えやすくなる。自己関連づけ効果の話です。',
+    leadEn:
+        'Processing information in relation to yourself boosts memory — the self-reference effect.',
+    bodyJa: '''「田中さん」という名前を覚えるとき、ただ聞くのと、「田中さん、私と同じ出身地だ」と考えるのとでは、定着に差が出ます。
+
+**自己関連づけ効果**
+言葉の記憶では、**自分自身と結びつけて処理した項目**がいちばんよく覚えられた、という古典的な実験があります。他人のことは情報として通り過ぎますが、自分に関係したことは「自分という座標」に引っかかって残りやすいのです。
+
+**名前にも使えるか**
+名前の記憶にも同じ原理が効くと考えられます。その人との共通点（出身・趣味・仕事）を見つけると、名前が単なる音の羅列ではなく、**自分の文脈の中の出来事**になります。
+
+🎯 だからこのアプリは
+・おぼえタイムに趣味や出身地を出しています（自分ごとにする手がかり）
+・会った人に「共通点探し」を仕込んでおきましょう
+
+🔬 出典: Rogers, T. B., Kuiper, N. A., & Kirker, W. S. (1977). Self-reference and the encoding of personal information. Journal of Personality and Social Psychology, 35(9).''',
+    bodyEn: '''Words processed in relation to yourself are remembered best (the self-reference effect). Applying the same logic to names: find a connection between you and the person.
+
+🎯 The app shows hobbies and origins to give you hooks.
+
+🔬 Source: Rogers, Kuiper & Kirker (1977). Journal of Personality and Social Psychology, 35(9).''',
+    sources: [
+      'Rogers, T. B., Kuiper, N. A., & Kirker, W. S. (1977). Self-reference and the encoding of personal information. Journal of Personality and Social Psychology, 35(9).',
+    ],
+    gradient: [Color(0xFFFFE8EE), Color(0xFFE8F0FF)],
+  ),
+  PremiumArticle(
+    id: 'a17_age',
+    emoji: '🧓',
+    cost: 1000,
+    titleJa: '年を重ねると、名前が思い出しにくい理由',
+    titleEn: 'Why names get harder with age',
+    leadJa: '加齢で「名前が思い出せない」が増えるのは、記憶全体が衰えたからではありません。',
+    leadEn:
+        'Name-finding gets harder with age — but not because all memory declines.',
+    bodyJa: '''年を重ねると「あの人、なんていう名前だっけ」が増えます。でもそれは記憶全体の衰えではありません。
+
+**名前は「取り出し」の難所**
+研究では、加齢は**固有名詞の想起**（特に人の名前）に強く影響しやすいと報告されています。物の名前やエピソードの記憶よりも、人の名前が出てきにくい。名前はほかの言葉とつながりが少なく、頭の中の「引き出し」の目印が少ないから、と説明されます。
+
+**性差・バイアスも関わる**
+2026年の研究では、高齢者の記憶テストに**性差やジェンダーバイアス**がどう影響するかも検討されています。測り方や社会的要因が成績の見かけを変える、という注意が必要です。
+
+🎯 だからこのアプリは
+・加齢による名前の出にくさは、**反復と手がかり**で補えます
+・「出てこない」を恥じず、何度も顔と名前を結び直しましょう
+
+🔬 出典: Sex differences and gender bias on memory tests in older adults (2026). PubMed.''',
+    bodyEn: '''Age makes proper names harder to retrieve, but general memory does not decline equally. Names have few links to other words, so there are few cues to pull them out.
+
+2026 work also examines sex differences and gender bias in older-adult memory tests.
+
+🎯 Repetition and cues compensate well. Keep reconnecting face and name.
+
+🔬 Source: Sex differences and gender bias on memory tests in older adults (2026). PubMed.''',
+    sources: [
+      'Sex differences and gender bias on memory tests in older adults (2026). PubMed.',
+    ],
+    gradient: [Color(0xFFF0EDE8), Color(0xFFE8F4F0)],
+  ),
+  PremiumArticle(
+    id: 'a18_spacing2',
+    emoji: '⏰',
+    cost: 1000,
+    titleJa: '間をあけた復習がいちばん長持ちする',
+    titleEn: 'Spaced practice outlasts cramming',
+    leadJa: '詰め込むより、間をあけて復習。分散練習の効果をまとめた大規模メタ分析です。',
+    leadEn:
+        'A large meta-analysis shows spaced practice beats massed cramming.',
+    bodyJa: '''試験前に一晩で詰め込む——短期的には効きますが、1週間後には消えている、というのが研究の結論です。
+
+**分散練習の効果**
+254の研究を統合したメタ分析は、**練習の間隔をあける（分散練習）**ほうが、間隔をあけない（集中練習）より、長期の定着に一貫して優れると報告しています。同じ時間でも、一度にやるより分けてやる方が強い記憶になります。
+
+**間隔は長めがよい**
+復習の間隔も、長くとったほうが定着に良いことが知られています。すぐ復習するより、**少し忘れかけの頃**に思い出す方が、記憶は深く刻まれるのです。
+
+🎯 だからこのアプリは
+・復習キュー（間隔反復）で「忘れかけのタイミング」に再出題します
+・毎日少しずつ、が長期記憶への近道です
+
+🔬 出典: Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. Psychological Bulletin, 132(3).''',
+    bodyEn: '''Cramming works for a day, not a week. A meta-analysis of 254 studies shows spaced practice consistently beats massed practice for long-term retention. Long intervals (review as you begin to forget) cut memories deepest.
+
+🎯 This app's spaced-review queue re-quizzes you at the edge of forgetting.
+
+🔬 Source: Cepeda et al. (2006). Psychological Bulletin, 132(3).''',
+    sources: [
+      'Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distributed practice in verbal recall tasks. Psychological Bulletin, 132(3).',
+    ],
+    gradient: [Color(0xFFFFF6E0), Color(0xFFE8F0FF)],
+  ),
+  PremiumArticle(
+    id: 'a19_n400',
+    emoji: '⚡',
+    cost: 1000,
+    titleJa: '顔を見て、名前がひらめく瞬間の脳波',
+    titleEn: 'The brainwave of a name clicking',
+    leadJa: '顔と名前が結びついた瞬間、脳はどのような電気的反応を見せるのか。N400と呼ばれる脳波の研究です。',
+    leadEn:
+        'The N400 brainwave reveals the moment a face and name click together.',
+    bodyJa: '''顔を見た瞬間、その人の名前がひらめくことがあります。その瞬間の脳の電気活動を測る研究があります。
+
+**N400とは**
+脳波の中で、意味の違和感や連想に反応する成分に **N400**（刺激後約400ミリ秒の陰性波）があります。2026年の研究は、顔と名前の記憶に関わる脳の仕組みを、このN400の空間分布から調べています。
+
+**顔・名前の「ずれ」を脳が検出する**
+正しい名前と見合わない名前を顔と一緒に見せると、脳はその「ずれ」を素早く検出すると報告されています。つまり、顔と名前のつながりは、脳の中で**意味的なネットワーク**として張られているのです。
+
+🎯 だからこのアプリは
+・4択の「違和感」は、脳の意味ネットワークを鍛えています
+・「なんか違う」と直感で分かるのは、結びつきができている証拠です
+
+🔬 出典: Brain Mechanisms in Face-Name Memory: the N400 and Its Spatial Localization (2026).''',
+    bodyEn: '''When a face and an incongruent name appear together, the brain detects the mismatch within ~400 ms — the N400. A 2026 study maps its spatial distribution to understand face–name memory.
+
+🎯 Four-choice "odd one out" trains your semantic network. Your gut "that's wrong" is your memory working.
+
+🔬 Source: Brain Mechanisms in Face-Name Memory: the N400 and Its Spatial Localization (2026).''',
+    sources: [
+      'Brain Mechanisms in Face-Name Memory: the N400 and Its Spatial Localization (2026).',
+    ],
+    gradient: [Color(0xFFE0F4FF), Color(0xFFE8E8FF)],
+  ),
+  PremiumArticle(
+    id: 'a20_vr',
+    emoji: '🥽',
+    cost: 1000,
+    titleJa: '仮想現実の中の「出来事」は覚えやすい',
+    titleEn: 'Memories made in VR feel more real',
+    leadJa: '仮想現実で体験した出来事の記憶は、画面で見ただけより強く残るのでしょうか。2026年の研究です。',
+    leadEn:
+        'Do memories formed in virtual reality last longer than plain screens?',
+    bodyJa: '''同じ情報でも、**体験として体感した**ほうが記憶に残りやすい、という研究があります。
+
+**エピソード記憶と情動**
+2026年の研究は、仮想現実（VR）の中で情動を誘発したときの、エピソード記憶の結びつき（バインディング）の変化を調べました。VRの没入感は、出来事の記憶を**より具体的で体験的なもの**として符号化させる、と報告されています。
+
+**「体験した」感覚が記憶を支える**
+頭の中だけで情報を並べるより、「その場にいた」感覚（時間・場所・身体感覚）を伴うと、思い出すための手がかりが増えます。名前を覚えるのも、単語として覚えるより、**会った場面の体験として覚える**方が強い、という考え方です。
+
+🎯 だからこのアプリは
+・おぼえタイムに「その人が誰だったか」の場面を出します
+・名前を単語でなく、**出会いの出来事**として覚えてください
+
+🔬 出典: Comparing episodic memory binding outcomes after emotion induction in virtual reality (2026). Virtual Reality.''',
+    bodyEn: '''A 2026 study examined how emotion induction in virtual reality changes episodic memory binding. Immersive, experiential encoding leaves richer cues — time, place, bodily context — that support later recall.
+
+🎯 Remember names as meetings, not as words.
+
+🔬 Source: Comparing episodic memory binding outcomes after emotion induction in virtual reality (2026). Virtual Reality.''',
+    sources: [
+      'Comparing episodic memory binding outcomes after emotion induction in virtual reality (2026). Virtual Reality.',
+    ],
+    gradient: [Color(0xFFE0E8FF), Color(0xFFE8FFF4)],
+  ),
 ];
