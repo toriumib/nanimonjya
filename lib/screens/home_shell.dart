@@ -39,7 +39,11 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
       markTutorialPlayed();
       markTutorialDone();
     }
-    _maybeShowTutorial();
+    // ⚠️ initState 中に直接 showDialog を呼ぶと、Navigator が準備できる前に
+    //    実行されてダイアログが出ないことがある。build が済んでから確実に出す。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _maybeShowTutorial();
+    });
   }
 
   /// 初回起動の人に、まずウェルカムギフトを渡してから
