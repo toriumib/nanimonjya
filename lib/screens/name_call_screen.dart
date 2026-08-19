@@ -668,6 +668,14 @@ class _NameCallScreenState extends State<NameCallScreen>
       correct: correct,
       reactionMs: reactionMs,
     );
+    // 📊 1問ごとの正誤・反応時間を Firebase Analytics にも送る（正答率・速度を測る）。
+    AppAnalytics.answerLogged(
+      mode: 'namecall',
+      correct: correct,
+      reactionMs: reactionMs,
+      index: _answering + 1,
+      total: _round.length,
+    );
     _quizShownAt = null;
     if (correct) {
       _quizCorrect += 1;
