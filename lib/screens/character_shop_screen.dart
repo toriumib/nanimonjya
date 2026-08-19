@@ -168,9 +168,13 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                         Row(children: [
                           const Icon(Icons.paid_outlined, size: 24, color: _gold),
                           const SizedBox(width: 8),
-                          Text(m.storeCoins(p.coins),
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
-                          const Spacer(),
+                          // 残高は可変幅にして、ボタン2つを押しつぶさない
+                          Expanded(
+                            child: Text(m.storeCoins(p.coins),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
+                          ),
                           _miniBtn(m.storeWatchAd(_adReward), const Color(0xFF4ECDC4), _rewardAd.isLoading ? null : _watchAd, width: 120),
                           const SizedBox(width: 6),
                           _miniBtn(m.storeRate, const Color(0xFFFFB300), _rate, width: 80),
@@ -1653,6 +1657,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                         ? '🏆 ${m.featCondition(feat)}'
                         : '🪙 ${c.cost}',
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w900,
