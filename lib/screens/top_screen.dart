@@ -51,7 +51,6 @@ class _TopScreenState extends State<TopScreen>
   // 登場人数。既定は6人＝短く終わる（完走率を上げるため）
   int _peopleCount = NameCallGame.peopleCount;
   /// CPU戦でなまえコールを選んでいるか（false = 神経衰弱、既定）。
-  bool _cpuNameCall = false;
   /// 1人あたりの札の枚数。2枚＝1往復、増やすほど同じ顔に何度も会う。
   int _copies = NameCallGame.defaultCopiesPerPerson;
 
@@ -475,15 +474,11 @@ class _TopScreenState extends State<TopScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // どちらのCPU戦を遊ぶか。既定は従来どおり神経衰弱。
-              _cpuGameToggle(m, setSheetState),
-              const SizedBox(height: 16),
-              // 👥🎴 CPU戦では人数・枚数を選ばせない。
+              // 👥🎴 ひとりでは なまえコール だけ。難易度を選ぶと始まる。
               //    難易度ごとに「覚える人数」と「持ち時間」が決まっていて
               //    （models/cpu_difficulty.dart が一次情報）、
-              //    そこへ別の人数設定を重ねると報酬とつり合わなくなる。
               //    選ぶのは難易度ひとつだけにする。
-              _stepLabel(2, m.ja ? '相手を選ぶ（押すと始まります）'
+              _stepLabel(1, m.ja ? '相手を選ぶ（押すと始まります）'
                   : 'Pick your rival — tap to start'),
               Padding(
                 padding: const EdgeInsets.only(left: 32, bottom: 12),
@@ -497,16 +492,14 @@ class _TopScreenState extends State<TopScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(sheetContext);
-                      AppAnalytics.cpuGamePick(
-                          game: _cpuNameCall ? 'namecall' : 'pairs',
-                          level: lv.name);
+                      AppAnalytics.cpuGamePick(game: 'namecall', level: lv.name);
                       Sfx.instance.fanfare();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => CpuEntryScreen(
                             level: lv,
-                            nameCall: _cpuNameCall,
+                            nameCall: true,
                             peopleCount: _peopleCount,
                             copiesPerPerson: _copies,
                           ),
@@ -559,82 +552,6 @@ class _TopScreenState extends State<TopScreen>
         ),
       )),
       ),
-    );
-  }
-
-  /// CPU戦で遊ぶゲームを選ぶ。既定は神経衰弱（従来どおり）。
-  ///
-  /// ⚠️ **横並び（Row + CrossAxisAlignment.stretch）にしないこと。**
-  ///    スクロールの中で高さが無限に伸び、下にある難易度の一覧が
-  ///    画面外へ押し出されて「選んだあと何をすればいいか分からない」
-  ///    状態になっていた。縦に積めばこの問題は起きない。
-  Widget _cpuGameToggle(MetaStrings m, StateSetter setSheetState) {
-    Widget option(bool nameCall, String title, String desc) {
-      final selected = _cpuNameCall == nameCall;
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Sfx.instance.pop();
-            setSheetState(() => _cpuNameCall = nameCall);
-            setState(() {});
-            AppAnalytics.settingChange(
-                'cpu_game', nameCall ? 'namecall' : 'pairs');
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: selected ? const Color(0x14B08D4F) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? AppStyle.gold : AppStyle.line,
-                width: selected ? 1.6 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selected
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                  size: 20,
-                  color: selected ? AppStyle.gold : AppStyle.textFaint,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: AppStyle.title.copyWith(
-                              fontSize: 15,
-                              color: selected ? AppStyle.gold : AppStyle.text)),
-                      const SizedBox(height: 2),
-                      Text(desc,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              height: 1.35,
-                              color: AppStyle.textMuted)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _stepLabel(1, m.ja ? '遊びかたを選ぶ' : 'Pick the game'),
-        option(false, m.ja ? 'ペアさがし' : 'Pair Match',
-            m.ja ? 'カードをめくって同じ人をそろえる' : 'Flip cards and match the pair'),
-        option(true, m.ja ? 'なまえコール' : 'Name Call',
-            m.ja ? '再登場した顔の名前を4択で答える' : 'Recall the name from four choices'),
-      ],
     );
   }
 
