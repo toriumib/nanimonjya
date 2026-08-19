@@ -71,7 +71,11 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
             ad.dispose();
             return;
           }
-          AppAnalytics.adShown(format: 'banner', placement: placement);
+          // バナーは自動リフレッシュで onAdLoaded が何度も発火する。
+          // 表示回数として数えるのは初回ロードだけにする（水増し防止）。
+          if (!_isLoaded) {
+            AppAnalytics.adShown(format: 'banner', placement: placement);
+          }
           setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, error) {

@@ -100,6 +100,10 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
+  /// 🔊 BGMの音量（0.0〜1.0）。
+  double bgmVolume = 1.0;
+  /// 🔊 効果音の音量（0.0〜1.0）。
+  double sfxVolume = 1.0;
 
   /// 🌐 Web版で選んだ言語（nullなら端末の言語に従う）。
   /// shared_preferences に保存して次回も引き継ぐ。
@@ -297,6 +301,8 @@ class PlayerProfile extends ChangeNotifier {
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
     bgmEnabled = p.getBool('bgmEnabled') ?? true;
+    bgmVolume = p.getDouble('bgmVolume') ?? 1.0;
+    sfxVolume = p.getDouble('sfxVolume') ?? 1.0;
     lastGachaDate = p.getString('lastGachaDate') ?? '';
     weeklyLearned = p.getInt('weeklyLearned') ?? 0;
     weekStartDate = p.getString('weekStartDate') ?? '';
@@ -926,6 +932,20 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 🔊 BGMの音量（0.0〜1.0）。
+  Future<void> setBgmVolume(double v) async {
+    bgmVolume = v.clamp(0.0, 1.0).toDouble();
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 🔊 効果音の音量（0.0〜1.0）。
+  Future<void> setSfxVolume(double v) async {
+    sfxVolume = v.clamp(0.0, 1.0).toDouble();
+    await _persist();
+    notifyListeners();
+  }
+
   // ───────── 🎁 今日のキャラガチャ ─────────
   // 「1日1回タダで1体もらえる」だけで戻ってくる理由になる（ポケポケ型）。
   // コインを貯めないとキャラに触れない状態だと、買うほど遊んでいない人が
@@ -1175,6 +1195,8 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);
+    await p.setDouble('bgmVolume', bgmVolume);
+    await p.setDouble('sfxVolume', sfxVolume);
     await p.setString('selectedHomeBgm', selectedHomeBgm);
     await p.setString('lastGachaDate', lastGachaDate);
     await p.setInt('weeklyLearned', weeklyLearned);

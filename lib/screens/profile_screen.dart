@@ -15,6 +15,7 @@ import '../services/player_profile.dart';
 import 'character_deck_screen.dart';
 import 'character_shop_screen.dart';
 import 'noah_story_screen.dart';
+import 'recall_training_screen.dart';
 import 'report_screen.dart';
 import 'story_screen.dart';
 import 'player_selection_screen.dart';
@@ -503,6 +504,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: Text(MetaStrings.of(context).ja ? '🚀 プロジェクト・ノア' : '🚀 Project Noah'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1D3A6B),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 💼 名刺覚え（思い出しトレーニング）
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Sfx.instance.pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RecallTrainingScreen()),
+                );
+              },
+              icon: const Icon(Icons.badge_outlined),
+              label: Text(MetaStrings.of(context).ja ? '💼 名刺覚え' : '💼 Recall by card'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3A7BD5),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 textStyle: const TextStyle(
@@ -1117,6 +1141,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Bgm.instance.stop();
               }
             },
+          ),
+          // 🔊 BGMの大きさ
+          Slider(
+            value: p.bgmVolume,
+            onChanged: (v) {
+              Bgm.volumeScale = v;
+              setState(() => p.bgmVolume = v);
+            },
+            onChangeEnd: p.setBgmVolume,
+          ),
+          // 🔊 効果音の大きさ
+          Slider(
+            value: p.sfxVolume,
+            onChanged: (v) {
+              Sfx.volumeScale = v;
+              setState(() => p.sfxVolume = v);
+            },
+            onChangeEnd: p.setSfxVolume,
           ),
           if (p.bgmEnabled) ..._bgmRows(m, p, ja),
           // 🎼 魔王魂の楽曲はクレジット表記が利用条件。

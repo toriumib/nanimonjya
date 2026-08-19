@@ -189,7 +189,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           guideEmoji: '',
           guideAsset: 'assets/images/supporters/cheer_girl2.svg',
           guideName: ja ? 'ハナ' : 'Hana',
-          title: ja ? '3. CPUと対戦' : '3. Play against the CPU',
+          title: ja ? '3. ひとりで対戦' : '3. Play solo',
           points: ja
               ? [
                   'ひとりで遊ぶなら、まずCPU戦から',

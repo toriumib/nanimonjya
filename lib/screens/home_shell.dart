@@ -6,8 +6,8 @@ import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/sfx.dart';
 import 'character_shop_screen.dart';
+import 'custom_roster_screen.dart';
 import 'memory_tips_screen.dart';
-import 'noah_story_screen.dart';
 import 'profile_screen.dart';
 import 'top_screen.dart';
 import 'training_hub_screen.dart';
@@ -160,7 +160,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           TrainingHubScreen(active: _index == 1), // ビジネス特訓
           const CharacterShopScreen(embedded: true), // ショップ
           const MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
-          const NoahStoryScreen(embedded: true), // 📖 ものがたり
+          const CustomRosterScreen(), // 🧑🎨 顔メモ
           const ProfileScreen(), // マイページ
         ],
       ),
@@ -203,7 +203,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
           AppAnalytics.featureOpen(
-            const ['namecall', 'training', 'shop', 'read', 'story', 'profile']
+            const ['namecall', 'training', 'shop', 'read', 'face_memo', 'profile']
                 [i],
             from: 'tab',
           );
@@ -235,9 +235,9 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             label: m.tabRead,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.auto_stories_outlined),
-            selectedIcon: const Icon(Icons.auto_stories),
-            label: m.tabStory,
+            icon: const Icon(Icons.face_outlined),
+            selectedIcon: const Icon(Icons.face),
+            label: m.tabFaceMemo,
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),

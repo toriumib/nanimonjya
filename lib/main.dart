@@ -66,6 +66,9 @@ Future<void> main() async {
   PaintingBinding.instance.imageCache.maximumSizeBytes = 40 << 20; // 40MB
   PaintingBinding.instance.imageCache.maximumSize = 120; // 枚数
   await PlayerProfile.instance.load(); // 戦績・コインを読み込み
+  // 🔊 音量設定を反映（プロフィールのスライダーで保存した値）
+  Bgm.volumeScale = PlayerProfile.instance.bgmVolume;
+  Sfx.volumeScale = PlayerProfile.instance.sfxVolume;
   await MemoryStats.instance.load(); // 📊 成績レポートの集計を読み込み
   // 🔁 復習キューは「ホームの声かけ」「毎日の通知の文面」が起動直後に読むので、
   //    ここで待って読む。以前はとっくんタブの initState でしか読んでおらず、

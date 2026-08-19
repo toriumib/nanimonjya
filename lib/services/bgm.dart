@@ -176,8 +176,11 @@ class Bgm {
     return kVictoryRandomPool[_rng.nextInt(kVictoryRandomPool.length)];
   }
 
+  /// ユーザー設定の音量倍率（0.0〜1.0）。プロフィールのスライダーから変更する。
+  static double volumeScale = 1.0;
+
   Future<void> _play(String key, {double volume = 0.35}) =>
-      _serialize(() => _playCore(key, volume: volume));
+      _serialize(() => _playCore(key, volume: volume * volumeScale));
 
   /// 実際に鳴らす処理。**チェーンの中からだけ呼ぶこと**（[_serialize] 参照）。
   Future<void> _playCore(String key, {double volume = 0.35}) async {

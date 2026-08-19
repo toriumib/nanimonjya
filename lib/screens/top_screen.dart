@@ -16,7 +16,6 @@ import 'match_game_screen.dart' show CpuLevel;
 import 'custom_roster_screen.dart'; // 🧑‍🎨 顔メモ
 import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
-import 'noah_story_screen.dart'; // 🚀 SFストーリー
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'rulebook_screen.dart'; // 📖 ルールブック
 import '../services/player_profile.dart';
@@ -179,16 +178,6 @@ class _TopScreenState extends State<TopScreen>
           AppAnalytics.modePick('training_hub');
           Navigator.push(context,
               MaterialPageRoute(builder: (_) => const TrainingHubScreen()));
-        },
-      ),
-      _modeRow(
-        title: m.ja ? 'ノベル' : 'Novel',
-        subtitle: m.ja ? '覚えた名前が物語に効いてくる読み物' : 'A story where the names you learn matter',
-        onTap: () {
-          Sfx.instance.fanfare();
-          AppAnalytics.modePick('story');
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const NoahStoryScreen()));
         },
       ),
     ];
@@ -1245,6 +1234,27 @@ class _TopScreenState extends State<TopScreen>
                   const SizedBox(height: 10),
                   // モードは一覧で見せる（色分けした四角を並べない）
                   _modeList(m),
+                  const SizedBox(height: 12),
+                  // 📖 あそびかた（大きなボタン。初めての人をここで受ける）
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Sfx.instance.pop();
+                          Navigator.push(context,
+                              MaterialPageRoute(
+                                  builder: (_) => const TutorialScreen()));
+                        },
+                        icon: const Icon(Icons.menu_book_outlined),
+                        label: Text(m.ja ? 'あそびかた' : 'How to Play'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   // 🧑‍🎨 顔メモ — 大きく常設
                   _faceMemoCard(m),

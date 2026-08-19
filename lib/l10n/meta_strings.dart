@@ -1472,6 +1472,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
   String get tabStory => ja ? 'ものがたり' : 'Story';
+  String get tabFaceMemo => ja ? '顔メモ' : 'Face Notes';
   // 📖 ルールブック（いつでも見直せるルール一覧）
   String get rulebookTitle => ja ? '📖 ルール' : '📖 Rules';
   /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。
@@ -1620,7 +1621,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get partyButtonHint => ja
       ? 'いちばん人気！友だちと名前を呼びあおう'
       : 'Most popular! Call out names with friends';
-  String get cpuButtonCompact => ja ? 'CPUと対戦' : 'Play vs CPU';
+  String get cpuButtonCompact => ja ? 'ひとりで対戦' : 'Play Solo';
   String get onlineButtonCompact => ja ? 'オンライン' : 'Online';
   String get rankButtonCompact => ja ? 'ランク' : 'Ranked';
   String get trainingButtonCompact =>
