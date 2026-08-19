@@ -33,7 +33,6 @@ import '../widgets/app_style.dart'; // 🎨 見た目の決まりごと
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 import '../services/app_analytics.dart';
-import '../services/feedback_service.dart'; // 📮 ゲーム内ご意見・不具合
 import 'package:share_plus/share_plus.dart'; // 📣 SNSシェア
 
 // 多言語対応のために追加
@@ -1347,6 +1346,17 @@ class _TopScreenState extends State<TopScreen>
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _shareOnX,
+                            icon: const Text('𝕏', style: TextStyle(fontSize: 15)),
+                            label: const Text('X'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1404,76 +1414,21 @@ class _TopScreenState extends State<TopScreen>
   }
 
   /// 📮 ご意見・不具合をゲーム内から送る（Firestore の feedback コレクションへ）。
+  /// 📮 ご意見・不具合をメールで送る（[kFeedbackEmail] 宛て）。
+  /// メーラーが開き、あらかじめ件名・本文が入った状態で送れる。
   Future<void> _openFeedbackSheet() async {
     final m = MetaStrings.of(context);
-    final controller = TextEditingController();
-    var sending = false;
-
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppStyle.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-        child: StatefulBuilder(
-          builder: (ctx, setSheetState) => Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(m.feedbackTitle,
-                    style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 6),
-                Text(m.feedbackHint,
-                    style: const TextStyle(
-                        fontSize: 12.5,
-                        color: AppStyle.textMuted,
-                        height: 1.4)),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLines: 4,
-                  maxLength: 2000,
-                  decoration: InputDecoration(
-                    hintText: m.feedbackHint,
-                    filled: true,
-                    fillColor: AppStyle.surfaceHigh,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppStyle.line),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: sending
-                      ? null
-                      : () async {
-                          setSheetState(() => sending = true);
-                          final sent =
-                              await FeedbackService.submit(controller.text);
-                          if (ctx.mounted) Navigator.pop(ctx, sent);
-                        },
-                  child: Text(sending ? m.feedbackSending : m.feedbackSend),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    Sfx.instance.pop();
+    final uri = Uri(
+      scheme: 'mailto',
+      path: kFeedbackEmail,
+      query: 'subject=${Uri.encodeComponent(m.feedbackSubject)}'
+          '&body=${Uri.encodeComponent(m.feedbackBody)}',
     );
-
-    controller.dispose();
-    if (ok == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(m.feedbackThanks)),
-      );
+    try {
+      await launchUrl(uri);
+    } catch (_) {
+      // メーラーが無い端末では何もしない（落とさない）
     }
   }
 
@@ -1483,6 +1438,18 @@ class _TopScreenState extends State<TopScreen>
     Sfx.instance.pop();
     await Share.share(
         '${m.shareAppText}\nhttps://web-sigma-drab-72.vercel.app');
+  }
+
+  /// 𝕏（旧Twitter）で感想をシェアする。公式の intent URL を開く。
+  Future<void> _shareOnX() async {
+    final m = MetaStrings.of(context);
+    Sfx.instance.pop();
+    final text = Uri.encodeComponent(
+        '${m.shareAppText}\nhttps://web-sigma-drab-72.vercel.app');
+    final uri = Uri.parse('https://twitter.com/intent/tweet?text=$text');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {}
   }
 
   /// 📖🧑‍🎨⭐ ルール・チュートリアル・顔メモ・レビュー・マイページ・支援
