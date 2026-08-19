@@ -50,7 +50,6 @@ class TutorialPlayScreen extends StatefulWidget {
 enum _Step {
   intro,
   nameFirst,
-  nameSecond,
   recall,
   won,
   reward,
@@ -77,12 +76,10 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
-    _people = generateImagePeople(2, ja: ja, random: _rng);
+    // 1人だけで完結させる（2人にすると片方にしか回答できない不自然さがある）。
+    _people = generateImagePeople(1, ja: ja, random: _rng);
     final pool = [...kCommonSurnames]..shuffle(_rng);
-    _names = [
-      surnameWithHonorific(pool[0], ja),
-      surnameWithHonorific(pool[1], ja),
-    ];
+    _names = [surnameWithHonorific(pool[0], ja)];
     AppAnalytics.gameStart(mode: 'tutorial_play', players: 1);
   }
 
@@ -94,7 +91,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
         mode: 'tutorial_play',
         reason: 'quit',
         progressPct: _progressPct,
-        people: 2,
+        people: 1,
       );
     }
     super.dispose();
@@ -103,7 +100,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   int get _progressPct => switch (_step) {
         _Step.intro => 0,
         _Step.nameFirst => 15,
-        _Step.nameSecond => 30,
         _Step.recall => 50,
         _Step.won => 80,
         _Step.reward => 100,
@@ -118,7 +114,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
         mode: 'tutorial_play',
         progressPct: _progressPct,
         card: _cardsWon,
-        totalCards: 2,
+        totalCards: 1,
       );
     } else if (state == AppLifecycleState.resumed && _leftAt != null) {
       AppAnalytics.gameResume(
@@ -167,7 +163,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
       mode: 'tutorial_play',
       reason: 'completed',
       progressPct: 100,
-      people: 2,
+      people: 1,
     );
     Sfx.instance.reward();
     if (!mounted) return;
@@ -180,7 +176,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
       mode: 'tutorial_play',
       reason: 'quit',
       progressPct: _progressPct,
-      people: 2,
+      people: 1,
     );
     await markTutorialPlayed();
     if (mounted) Navigator.of(context).pop();
@@ -230,8 +226,8 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
             padding: const EdgeInsets.all(18),
             child: switch (_step) {
               _Step.intro => _intro(m),
-              _Step.nameFirst => _naming(m, 0, _Step.nameSecond),
-              _Step.nameSecond => _naming(m, 1, _Step.recall),
+              // 1人だけなので、名前をつけたらそのまま思い出すへ。
+              _Step.nameFirst => _naming(m, 0, _Step.recall),
               _Step.recall => _recall(m),
               _Step.won => _won(m),
               _Step.reward => _reward(m),

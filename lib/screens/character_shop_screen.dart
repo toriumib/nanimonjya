@@ -183,16 +183,14 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     const SizedBox(height: 16),
                     // 💳 広告除去
                     _removeAdsCard(m, p),
-                    // 💳 ストアにつながって商品が取れてから出す。
-                    //    起動直後はまだ取得中なので、取れた時点で描き直す。
+                    // 💳 コインを現金で買う（課金）。商品が未登録でも
+                    //    導線自体は常に見せ、買える状態になったら有効になる。
                     AnimatedBuilder(
                       animation: IapService.instance,
-                      builder: (context, _) => IapService.instance.available
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: _iapSection(m, p),
-                            )
-                          : const SizedBox.shrink(),
+                      builder: (context, _) => Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _iapSection(m, p),
+                      ),
                     ),
                     const SizedBox(height: 18),
                     // ── 🔥 人気セクション ──
@@ -975,16 +973,26 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                             fontSize: 12, fontWeight: FontWeight.w900, color: Colors.green)),
                   )
                 : ElevatedButton(
-                    onPressed: onBuy,
+                    // ストア接続前に押しても失敗するだけなので、
+                    // 商品が取れたときだけ買えるようにする。
+                    onPressed: IapService.instance.available ? onBuy : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: color,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: color.withValues(alpha: 0.4),
+                      disabledForegroundColor: Colors.white70,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(
-                      price.isNotEmpty ? '$price' : m.iapBuy,
+                      price.isNotEmpty
+                          ? '$price'
+                          : (IapService.instance.available
+                              ? m.iapBuy
+                              : m.ja
+                                  ? '準備中'
+                                  : 'Soon'),
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w900),
                     ),
