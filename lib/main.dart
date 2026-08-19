@@ -135,19 +135,17 @@ class MyApp extends StatelessWidget {
         'Yu Gothic',
       ],
       textTheme: baseTextTheme.apply(fontFamily: 'ZenMaruGothic'),
-      // 🖤 地は全画面そろえて濃紺にする。
-      //    ⚠️ brightness を dark にするのが肝。ここを light のままで
-      //       背景だけ濃くすると、Flutter が用意する既定の文字色（黒）が
-      //       そのまま使われて、**画面のあちこちで文字が読めなくなる**。
-      brightness: Brightness.dark,
+      // ☀️ 地は白基調に戻す（濃紺にすると黒文字が沈んで読めないため）。
+      //    文字は AppStyle.text（黒）を基準に、画面側の黒文字がそのまま読める。
+      brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: accent,
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
         primary: accent,
         surface: AppStyle.surface,
         onSurface: AppStyle.text,
       ),
-      scaffoldBackgroundColor: AppStyle.canvas, // 明るい灰白（白はまぶしい）
+      scaffoldBackgroundColor: AppStyle.canvas,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       appBarTheme: AppBarTheme(
         backgroundColor: accent,

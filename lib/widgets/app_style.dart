@@ -18,35 +18,35 @@ class AppStyle {
   AppStyle._();
 
   // ── 色 ──────────────────────────────────────────────
-  /// 効かせる唯一の色。濃い地の上で読める明るさにしてある。
-  static const Color gold = Color(0xFFE9C87A);
+  /// 効かせる唯一の色。白い地の上で読める濃さにしてある。
+  static const Color gold = Color(0xFFB08D4F);
 
   /// 明るい面の上に置くときの、少し濃いゴールド。
   static const Color goldOnLight = Color(0xFFB08D4F);
 
   /// 濃い地の上のゴールド（[gold] と同じ。呼び出し側の互換のため残す）。
-  static const Color goldOnDark = gold;
+  static const Color goldOnDark = Color(0xFFE9C87A);
 
   /// 区切り線。髪の毛ほどの細さで置く。
-  static const Color line = Color(0x22FFFFFF);
+  static const Color line = Color(0x22000000);
   static const Color lineOnDark = Color(0x22FFFFFF);
 
-  /// 画面の地。**濃紺で統一する。**
+  /// 画面の地。**白基調に戻した。**
   ///
-  /// ホームだけ濃紺で他が明るいと、タブを移るたびに明暗が入れ替わって
-  /// 別のアプリに見える。地は全画面そろえ、文字を白側に寄せる。
-  static const Color canvas = Color(0xFF12161F);
+  /// 2026-08 に濃紺へ寄せたが、黒文字が沈んで読めないという報告が続いた。
+  /// 地は白（明るい灰白）に戻し、文字は黒側に寄せる。
+  static const Color canvas = Color(0xFFF7F5F2);
 
   /// カードなど、地からひとつ持ち上げる面。
-  static const Color surface = Color(0xFF1B2130);
+  static const Color surface = Colors.white;
 
   /// さらに上に重ねる面（カードの中のカード）。
-  static const Color surfaceHigh = Color(0xFF232C40);
+  static const Color surfaceHigh = Color(0xFFF0EDE8);
 
   /// 文字。見出し・本文・添え物の3段だけ。
-  static const Color text = Color(0xFFF2F4F8);
-  static const Color textMuted = Color(0xB3FFFFFF);
-  static const Color textFaint = Color(0x80FFFFFF);
+  static const Color text = Color(0xFF2C3446);
+  static const Color textMuted = Color(0xFF6B7280);
+  static const Color textFaint = Color(0xFF9AA0A6);
 
   // ── 文字づかい ──────────────────────────────────────
   /// 節の見出し。小さく、字間を広く、大文字。
@@ -120,8 +120,8 @@ class AppStyle {
   /// 主役のボタン。塗りはゴールド1色、影は付けない。
   static ButtonStyle primaryButton = ElevatedButton.styleFrom(
     backgroundColor: gold,
-    // 明るいゴールドの上は黒字のほうが読める
-    foregroundColor: const Color(0xFF12161F),
+    // 濃いゴールドの上は白字のほうが読める
+    foregroundColor: Colors.white,
     elevation: 0,
     padding: const EdgeInsets.symmetric(vertical: 18),
     shape: const StadiumBorder(),
