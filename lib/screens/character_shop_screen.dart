@@ -870,6 +870,14 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   /// 💰 課金セクション（コインパック・広告除去・プレミアム）。
   Widget _iapSection(MetaStrings m, PlayerProfile p) {
     final iap = IapService.instance;
+    // ストア未接続・商品未登録のときは、縦に長い「準備中」ボタンを並べず、
+    // 1行の案内だけ出す（ショップがスッキリする）。
+    if (!iap.available) {
+      return _sectionHeader(
+        m.ja ? '🪙 コインを買う（準備中）' : '🪙 Buy coins (coming soon)',
+        m.ja ? 'ストア接続後に価格を表示します' : 'Prices appear once connected to the store',
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
