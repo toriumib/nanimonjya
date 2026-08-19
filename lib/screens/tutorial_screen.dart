@@ -425,8 +425,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
     // 最初のページだけは自動で話しかける（以降はページ送りのたびに話す）
     if (!_spokeFirstPage) {
       _spokeFirstPage = true;
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _speak(pages[0], ja));
+      // 自動音声は不要のため無効化（ユーザー要望）
+      // WidgetsBinding.instance
+      //     .addPostFrameCallback((_) => _speak(pages[0], ja));
     }
 
     // ⚠️ Androidの戻るボタンで抜けられると markTutorialDone() を通らず、
@@ -498,7 +499,8 @@ class _TutorialScreenState extends State<TutorialScreen> {
               onPageChanged: (i) {
                 setState(() => _page = i);
                 saveTutorialPage(i); // 途中で閉じても続きから読める
-                _speak(pages[i], ja);
+                // 自動音声は不要のため無効化（ユーザー要望）
+                // _speak(pages[i], ja);
               },
               itemBuilder: (context, i) => _buildPage(pages[i]),
             ),
