@@ -52,10 +52,9 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     if (!await shouldPlayTutorial()) return;
     if (!mounted) return;
 
-    // 🎁 まずウェルカムギフト（コイン＋キャラ即付与）。読ませない。与える。
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => const WelcomeGiftScreen()));
-    if (!mounted) return;
+    // 🎁 ウェルカムギフトは画面を出さず、その場でコイン＋キャラを渡す。
+    //    「さあ、はじめよう！」の導入画面は初回離脱の原因なので出さない。
+    await WelcomeGiftScreen.grantSilently();
 
     // チュートリアルを「見る／見ない」で選ばせる。
     final m = MetaStrings.of(context);

@@ -703,7 +703,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     _roundHits.add(correct && !takenByCpu);
     setState(() => _pickedChoice = choice ?? '__timeout__');
 
-    Future.delayed(const Duration(milliseconds: 750), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (!mounted) return;
       _pickedChoice = null;
       _answerLocked = false;
@@ -719,13 +719,16 @@ class _NameCallScreenState extends State<NameCallScreen>
       _cardsWon[0] += gained;
       if (gained > 0) {
         Sfx.instance.get(); // 🎴 カードが手に入った音
-        // 🔥 連続しているときは、そちらを見せる。ただの獲得より嬉しい
-        _showBanner(
-          _combo >= 3 ? m.comboBanner(_combo) : m.cardGetBanner,
-          _combo >= 3
-              ? const [Color(0xFFFF3D6A), Color(0xFFFFC02E)]
-              : const [Color(0xFFFF6A3D), Color(0xFFFFC02E)],
-        );
+        // 🔥 バナー（カードゲット！）はみんなで対戦のときだけ出す。
+        //    ひとりではマル/×の結果が出れば十分で、表示はテンポを落とす。
+        if (widget.humanPlayers > 1) {
+          _showBanner(
+            _combo >= 3 ? m.comboBanner(_combo) : m.cardGetBanner,
+            _combo >= 3
+                ? const [Color(0xFFFF3D6A), Color(0xFFFFC02E)]
+                : const [Color(0xFFFF6A3D), Color(0xFFFFC02E)],
+          );
+        }
       }
       // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
       //    プレイヤーのおてつきは没収せず、誰の点にもならない。
@@ -753,11 +756,14 @@ class _NameCallScreenState extends State<NameCallScreen>
       Sfx.instance.get();
       Sfx.instance.coin();
       HapticFeedback.mediumImpact();
-      // 誰が取ったかを、その人の色で出す
-      _showBanner(
-        widget.humanPlayers <= 1 ? m.cardGetBanner : m.playerGotBanner(player + 1),
-        _playerColors(player),
-      );
+      // 誰が取ったかを、その人の色で出す（みんなで対戦のときだけ。
+      // ひとりでは正誤の結果が出れば十分で、表示はテンポを落とす）。
+      if (widget.humanPlayers > 1) {
+        _showBanner(
+          m.playerGotBanner(player + 1),
+          _playerColors(player),
+        );
+      }
     } else {
       Sfx.instance.wrong();
       // 📛 みんなで（一台）＝審判モードでは、名前をつけた人が
