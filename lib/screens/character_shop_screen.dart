@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
@@ -159,9 +160,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       decoration: BoxDecoration(
                         // 黄色い塗りと影をやめ、白地に細い枠。
                         // 残高は数字そのものを大きく見せれば足りる。
-                        color: Colors.white,
+                        color: AppStyle.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Color(0x22000000), width: 1),
+                        border: Border.all(color: AppStyle.line, width: 1),
                       ),
                       child: Column(children: [
                         Row(children: [
@@ -305,9 +306,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final shop = DailyShop.generate(42);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppStyle.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0x22000000), width: 1),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1094,7 +1095,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
 
   // ── 落ち着いた作り（ホーム・マイページと同じ作法）──────────
   //    見出しは小さく字間を広く。効かせる色はゴールド1色。
-  static const Color _gold = Color(0xFFB08D4F);
+  static const Color _gold = AppStyle.gold;
 
   Widget _sectionHeader(String title, String desc) {
     // 見出しの先頭に付いていた絵文字は落とす（節ごとに色と絵柄が増えて散らかる）

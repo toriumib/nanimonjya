@@ -107,10 +107,18 @@ class IapService extends ChangeNotifier {
 
     // 購入完了・保留のストリームを監視。
     // ⚠️ 先に listen しておくこと。起動直後に「前回未完了の購入」が流れてくる。
-    _sub = _iap.purchaseStream.listen(
-      _onPurchaseUpdate,
-      onError: (Object err) => debugPrint('IAP purchase stream error: $err'),
-    );
+    //    Google Play 非搭載の端末（Bluestacks 等）では _iap への初アクセスで
+    //    InAppPurchase.instance が throw しうる。ここを try の外に置くと
+    //    非同期例外になり、main.dart の try/catch は async を拾えないため起動時に落ちる。
+    try {
+      _sub = _iap.purchaseStream.listen(
+        _onPurchaseUpdate,
+        onError: (Object err) => debugPrint('IAP purchase stream error: $err'),
+      );
+    } catch (e) {
+      debugPrint('IAP purchase stream setup error: $e');
+      return;
+    }
 
     try {
       if (!await _iap.isAvailable()) {

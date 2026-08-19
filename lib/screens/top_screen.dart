@@ -30,6 +30,7 @@ import '../services/reward_ad_helper.dart'; // 無料コインチェストの広
 import '../l10n/meta_strings.dart'; // マイページ導線の文言
 import '../l10n/memory_tips.dart'; // 名前を覚えるTips
 import '../widgets/seasonal_decor.dart'; // 季節の舞い落ち装飾
+import '../widgets/app_style.dart'; // 🎨 見た目の決まりごと
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 import '../services/app_analytics.dart';
@@ -448,13 +449,16 @@ class _TopScreenState extends State<TopScreen>
     final m = MetaStrings.of(context);
     // 難易度の中身（覚える人数・持ち時間・コイン）は models/cpu_difficulty.dart が
     // 一次情報。ここに数字を直書きすると実際の報酬と食い違うので必ず参照する。
+    // 難易度は**色ではなく濃さ**で示す。虹色に塗り分けると、
+    // どれが強いのかが色から読み取れないうえ、画面だけ賑やかになる。
+    // 上に行くほど濃く＝手ごわい、という並びにする。
     const colors = [
-      Color(0xFF4ECDC4),
-      Color(0xFF3A7BD5),
-      Color(0xFFE8663C),
-      Color(0xFF8A5AC2),
-      Color(0xFFFFD700),
-      Color(0xFF7B2D8E),
+      Color(0xFF2A3346),
+      Color(0xFF333E55),
+      Color(0xFF3D4A66),
+      Color(0xFF485777),
+      Color(0xFF556488),
+      Color(0xFF637199),
     ];
     final rows = [
       for (final (i, lv) in [
@@ -489,16 +493,14 @@ class _TopScreenState extends State<TopScreen>
               //    （models/cpu_difficulty.dart が一次情報）、
               //    そこへ別の人数設定を重ねると報酬とつり合わなくなる。
               //    選ぶのは難易度ひとつだけにする。
-              Text(m.cpuPickTitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 4),
-              Text(m.cpuPickHint,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 12, color: Colors.black54)),
-              const SizedBox(height: 14),
+              _stepLabel(2, m.ja ? '相手を選ぶ（押すと始まります）'
+                  : 'Pick your rival — tap to start'),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 12),
+                child: Text(m.cpuPickHint,
+                    style: const TextStyle(
+                        fontSize: 12, height: 1.4, color: AppStyle.textMuted)),
+              ),
               for (final (lv, diff, color) in rows) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -571,11 +573,18 @@ class _TopScreenState extends State<TopScreen>
   }
 
   /// CPU戦で遊ぶゲームを選ぶ。既定は神経衰弱（従来どおり）。
+  ///
+  /// ⚠️ **横並び（Row + CrossAxisAlignment.stretch）にしないこと。**
+  ///    スクロールの中で高さが無限に伸び、下にある難易度の一覧が
+  ///    画面外へ押し出されて「選んだあと何をすればいいか分からない」
+  ///    状態になっていた。縦に積めばこの問題は起きない。
   Widget _cpuGameToggle(MetaStrings m, StateSetter setSheetState) {
     Widget option(bool nameCall, String title, String desc) {
       final selected = _cpuNameCall == nameCall;
-      return Expanded(
-        child: GestureDetector(
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
           onTap: () {
             Sfx.instance.pop();
             setSheetState(() => _cpuNameCall = nameCall);
@@ -583,38 +592,43 @@ class _TopScreenState extends State<TopScreen>
             AppAnalytics.settingChange(
                 'cpu_game', nameCall ? 'namecall' : 'pairs');
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 140),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: selected ? const Color(0xFF1B2130) : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
+              color: selected ? const Color(0x14B08D4F) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selected
-                    ? const Color(0xFFB08D4F)
-                    : const Color(0xFFD5D8DE),
-                width: selected ? 1.6 : 1.2,
+                color: selected ? AppStyle.gold : AppStyle.line,
+                width: selected ? 1.6 : 1,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                        color: selected
-                            ? const Color(0xFFE9C87A)
-                            : const Color(0xFF394150))),
-                const SizedBox(height: 4),
-                Text(desc,
-                    style: TextStyle(
-                        fontSize: 11,
-                        height: 1.4,
-                        color: selected
-                            ? Colors.white70
-                            : const Color(0xFF6B7280))),
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 20,
+                  color: selected ? AppStyle.gold : AppStyle.textFaint,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: AppStyle.title.copyWith(
+                              fontSize: 15,
+                              color: selected ? AppStyle.gold : AppStyle.text)),
+                      const SizedBox(height: 2),
+                      Text(desc,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              height: 1.35,
+                              color: AppStyle.textMuted)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -625,27 +639,43 @@ class _TopScreenState extends State<TopScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(m.ja ? '遊びかた' : 'Game',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-                color: Color(0xFF6B7280))),
-        const SizedBox(height: 10),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            option(false, m.ja ? 'ペアさがし' : 'Pair Match',
-                m.ja ? 'カードをめくって同じ人をそろえる' : 'Flip cards and match the pair'),
-            const SizedBox(width: 10),
-            option(true, m.ja ? 'なまえコール' : 'Name Call',
-                m.ja ? '再登場した顔の名前を4択で答える' : 'Recall the name from four choices'),
-          ],
-        ),
+        _stepLabel(1, m.ja ? '遊びかたを選ぶ' : 'Pick the game'),
+        option(false, m.ja ? 'ペアさがし' : 'Pair Match',
+            m.ja ? 'カードをめくって同じ人をそろえる' : 'Flip cards and match the pair'),
+        option(true, m.ja ? 'なまえコール' : 'Name Call',
+            m.ja ? '再登場した顔の名前を4択で答える' : 'Recall the name from four choices'),
       ],
     );
   }
+
+  /// 「1.」「2.」と番号を振った手順の見出し。
+  /// 選ぶものが2つある画面は、順番を示さないと手が止まる。
+  Widget _stepLabel(int step, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                  color: AppStyle.gold, shape: BoxShape.circle),
+              child: Text('$step',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ),
+            const SizedBox(width: 10),
+            Text(text,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                    color: AppStyle.text)),
+          ],
+        ),
+      );
 
   /// みんなで対戦（なまえがお）の人数を選んでスタート
   void _pickLocalPlayers(BuildContext context) {

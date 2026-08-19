@@ -52,7 +52,8 @@ Future<void> main() async {
     try { MobileAds.instance.initialize(); } catch (_) {}
     try { AppOpenAdHelper.instance.start(); } catch (_) {}
     try { InterstitialAdHelper.instance.load(); } catch (_) {}
-    try { IapService.instance.init(); } catch (_) {}
+    // ⚠️ init() は async なので try/catch では拾えない。rejection を明示的に握る。
+    IapService.instance.init().catchError((Object _) {});
     try { PushService.instance.init(); } catch (_) {}
   }
   // 🧠 画像キャッシュの上限を絞る。
@@ -131,11 +132,17 @@ class MyApp extends StatelessWidget {
         'Yu Gothic',
       ],
       textTheme: baseTextTheme.apply(fontFamily: 'ZenMaruGothic'),
+      // 🖤 地は全画面そろえて濃紺にする。
+      //    ⚠️ brightness を dark にするのが肝。ここを light のままで
+      //       背景だけ濃くすると、Flutter が用意する既定の文字色（黒）が
+      //       そのまま使われて、**画面のあちこちで文字が読めなくなる**。
+      brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: accent,
+        brightness: Brightness.dark,
         primary: accent,
-        secondary: const Color(0xFF4ECDC4), // ポップシアン
-        tertiary: const Color(0xFFFFD93D), // サニーイエロー
+        surface: AppStyle.surface,
+        onSurface: AppStyle.text,
       ),
       scaffoldBackgroundColor: AppStyle.canvas, // 明るい灰白（白はまぶしい）
       visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -190,6 +197,25 @@ class MyApp extends StatelessWidget {
         elevation: 0,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppStyle.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: AppStyle.line, width: 1),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppStyle.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: AppStyle.text,
+        iconColor: AppStyle.textMuted,
       ),
       dividerTheme: const DividerThemeData(
         color: AppStyle.line,

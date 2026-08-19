@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
@@ -188,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF7F5F2),
+      backgroundColor: AppStyle.canvas,
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => ListView(
@@ -243,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(width: 4),
           Text('$coins',
               style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Color(0xFF8A6A1E))),
+                  fontWeight: FontWeight.bold, color: AppStyle.gold)),
         ],
       ),
     );
@@ -254,13 +255,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ホームは濃紺＋ゴールド。こちらは本文が黒なので地は明るいままにし、
   // **影を落とす・枠を細くする・見出しを小さく字間を広くする**の3点で
   // 同じ表情にそろえる。効かせる色はゴールド1色。
-  static const Color _gold = Color(0xFFB08D4F);
-  static const Color _line = Color(0x22000000);
+  static const Color _gold = AppStyle.gold;
+  static const Color _line = AppStyle.line;
 
   Widget _sectionCard({required String title, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppStyle.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line, width: 1),
       ),
@@ -304,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFBF9F5),
+        color: AppStyle.surfaceHigh,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _line, width: 1),
       ),
@@ -333,7 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontSize: 11.5,
                   height: 1.35,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF8A6A1E)),
+                  color: AppStyle.gold),
             ),
           ),
         ],
@@ -735,7 +736,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: Text(m.achDesc(a.id)),
               trailing: Text('+${a.rewardCoins}🪙',
                   style: TextStyle(
-                      color: unlocked ? const Color(0xFF8A6A1E) : Colors.grey)),
+                      color: unlocked ? AppStyle.gold : Colors.grey)),
             ),
           );
         }).toList(),

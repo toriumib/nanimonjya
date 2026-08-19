@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_style.dart';
+
 import '../services/player_profile.dart';
 
 /// 📅 ハンコカレンダー。
@@ -44,7 +46,7 @@ class StampCalendar extends StatelessWidget {
           ja
               ? 'ボーナスを受け取った日にハンコが押されます。すき間が少なくなるように。'
               : 'A stamp appears on each day you collect the bonus. Try to leave no gaps.',
-          style: const TextStyle(fontSize: 11, color: Colors.black54),
+          style: const TextStyle(fontSize: 11, color: AppStyle.textMuted),
         ),
         const SizedBox(height: 8),
         Row(
@@ -54,7 +56,7 @@ class StampCalendar extends StatelessWidget {
                 child: Center(
                   child: Text(w,
                       style: const TextStyle(
-                          fontSize: 10.5, color: Colors.black45)),
+                          fontSize: 10.5, color: AppStyle.textFaint)),
                 ),
               ),
           ],
@@ -79,7 +81,7 @@ class StampCalendar extends StatelessWidget {
   Widget _cell(int day, bool stamped, bool isToday) {
     return Container(
       decoration: BoxDecoration(
-        color: stamped ? const Color(0xFFFFE3E3) : Colors.white,
+        color: stamped ? const Color(0x33E9C87A) : AppStyle.surfaceHigh,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isToday
@@ -101,7 +103,7 @@ class StampCalendar extends StatelessWidget {
                     fontWeight: isToday ? FontWeight.w900 : FontWeight.normal,
                     color: isToday
                         ? const Color(0xFF3A7BD5)
-                        : Colors.black38)),
+                        : AppStyle.textFaint)),
       ),
     );
   }
