@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../l10n/memory_tips.dart';
-import '../services/interstitial_ad_helper.dart';
 import '../l10n/meta_strings.dart';
 import '../widgets/app_style.dart';
 import 'article_library_screen.dart';
@@ -24,8 +23,10 @@ class MemoryTipsScreen extends StatefulWidget {
 }
 
 class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
-  final PageController _pageController = PageController();
-  int _page = 0;
+  /// 全話を1本のスクロールで読めるようにした。目次からはこのスクロールを
+  /// 該当セクションまでジャンプさせる。各話の先頭に key を付けて特定する。
+  final List<GlobalKey> _sectionKeys =
+      List.generate(kMemoryTipPages.length, (_) => GlobalKey());
 
   @override
   void initState() {
@@ -34,33 +35,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     AppAnalytics.readOpen('memory_tips');
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  /// この画面で読んだページ数。
-  int _read = 0;
-
-  /// 何ページか読んだところで全画面広告の判定に回す。
-  ///
-  /// ⚠️ 読んでいる最中に割り込むと記事が読めなくなるので、
-  ///    ページを送った直後だけにする。実際に出るかどうかは
-  ///    InterstitialAdHelper 側の回数ゲートが決めるので、
-  ///    連続では出ない（広告除去を買った人には出ない）。
-  static const int _pagesPerAdCheck = 5;
-
-  void _countRead() {
-    _read += 1;
-    if (_read % _pagesPerAdCheck != 0) return;
-    InterstitialAdHelper.instance.onGameFinished();
-  }
-
-  /// 📑 目次を開く。選んだ話へその場で飛ぶ。
-  ///
-  /// ページ送りの点（ドット）は「どのあたりか」しか分からず、
-  /// 読みたい話を探すのには使えない。題名で選べるようにする。
+  /// 📑 目次を開く。選んだ話へその場で飛ぶ（スクロール位置までジャンプ）。
   Future<void> _openContents(bool ja) async {
     Sfx.instance.pop();
     const pages = kMemoryTipPages;
@@ -98,25 +73,17 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (ctx, i) {
                   final p = pages[i];
-                  final current = i == _page;
                   return ListTile(
                     leading: Text(p.emoji,
                         style: const TextStyle(fontSize: 22)),
                     title: Text(
                       ja ? p.titleJa : p.titleEn,
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight:
-                            current ? FontWeight.w900 : FontWeight.w600,
-                        color: current ? const Color(0xFF3A7BD5) : null,
-                      ),
+                      style: const TextStyle(
+                          fontSize: 14.5, fontWeight: FontWeight.w600),
                     ),
-                    trailing: current
-                        ? const Icon(Icons.play_arrow_rounded,
-                            color: Color(0xFF3A7BD5))
-                        : Text('${i + 1}',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.black38)),
+                    trailing: Text('${i + 1}',
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.black38)),
                     onTap: () => Navigator.pop(ctx, i),
                   );
                 },
@@ -127,9 +94,11 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
       ),
     );
     if (picked == null || !mounted) return;
-    // アニメーションで送ると17ページぶん流れてしまうので、直接跳ぶ
-    _pageController.jumpToPage(picked);
-    setState(() => _page = picked);
+    // 該当セクションまでスクロールで跳ぶ（アニメーションで送ると長いので直接）。
+    final ctx = _sectionKeys[picked].currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400));
+    }
   }
 
   @override
@@ -137,7 +106,6 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
     final ja = Localizations.localeOf(context).languageCode == 'ja';
     final m = MetaStrings.of(context);
     const pages = kMemoryTipPages;
-    final isLast = _page == pages.length - 1;
 
     return Scaffold(
       bottomNavigationBar: const BannerAdSlot(placement: 'memory_tips'),
@@ -146,8 +114,7 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
         // タブとして表示するときは戻る矢印を出さない
         automaticallyImplyLeading: !widget.embedded,
         actions: [
-          // 📑 目次。17ページを1枚ずつ送るのは大変なので、
-          //    読みたい話へ直接飛べるようにする。
+          // 📑 目次。全話を縦スクロールで読めるので、読みたい話へ直接飛ぶ。
           IconButton(
             tooltip: ja ? '目次' : 'Contents',
             icon: const Icon(Icons.list_alt_rounded),
@@ -155,187 +122,94 @@ class _MemoryTipsScreenState extends State<MemoryTipsScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: pages.length,
-              onPageChanged: (i) {
-                // 📊 何ページ目で閉じられるかを見る。全25話あるので、
-                //    開いた数だけでは、どこで飽きたのかが分からない。
-                AppAnalytics.readPage(articleId: 'memory_tips', page: i);
-                if (i == pages.length - 1) {
-                  AppAnalytics.readFinish('memory_tips');
-                }
-                setState(() => _page = i);
-                _countRead();
-              },
-              itemBuilder: (context, i) => _buildPage(pages[i], ja),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: Column(
-              children: [
-                // 進み具合。話数が多いので点を並べず、
-                // 「7 / 17」と細いバーで出す（点17個は数えられない）。
-                Row(
-                  children: [
-                    Text('${_page + 1} / ${pages.length}',
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF3A7BD5))),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: (_page + 1) / pages.length,
-                          minHeight: 6,
-                          backgroundColor: Colors.grey.shade300,
-                          valueColor: const AlwaysStoppedAnimation(
-                              AppStyle.gold),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    TextButton.icon(
-                      onPressed: () => _openContents(ja),
-                      icon: const Icon(Icons.list_alt_rounded, size: 18),
-                      label: Text(ja ? '目次' : 'Contents',
-                          style: const TextStyle(
-                              fontSize: 12.5, fontWeight: FontWeight.w900)),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        minimumSize: const Size(0, 32),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                // 📚 最後のページに、コインで読める記事の一覧を置く。
-                //    ここまで読んだ人がいちばん「もっと読みたい」状態にある。
-                if (isLast) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Sfx.instance.pop();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const ArticleLibraryScreen()),
-                        );
-                      },
-                      icon: const Icon(Icons.menu_book_rounded),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w900),
-                      ),
-                      label: Text(m.articleMoreButton),
-                    ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 全話を1本に連結。目次から各話の先頭へジャンプできる。
+            for (var i = 0; i < pages.length; i++)
+              KeyedSubtree(
+                key: _sectionKeys[i],
+                child: _buildPage(pages[i], ja),
+              ),
+            // 📚 最後に、コインで読める記事の一覧へ。
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Sfx.instance.pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const ArticleLibraryScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.menu_book_rounded),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w900),
                   ),
-                  const SizedBox(height: 10),
-                ],
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (isLast) {
-                        // タブ表示のときは閉じずに先頭へ戻す（読み返しやすくする）
-                        if (widget.embedded) {
-                          _pageController.animateToPage(0,
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeOut);
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      } else {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    child: Text(
-                      isLast
-                          ? (widget.embedded
-                              ? (ja ? '最初から読む ↺' : 'Read again ↺')
-                              : m.memoryTipsDone)
-                          : (ja ? 'つぎへ →' : 'Next →'),
-                    ),
-                  ),
+                  label: Text(m.articleMoreButton),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPage(MemoryTipPage p, bool ja) {
-    return SingleChildScrollView(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          // 読み物は文字が主役。色のグラデーションと白い太枠をやめ、
-          // 白地＋細い枠にして、本文の可読性に場所を譲る。
-          color: AppStyle.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppStyle.line, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        // 読み物は文字が主役。色のグラデーションと白い太枠をやめ、
+        // 白地＋細い枠にして、本文の可読性に場所を譲る。
+        color: AppStyle.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppStyle.line, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(p.emoji, style: const TextStyle(fontSize: 56)),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(20),
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(p.emoji, style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    p.title(ja),
-                    style: const TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF3A7BD5),
-                    ),
-                    textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Text(
+                  p.title(ja),
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF3A7BD5),
                   ),
-                  const SizedBox(height: 12),
-                  // 📖 読みやすさ: 本文をそのまま流すと、出典や注意書きまで
-                  //    同じ見た目で続いて読みにくい。段落ごとに分け、
-                  //    **強調**・🔬出典・⚠️注意 を書式で区別する。
-                  ..._paragraphs(p.body(ja)),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                // 📖 読みやすさ: 本文をそのまま流すと、出典や注意書きまで
+                //    同じ見た目で続いて読みにくい。段落ごとに分け、
+                //    **強調**・🔬出典・⚠️注意 を書式で区別する。
+                ..._paragraphs(p.body(ja)),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
