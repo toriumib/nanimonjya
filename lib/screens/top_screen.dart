@@ -34,6 +34,8 @@ import '../widgets/app_style.dart'; // 🎨 見た目の決まりごと
 import '../widgets/game_ui.dart'; // 立体ボタン・縁取り文字・後光
 import '../widgets/guide_talk.dart'; // 🗣 ナナちゃん・はなちゃんの声かけ
 import '../services/app_analytics.dart';
+import '../services/feedback_service.dart'; // 📮 ゲーム内ご意見・不具合
+import 'package:share_plus/share_plus.dart'; // 📣 SNSシェア
 
 // 多言語対応のために追加
 
@@ -1309,6 +1311,35 @@ class _TopScreenState extends State<TopScreen>
                     ),
                   ),
                   ],
+                  // 📮📣 ご意見・不具合 ＋ SNSシェア
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _openFeedbackSheet,
+                            icon: const Text('📮', style: TextStyle(fontSize: 15)),
+                            label: Text(m.feedbackHomeButton),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _shareApp,
+                            icon: const Text('📣', style: TextStyle(fontSize: 15)),
+                            label: Text(m.shareAppButton),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 2),
                 ],
               ),
@@ -1360,6 +1391,88 @@ class _TopScreenState extends State<TopScreen>
     if (mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
+  }
+
+  /// 📮 ご意見・不具合をゲーム内から送る（Firestore の feedback コレクションへ）。
+  Future<void> _openFeedbackSheet() async {
+    final m = MetaStrings.of(context);
+    final controller = TextEditingController();
+    var sending = false;
+
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppStyle.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: StatefulBuilder(
+          builder: (ctx, setSheetState) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(m.feedbackTitle,
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 6),
+                Text(m.feedbackHint,
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppStyle.textMuted,
+                        height: 1.4)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLines: 4,
+                  maxLength: 2000,
+                  decoration: InputDecoration(
+                    hintText: m.feedbackHint,
+                    filled: true,
+                    fillColor: AppStyle.surfaceHigh,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppStyle.line),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: sending
+                      ? null
+                      : () async {
+                          setSheetState(() => sending = true);
+                          final sent =
+                              await FeedbackService.submit(controller.text);
+                          if (ctx.mounted) Navigator.pop(ctx, sent);
+                        },
+                  child: Text(sending ? m.feedbackSending : m.feedbackSend),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    controller.dispose();
+    if (ok == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(m.feedbackThanks)),
+      );
+    }
+  }
+
+  /// 📣 SNSでアプリの感想をシェアする（#なまえがお）。
+  Future<void> _shareApp() async {
+    final m = MetaStrings.of(context);
+    Sfx.instance.pop();
+    await Share.share(
+        '${m.shareAppText}\nhttps://web-sigma-drab-72.vercel.app');
   }
 
   /// 📖🧑‍🎨⭐ ルール・チュートリアル・顔メモ・レビュー・マイページ・支援

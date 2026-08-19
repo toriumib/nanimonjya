@@ -1748,4 +1748,18 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '⭐ Google Play で評価する'
       : '⭐ Rate on Google Play';
 
+  // 📮📣 ゲーム内フィードバック＋SNSシェア
+  String get feedbackHomeButton => ja ? 'ご意見・不具合' : 'Feedback';
+  String get shareAppButton => ja ? '📣 シェア' : '📣 Share';
+  String get feedbackTitle => ja ? 'ご意見・不具合を送る' : 'Send feedback';
+  String get feedbackHint => ja
+      ? '気づいたこと・直してほしいことを教えてください（すぐに直します）'
+      : 'Tell us what you noticed or want fixed — we\'ll fix it fast';
+  String get feedbackSend => ja ? '送る' : 'Send';
+  String get feedbackSending => ja ? '送信中…' : 'Sending…';
+  String get feedbackThanks => ja ? '送りました。すぐに直します！' : 'Sent! We\'ll fix it soon.';
+  String get shareAppText => ja
+      ? '「ペタネーム」で顔と名前を覚えよう！ #なまえがお'
+      : 'Learn faces & names with PetaName! #なまえがお';
+
 }
