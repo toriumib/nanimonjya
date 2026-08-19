@@ -1,5 +1,19 @@
 ## v2.5.0 リリースノート
 
+### 🔧 今回の更新（お詫びと変更内容）
+
+**まず、以前のバージョンでゲームのバランスや表示にご不便をおかけしたことをお詫びいたします。** 今回の更新で、ご指摘いただいた点を中心に改善しました。
+
+**主な変更点**
+- **なまえコールの修正**: 同じ人が何度も出てくる問題を直し、1人につき「名前をつける → 思い出す」の1往復で終わるようにしました
+- **チュートリアルを1人に簡素化**: 2人で出てきて片方にしか回答できない不自然さを解消
+- **ひとりで対戦のテンポ改善**: 獲得表示をなくし、答えが分かったらすぐ次の問題へ進むように
+- **初回起動の簡素化**: 「さあ、はじめよう！」の導入画面を廃止し、起動後すぐ遊べるように
+- **よみものを読みやすく**: 全話を1つのスクロールで読めるようにし、目次からジャンプ可能に
+- **記事を10本追加**: 2026年の研究をもとにした記事を追加（コイン1,000で購入）
+- **コインを現金で買えるように**: ショップに課金（500／1,200／3,000コイン・広告除去・プレミアム）を常時表示
+- **タブとホームの整理**: 顔メモをタブに格上げ、ホームの「みんなで対戦」「ひとりで対戦」を大きく表示
+
 ### 🛍 ショップを大幅拡充（収益導線の強化）
 - 🌟 **神スキン**3種（黄金の記憶／宇宙の織り手／ネオン・ゴッド）を追加。覚えた枚数に応じて演出が豪華に
 - 💀 **ハードコアチケット**：次のゲームの報酬が3倍になる高難度オプション
@@ -57,6 +71,20 @@
 ---
 
 ## v2.5.0 Release Notes
+
+### 🔧 This Update (Apology & Changes)
+
+**We sincerely apologize for any inconvenience caused by the game's balance and display in previous versions.** This update focuses on the issues you reported.
+
+**Main changes**
+- **Name Call fix**: the same person no longer appears repeatedly — each person now appears once to name, then once to recall.
+- **Simplified tutorial**: now a single person, so it is clear who to answer for.
+- **Solo play pacing**: removed the card-get banners; the next question comes immediately after your answer.
+- **Faster first launch**: removed the "Let's begin!" intro screen so you can start playing right away.
+- **Easier reading**: all articles are now one continuous scroll with a table of contents for jumping.
+- **10 new articles** based on 2026 research (1,000 coins each).
+- **Buy coins with real money**: in-app purchases (500 / 1,200 / 3,000 coins, remove ads, premium) are now always visible in the shop.
+- **Reorganized tabs & home**: Face Notes is now a tab, and the Party Match / Solo Match buttons are larger.
 
 ### 🛍 Expanded Shop (monetization)
 - 🌟 **God Skins** (Golden Memory / Cosmic Weaver / Neon God) — increasingly flashy effects as you memorize more
