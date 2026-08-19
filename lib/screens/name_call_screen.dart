@@ -1714,6 +1714,15 @@ class _NameCallScreenState extends State<NameCallScreen>
   }
 
   Widget _roundResultBanner(MetaStrings m) {
+    // 💬 「どちらも取れなかった」は出さない。寂しい表示はテンポを落とすだけ。
+    final bool missedAll;
+    if (_isReferee) {
+      missedAll = !_roundClaimer.any((c) => c >= 0);
+    } else {
+      missedAll = _roundHits.where((h) => h).isEmpty;
+    }
+    if (missedAll) return const SizedBox.shrink();
+
     final String text;
     final Color color;
     if (_isReferee) {
