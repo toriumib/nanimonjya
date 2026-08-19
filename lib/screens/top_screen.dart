@@ -10,9 +10,11 @@ import 'package:url_launcher/url_launcher.dart'; // Google Play 評価リンク
 import 'package:nanimonjya/l10n/app_localizations.dart';
 import 'name_call_screen.dart'; // メインモード「なまえがお」
 import 'memory_tips_screen.dart';
+import 'training_hub_screen.dart';
 import 'cpu_entry_screen.dart'; // CPU対戦まえの参戦演出
 import 'match_game_screen.dart' show CpuLevel;
 import 'custom_roster_screen.dart'; // 🧑‍🎨 顔メモ
+import 'online_lobby_screen.dart'; // オンライン対戦の待合室
 import 'profile_screen.dart'; // マイページ・戦績
 import 'tutorial_screen.dart'; // あそびかたチュートリアル
 import 'rulebook_screen.dart'; // 📖 ルールブック
@@ -142,6 +144,40 @@ class _TopScreenState extends State<TopScreen>
         title: m.cpuButtonCompact,
         subtitle: m.ja ? 'CPUと1対1。難易度で人数と持ち時間が変わります' : 'One on one. Difficulty changes faces and time',
         onTap: () => _pickCpuLevel(context),
+      ),
+      _modeRow(
+        title: m.onlineButtonCompact,
+        subtitle: m.ja ? '合言葉で友だちと、または誰かと' : 'With a friend by passphrase, or a stranger',
+        onTap: () {
+          Sfx.instance.fanfare();
+          AppAnalytics.modePick('online_friend');
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => OnlineLobbyScreen(
+                      game: 'namecall', initialPeople: _peopleCount)));
+        },
+      ),
+      if (!kIsWeb)
+        _modeRow(
+          title: m.rankButtonCompact,
+          subtitle: m.ja ? '勝つとレートが上がります' : 'Win to raise your rating',
+          onTap: () {
+            Sfx.instance.fanfare();
+            AppAnalytics.modePick('rank');
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const OnlineLobbyScreen(game: 'rank')));
+          },
+        ),
+      _modeRow(
+        title: m.trainingButtonCompact,
+        subtitle: m.ja ? '名刺で自己紹介 → 時間をおく → 思い出す' : 'Meet by business card, wait, then recall',
+        onTap: () {
+          Sfx.instance.pop();
+          AppAnalytics.modePick('training_hub');
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const TrainingHubScreen()));
+        },
       ),
     ];
 
