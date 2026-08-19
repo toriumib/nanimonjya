@@ -42,73 +42,48 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
     _maybeShowTutorial();
   }
 
-  /// 初回起動の人を、**まず1ゲームに入れる**。
+  /// 初回起動の人に、まずウェルカムギフトを渡してから
+  /// 「チュートリアルを見る？」を聞く。見るなら なまえがお を
+  /// ゲーム形式で1回だけ体験してもらう。
   ///
-  /// ⚠️ 以前は「あそびかた（全11ページ）を読ませてから、おためし」の順だった。
-  ///    2026-08 の計測で、**起動した162人のうちゲームを始めたのは75人**。
-  ///    半分が、遊ぶ前に消えていた。
-  ///    説明を先に置くと、読み終わる前に閉じられて、ゲームに辿りつかない。
-  ///
-  /// なので順番を逆にした。**遊ぶ → 面白かった人だけが読む。**
-  /// 説明は押しつけず、遊び終わったあとに一度だけ声をかける。
-  /// 断られたらそれ以上は勧めない（`markTutorialSkipped` が2回で諦める）。
+  /// ⚠️ 「あそびかた」（読み物）は自動で開かない。ホームの
+  ///    「あそびかた」ボタンを押したときだけ開く（押しつけは離脱の原因）。
   Future<void> _maybeShowTutorial() async {
-    final needPlay = await shouldPlayTutorial();
-    final needRead = await shouldShowTutorial();
+    if (!await shouldPlayTutorial()) return;
+    if (!mounted) return;
 
     // 🎁 まずウェルカムギフト（コイン＋キャラ即付与）。読ませない。与える。
-    if (needPlay) {
-      if (!mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const WelcomeGiftScreen()));
-      if (!mounted) return;
-      // チュートリアルゲーム（1分で終わる簡易版）
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialPlayScreen()));
-      if (!mounted) return;
-      if (needRead) await _offerGuide();
-      return;
-    }
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => const WelcomeGiftScreen()));
+    if (!mounted) return;
 
-    if (needRead) {
-      if (!mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialScreen()));
-    }
-  }
-
-  /// 遊んだあとに「あそびかたを読む？」と一度だけ聞く。
-  Future<void> _offerGuide() async {
+    // チュートリアルを「見る／見ない」で選ばせる。
     final m = MetaStrings.of(context);
-    final read = await showDialog<bool>(
+    final watch = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFFFF8E6),
-        title: Text(m.offerGuideTitle),
-        content: Text(
-          m.offerGuideBody,
-          style: const TextStyle(height: 1.6),
-        ),
+        title: Text(m.ja ? 'チュートリアル' : 'Tutorial'),
+        content: Text(m.ja
+            ? 'なまえがお の遊びかたを、実際に遊びながら覚えられます。'
+            : 'Learn Name Call by actually playing it.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(m.offerGuideLater),
+            child: Text(m.ja ? '見ない' : 'Skip'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(m.offerGuideRead),
+            child: Text(m.ja ? '見る' : 'Watch'),
           ),
         ],
       ),
     );
-    if (read == true) {
-      if (!mounted) return;
+    if (watch == true && mounted) {
       await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialScreen()));
-    } else {
-      // 断られた。しつこく出さない。
-      await markTutorialSkipped();
+          builder: (_) => const TutorialPlayScreen()));
     }
+    // 見る／見ない どちらでも「初回チュートリアルは済ませた」扱い。
+    await markTutorialPlayed();
   }
 
   @override

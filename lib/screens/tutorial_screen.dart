@@ -372,14 +372,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('🎉', style: TextStyle(fontSize: 56)),
-            const SizedBox(height: 10),
-            Text(
-              ja ? 'ぜんぶ よめたね！' : 'You read it all!',
-              style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFFB4326E)),
-            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
