@@ -187,19 +187,48 @@ class _TutorialScreenState extends State<TutorialScreen> {
         ),
         _TutorialPage(
           guideEmoji: '',
-          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
-          guideName: ja ? 'ハナ' : 'Hana',
-          title: ja ? '3. ひとりで対戦' : '3. Play solo',
+          guideAsset: 'assets/images/supporters/cheer_girl.svg',
+          guideName: ja ? 'ナナ' : 'Nana',
+          title: ja ? '3. みんなで対戦' : '3. Party match',
           points: ja
               ? [
-                  'ひとりで遊ぶなら、まずCPU戦から',
-                  '難易度で「まとめて覚える人数」と持ち時間が変わります',
-                  '勝つとコインがもらえます',
+                  'スマホ1台をみんなで回します',
+                  '出てきた顔に名前をつける',
+                  'もう一度出てきたら、先に名前を呼んだ人がカード獲得',
+                  'だれも思い出せなければ、次の人へ',
+                  '2〜12人まで人数を選べます',
+                  '獲得した枚数で勝敗が決まります',
                 ]
               : [
-                  'Playing alone? Start with a CPU match',
+                  'Pass one phone around the group',
+                  'Give each new face a name',
+                  'When it returns, the first to call the name takes the card',
+                  'If nobody recalls it, the card moves on',
+                  'Pick 2 to 12 players',
+                  'The most cards wins',
+                ],
+          illustration: '',
+          gradient: const [Color(0xFF1B2130), Color(0xFF2C3446)],
+        ),
+        _TutorialPage(
+          guideEmoji: '',
+          guideAsset: 'assets/images/supporters/cheer_girl2.svg',
+          guideName: ja ? 'ハナ' : 'Hana',
+          title: ja ? '4. ひとりで対戦' : '4. Play solo',
+          points: ja
+              ? [
+                  'ひとりで遊ぶなら「ひとりで対戦」を選びます',
+                  '出てきた顔に名前をつけて、もう一度出たら4択で答える',
+                  '正解するほどカードが増え、勝つとコインがもらえます',
+                  '難易度で「まとめて覚える人数」と持ち時間が変わります',
+                  'むずかしいほど、覚える人数が増えて時間が短くなります',
+                ]
+              : [
+                  'Choose "Play solo" to play by yourself',
+                  'Name each face, then answer from four choices when it returns',
+                  'More correct answers, more cards — win to earn coins',
                   'Difficulty changes how many faces at once, and your time',
-                  'Win and you earn coins',
+                  'Harder = more faces to learn, less time',
                 ],
           note: ja
               ? 'このほかに、名刺覚え・顔メモ・オンライン対戦があります（ルールブックで説明します）'

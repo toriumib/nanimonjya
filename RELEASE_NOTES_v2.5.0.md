@@ -16,6 +16,7 @@
 - **基本キャラを24種に拡充**: 追加キャラ9体を基本キャラへ昇格し、最初から24種の顔で遊べます
 - **みんなで対戦の人数をスライダー化**: 2〜12人まで自由に選べます
 - **デフォルト設定の調整**: 6人 × 1人4枚（山札24枚）に
+- **あそびかたを充実**: 「みんなで対戦」「ひとりで対戦」の遊び方をくわしく説明
 
 ### 🛍 ショップを大幅拡充（収益導線の強化）
 - 🌟 **神スキン**3種（黄金の記憶／宇宙の織り手／ネオン・ゴッド）を追加。覚えた枚数に応じて演出が豪華に
@@ -91,6 +92,7 @@
 - **24 base characters**: 9 shop characters were promoted to the base roster, so 24 faces are available from the start.
 - **Party Match player slider**: choose between 2 and 12 players with a slider.
 - **Default settings adjusted**: 6 people × 4 copies each (24-card deck).
+- **Enhanced how-to-play**: detailed guides for Party Match and Solo play.
 
 ### 🛍 Expanded Shop (monetization)
 - 🌟 **God Skins** (Golden Memory / Cosmic Weaver / Neon God) — increasingly flashy effects as you memorize more
