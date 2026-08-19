@@ -303,7 +303,7 @@ class _ArticleReaderScreenState extends State<_ArticleReaderScreen> {
               for (final s in article.sources)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
-                  child: Text('・$s',
+                  child: Text(m.ja ? '・$s' : '• $s',
                       style: const TextStyle(fontSize: 11.5, height: 1.6)),
                 ),
               const SizedBox(height: 16),

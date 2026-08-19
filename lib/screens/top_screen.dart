@@ -206,32 +206,6 @@ class _TopScreenState extends State<TopScreen>
     );
   }
 
-  /// 立体（沈む）ボタン。ゲームらしい押し心地の共通部品を利用。
-  Widget _gradientButton({
-    required String label,
-    required List<Color> colors,
-    required VoidCallback onTap,
-    double height = 48,
-    double fontSize = 15,
-  }) {
-    return JuicyButton(
-      onTap: onTap,
-      colors: colors,
-      height: height,
-      child: Text(
-        label,
-        style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            shadows: const [
-              Shadow(offset: Offset(0, 1.5), color: Color(0x55000000)),
-            ]),
-      ),
-    );
-  }
-
-
   /// 👥🎴 出てくる人数と、1人あたりの枚数を決めるスライダー。
   ///
   /// ⚠️ ホームには置かない。遊ぶ前に設定が2つ並んでいると、
@@ -1261,20 +1235,6 @@ class _TopScreenState extends State<TopScreen>
       ),
       ),
     );
-  }
-
-  /// 🔥 次のログインキャラまでの進捗テキスト。未解放がなければ null。
-  String? _loginCharProgress(int streak) {
-    for (final c in kExtraCharacters) {
-      if (!c.isLoginCharacter) continue;
-      if (PlayerProfile.instance.unlockedCharacters.contains(c.id)) continue;
-      final needed = loginDaysFor(c.feat!);
-      if (streak < needed) {
-        final m = MetaStrings.of(context);
-        return m.loginCharProgress(streak, needed, c.emoji);
-      }
-    }
-    return null;
   }
 
   /// 🚪 ホームの戻るボタンで「もう行っちゃうの？」を出す。

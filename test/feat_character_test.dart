@@ -50,7 +50,7 @@ void main() {
     test('つよいに3勝したら、まだ解放していない枠があれば参戦する', () async {
       // c19（hardWins3）は基本キャラへ昇格したが、他の腕前枠は健在。
       p.cpuHardWins = 3;
-      final newly = await p.refreshFeatCharacters();
+      await p.refreshFeatCharacters();
       // 条件を満たしていない（0勝）なら何も解放されない
       expect(await p.refreshFeatCharacters(), isEmpty);
     });

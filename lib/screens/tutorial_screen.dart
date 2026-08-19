@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/cpu_difficulty.dart';
 import '../services/player_profile.dart';
 import '../services/speech.dart';
 import '../widgets/banner_ad_slot.dart';
@@ -87,9 +86,6 @@ class _TutorialPage {
   final String? screenshot;
   final List<Color> gradient;
 
-  /// 表など、箇条書きでは伝わらないものを差し込む枠（難易度の説明で使う）。
-  final Widget? extra;
-
   const _TutorialPage({
     required this.guideEmoji,
     this.guideAsset,
@@ -99,7 +95,6 @@ class _TutorialPage {
     this.note,
     required this.illustration,
     this.screenshot,
-    this.extra,
     required this.gradient,
   });
 
@@ -237,71 +232,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
           gradient: const [Color(0xFF1B2130), Color(0xFF2C3446)],
         ),
       ];
-
-  /// 難易度の比較表。値は models/cpu_difficulty.dart が一次情報。
-  static Widget _difficultyTable(bool ja) {
-    const order = ['easy', 'normal', 'hard', 'oni'];
-    const namesJa = {
-      'easy': 'かんたん',
-      'normal': 'ふつう',
-      'hard': 'つよい',
-      'oni': '鬼',
-    };
-    const namesEn = {
-      'easy': 'Easy',
-      'normal': 'Normal',
-      'hard': 'Hard',
-      'oni': 'Oni',
-    };
-    const head = TextStyle(
-        fontSize: 11.5, fontWeight: FontWeight.w900, color: Color(0xFF2B5CA5));
-    const cell = TextStyle(fontSize: 12.5);
-
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(1.5),
-        1: FlexColumnWidth(1.6),
-        2: FlexColumnWidth(1.0),
-        3: FlexColumnWidth(1.2),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        TableRow(
-          decoration: const BoxDecoration(color: Color(0x14000000)),
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-              child: Text(ja ? 'つよさ' : 'Level', style: head),
-            ),
-            Text(ja ? 'おぼえる' : 'Memorize', style: head),
-            Text(ja ? 'じかん' : 'Time', style: head),
-            Text(ja ? '勝つと' : 'Win', style: head),
-          ],
-        ),
-        for (final k in order)
-          TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
-                child: Text(
-                  '${kCpuDifficulties[k]!.emoji} ${ja ? namesJa[k] : namesEn[k]}',
-                  style: cell,
-                ),
-              ),
-              Text(
-                ja
-                    ? '${kCpuDifficulties[k]!.groupSize}人ずつ'
-                    : '${kCpuDifficulties[k]!.groupSize} at once',
-                style: cell,
-              ),
-              Text('${kCpuDifficulties[k]!.answerSeconds}${ja ? '秒' : 's'}',
-                  style: cell),
-              Text('🪙${kCpuDifficulties[k]!.winBonus}', style: cell),
-            ],
-          ),
-      ],
-    );
-  }
 
   bool _voiceOn = true;
   bool _spokeFirstPage = false;
@@ -738,10 +668,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
                           ],
                         ),
                       ),
-                    if (p.extra != null) ...[
-                      const SizedBox(height: 6),
-                      p.extra!,
-                    ],
                     if (p.note != null) ...[
                       const SizedBox(height: 10),
                       Container(

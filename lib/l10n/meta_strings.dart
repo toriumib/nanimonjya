@@ -1763,4 +1763,18 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '「ペタネーム」で顔と名前を覚えよう！ #なまえがお'
       : 'Learn faces & names with PetaName! #なまえがお';
 
+  // 🧑‍🎨 アバター編集・顔メモの文言（2026-08 英語対応）
+  String get avatarEditorFeatureTitle => ja ? 'この人の特徴' : 'Key features';
+  String get avatarEditorFeatureHint => ja
+      ? 'メガネ・ほくろ・ひげ・髪型をつけると、\n思い出す手がかりになります。'
+      : 'Glasses, moles, beards, and hairstyles give you cues to recall.';
+  String get avatarEditorConfirmFace => ja ? 'この顔で決定' : 'Use this face';
+  String get faceMemoCreateAvatarHint =>
+      ja ? '似顔絵をつくる（写真が無いとき）' : 'Create a face (if no photo)';
+  String get faceMemoCreateAvatarSub => ja
+      ? '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます'
+      : 'Photos at work are awkward — keep their look with glasses, moles, and hair.';
+  String get faceMemoCreateAvatar => ja ? '似顔絵をつくる' : 'Create a face';
+  String get faceMemoEditFace => ja ? '顔を直す' : 'Edit face';
+
 }

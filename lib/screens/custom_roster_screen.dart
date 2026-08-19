@@ -186,10 +186,10 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             ListTile(
               leading: const Icon(Icons.face_retouching_natural,
                   color: Color(0xFF8A5AC2)),
-              title: const Text('似顔絵をつくる（写真が無いとき）'),
-              subtitle: const Text(
-                  '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます',
-                  style: TextStyle(fontSize: 11.5)),
+              title: Text(m.faceMemoCreateAvatarHint),
+              subtitle: Text(
+                  m.faceMemoCreateAvatarSub,
+                  style: const TextStyle(fontSize: 11.5)),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _addAvatar();
@@ -294,7 +294,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                               onPressed: _addAvatar,
                               icon: const Icon(
                                   Icons.face_retouching_natural, size: 26),
-                              label: const Text('似顔絵をつくる'),
+                              label: Text(m.faceMemoCreateAvatar),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF8A5AC2),
                                 foregroundColor: Colors.white,
@@ -794,7 +794,7 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
                 child: TextButton.icon(
                   onPressed: _editAvatar,
                   icon: const Icon(Icons.face_retouching_natural, size: 18),
-                  label: const Text('顔を直す'),
+                  label: Text(m.faceMemoEditFace),
                 ),
               ),
               if (_avatar!.featuresJa().isNotEmpty)
