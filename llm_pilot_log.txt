@@ -1,0 +1,22 @@
+[1/16] choices=['A', 'A'] predicts=['B', 'A'] C=0 G=1 P=1  (37s)
+[2/16] choices=['B', 'A'] predicts=['B', 'B'] C=1 G=0 P=0  (71s)
+[3/16] choices=['A', 'A'] predicts=['A', 'A'] C=0 G=0 P=0  (159s)
+[4/16] choices=['B', 'B'] predicts=['A', 'B'] C=0 G=1 P=1  (184s)
+[5/16] choices=['B', 'A'] predicts=['A', 'A'] C=1 G=1 P=0  (213s)
+[6/16] choices=['A', 'A'] predicts=['B', 'B'] C=0 G=1 P=0  (241s)
+[7/16] choices=['A', 'B'] predicts=['A', 'A'] C=1 G=0 P=0  (268s)
+[8/16] choices=['A', 'A'] predicts=['A', 'A'] C=0 G=0 P=0  (296s)
+[9/16] choices=['B', 'A'] predicts=['A', 'A'] C=1 G=1 P=0  (328s)
+[10/16] choices=['B', 'A'] predicts=['B', 'A'] C=1 G=0 P=1  (358s)
+[11/16] choices=['A', 'B'] predicts=['B', 'A'] C=1 G=1 P=1  (389s)
+[12/16] choices=['B', 'A'] predicts=['A', 'A'] C=1 G=1 P=0  (423s)
+[13/16] choices=['B', 'B'] predicts=['B', 'B'] C=0 G=0 P=0  (457s)
+[14/16] choices=['A', 'B'] predicts=['B', 'B'] C=1 G=1 P=0  (480s)
+[15/16] choices=['B', 'B'] predicts=['A', 'A'] C=0 G=1 P=0  (499s)
+[16/16] choices=['A', 'A'] predicts=['A', 'A'] C=0 G=0 P=0  (518s)
+Traceback (most recent call last):
+  File "C:\Users\tori\Downloads\nanimonjya-main\nanimonjya-main\gamma_llm_pilot.py", line 172, in <module>
+    main()
+  File "C:\Users\tori\Downloads\nanimonjya-main\nanimonjya-main\gamma_llm_pilot.py", line 168, in main
+    print("\n" + txt)
+UnicodeEncodeError: 'cp932' codec can't encode character '\u26a0' in position 535: illegal multibyte sequence
