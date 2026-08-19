@@ -13,6 +13,9 @@
 - **記事を10本追加**: 2026年の研究をもとにした記事を追加（コイン1,000で購入）
 - **コインを現金で買えるように**: ショップに課金（500／1,200／3,000コイン・広告除去・プレミアム）を常時表示
 - **タブとホームの整理**: 顔メモをタブに格上げ、ホームの「みんなで対戦」「ひとりで対戦」を大きく表示
+- **基本キャラを24種に拡充**: 追加キャラ9体を基本キャラへ昇格し、最初から24種の顔で遊べます
+- **みんなで対戦の人数をスライダー化**: 2〜12人まで自由に選べます
+- **デフォルト設定の調整**: 6人 × 1人4枚（山札24枚）に
 
 ### 🛍 ショップを大幅拡充（収益導線の強化）
 - 🌟 **神スキン**3種（黄金の記憶／宇宙の織り手／ネオン・ゴッド）を追加。覚えた枚数に応じて演出が豪華に
@@ -85,6 +88,9 @@
 - **10 new articles** based on 2026 research (1,000 coins each).
 - **Buy coins with real money**: in-app purchases (500 / 1,200 / 3,000 coins, remove ads, premium) are now always visible in the shop.
 - **Reorganized tabs & home**: Face Notes is now a tab, and the Party Match / Solo Match buttons are larger.
+- **24 base characters**: 9 shop characters were promoted to the base roster, so 24 faces are available from the start.
+- **Party Match player slider**: choose between 2 and 12 players with a slider.
+- **Default settings adjusted**: 6 people × 4 copies each (24-card deck).
 
 ### 🛍 Expanded Shop (monetization)
 - 🌟 **God Skins** (Golden Memory / Cosmic Weaver / Neon God) — increasingly flashy effects as you memorize more

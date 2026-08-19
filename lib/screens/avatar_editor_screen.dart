@@ -186,7 +186,10 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                             // ③ 絵にも出るが、思い出す手がかりでもあるもの
                             _tabList([
                               _picker('🚻 性別', kGenderJa, _a.gender,
-                                  (i) => _set(_a.copyWith(gender: i))),
+                                  (i) => _set(i == 2
+                                      // 女性はかわいい顔（ぱっちり目＋にっこり口）を提案
+                                      ? _a.copyWith(gender: i, eyes: 5, mouth: 1)
+                                      : _a.copyWith(gender: i))),
                               _slider(
                                   '🎂 年齢のめやす',
                                   '${_a.age}歳',
