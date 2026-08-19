@@ -137,6 +137,8 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> deckExcluded = {};
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
+  /// 💳 プレミアムサブスク（月額）に加入中か。加入中は広告なし・全機能。
+  bool premiumActive = false;
   /// 💎 プレミアムのおまけコインを渡したか。
   /// プレミアムは買い切りなので、機種変更のたびに「購入の復元」で
   /// 何度でも通る。解放系は何度通っても増えないが、コインだけは
@@ -308,6 +310,7 @@ class PlayerProfile extends ChangeNotifier {
     weekStartDate = p.getString('weekStartDate') ?? '';
     _refreshWeek();
     adsRemoved = p.getBool('adsRemoved') ?? false;
+    premiumActive = p.getBool('premiumActive') ?? false;
     premiumCoinsGranted = p.getBool('premiumCoinsGranted') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
@@ -728,6 +731,18 @@ class PlayerProfile extends ChangeNotifier {
     await _persist();
     notifyListeners();
   }
+
+  /// 💳 プレミアムサブスク（月額）の加入状態を反映する。
+  /// 加入中は広告なし・全機能になる。購読が切れたら false に戻す。
+  Future<void> setPremiumActive(bool value) async {
+    if (premiumActive == value) return;
+    premiumActive = value;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 広告を出さない状態か（広告除去の買い切り、またはプレミアム加入中）。
+  bool get adsRemovedOrPremium => adsRemoved || premiumActive;
 
   /// 💎 プレミアムのおまけコインを渡した印をつける。
   Future<void> setPremiumCoinsGranted(bool value) async {
@@ -1202,6 +1217,7 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('weeklyLearned', weeklyLearned);
     await p.setString('weekStartDate', weekStartDate);
     await p.setBool('adsRemoved', adsRemoved);
+    await p.setBool('premiumActive', premiumActive);
     await p.setBool('premiumCoinsGranted', premiumCoinsGranted);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);

@@ -100,7 +100,7 @@ class InterstitialAdHelper {
   Future<void> onGameFinished() async {
     if (!available) return;
     // 💳 広告除去を買ってくれた人には全画面広告を出さない
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
     final prefs = await SharedPreferences.getInstance();
     int plays = (prefs.getInt(_prefsKey) ?? 0) + 1;
     final now = DateTime.now().millisecondsSinceEpoch;

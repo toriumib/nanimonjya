@@ -97,7 +97,7 @@ class AppOpenAdHelper with WidgetsBindingObserver {
 
   void _showIfReady() {
     if (!available || _showing || suspended) return;
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
     if (_tooSoon) {
       AppAnalytics.adSkipped(
           format: 'app_open', placement: 'cold_start', reason: 'cooldown');

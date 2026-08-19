@@ -47,7 +47,7 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
     _requested = true;
     // 💎 広告除去を購入済みの人には出さない。
     // 課金機能自体は取り下げたが、買ってくれた人の権利は残す。
-    if (kIsWeb || PlayerProfile.instance.adsRemoved) return;
+    if (kIsWeb || PlayerProfile.instance.adsRemovedOrPremium) return;
     _loadAdaptiveBanner(MediaQuery.of(context).size.width.truncate());
   }
 
@@ -109,7 +109,7 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
 
   Widget _build(BuildContext context) {
     // 広告を出さない環境では場所も取らない
-    if (kIsWeb || PlayerProfile.instance.adsRemoved) {
+    if (kIsWeb || PlayerProfile.instance.adsRemovedOrPremium) {
       // 読み込み済みのバナーが残っていたら、その場で捨てる
       if (_bannerAd != null) {
         _bannerAd?.dispose();

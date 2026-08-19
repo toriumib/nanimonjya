@@ -74,6 +74,7 @@ class IapService extends ChangeNotifier {
   static const productCoins3000 = 'coins-3000';
   static const productRemoveAds = 'remove-ads';
   static const productPremium = 'premium';
+  static const productPremiumMonthly = 'premium_monthly';
 
   /// すべての商品ID
   static const allProductIds = [
@@ -82,10 +83,15 @@ class IapService extends ChangeNotifier {
     productCoins3000,
     productRemoveAds,
     productPremium,
+    productPremiumMonthly,
   ];
 
-  /// 買い切り（非消費型）の商品。復元の対象になるのはこの2つだけ。
-  static const nonConsumables = {productRemoveAds, productPremium};
+  /// 買い切り（非消費型）の商品。復元の対象になるのはこれら。
+  static const nonConsumables = {
+    productRemoveAds,
+    productPremium,
+    productPremiumMonthly,
+  };
 
   /// 商品IDごとの付与コイン。
   static const _coinsFor = {
@@ -240,6 +246,10 @@ class IapService extends ChangeNotifier {
     } else if (id == productRemoveAds) {
       await PlayerProfile.instance.setAdsRemoved(true);
     } else if (id == productPremium) {
+      await _deliverPremium();
+    } else if (id == productPremiumMonthly) {
+      // 💳 月額サブスク加入。広告なし・全機能を有効にする。
+      await PlayerProfile.instance.setPremiumActive(true);
       await _deliverPremium();
     } else {
       debugPrint('IAP: unknown product $id');

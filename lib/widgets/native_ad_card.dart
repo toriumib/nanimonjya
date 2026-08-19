@@ -32,7 +32,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
     super.didChangeDependencies();
     if (_requested) return;
     _requested = true;
-    if (kIsWeb || PlayerProfile.instance.adsRemoved || !AdIds.nativeAvailable) {
+    if (kIsWeb || PlayerProfile.instance.adsRemovedOrPremium || !AdIds.nativeAvailable) {
       return;
     }
     _loadNativeAd();
@@ -79,7 +79,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
   }
 
   Widget _build(BuildContext context) {
-    if (kIsWeb || PlayerProfile.instance.adsRemoved || !AdIds.nativeAvailable) {
+    if (kIsWeb || PlayerProfile.instance.adsRemovedOrPremium || !AdIds.nativeAvailable) {
       if (_ad != null) {
         _ad?.dispose();
         _ad = null;

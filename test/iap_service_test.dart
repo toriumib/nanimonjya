@@ -30,13 +30,19 @@ void main() {
     expect(IapService.productCoins3000, 'coins-3000');
     expect(IapService.productRemoveAds, 'remove-ads');
     expect(IapService.productPremium, 'premium');
-    expect(IapService.allProductIds.length, 5);
-    expect(IapService.allProductIds.toSet().length, 5, reason: 'IDが重複しない');
+    expect(IapService.productPremiumMonthly, 'premium_monthly');
+    expect(IapService.allProductIds.length, 6);
+    expect(IapService.allProductIds.toSet().length, 6, reason: 'IDが重複しない');
   });
 
   test('復元で渡していいのは買い切りだけ（消費型を含めるとコインが無限に増える）', () {
-    expect(IapService.nonConsumables,
-        {IapService.productRemoveAds, IapService.productPremium});
+    expect(
+        IapService.nonConsumables,
+        {
+          IapService.productRemoveAds,
+          IapService.productPremium,
+          IapService.productPremiumMonthly,
+        });
     for (final id in [
       IapService.productCoins500,
       IapService.productCoins1200,

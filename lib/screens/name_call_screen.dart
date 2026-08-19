@@ -342,7 +342,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   void _loadBanner() {
     if (kIsWeb) return;
     // 💳 広告除去を買ってくれた人にはバナーを出さない
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
     final ad = BannerAd(
       adUnitId: AdIds.banner,
       size: AdSize.banner,

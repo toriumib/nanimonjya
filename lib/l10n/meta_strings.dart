@@ -1696,6 +1696,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get iapPremiumDesc => ja
       ? '広告除去＋全キャラ＋全知識記事＋コイン2000枚。いちばんお得！'
       : 'No ads + All characters + All articles + 2000 coins. Best value!';
+  String get iapPremiumMonthlyTitle =>
+      ja ? '📅 プレミアム（月額）' : '📅 Premium (Monthly)';
+  String get iapPremiumMonthlyDesc => ja
+      ? '広告なし・全キャラ・全記事・詳細レポート。毎月更新'
+      : 'No ads, all characters, all articles, detailed reports. Renews monthly';
+  String get iapPremiumMonthlyOwned => ja ? '✅ 加入中' : '✅ Subscribed';
   String get iapBuy => ja ? '買う' : 'Buy';
   String get iapOwned => ja ? '✅ 購入済み' : '✅ Purchased';
   String get iapPurchased => ja

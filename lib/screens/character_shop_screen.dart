@@ -893,6 +893,9 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
         const SizedBox(height: 16),
         _sectionHeader(m.iapPremiumTitle, m.iapPremiumDesc),
         _iapPremiumRow(m, p),
+        const SizedBox(height: 16),
+        _sectionHeader(m.iapPremiumMonthlyTitle, m.iapPremiumMonthlyDesc),
+        _iapPremiumMonthlyRow(m, p),
         const SizedBox(height: 8),
         TextButton(
           onPressed: () async {
@@ -1068,6 +1071,20 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       badge: '👑',
       owned: p.adsRemoved, // premium も adsRemoved を立てるので目安
       onBuy: () => _doIap(IapService.productPremium),
+    );
+  }
+
+  Widget _iapPremiumMonthlyRow(MetaStrings m, PlayerProfile p) {
+    return _iapProductCard(
+      id: IapService.productPremiumMonthly,
+      label: m.iapPremiumMonthlyTitle,
+      desc: m.iapPremiumMonthlyDesc,
+      color: const Color(0xFF6E44A8),
+      badge: '📅',
+      owned: p.premiumActive,
+      onBuy: p.premiumActive
+          ? () {}
+          : () => _doIap(IapService.productPremiumMonthly),
     );
   }
 
