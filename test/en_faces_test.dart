@@ -16,12 +16,13 @@ void main() {
     expect(charImageAssetsFor(true), kCharImageAssets);
   });
 
-  test('英語版の顔は、なまえコールの最大人数ぶん足りている', () {
-    // 足りないと generate 系の assert(count <= pool.length) で落ちる
+  test('英語版の顔は、英語版で選べる上限（16人）を満たしている', () {
+    // 日本語は24人まで選べるが、英語は英語の顔ぶれ（16枚）までが上限。
+    // みんなで対戦の最大12人は必ずカバーする。
+    expect(kCharImageAssetsEn.length, greaterThanOrEqualTo(12));
+    // なまえコールの人数上限は、日本語と英語で違う（英語はプール枚数）。
     expect(kCharImageAssetsEn.length,
-        greaterThanOrEqualTo(NameCallGame.maxPeople));
-    expect(kCharImageAssetsEn.length,
-        greaterThanOrEqualTo(kCharImageAssets.length));
+        lessThanOrEqualTo(NameCallGame.maxPeople));
   });
 
   test('英語版の顔のパスは重複せず、登録済みのフォルダを指している', () {
@@ -77,9 +78,10 @@ void main() {
   });
 
   group('出演プール（買ったキャラの扱い）', () {
-    // 買えるキャラ（char14〜32）は日本のフリー素材。英語版の欧米系の顔ぶれに
+    // 買えるキャラ（char23以降）は日本のフリー素材。英語版の欧米系の顔ぶれに
     // 混ざると、顔と名前がちぐはぐになって練習の邪魔になる。
-    final owned = {'c14', 'c15', 'c16'};
+    // ※ c14〜c22 は基本キャラへ昇格したので、買えるキャラは c23 以降。
+    final owned = {'c23', 'c24', 'c25'};
 
     test('日本語版は、買ったキャラも出演プールに入る', () {
       final pool = playablePool(true, owned);

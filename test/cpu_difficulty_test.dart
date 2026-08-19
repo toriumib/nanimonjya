@@ -134,14 +134,14 @@ void main() {
   });
 
   group('登場人数', () {
-    test('既定は6人×2枚（山札12枚）、スライダーは4〜15', () {
-      // 2026-08 の「同じ人が何回も出る」報告で5枚→2枚に引き下げ。name_call.dart 参照。
+    test('既定は6人×4枚（山札24枚）、スライダーは4〜24', () {
+      // 2026-08 の「同じ人が何回も出る」報告で5→2にし、その後4枚に調整。name_call.dart 参照。
       expect(NameCallGame.peopleCount, 6);
-      expect(NameCallGame.defaultCopiesPerPerson, 2);
+      expect(NameCallGame.defaultCopiesPerPerson, 4);
       expect(
-          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson, 12);
+          NameCallGame.peopleCount * NameCallGame.defaultCopiesPerPerson, 24);
       expect(NameCallGame.minSelectableCount, 4);
-      expect(NameCallGame.maxSelectableCount, 15);
+      expect(NameCallGame.maxSelectableCount, 24);
       // 既定が選べる範囲に収まっているか（ここがずれると初期値が clamp される）
       expect(NameCallGame.peopleCount,
           inInclusiveRange(NameCallGame.minSelectableCount,

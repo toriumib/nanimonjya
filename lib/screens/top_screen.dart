@@ -23,6 +23,7 @@ import '../models/cpu_difficulty.dart';
 import '../models/name_call.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart'; // 着せ替えテーマ・称号
+import '../models/person.dart'; // kCharImageAssetsEn（英語の顔ぶれ枚数）
 import '../services/sfx.dart'; // タップ音
 import '../services/review_prompt.dart'; // ⭐ ストアのレビューを開く
 import '../services/reward_ad_helper.dart'; // 無料コインチェストの広告
@@ -245,6 +246,11 @@ class _TopScreenState extends State<TopScreen>
       setState(f); // ホーム側にも覚えさせて、次に開いたとき同じ値にする
     }
 
+    // 人数の上限は顔プールの枚数。英語版は英語の顔ぶれ（16枚）まで。
+    final maxSelectable = m.ja
+        ? NameCallGame.maxSelectableCount
+        : kCharImageAssetsEn.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -266,11 +272,12 @@ class _TopScreenState extends State<TopScreen>
             ),
             Expanded(
               child: Slider(
-                value: _peopleCount.toDouble(),
+                value: _peopleCount.toDouble().clamp(
+                    NameCallGame.minSelectableCount.toDouble(),
+                    maxSelectable.toDouble()),
                 min: NameCallGame.minSelectableCount.toDouble(),
-                max: NameCallGame.maxSelectableCount.toDouble(),
-                divisions: NameCallGame.maxSelectableCount -
-                    NameCallGame.minSelectableCount,
+                max: maxSelectable.toDouble(),
+                divisions: maxSelectable - NameCallGame.minSelectableCount,
                 label: m.peopleCountValue(_peopleCount),
                 onChanged: (v) => update(() => _peopleCount = v.round()),
               ),
@@ -585,7 +592,7 @@ class _TopScreenState extends State<TopScreen>
         ),
       );
 
-  /// みんなで対戦（なまえがお）の人数を選んでスタート
+  /// みんなで対戦（なまえがお）の人数をスライダーで選んでスタート（2〜12人）。
   void _pickLocalPlayers(BuildContext context) {
     Sfx.instance.pop();
     AppAnalytics.modePick('local');
@@ -596,8 +603,10 @@ class _TopScreenState extends State<TopScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setSheetState) => SafeArea(
+      builder: (sheetContext) {
+        var localPlayers = 2;
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) => SafeArea(
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
@@ -624,44 +633,53 @@ class _TopScreenState extends State<TopScreen>
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      for (final n in [2, 3, 4]) ...[
-                        if (n > 2) const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(sheetContext);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => NameCallScreen(
-                                    humanPlayers: n,
-                                    peopleCount: _peopleCount,
-                                    copiesPerPerson: _copies,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE8663C),
-                              foregroundColor: Colors.white,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(m.ja ? '$n人' : '${n}P'),
+                  const SizedBox(height: 12),
+                  // 🎚 人数はスライダーで2〜12人まで選べる。
+                  Slider(
+                    value: localPlayers.toDouble(),
+                    min: 2,
+                    max: 12,
+                    divisions: 10,
+                    label: m.ja ? '$localPlayers人' : '${localPlayers}',
+                    activeColor: const Color(0xFFE8663C),
+                    onChanged: (v) =>
+                        setSheetState(() => localPlayers = v.round()),
+                  ),
+                  Text(
+                    m.ja ? '$localPlayers人で遊ぶ' : '$localPlayers players',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 14),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NameCallScreen(
+                            humanPlayers: localPlayers,
+                            peopleCount: _peopleCount,
+                            copiesPerPerson: _copies,
                           ),
                         ),
-                      ],
-                    ],
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8663C),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                    ),
+                    child: Text(m.ja ? 'この人数で始める' : 'Start'),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
+        );
+      },
     );
   }
 

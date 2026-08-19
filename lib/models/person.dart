@@ -79,7 +79,11 @@ const List<String> kFaceAssets = [
   'assets/images/faces/face12.svg',
 ];
 
-/// フリー素材のキャラ画像一覧（12種）。なまえがお用。
+/// フリー素材のキャラ画像一覧（24種）。なまえがお用。
+///
+/// 2026-08 に 15種→24種へ増やした（char14〜22 をショップから基本に昇格）。
+/// ⚠️ **枚数は [NameCallGame.maxPeople] と必ずそろえること。** ここが少ないと
+///    生成器が足りない顔を要求して assert で落ちる。
 const List<String> kCharImageAssets = [
   'assets/images/char1.jpg',
   'assets/images/char2.jpg',
@@ -101,6 +105,16 @@ const List<String> kCharImageAssets = [
   //    ショップのカタログ（kExtraCharacters）にも戻さないこと。
   //    IDを使い回すと、以前 c13 を買った人の unlockedCharacters が
   //    別のキャラを指してしまう。
+  // 🆕 char14〜22（9枚）をショップから基本に昇格（15→24）。
+  'assets/images/char14.webp',
+  'assets/images/char15.webp',
+  'assets/images/char16.webp',
+  'assets/images/char17.webp',
+  'assets/images/char18.webp',
+  'assets/images/char19.webp',
+  'assets/images/char20.webp',
+  'assets/images/char21.webp',
+  'assets/images/char22.webp',
 ];
 
 /// 🌍 英語版で出てくる顔（16枚）。

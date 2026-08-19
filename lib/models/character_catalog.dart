@@ -80,15 +80,8 @@ class GameCharacter {
 /// ⚠️ c13 は**欠番**。無料枠へ昇格させたあと取り下げたので、どこにも無い。
 /// IDを使い回すと、以前買った人の unlockedCharacters が別のキャラを指す。
 const List<GameCharacter> kExtraCharacters = [
-  GameCharacter(id: 'c14', asset: 'assets/images/char14.webp', emoji: '💇‍♀️', cost: 120),
-  GameCharacter(id: 'c15', asset: 'assets/images/char15.webp', emoji: '💻', cost: 150),
-  GameCharacter(id: 'c16', asset: 'assets/images/char16.webp', emoji: '🍠', cost: 150),
-  GameCharacter(id: 'c17', asset: 'assets/images/char17.webp', emoji: '👗', cost: 180),
-  GameCharacter(id: 'c18', asset: 'assets/images/char18.webp', emoji: '🍣', cost: 180),
-  GameCharacter(id: 'c19', asset: 'assets/images/char19.webp', emoji: '🦅', cost: 650, feat: UnlockFeat.hardWins3),
-  GameCharacter(id: 'c20', asset: 'assets/images/char20.webp', emoji: '🐎', cost: 260),
-  GameCharacter(id: 'c21', asset: 'assets/images/char21.webp', emoji: '🕴️', cost: 200),
-  GameCharacter(id: 'c22', asset: 'assets/images/char22.webp', emoji: '✊', cost: 200),
+  // c14〜c22 は 2026-08 に**基本キャラへ昇格**（kCharImageAssets へ移動）。
+  //    ショップには並ばないが、以前買った人は基本プールでそのまま使える。
   GameCharacter(id: 'c23', asset: 'assets/images/char23.webp', emoji: '😤', cost: 220),
   GameCharacter(id: 'c24', asset: 'assets/images/char24.webp', emoji: '😊', cost: 180),
   GameCharacter(id: 'c25', asset: 'assets/images/char25.webp', emoji: '😷', cost: 180),
