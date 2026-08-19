@@ -296,7 +296,7 @@ class Bgm {
         await _player.stop();
         await _player.setAsset(assetKey(fileName));
         await _player.setLoopMode(LoopMode.off);
-        await _player.setVolume(0.4);
+        await _player.setVolume(0.4 * volumeScale);
         _current = null; // 試聴後にかけ直せるよう、鳴っている曲の記録は残さない
         _currentVolume = 0.4;
         // ⚠️ `play()` の Future は**曲が終わるまで返らない**。

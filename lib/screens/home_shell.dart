@@ -10,7 +10,6 @@ import 'custom_roster_screen.dart';
 import 'memory_tips_screen.dart';
 import 'profile_screen.dart';
 import 'top_screen.dart';
-import 'training_hub_screen.dart';
 import 'tutorial_screen.dart';
 import 'tutorial_play_screen.dart';
 import 'welcome_gift_screen.dart';
@@ -155,9 +154,6 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
         index: _index,
         children: [
           const TopScreen(), // なまえがお（メイン）
-          // active を渡す: IndexedStack は全タブを最初に組み立てるので、
-          // 「開かれたかどうか」を渡さないと初回説明が起動時に出てしまう
-          TrainingHubScreen(active: _index == 1), // ビジネス特訓
           const CharacterShopScreen(embedded: true), // ショップ
           const MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
           const CustomRosterScreen(), // 🧑🎨 顔メモ
@@ -203,8 +199,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
           AppAnalytics.featureOpen(
-            const ['namecall', 'training', 'shop', 'read', 'face_memo', 'profile']
-                [i],
+            const ['namecall', 'shop', 'read', 'face_memo', 'profile'][i],
             from: 'tab',
           );
           Bgm.instance.playHome();
@@ -215,11 +210,6 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             icon: const Icon(Icons.campaign_outlined),
             selectedIcon: const Icon(Icons.campaign),
             label: m.tabNameCall,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.badge_outlined),
-            selectedIcon: const Icon(Icons.badge),
-            label: m.tabTraining,
           ),
           NavigationDestination(
             icon: const Icon(Icons.shopping_bag_outlined),
