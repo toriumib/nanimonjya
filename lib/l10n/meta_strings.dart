@@ -878,9 +878,8 @@ This tab is where you get stronger on your own.
       ja ? 'この子の名前を一斉にコール！' : 'Call out this name together!';
   String refereePromptCard(int n) =>
       ja ? '$n枚目：一斉にコール！' : 'Card $n: call it out!';
-  String get refereeHint => ja
-      ? '早く正しく呼べた人のボタンを押そう'
-      : 'Tap the button of whoever called it first & correctly';
+  String get refereeHint =>
+      ja ? '名前を呼ぼう！' : 'Call the name!';
   /// ひとりで遊ぶときは「P1がとった」だと不自然なので言い方を変える
   String get soloRecallPrompt =>
       ja ? 'この子の名前、言える？' : 'Can you name this one?';

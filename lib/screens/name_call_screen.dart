@@ -1123,7 +1123,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// ⚠️ 固定値にすると狭い端末で溢れる。画面幅から入る大きさを出す。
   static double _faceSize(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    return ((w - 48).clamp(140.0, 260.0)) - 24;
+    return ((w - 48).clamp(140.0, 300.0)) - 24;
   }
 
   /// プレイヤーごとの色。帯とボタンで同じ色を使う。
@@ -1829,7 +1829,8 @@ class _NameCallScreenState extends State<NameCallScreen>
     //    得点欄・見出し・ボタンにも場所が要る。カードに使ってよいのは
     //    残り高さの半分くらいまで。ここを見ないと、P1/P2 のボタンが
     //    画面の外へ押し出されて押せなくなる。
-    final byHeight = (maxH * 0.30).clamp(100.0, 220.0);
+    //    スコア欄をコンパクトにしたので、顔に少し多く割り当てられる。
+    final byHeight = (maxH * 0.38).clamp(100.0, 240.0);
     final maxCard = byWidth < byHeight ? byWidth : byHeight;
     final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
     // カードの内側の余白（12*2）を引いた残りが顔に使える。
@@ -1935,7 +1936,7 @@ class _NameCallScreenState extends State<NameCallScreen>
             if (i > 0) const SizedBox(width: 6),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -1943,15 +1944,16 @@ class _NameCallScreenState extends State<NameCallScreen>
                   border: Border.all(color: colors[i % 4], width: 2),
                 ),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text('P${i + 1}',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w900,
                             color: colors[i % 4])),
                     Text('${_cardsWon[i]}',
                         style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 13,
                             fontWeight: FontWeight.w900,
                             color: colors[i % 4])),
                   ],
