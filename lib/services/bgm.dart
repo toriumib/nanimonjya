@@ -189,6 +189,7 @@ class Bgm {
   bool _lastBgmEnabled = true;
   double _lastBgmVolume = 1.0;
   String _lastHomeBgm = kHomeBgmRandom;
+  String _lastResultBgm = kResultBgmRandom;
 
   void _ensureListening() {
     if (_listening) return;
@@ -196,6 +197,7 @@ class Bgm {
     _lastBgmEnabled = PlayerProfile.instance.bgmEnabled;
     _lastBgmVolume = PlayerProfile.instance.bgmVolume;
     _lastHomeBgm = PlayerProfile.instance.selectedHomeBgm;
+    _lastResultBgm = PlayerProfile.instance.selectedResultBgm;
     PlayerProfile.instance.addListener(_onProfileChanged);
   }
 
@@ -225,6 +227,12 @@ class Bgm {
     if (_mode == _BgmMode.home && p.selectedHomeBgm != _lastHomeBgm) {
       _lastHomeBgm = p.selectedHomeBgm;
       restartCurrent();
+      return;
+    }
+    // 🏆 結果画面の曲が変わったら、結果場面なら再再生する。
+    if (_mode == _BgmMode.result && p.selectedResultBgm != _lastResultBgm) {
+      _lastResultBgm = p.selectedResultBgm;
+      restartCurrent();
     }
   }
 
@@ -251,11 +259,11 @@ class Bgm {
       return;
     }
     try {
-      // まず明示的に止めてから次の曲を読み込む。
-      // setAsset だけだと Web Audio API が前のソースを解放しきらず
-      // 新しい decode に失敗する（結果: 無音）。
+      // まず明示的に止めてから、`setAudioSource` で古いソースを解放しつつ新しい曲を読む。
+      // ⚠️ 旧 `setAsset` だけだと Web Audio API が前のソースを解放しきらず、
+      //    新しい decode に失敗して無音・曲が変わらなかった（Web で再現確認済み）。
       await _player.stop();
-      await _player.setAsset(key);
+      await _player.setAudioSource(AudioSource.asset(key));
       await _player.setLoopMode(LoopMode.one);
       await _player.setVolume(volume);
       await _player.play();
@@ -343,7 +351,7 @@ class Bgm {
       if (!PlayerProfile.instance.bgmEnabled) return;
       try {
         await _player.stop();
-        await _player.setAsset(assetKey(fileName));
+        await _player.setAudioSource(AudioSource.asset(assetKey(fileName)));
         await _player.setLoopMode(LoopMode.off);
         await _player.setVolume(0.4 * volumeScale);
         _current = null; // 試聴後にかけ直せるよう、鳴っている曲の記録は残さない
