@@ -1,20 +1,38 @@
-## 🎵 マイページの音楽変更の修正（v2.5.0 更新ビルド）
+## 📦 本日の更新（v2.5.0+218 更新ビルド）
 
-**マイページで音楽を変えると、選んだ曲がその場でちゃんと鳴るように直しました。**
+**サマリ**: ゲーム画面・結果画面の見やすさと安定性を改善し、Web版でBGMが鳴らない問題を修正しました。神スキン・ガチャ・In-App Updatesなどのアップデート導線も強化しています。
 
-- 🎮 **ゲーム中の曲**: 選ぶと、そのまま「ゲーム中の曲」としてすぐ再生されるように
-- 🏠 **ホームの曲**: 選ぶと、そのまま「ホームの曲」としてすぐ再生されるように（別の場面の曲が混ざって鳴らなくなる不具合を修正）
-- 🎺 **結果画面の曲**: 選ぶと、そのまま「結果画面の曲」としてすぐ再生されるように（「おまかせ」も勝利曲から1曲選んで鳴る）
-- これまでは「1曲だけ鳴ってホームの曲に戻る」・「選んだ場面と違う曲が鳴る」状態で、曲がちゃんと聴けないことがありました。曲を選んだら、その曲が鳴り続けるようになりました。
+**変更点**
+- 🐛 **Web版でBGMが鳴らない問題を修正**: ブラウザの自動再生制限で起動直後に音が出ない環境でも、最初のタップでBGMが鳴り始めるようになりました
+- 🎮 **みんなで対戦（審判方式）の見やすさ改善**: 顔カードを大きく・スコア表示をコンパクトに・コール文言を「名前を呼ぼう！」に変更
+- 🐛 **みんなで対戦のクラッシュを修正**: 人数によっては回答時に落ちることがあった問題（RangeError）を2件修正
+- 🃏 **命名画面の顔をさらに大きく**: 顔カードを最大400pxに拡大（インライン命名も300pxに）
+- 🏆 **結果画面を改善**: 「もう一度遊ぶ」ボタンを上に移動・顔を拡大・戻る時は確認ダイアログなしで即戻る・タイマーバーを0.1秒刻みに（神モード対応）
+- 🎵 **BGM設定の変更を即反映**: マイページで曲を選ぶとその場で鳴り、オフ／音量／曲選択の変更がそのままホーム・ゲーム・結果の各曲に反映されます（結果画面の曲の切り替えもWebで確実に）
+- 🤖 **CPU対戦の修正**: 同じ名前を繰り返し回答しないよう、各人1回の命名→想起に変更
+- 🌟 **神スキン3種を実装**: 購入・装備・演出（黄金の記憶／宇宙の織り手／ネオン・ゴッド）。ガチャに1/100プレミアムを追加
+- 🏪 **ショップを改善**: 追加キャラを最上部に移動・動画でコイン1,000に増額・結果画面に「動画でコイン4倍」ボタンを追加
+- 📰 **記事を広告視聴でも開放**: コインに加えて、動画広告の視聴でも記憶術記事を読めるように
+- ⚙️ **In-App Updates（Flexible）を実装**: 新しいバージョンが公開されたらアプリ内で更新を案内
+- ⏱ **ひとりで対戦の結果に反応速度・段位を表示**
 
-## 🎵 My Page Music Fix (v2.5.0 update)
+## 📦 Today's Update (v2.5.0+218 build)
 
-**Changing music on My Page now actually plays the song you chose.**
+**Summary**: Improved the visibility and stability of the game and result screens, fixed the Web version where BGM didn't play, and strengthened monetization and update flows (God Skins, gacha, In-App Updates).
 
-- 🎮 **Game music**: selecting it now plays it right away as the in-game track
-- 🏠 **Home music**: selecting it now plays it right away as the home track (fixed a bug where the wrong scene's music played instead)
-- 🎺 **Result music**: selecting it now plays it right away as the result track ("Shuffle" picks a real victory march to play)
-- Previously the selected song only played once and then reverted to the home track, or the wrong scene's music played. Now your chosen song keeps playing.
+**Changes**
+- 🐛 **Fixed BGM not playing on Web**: even in browsers that block autoplay, BGM now starts on your first tap
+- 🎮 **Party Match (referee) visibility**: bigger face cards, compact score display, call prompt changed to "Call the name!"
+- 🐛 **Party Match crash fixes**: fixed two RangeError crashes that could occur when answering, depending on player count
+- 🃏 **Bigger faces on the naming screen**: face cards enlarged up to 400px (inline naming also up to 300px)
+- 🏆 **Result screen improvements**: "Play again" moved to the top, bigger faces, instant back (no confirm dialog), timer bar ticks every 0.1s (for God Mode)
+- 🎵 **BGM changes now apply instantly**: selecting a song on My Page plays it right away; OFF / volume / song selection reflect immediately on the home, game and result tracks (result track switching also works reliably on Web)
+- 🤖 **CPU match fix**: no more repeating the same name — each person now gets one naming → recall
+- 🌟 **3 God Skins implemented**: purchase, equip & effects (Golden Memory / Cosmic Weaver / Neon God). Added a 1/100 premium pull to the gacha
+- 🏪 **Shop improvements**: extra characters moved to the top, ad reward raised to 1,000 coins, "Watch ad for 4x coins" button added to result screens
+- 📰 **Articles unlockable by watching ads**: now available via rewarded video in addition to coins
+- ⚙️ **In-App Updates (Flexible)**: you're prompted to update when a new version is published
+- ⏱ **Solo match results now show reaction speed & rank**
 
 ## v2.5.0 リリースノート
 
