@@ -1123,7 +1123,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// ⚠️ 固定値にすると狭い端末で溢れる。画面幅から入る大きさを出す。
   static double _faceSize(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    return ((w - 48).clamp(140.0, 340.0)) - 24;
+    return ((w - 48).clamp(140.0, 400.0)) - 24;
   }
 
   /// プレイヤーごとの色。帯とボタンで同じ色を使う。
@@ -1247,7 +1247,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     final named = _game.roster.length;
     final total = _game.people.length;
     return LayoutBuilder(builder: (context, box) {
-      final faceSz = ((box.maxWidth - 60).clamp(120.0, 200.0) - 24);
+      final faceSz = ((box.maxWidth - 60).clamp(120.0, 300.0) - 24);
       return SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
         child: Column(
