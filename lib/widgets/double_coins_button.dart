@@ -45,12 +45,13 @@ class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
     final played = await _ad.showOrQueue(onReward: () async {
       if (_doubled) return; // 念のため二重付与を防ぐ
       _doubled = true;
-      await PlayerProfile.instance.grantBonusCoins(widget.coinsEarned);
+      // 4倍：元のコインに、さらに3倍ぶんを追加する。
+      await PlayerProfile.instance.grantBonusCoins(widget.coinsEarned * 3);
       Sfx.instance.reward();
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(m.earnedCoins(widget.coinsEarned))),
+          SnackBar(content: Text(m.earnedCoins(widget.coinsEarned * 3))),
         );
       }
     });
@@ -105,7 +106,7 @@ class _DoubleCoinsButtonState extends State<DoubleCoinsButton> {
                 icon: const Icon(Icons.play_circle_fill, size: 22),
                 label: Text(_busy
                     ? m.storeAdLoading
-                    : m.doubleCoinsButton(widget.coinsEarned)),
+                    : m.doubleCoinsButton(widget.coinsEarned * 3)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,

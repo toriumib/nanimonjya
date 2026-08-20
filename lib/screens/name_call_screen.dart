@@ -2039,16 +2039,16 @@ class _NameCallScreenState extends State<NameCallScreen>
                 // 名簿を1人ずつ時間差でポップイン
                 for (var i = 0; i < _game.people.length; i++)
                   SizedBox(
-                    width: 76,
+                    width: 96,
                     child: Column(
                       children: [
                         FaceView(
-                            person: _game.people[i], size: 56, radius: 10),
+                            person: _game.people[i], size: 80, radius: 10),
                         const SizedBox(height: 3),
                         Text(
                           _displayName(_game.people[i], m),
                           style: const TextStyle(
-                              fontSize: 11.5, fontWeight: FontWeight.w900),
+                              fontSize: 13, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -2242,9 +2242,7 @@ class _NameCallScreenState extends State<NameCallScreen>
               ),
             ],
             const SizedBox(height: 14),
-            // 🛍 「次はどのキャラで遊ぶ？」でショップへ送る（他のリザルトと同じ導線）
-            const StoreCtaCard(),
-            const SizedBox(height: 16),
+            // もう一度遊ぶ（スクロールなしで見えるようにショップ誘導より上に置く）
             ElevatedButton.icon(
               onPressed: () {
                 Sfx.instance.pop();
@@ -2279,6 +2277,9 @@ class _NameCallScreenState extends State<NameCallScreen>
               icon: const Icon(Icons.home_rounded),
               label: Text(m.backToHome),
             ),
+            const SizedBox(height: 14),
+            // 🛍 「次はどのキャラで遊ぶ？」でショップへ送る（他のリザルトと同じ導線）
+            const StoreCtaCard(),
           ] else ...[
             ElevatedButton(
               onPressed: _goToResult,

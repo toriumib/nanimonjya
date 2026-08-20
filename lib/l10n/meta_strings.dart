@@ -1328,10 +1328,10 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       : 'Spend coins to grow your cast of faces.';
   String get ctaToShop => ja ? 'ショップへ →' : 'To Shop →';
 
-  // 🎬 動画でコイン2倍（リザルト画面）
+  // 🎬 動画でコイン4倍（リザルト画面）
   String doubleCoinsButton(int n) =>
-      ja ? '🎬 動画でコイン2倍！(+$n)' : '🎬 Watch ad to double coins! (+$n)';
-  String get doubleCoinsDone => ja ? '✓ コイン2倍ずみ！' : '✓ Coins doubled!';
+      ja ? '🎬 動画でコイン4倍！(+$n)' : '🎬 Watch ad for 4x coins! (+$n)';
+  String get doubleCoinsDone => ja ? '✓ コイン4倍ずみ！' : '✓ 4x coins!';
 
   // 🌌 覚醒（プレステージ）システム
   String get awakenTitle => ja ? '🌌 覚醒' : '🌌 Awakening';
