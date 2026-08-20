@@ -74,8 +74,38 @@ class Bgm {
   bool _blocked = false;
 
   /// 何か操作があったときに呼ぶ。自動再生を止められていたら鳴らし直す。
+  ///
+  /// Webは最初のユーザー操作より前の再生を拒否する。[_playCore] が再生を
+  /// 拒否されたときもソースはロード済み（[_current] は残る）なので、ここでは
+  /// **重い `setAudioSource` を挟まずに `play()` だけを呼ぶ**。するとチェーン
+  /// が空なら action はマイクロタスクで走り、ポインター操作のジェスチャー
+  /// コンテキストが維持されたまま `audioElement.play()` に届くため、
+  /// ブラウザの自動再生が許可される。
   Future<void> retryIfBlocked() async {
     if (!_blocked) return;
+    if (_current != null) {
+      // ロード済み。ユーザー操作の中で再生だけを再試行する。
+      // Webでは play() を await しない（ループ再生中は曲の終了まで返らない）。
+      await _serialize(() async {
+        try {
+          // ⚠️ 自動再生に拒否された直後は `_player.playing` が true のまま残る
+          //    （just_audio が再生開始を楽観的に立て、platform の play() が
+          //    失敗しても戻さない）。play() は `if (playing) return;` で
+          //    即リターンしてしまうので、まず pause() で playing を false に
+          //    戻してから play() する。pause() はソースを破棄しない。
+          if (_player.playing) {
+            await _player.pause();
+          }
+          unawaited(_player.play().catchError((Object e) {
+            _blocked = true;
+          }));
+          _blocked = false;
+        } catch (_) {
+          _blocked = true;
+        }
+      });
+      return;
+    }
     _blocked = false;
     switch (_mode) {
       case _BgmMode.home:
@@ -247,7 +277,7 @@ class Bgm {
       await _stopCore();
       return;
     }
-    if (_current == key && _player.playing) {
+    if (_current == key && _player.playing && !_blocked) {
       // 同じ曲でも場面によって音量がちがう（ホームは控えめ）。
       // 鳴らし直さずに音量だけ合わせる。
       if (_currentVolume != volume) {
@@ -266,9 +296,18 @@ class Bgm {
       await _player.setAudioSource(AudioSource.asset(key));
       await _player.setLoopMode(LoopMode.one);
       await _player.setVolume(volume);
-      await _player.play();
       _current = key;
       _currentVolume = volume;
+      // ⚠️ Webでは `play()` の Future は「曲が終わるか止められるまで」返らない。
+      //    チェーンの中で await すると、ループ再生中は以降の操作（stop/曲の変更）
+      //    が永遠に実行されず、BGMが死ぬ。なので await せず開始だけを投げる。
+      //    自動再生に止められた場合（NotAllowedError）はこの Future がエラーで
+      //    完了するので、その時点で `_blocked` を立てる。ソースはロード済みのまま
+      //    残すので、次のユーザー操作（[retryIfBlocked]）が `play()` だけを
+      //    ジェスチャー内で呼び直して鳴らせる。
+      unawaited(_player.play().catchError((Object e) {
+        _blocked = true;
+      }));
       _blocked = false;
     } catch (e) {
       _current = null;
