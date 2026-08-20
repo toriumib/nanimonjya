@@ -2,7 +2,7 @@
 
 ## The Toriumi Theory
 
-**Kengo Toriumi (鳥海健悟)**
+**Toriumi (鳥海)**
 
 toriumikengo@gmail.com
 

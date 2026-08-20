@@ -5,7 +5,7 @@ THE TORIUMI FIELD: Free Will as a Physical Observable
 
 A Rigorous Physical Theory of Self-Referential Choice
 
-Kengo Toriumi — 2026.08.12
+Toriumi — 2026.08.12
 ============================================================================
 
 ABSTRACT:
@@ -716,5 +716,5 @@ print("  IF dΓ/dT > 0 OR Jarzynski equality HOLDS:")
 print("    Toriumi Theory is FALSIFIED.")
 print("    Free will = thermal noise (or doesn't exist).")
 print()
-print("Kengo Toriumi — 2026.08.12")
+print("Toriumi — 2026.08.12")
 print("kengo.toriumi@gmail.com")

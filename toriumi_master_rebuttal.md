@@ -1,7 +1,7 @@
 # 鳥海理論 総合反論体系
 ## 自由意志不存在論 全陣営への反論
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12
+**鳥海 (Toriumi)** | 2026-08-12
 
 ---
 
@@ -275,4 +275,4 @@ f(s) = g( s ⊕ trace( f(s) ) )
 
 ---
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12 | toriumikengo@gmail.com
+**鳥海 (Toriumi)** | 2026-08-12 | toriumikengo@gmail.com

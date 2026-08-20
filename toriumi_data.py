@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DATA COLLECTION — Toriumi Theory | 132k trials | Kengo Toriumi 2026.08.12"""
+"""DATA COLLECTION — Toriumi Theory | 132k trials | Toriumi 2026.08.12"""
 import math, hashlib, json, time, random
 
 # ═══ CORE AGENT: prediction from pre-sim log, choice from post-sim ═══
@@ -160,7 +160,7 @@ def main():
     ethermo()
     elz()
     print(f"\n{'='*50}\nCollection: {time.time()-t0:.1f}s  All experiments complete.")
-    print("運命は、データで壊せた。Fate destroyed by data.\n— 鳥海健悟")
+    print("運命は、データで壊せた。Fate destroyed by data.\n— 鳥海")
 
 if __name__=="__main__":
     main()

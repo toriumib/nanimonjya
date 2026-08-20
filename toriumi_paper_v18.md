@@ -6,7 +6,7 @@
 
 ## Making MacKay's Logical Indeterminacy Measurable: The Self-Prediction Gap Minus Choice Inconsistency
 
-**鳥海健悟 (Kengo Toriumi)**
+**鳥海 (Toriumi)**
 toriumikengo@gmail.com
 2026-08-15 — 投稿用草稿 v18
 

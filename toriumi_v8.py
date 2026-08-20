@@ -3,7 +3,7 @@
 鳥海理論 v8.0 — 最終的な批判的ループエンジニアリング成果
 Toriumi Theory v8.0 — Final Critically-Engineered Form
 
-Kengo Toriumi | 2026-08-12
+Toriumi | 2026-08-12
 
 ABSTRACT:
   We present a rigorous, self-contained mathematical theory.
@@ -401,7 +401,7 @@ def run_experiment():
     print("ALL EXPERIMENTS COMPLETE.")
     print("Theory prediction: Gamma(0)=0, Gamma(k>=1)≈0.5, |O|=4→≈0.75")
     print("All confirmed within statistical bounds.")
-    print("— Kengo Toriumi, 2026.08.12")
+    print("— Toriumi, 2026.08.12")
 
 
 if __name__ == "__main__":

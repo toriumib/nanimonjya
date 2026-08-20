@@ -1,7 +1,7 @@
 # 鳥海理論 — 定義から全反論まで
 ## 自由意志論争に終止符を打つ
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12
+**鳥海 (Toriumi)** | 2026-08-12
 
 ---
 
@@ -635,4 +635,4 @@ L が更新される。各ステップで σ が走り、Γ>0 が生じる。
 
 ---
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12 | toriumikengo@gmail.com
+**鳥海 (Toriumi)** | 2026-08-12 | toriumikengo@gmail.com

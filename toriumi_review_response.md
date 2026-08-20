@@ -1,7 +1,7 @@
 # Response to Peer Review
 ## "Self-Referential Irreducibility as a Constructive Proof of Free Will"
 
-**Kengo Toriumi** | 2026-08-13
+**Toriumi** | 2026-08-13
 
 ---
 
@@ -331,4 +331,4 @@ The paper must be rewritten with:
 
 ---
 
-**Kengo Toriumi** | 2026-08-13
+**Toriumi** | 2026-08-13

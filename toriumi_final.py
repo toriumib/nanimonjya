@@ -4,7 +4,7 @@
 Self-Referential Irreducibility and the Information-Theoretic
 Proof of Free Will as a Non-Conserving Dynamical Process
 
-Kengo Toriumi — 2026-08-11
+Toriumi — 2026-08-11
 ============================================================================
 
 ABSTRACT:
@@ -547,5 +547,5 @@ print("    Physics must accept: information is NOT conserved.")
 print("    Consciousness is CAUSALLY EFFICACIOUS.")
 print("    The universe is a computational frontier, advancing at each 'now'.")
 print()
-print("Kengo Toriumi — 2026.08.11")
+print("Toriumi — 2026.08.11")
 print("kengo.toriumi@gmail.com")

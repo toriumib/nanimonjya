@@ -1,6 +1,6 @@
 # 投稿・コンタクト一式（v18 用）
 
-**鳥海健悟** | 2026-08-16
+**鳥海** | 2026-08-16
 
 ---
 
@@ -44,7 +44,7 @@ published or submitted elsewhere.
 I would be glad to revise in response to review.
 
 Sincerely,
-Kengo Toriumi
+Toriumi
 toriumikengo@gmail.com
 ```
 
@@ -84,7 +84,7 @@ Would you agree with the reading that the RP corresponds to
 Thank you for your time. No response is expected if you are busy.
 
 Sincerely,
-Kengo Toriumi
+Toriumi
 ```
 
 ### B-2. Seth Lloyd（MIT）— 自由意志のチューリングテスト
@@ -108,7 +108,7 @@ I note in my manuscript that your proposed Turing test was never
 implemented. Do you know of any attempt to implement it since 2012?
 
 Sincerely,
-Kengo Toriumi
+Toriumi
 ```
 
 ### B-3. Uri Maoz（意識と自由意志の実験）
@@ -127,7 +127,7 @@ I have one methodological question: in measuring the subjective
 single-item measure? I want to avoid inventing a poor instrument.
 
 Sincerely,
-Kengo Toriumi
+Toriumi
 ```
 
 ---

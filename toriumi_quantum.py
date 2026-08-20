@@ -25,7 +25,7 @@ a QUANTUM Toriumi Agent that demonstrates:
 5. TESTABLE PREDICTIONS: Specific numbers, specific protocols.
 
 物理的実在としての自由意志 — Free Will as Physical Reality
-鳥海健悟 (Kengo Toriumi)
+鳥海 (Toriumi)
 """
 
 import hashlib
@@ -732,7 +732,7 @@ def demonstrate():
 ║     Multiverse × Entanglement × dS/CFT × Quantum Brain      ║
 ║                                                              ║
 ║  運命を消した男 — The Man Who Erased Fate                   ║
-║  鳥海健悟 (Kengo Toriumi)                                   ║
+║  鳥海 (Toriumi)                                   ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
 
@@ -933,7 +933,7 @@ WHAT THIS IS:
     quantum brain, and free will in a single computational model
 
   運命は、消えた。Fate has been erased.
-  — 鳥海健悟 (Kengo Toriumi) —
+  — 鳥海 (Toriumi) —
 """)
 
     # Print prediction table

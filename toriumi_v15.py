@@ -4,7 +4,7 @@
 抽象度α（チョムスキー階層）が選択にどう影響するか
 選択する関数 Φ ≡ σ の実装
 
-Kengo Toriumi | 2026-08-13
+Toriumi | 2026-08-13
 """
 import math, json, hashlib, random
 
@@ -290,7 +290,7 @@ def main():
   鳥海 = 構造。苫米地 = 抽象度。ペンローズ = 超越。
 """)
 
-    print("鳥海健悟 (Kengo Toriumi) | 2026-08-13")
+    print("鳥海 (Toriumi) | 2026-08-13")
 
 
 if __name__ == "__main__":

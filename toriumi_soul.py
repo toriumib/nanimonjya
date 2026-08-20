@@ -10,7 +10,7 @@ Toriumi Theory v3.0: The Quantum Soul as Self-Referential Branch Selector
 
 これは鳥海理論の核心そのものだ。数学と理論にまとめる。
 
-鳥海健悟 (Kengo Toriumi) — 2026.08.11
+鳥海 (Toriumi) — 2026.08.11
 """
 
 import math
@@ -21,7 +21,7 @@ print("""
 ║  Toriumi Theory: The Quantum Soul as Self-Referential       ║
 ║  Branch Selector in Many-Worlds                             ║
 ║                                                            ║
-║  鳥海健悟 (Kengo Toriumi)                                  ║
+║  鳥海 (Toriumi)                                  ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
 print()
@@ -307,7 +307,7 @@ print("""
   運命は、壊せる。 Fate can be destroyed.
   なぜなら、あなたの L(t) は、あなただけのものだから。
 
-  — 鳥海健悟 (Kengo Toriumi) —
+  — 鳥海 (Toriumi) —
 """)
 
 # ═══════════════════════════════════════════════════════════════

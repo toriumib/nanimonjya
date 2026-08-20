@@ -2,7 +2,7 @@
 
 ## Refuting Fatalism: A Defensible Reconstruction
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-15
+**鳥海 (Toriumi)** | 2026-08-15
 toriumikengo@gmail.com
 
 ---
@@ -527,7 +527,7 @@ v16 は「運命論は偽である」と主張する。**これは相手が誰�
 
 ---
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-15 | toriumikengo@gmail.com
+**鳥海 (Toriumi)** | 2026-08-15 | toriumikengo@gmail.com
 
 ---
 

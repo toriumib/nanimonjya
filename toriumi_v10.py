@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Toriumi v10 — Full experimental suite addressing ALL reviewer defects
-Kengo Toriumi | 2026-08-13
+Toriumi | 2026-08-13
 """
 import math, json
 
@@ -291,5 +291,5 @@ if __name__ == "__main__":
   self-referential, not merely input-change-dependent. This was the
   reviewer's strongest criticism, and it has been addressed.
 
-  Kengo Toriumi | 2026-08-13
+  Toriumi | 2026-08-13
 """)

@@ -6,7 +6,7 @@
 
 ## Quantifying MacKay's Logical Indeterminacy and Its Consequences for the Public Free-Will Debate
 
-**鳥海健悟 (Kengo Toriumi)**
+**鳥海 (Toriumi)**
 toriumikengo@gmail.com
 2026-08-15 — 投稿用草稿 v17
 

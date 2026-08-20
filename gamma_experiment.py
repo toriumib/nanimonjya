@@ -17,7 +17,7 @@ Gamma experiment — 自己予測ギャップ Γ が価値差 ΔV の関数か�
   python gamma_experiment.py llm --key sk-...     # LLM群
   python gamma_experiment.py analyze              # 解析と作図
 
-鳥海健悟 2026-08-15
+鳥海 2026-08-15
 """
 
 import hashlib, json, io, os, sys, argparse, random, math
