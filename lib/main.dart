@@ -1,7 +1,9 @@
+import 'dart:io' show exit;
 import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart'; // kIsWeb のため
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'screens/home_shell.dart'; // タブシェル（ホーム）
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -88,6 +90,34 @@ Future<void> main() async {
   Sfx.instance.preload(); // 効果音を先読み（await不要・遅延ゼロ発音のため）
   // 💳 課金の初期化。購入ストリームを張って、未処理の購入や復元も拾う（await不要）
   runApp(const MyApp());
+  // 🔄 Android の「拒否可能なアップデート」を促す（Flexible Update）。
+  //    ユーザーは「今すぐ／後で」を選べる。ダウンロード後に再起動すると適用される。
+  _checkForFlexibleUpdate();
+}
+
+/// Android の In-App Updates（Flexible）を確認して、拒否可能な形で促す。
+///
+/// ⚠️ Play ストア経由の配信（署名付き・バージョンが古い）でのみ反応する。
+///    エミュレータ・未署名ビルドでは何も起きない（失敗も握りつぶす）。
+///    Web / テストでは動かないので kIsWeb でガードする。
+Future<void> _checkForFlexibleUpdate() async {
+  if (kIsWeb) return;
+  try {
+    final info = await InAppUpdate.checkForUpdate();
+    if (info.updateAvailability != UpdateAvailability.updateAvailable) return;
+    if (!info.flexibleUpdateAllowed) return;
+    // ダウンロード完了を監視して、完了したら再起動して適用する。
+    InAppUpdate.installUpdateListener.listen((status) async {
+      if (status == InstallStatus.downloaded) {
+        await InAppUpdate.completeFlexibleUpdate();
+        exit(0); // 再起動すると新バージョンになる
+      }
+    });
+    // Play が「アップデートしますか？」ダイアログを出し、ユーザーは拒否できる。
+    await InAppUpdate.startFlexibleUpdate();
+  } catch (_) {
+    // Play ストア未経由・エミュレータ等では何も起きない（落とさない）
+  }
 }
 
 class MyApp extends StatelessWidget {

@@ -51,6 +51,7 @@ dependencies:
   #    in_app_purchase_android 0.4.0+11 以降が解決できない。
   #    ⚠️ Flutter を 3.38 未満に戻すとここで解決に失敗する。
   in_app_purchase: ^3.3.0
+  in_app_update: ^4.2.5
 
 
 dev_dependencies:

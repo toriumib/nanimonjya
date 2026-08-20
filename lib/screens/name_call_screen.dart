@@ -15,6 +15,7 @@ import '../models/person.dart';
 import '../models/surnames.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
+import '../models/cpu_rank.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/notify_prompt.dart';
@@ -2079,6 +2080,28 @@ class _NameCallScreenState extends State<NameCallScreen>
                 ),
               ),
             ),
+            // ⚡ 反応速度と 🏅 段位（ひとりで対戦のとき、自分の強さが実感できるように）
+            if (_isCpu) ...[
+              const SizedBox(height: 8),
+              Builder(builder: (context) {
+                final rank = cpuRankForRating(
+                    PlayerProfile.instance.cpuRating);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text('⚡ ${_avgReactionMs}ms',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF3A7BD5))),
+                    Text(
+                        '🏅 ${m.ja ? rank.nameJa : rank.nameEn} (${PlayerProfile.instance.cpuRating})',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF8A5AC2))),
+                  ],
+                );
+              }),
+            ],
             // 🏆 実績で新しく参戦したキャラを大きく知らせる。
             // ここを出さないと、条件を満たしても本人が気づけない。
             if (_featUnlocked.isNotEmpty) ...[
