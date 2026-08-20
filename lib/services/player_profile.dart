@@ -6,6 +6,7 @@ import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cpu_rank.dart';
+import '../l10n/premium_articles.dart';
 import '../models/shop_items.dart';
 import 'app_analytics.dart';
 import 'daily_reminder.dart';
@@ -154,7 +155,10 @@ class PlayerProfile extends ChangeNotifier {
 
   // 🛍 ショップ拡張アイテム（models/shop_items.dart）
   Set<String> unlockedVoices = {'none'}; // ほめボイス
+  Set<String> unlockedGodSkins = {}; // 🌟 神スキン（装備すると演出が変わる）
   String selectedVoice = 'none';
+  /// 🌟 装備中の神スキンID（'none'=未装備）。ショップで装備すると演出が変わる。
+  String selectedGodSkin = 'none';
   Set<String> unlockedCharms = {'none'}; // お守り（1つだけ装備）
 
   /// 📚 コインで開いた読み物のID。
@@ -315,9 +319,11 @@ class PlayerProfile extends ChangeNotifier {
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
     unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
+    unlockedGodSkins = (p.getStringList('unlockedGodSkins') ?? []).toSet();
     unlockedVoices.add('none');
     selectedVoice = p.getString('selectedVoice') ?? 'none';
     if (!unlockedVoices.contains(selectedVoice)) selectedVoice = 'none';
+    selectedGodSkin = p.getString('selectedGodSkin') ?? 'none';
     unlockedCharms = (p.getStringList('unlockedCharms') ?? ['none']).toSet();
     unlockedCharms.add('none');
     unlockedArticles = (p.getStringList('unlockedArticles') ?? []).toSet();
@@ -704,12 +710,26 @@ class PlayerProfile extends ChangeNotifier {
   Future<bool> unlockVoice(String id, int cost) =>
       _buyInto(unlockedVoices, id, cost);
 
+  /// 🌟 神スキンを購入する。
+  Future<bool> unlockGodSkin(String id, int cost) =>
+      _buyInto(unlockedGodSkins, id, cost);
+
   Future<void> selectVoice(String id) async {
     if (!unlockedVoices.contains(id)) return;
     selectedVoice = id;
     await _persist();
     notifyListeners();
   }
+
+  /// 🌟 神スキンを装備する。購入済みのスキンだけ。
+  Future<void> setSelectedGodSkin(String id) async {
+    if (id != 'none' && !unlockedGodSkins.contains(id)) return;
+    selectedGodSkin = id;
+    await _persist();
+    notifyListeners();
+  }
+
+  bool get hasGodSkinEquipped => selectedGodSkin != 'none';
 
   /// お守りを購入。
   Future<bool> unlockCharm(String id, int cost) =>
@@ -1222,7 +1242,9 @@ class PlayerProfile extends ChangeNotifier {
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);
     await p.setStringList('unlockedVoices', unlockedVoices.toList());
+    await p.setStringList('unlockedGodSkins', unlockedGodSkins.toList());
     await p.setString('selectedVoice', selectedVoice);
+    await p.setString('selectedGodSkin', selectedGodSkin);
     await p.setStringList('unlockedCharms', unlockedCharms.toList());
     await p.setString('selectedCharm', selectedCharm);
     await p.setString('missionDate', missionDate);
@@ -1246,6 +1268,21 @@ class PlayerProfile extends ChangeNotifier {
   Future<({String? id, String? type, int coinsBack})> pullGacha() async {
     if (coins < Gacha.cost) return (id: null, type: null, coinsBack: 0);
     final rng = Random();
+    // 🎰 1/100 でプレミアムモード（全キャラ・全記事・広告除去 = 開発者モード相当）
+    if (rng.nextInt(100) == 0) {
+      coins -= Gacha.cost;
+      for (final c in kExtraCharacters) {
+        if (!unlockedCharacters.contains(c.id)) unlockedCharacters.add(c.id);
+      }
+      for (final a in kPremiumArticles) {
+        if (!hasArticle(a.id)) unlockedArticles.add(a.id);
+      }
+      adsRemoved = true;
+      premiumActive = true;
+      await _persist();
+      notifyListeners();
+      return (id: 'premium', type: 'premium', coinsBack: 0);
+    }
     final result = Gacha.pull(rng);
     coins -= Gacha.cost;
     if (result.coinsBack > 0) coins += result.coinsBack;

@@ -477,13 +477,17 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                 style: const TextStyle(fontSize: 11, color: Color(0xFF8899BB))),
             const SizedBox(height: 12),
             ...kGodSkins.map((s) {
+              final owned = p.unlockedGodSkins.contains(s.id);
+              final selected = p.selectedGodSkin == s.id;
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0D1117),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF2A3A5A)),
+                  border: Border.all(
+                      color: selected ? const Color(0xFFFFC02E) : const Color(0xFF2A3A5A),
+                      width: selected ? 2 : 1),
                 ),
                 child: Row(children: [
                   Text(s.emoji, style: const TextStyle(fontSize: 28)),
@@ -496,25 +500,46 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       Text(s.desc(m.ja), style: const TextStyle(fontSize: 10, color: Color(0xFF8899BB))),
                     ],
                   )),
-                  ElevatedButton(
-                    onPressed: p.coins < s.cost ? null : () async {
-                      if (p.coins < s.cost) return;
-                      p.coins -= s.cost;
-                      p.unlockedAccessories.add(s.id);
-                      p.selectedAccessory = s.id;
-                      await p.buyDailyShopItem(s.id, s.cost);
-                      Sfx.instance.fanfare();
-                      if (mounted) setState(() {});
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC02E),
-                      foregroundColor: const Color(0xFF1A1A2E),
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                  if (selected)
+                    const Text('🌟 装備中',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFFFC02E)))
+                  else if (owned)
+                    OutlinedButton(
+                      onPressed: () async {
+                        await p.setSelectedGodSkin(s.id);
+                        Sfx.instance.pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFFFC02E),
+                        side: const BorderSide(color: Color(0xFFFFC02E)),
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                      ),
+                      child: Text(m.ja ? '装備' : 'Equip'),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: p.coins < s.cost ? null : () async {
+                        final ok = await p.unlockGodSkin(s.id, s.cost);
+                        if (ok) {
+                          await p.setSelectedGodSkin(s.id);
+                          Sfx.instance.fanfare();
+                          if (mounted) setState(() {});
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFC02E),
+                        foregroundColor: const Color(0xFF1A1A2E),
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                      ),
+                      child: Text('🪙${s.cost}'),
                     ),
-                    child: Text('🪙${s.cost}'),
-                  ),
                 ]),
               );
             }),

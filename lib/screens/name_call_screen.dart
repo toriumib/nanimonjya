@@ -1809,6 +1809,13 @@ class _NameCallScreenState extends State<NameCallScreen>
     final active = !resultPhase && i == _answering;
     final ok = _isReferee ? (claimed && _roundClaimer[i] >= 0) : (answered && _roundHits[i]);
     final done = _isReferee ? claimed : answered;
+    // 🌟 神スキンのボーダー色（装備しているとき、なまえコールの顔カードが光る）
+    final skinBorder = switch (PlayerProfile.instance.selectedGodSkin) {
+      'god_skin_golden' => const Color(0xFFE9C87A),
+      'god_skin_cosmic' => const Color(0xFF8C7BFF),
+      'god_skin_neon' => const Color(0xFF00E5FF),
+      _ => null,
+    };
     // 🖼 顔は大きいほうがいい。**顔を覚えるゲームなので、顔が主役。**
     //    以前は2枚並ぶと92pxしかなく、誰なのか見分けづらかった。
     //
@@ -1841,12 +1848,13 @@ class _NameCallScreenState extends State<NameCallScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: active
-              ? const Color(0xFFE8A400)
-              : done
-                  ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
-                  : const Color(0xFFD8E4F0),
-          width: active ? 4 : 2,
+          color: skinBorder ??
+              (active
+                  ? const Color(0xFFE8A400)
+                  : done
+                      ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
+                      : const Color(0xFFD8E4F0)),
+          width: (active || skinBorder != null) ? 3 : 2,
         ),
         boxShadow: [
           BoxShadow(
