@@ -1123,7 +1123,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// ⚠️ 固定値にすると狭い端末で溢れる。画面幅から入る大きさを出す。
   static double _faceSize(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    return ((w - 48).clamp(140.0, 300.0)) - 24;
+    return ((w - 48).clamp(140.0, 340.0)) - 24;
   }
 
   /// プレイヤーごとの色。帯とボタンで同じ色を使う。
@@ -1650,19 +1650,11 @@ class _NameCallScreenState extends State<NameCallScreen>
   Widget _refereePanel(MetaStrings m) {
     return Column(
       children: [
-        Text(
-          widget.humanPlayers <= 1
-              ? m.soloRecallPrompt
-              : (_round.length == 2
-                  ? m.refereePromptCard(_answering + 1)
-                  : m.refereePrompt),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 2),
+        // 「〜を一斉にコール！」の説明は省き、顔を大きく見せる。
+        // 「名前を呼ぼう！」だけ残す。
         Text(widget.humanPlayers <= 1 ? m.soloRecallHint : m.refereeHint,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
         Expanded(
           child: LayoutBuilder(builder: (context, box) {
@@ -1823,16 +1815,16 @@ class _NameCallScreenState extends State<NameCallScreen>
     final single = _round.length == 1;
     final screenW = MediaQuery.of(context).size.width;
     final byWidth = single
-        ? (screenW - 48).clamp(140.0, 260.0)
-        : ((screenW - 60) / 2).clamp(110.0, 190.0);
+        ? (screenW - 48).clamp(140.0, 300.0)
+        : ((screenW - 60) / 2).clamp(110.0, 220.0);
     // ⚠️ **高さからも上限を出す。**
     //    得点欄・見出し・ボタンにも場所が要る。カードに使ってよいのは
     //    残り高さの半分くらいまで。ここを見ないと、P1/P2 のボタンが
     //    画面の外へ押し出されて押せなくなる。
-    //    スコア欄をコンパクトにしたので、顔に少し多く割り当てられる。
-    final byHeight = (maxH * 0.38).clamp(100.0, 240.0);
+    //    説明文と「？」を省いたので、顔にたくさん割り当てられる。
+    final byHeight = (maxH * 0.48).clamp(100.0, 300.0);
     final maxCard = byWidth < byHeight ? byWidth : byHeight;
-    final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
+    final cardWidth = (single ? 280.0 : 200.0).clamp(110.0, maxCard);
     // カードの内側の余白（12*2）を引いた残りが顔に使える。
     // 1枚のときは命名画面（_faceSize）とそろう。
     final faceSize = cardWidth - 24;
@@ -1870,23 +1862,24 @@ class _NameCallScreenState extends State<NameCallScreen>
       child: Column(
         children: [
           FaceView(person: person, size: faceSize, radius: 14),
-          const SizedBox(height: 8),
-          Text(
-            resultPhase
-                ? _displayName(person, m)
-                : (done
-                    ? (_isReferee
-                        ? (_roundClaimer[i] >= 0
-                            ? 'P${_roundClaimer[i] + 1}'
-                            : '—')
-                        : (_roundHits[i] ? '⭕' : '❌'))
-                    : '？'),
-            style: TextStyle(
-                fontSize: single ? 18 : 14,
-                fontWeight: FontWeight.w900,
-                color: won ? const Color(0xFFB8860B) : null),
-            overflow: TextOverflow.ellipsis,
-          ),
+          // 未回答の「？」は出さない（顔を大きく見せるため）。
+          if (done) ...[
+            const SizedBox(height: 8),
+            Text(
+              resultPhase
+                  ? _displayName(person, m)
+                  : (_isReferee
+                      ? (_roundClaimer[i] >= 0
+                          ? 'P${_roundClaimer[i] + 1}'
+                          : '—')
+                      : (_roundHits[i] ? '⭕' : '❌')),
+              style: TextStyle(
+                  fontSize: single ? 18 : 14,
+                  fontWeight: FontWeight.w900,
+                  color: won ? const Color(0xFFB8860B) : null),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );
