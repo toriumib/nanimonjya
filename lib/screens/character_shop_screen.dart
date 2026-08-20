@@ -38,7 +38,7 @@ class CharacterShopScreen extends StatefulWidget {
 
 class _CharacterShopScreenState extends State<CharacterShopScreen> {
   final RewardAdHelper _rewardAd = RewardAdHelper(placement: 'shop');
-  static const int _adReward = 60;
+  static const int _adReward = 1000;
 
   @override
   void initState() {
@@ -197,6 +197,21 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
+                    // 🧑‍🤝‍🧑 追加キャラ（主役。広告を見るインセンティブとして最上部に）
+                    _sectionHeader(m.storeMore, m.storeCharsDesc),
+                    GridView.count(
+                      crossAxisCount: 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.72,
+                      children: [
+                        for (final c in kExtraCharacters)
+                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                     // ── 🔥 人気セクション ──
                     _sectionHeader(m.ja ? '🔥 人気＆お得' : '🔥 Trending', ''),
                     const SizedBox(height: 10),
@@ -226,21 +241,6 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     const SizedBox(height: 8),
                     // 🎯 スタンプラリー
                     _stampRallyCard(m, p),
-                    const SizedBox(height: 20),
-                    // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
-                    _sectionHeader(m.storeMore, m.storeCharsDesc),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.72,
-                      children: [
-                        for (final c in kExtraCharacters)
-                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
-                      ],
-                    ),
                     const SizedBox(height: 16),
                     // 基本キャラ（最初から持っている12人）
                     Text(m.storeStarter,
