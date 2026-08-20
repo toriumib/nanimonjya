@@ -267,9 +267,13 @@ class _NameCallScreenState extends State<NameCallScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
+    // 🐣 かんたん（groupSize=1）は「1人覚える→1人答える」を2セットだけ。
+    //    それ以外は選択人数（ひとり=6、みんなで=2〜12）。
     final count = _isOnline
         ? widget.online!.peopleCount.clamp(2, NameCallGame.maxPeople)
-        : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
+        : (_isCpu && _diff.groupSize == 1
+            ? 2
+            : widget.peopleCount.clamp(2, NameCallGame.maxPeople));
     // オンラインは両プレイヤーで顔が一致する必要があるため基本16人プールのまま。
     // オフライン/ひとりは購入済みキャラと、**顔メモで登録した人**も出演プールに加える。
     // （以前はキャラデッキに「自分で登録した人」の欄があるのに、
@@ -305,7 +309,9 @@ class _NameCallScreenState extends State<NameCallScreen>
       //    かんたん=1人ずつ、鬼=4人まとめて。カスタム名簿は命名済みなので対象外。
       // 🌐 オンラインは両端末で山札の枚数が一致しないと成立しないので、
       //    部屋に載せていない設定はここで既定へ戻す。
-      copiesPerPerson: _isOnline ? null : widget.copiesPerPerson,
+      // 🤖 CPU対戦は「各人1回だけ答える」（命名1回＋想起1回）にする。
+      //    既定の4枚だと同じ名前を何度も答えることになり、単調で分かりにくい。
+      copiesPerPerson: _isCpu ? 2 : (_isOnline ? null : widget.copiesPerPerson),
       groupSize: (_isCpu && !_isCustom)
           ? _diff.groupSize
           : 0,
