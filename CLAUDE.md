@@ -1,5 +1,11 @@
 # ペタネーム (PetaName)
 
+> **🖥 開発メインのリポジトリはこれ（2026-08-21 決定）**
+> このリポジトリ（`C:\Users\tori\nanimonjya`、tori配下）をメインに開発する。
+> `C:\Users\tori\Downloads\nanimonjya-main\nanimonjya-main`（Downloads配下）は
+> 同じGitHubリモート（`toriumib/nanimonjya.git`）を共有する**作業用コピー**であり、
+> メインとしての更新は行わない。コード変更はここに反映し、リモートへ push する。
+
 顔と名前の記憶トレーニングアプリ（顔カード×名前カードの神経衰弱）。
 Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は「ペタネーム」) とWeb (Vercel / Firebase Hosting) で配信。
 
