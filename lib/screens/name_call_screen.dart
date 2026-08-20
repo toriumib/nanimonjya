@@ -1939,7 +1939,8 @@ class _NameCallScreenState extends State<NameCallScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors[i], width: 2),
+                  // ⚠️ 4色しかないので人数（2〜12人）では % 4 で循環させる
+                  border: Border.all(color: colors[i % 4], width: 2),
                 ),
                 child: Column(
                   children: [
@@ -1947,12 +1948,12 @@ class _NameCallScreenState extends State<NameCallScreen>
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
-                            color: colors[i])),
+                            color: colors[i % 4])),
                     Text('${_cardsWon[i]}',
                         style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w900,
-                            color: colors[i])),
+                            color: colors[i % 4])),
                   ],
                 ),
               ),
