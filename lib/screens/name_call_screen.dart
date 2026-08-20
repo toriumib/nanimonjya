@@ -217,7 +217,9 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// 1問の持ち時間。CPU対戦は難易度で変わる（むずかしいほど短い）。
   int get _answerSeconds =>
       _isCpu ? _diff.answerSeconds : NameCallGame.answerSeconds;
-  int _timeLeft = NameCallGame.answerSeconds;
+  /// 残り時間（0.1秒単位）。1秒刻みだと神モード（4秒）のバーが
+  /// 4段階でしか動かず「時間に即していない」ように見えるため細かくする。
+  int _timeLeft = NameCallGame.answerSeconds * 10;
 
   // 記録
   int _quizCorrect = 0;
@@ -632,9 +634,9 @@ class _NameCallScreenState extends State<NameCallScreen>
   void _startQuizTimer() {
     _quizTimer?.cancel();
     _quizShownAt = DateTime.now();
-    _timeLeft = _answerSeconds;
+    _timeLeft = _answerSeconds * 10; // 0.1秒単位
     _startCpuTimer();
-    _quizTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+    _quizTimer = Timer.periodic(const Duration(milliseconds: 100), (t) {
       // 画面が破棄されたあともタイマーが動き続けるとリークになるので止める
       if (!mounted) {
         t.cancel();
@@ -979,9 +981,9 @@ class _NameCallScreenState extends State<NameCallScreen>
     // ⚠️ 端末の戻るボタンは ×ボタン(_confirmQuit) を通らないため、
     //    そのままだと「オンラインで降参を送らずに離脱」できてしまい、
     //    相手が結果を待ち続けることになる。戻るも確認ダイアログに寄せる。
-    //    ゲームが終わって名簿公開まで来ていれば、そのまま閉じてよい。
+    //    ゲームが終わって結果・名簿公開まで来ていれば、そのまま閉じてよい。
     return PopScope(
-      canPop: _phase == _Phase.reveal,
+      canPop: _phase == _Phase.roundResult || _phase == _Phase.reveal,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _confirmQuit();
       },
@@ -1568,10 +1570,10 @@ class _NameCallScreenState extends State<NameCallScreen>
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: LinearProgressIndicator(
-            value: _timeLeft / _answerSeconds,
+            value: _timeLeft / (_answerSeconds * 10),
             minHeight: 5,
             backgroundColor: Colors.grey.shade300,
-            color: _timeLeft <= 3
+            color: _timeLeft <= 30
                 ? const Color(0xFFC62828)
                 : const Color(0xFF3A7BD5),
           ),
@@ -2290,6 +2292,11 @@ class _NameCallScreenState extends State<NameCallScreen>
   }
 
   void _confirmQuit() {
+    // 結果・名簿公開まで来ていれば、確認せずそのまま戻る。
+    if (_phase == _Phase.roundResult || _phase == _Phase.reveal) {
+      Navigator.of(context).pop();
+      return;
+    }
     final m = MetaStrings.of(context);
     showDialog<void>(
       context: context,
