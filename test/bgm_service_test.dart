@@ -36,11 +36,18 @@ void main() {
 
   test('restartCurrent() のあとも、続けてBGM操作ができる', () async {
     await Bgm.instance.restartCurrent().timeout(const Duration(seconds: 5));
-    // 曲を選び直したあとにゲームへ入る、という実際の流れ
+    // 曲を選び直したあとにゲームへ入る、という実際の流れ。
+    // マイページでの曲選択は playGame()/playResult() を呼ぶので、
+    // それらがチェーンを固めずに返ってくることを守る。
     await Bgm.instance
-        .restartGameBgm()
+        .playGame()
         .timeout(const Duration(seconds: 5), onTimeout: () {
       fail('曲を選び直したあと、BGM操作が固まったまま戻らない');
+    });
+    await Bgm.instance
+        .playResult()
+        .timeout(const Duration(seconds: 5), onTimeout: () {
+      fail('リザルト曲への切り替えが返ってこない');
     });
     await Bgm.instance.stop().timeout(const Duration(seconds: 5), onTimeout: () {
       fail('stop() が返ってこない');

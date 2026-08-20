@@ -1,3 +1,21 @@
+## 🎵 マイページの音楽変更の修正（v2.5.0 更新ビルド）
+
+**マイページで音楽を変えると、選んだ曲がその場でちゃんと鳴るように直しました。**
+
+- 🎮 **ゲーム中の曲**: 選ぶと、そのまま「ゲーム中の曲」としてすぐ再生されるように
+- 🏠 **ホームの曲**: 選ぶと、そのまま「ホームの曲」としてすぐ再生されるように（別の場面の曲が混ざって鳴らなくなる不具合を修正）
+- 🎺 **結果画面の曲**: 選ぶと、そのまま「結果画面の曲」としてすぐ再生されるように（「おまかせ」も勝利曲から1曲選んで鳴る）
+- これまでは「1曲だけ鳴ってホームの曲に戻る」・「選んだ場面と違う曲が鳴る」状態で、曲がちゃんと聴けないことがありました。曲を選んだら、その曲が鳴り続けるようになりました。
+
+## 🎵 My Page Music Fix (v2.5.0 update)
+
+**Changing music on My Page now actually plays the song you chose.**
+
+- 🎮 **Game music**: selecting it now plays it right away as the in-game track
+- 🏠 **Home music**: selecting it now plays it right away as the home track (fixed a bug where the wrong scene's music played instead)
+- 🎺 **Result music**: selecting it now plays it right away as the result track ("Shuffle" picks a real victory march to play)
+- Previously the selected song only played once and then reverted to the home track, or the wrong scene's music played. Now your chosen song keeps playing.
+
 ## v2.5.0 リリースノート
 
 ### 🔧 今回の更新（お詫びと変更内容）

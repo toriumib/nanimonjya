@@ -1196,12 +1196,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 await p.selectBgm(b.asset);
                 Sfx.instance.pop();
-                // 選んだ曲をその場で鳴らして、聴いてから決められるようにする。
-                // ⚠️ ここで restartGameBgm() を呼んではいけない。
-                //    マイページは「ホームのタブ」なので、ゲーム用の場面に
-                //    切り替わってしまい、タブを移った瞬間にホームの曲へ戻る。
-                //    選ぶたびに違う曲が鳴って、順番に流れているように見える。
-                Bgm.instance.preview(b.asset);
+                // 選んだ曲をその場で鳴らす（ゲーム中の曲としてループ）。
+                // マイページは「ホームのタブ」だが、いま選んだのはゲーム中の曲なので、
+                // ゲームの場面として流す。タブを移ればホームの曲へ戻る。
+                await Bgm.instance.playGame();
               },
               child: Text(m.select),
             );
@@ -1275,7 +1273,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Sfx.instance.pop();
                         // ホームの曲はいまこの画面で鳴っているものなので、
                         // その場で本当に差し替える（試聴ではなく本番）。
-                        await Bgm.instance.restartCurrent();
+                        // ⚠️ restartCurrent() は「いまの場面」の曲を鳴らすため、
+                        //    先にゲーム/リザルト曲へ切り替えているとホーム曲が
+                        //    鳴らない。ホームの曲を選んだのだから playHome() で
+                        //    ホームの場面として鳴らし直す。
+                        await Bgm.instance.playHome();
                       },
                       child: Text(m.select),
                     ),
@@ -1323,15 +1325,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Sfx.instance.pop();
                         // 結果画面の曲も、選んだらすぐ聴けるようにする
                         // （鳴らないと選べたのか分からない）。
-                        // ⚠️ 「おまかせ」は曲名ではなく目印なので、そのまま
-                        //    渡すと存在しないファイルを読みにいって無音になり、
-                        //    しかもホームの曲まで止まったままになる。
-                        //    実際に鳴る曲へ解決してから渡す。
-                        Bgm.instance.preview(
-                          o.key == kResultBgmRandom
-                              ? Bgm.instance.resultAsset()
-                              : o.key,
-                        );
+                        // ⚠️ preview() だと1曲分だけ流れて終わった瞬間に
+                        //    ホームの曲へ戻ってしまう。いま選んだ曲を
+                        //    結果画面の曲として、その場で鳴らし直す。
+                        //    「おまかせ」は [Bgm.resultAsset] が
+                        //    勝利曲プールから実際の曲へ解決してくれる。
+                        await Bgm.instance.playResult();
                       },
                       child: Text(m.select),
                     ),

@@ -305,20 +305,6 @@ class Bgm {
     });
   }
 
-  /// 曲を選び直したときに、鳴っている曲を即座に差し替える。
-  ///
-  /// `_current` の消去もチェーンの中でやる。外でやると、まだ動いている
-  /// 前の操作が終わりぎわに `_current` を書き戻して、同じ曲だと判定されて
-  /// 差し替えが素通りすることがある。
-  Future<void> restartGameBgm() {
-    return _serialize(() async {
-      _current = null;
-      _mode = _BgmMode.game;
-      await _stopCore();
-      await _playCore(assetKey(PlayerProfile.instance.selectedBgm));
-    });
-  }
-
   /// 🔊 いま鳴らしている場面のBGMを、選び直した曲でかけ直す。
   ///
   /// 即座に前の曲を止めて新しい曲を鳴らす。
