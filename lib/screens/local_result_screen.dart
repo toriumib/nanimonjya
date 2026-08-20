@@ -110,6 +110,17 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,
+        // 左上の×でホームへ戻る
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: m.ja ? 'ホームに戻る' : 'Back to home',
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomeShell()),
+              (route) => false,
+            );
+          },
+        ),
       ),
       body: Stack(
         alignment: Alignment.topCenter,

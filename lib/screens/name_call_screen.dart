@@ -1163,8 +1163,11 @@ class _NameCallScreenState extends State<NameCallScreen>
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFD8E4F0), width: 2),
             ),
+            // 名前をつける場面では顔をいちばん大きく見せる（1.15倍）。
             child: FaceView(
-                person: _namingPerson, size: _faceSize(context), radius: 14),
+                person: _namingPerson,
+                size: _faceSize(context) * 1.15,
+                radius: 14),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -2291,9 +2294,12 @@ class _NameCallScreenState extends State<NameCallScreen>
   }
 
   void _confirmQuit() {
-    // 結果・名簿公開まで来ていれば、確認せずそのまま戻る。
+    // 結果・名簿公開まで来ていれば、確認せず Home へ戻る。
     if (_phase == _Phase.roundResult || _phase == _Phase.reveal) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+        (route) => false,
+      );
       return;
     }
     final m = MetaStrings.of(context);
