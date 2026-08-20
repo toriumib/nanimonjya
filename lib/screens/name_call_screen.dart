@@ -758,7 +758,9 @@ class _NameCallScreenState extends State<NameCallScreen>
     final last = _lastClaimAt;
     if (last != null && now.difference(last).inMilliseconds < 400) return;
     _lastClaimAt = now;
-    if (player >= 0) {
+    // ⚠️ 人数（2〜12）とカードの枚数は別で、`_cardsWon` は人数ぶん確保している。
+    //    想定外の値で来ても範囲外にならないようにガードする。
+    if (player >= 0 && player < _cardsWon.length) {
       _cardsWon[player] += 1;
       // 🔊 誰かが取った瞬間は、**1台をみんなで見ている場面**。
       //    小さい音だと気づかれないので、獲得音にコインを重ねて厚くする。
@@ -788,6 +790,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     }
     // りょうどり: 2枚とも同じプレイヤーが取ったら演出カウント
     if (_round.length == 2 &&
+        _roundClaimer.length >= 2 &&
         _roundClaimer[0] >= 0 &&
         _roundClaimer[0] == _roundClaimer[1]) {
       _ryoudoriCount += 1;
