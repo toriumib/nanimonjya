@@ -1188,13 +1188,17 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   // 📚 コインで読める読み物
   String get articleLibraryTitle => ja ? '📚 もっと読む' : '📚 Read more';
   String get articleLibraryLead => ja
-      ? 'コインで開ける読み物です。タイトルと「何の話か」は開く前から読めます。'
+      ? 'コインまたは広告で開ける読み物です。タイトルと「何の話か」は開く前から読めます。'
           '記憶の仕組み・名前の覚え方・忘れないための組み立て方を、研究や公的機関の資料をもとにまとめました。'
-      : 'Articles you can open with coins. Titles and summaries are free to read.';
+      : 'Articles you can open with coins or an ad. Titles and summaries are free to read.';
   String articleBuyConfirm(int cost, int coins) => ja
       ? 'この記事を 🪙$cost で開きますか？（持っているコイン: $coins）\n一度開けば、ずっと読めます。'
       : 'Open this article for 🪙$cost? (You have $coins.) Once opened, it stays open.';
-  String get articleBuy => ja ? '開く' : 'Open';
+  String get articleUnlockDialog => ja
+      ? '記事を開く方法を選んでください。\n（コインまたは広告をみて記事を見る）'
+      : 'Choose how to open this article — with coins or by watching an ad.';
+  String get articleBuy => ja ? '🪙 コインで開く' : '🪙 Open with coins';
+  String get articleUnlockByAd => ja ? '🎬 広告を見て開く' : '🎬 Watch ad to open';
   String get articleOwned => ja ? '読める' : 'Open';
   String get articleNotEnough => ja ? 'コインが足りません' : 'Not enough coins';
   String articleWatchToEarn(int coins) => ja
@@ -1208,7 +1212,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
           '日常生活に支障が出ているといった場合は医療機関にご相談ください。'
       : 'This is everyday practice, not diagnosis or treatment. Effects vary. If forgetfulness affects daily life, please consult a medical professional.';
   String get articleMoreButton =>
-      ja ? '📚 コインで読める記事をみる' : '📚 More articles (coins)';
+      ja ? '📚 コインまたは広告で記事を見る' : '📚 More articles (coins or ad)';
 
   // 🛠 開発者モード
   String get devModeTitle => ja ? '🛠 開発者モード' : '🛠 Developer mode';

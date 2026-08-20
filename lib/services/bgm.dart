@@ -110,6 +110,7 @@ class Bgm {
   /// [routeObserver] 経由でまたこれが呼ばれる。
   /// ホームは操作していない時間も長いので、音量は控えめにする。
   Future<void> playHome() {
+    _ensureListening();
     _mode = _BgmMode.home;
     // 🏠 ホームの曲はマイページで選べる（3場面それぞれ設定できる）
     return _play(assetKey(homeAsset()), volume: 0.22);
@@ -151,6 +152,7 @@ class Bgm {
 
   /// ゲーム中のBGM（プレイヤーが選んだ曲）をループ再生する。
   Future<void> playGame() {
+    _ensureListening();
     _mode = _BgmMode.game;
     return _play(assetKey(PlayerProfile.instance.selectedBgm));
   }
@@ -158,6 +160,7 @@ class Bgm {
   /// 結果画面のBGM。選ばれていた `selectedResultBgm` はどこからも再生されて
   /// いなかったため、ここで使う。
   Future<void> playResult() {
+    _ensureListening();
     _mode = _BgmMode.result;
     return _play(assetKey(resultAsset()));
   }
@@ -178,6 +181,52 @@ class Bgm {
 
   /// ユーザー設定の音量倍率（0.0〜1.0）。プロフィールのスライダーから変更する。
   static double volumeScale = 1.0;
+
+  // ── プロフィール設定の自動反映 ──
+  // 画面が明示的に playHome 等を呼ぶのを待たずに、
+  // PlayerProfile の変化（OFF/ON・音量・曲の変更）を検知して即反映する。
+  bool _listening = false;
+  bool _lastBgmEnabled = true;
+  double _lastBgmVolume = 1.0;
+  String _lastHomeBgm = kHomeBgmRandom;
+
+  void _ensureListening() {
+    if (_listening) return;
+    _listening = true;
+    _lastBgmEnabled = PlayerProfile.instance.bgmEnabled;
+    _lastBgmVolume = PlayerProfile.instance.bgmVolume;
+    _lastHomeBgm = PlayerProfile.instance.selectedHomeBgm;
+    PlayerProfile.instance.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    final p = PlayerProfile.instance;
+    // 🔇 BGM をオフにされたら、鳴っていたら即止める。
+    if (!p.bgmEnabled) {
+      _lastBgmEnabled = false;
+      if (_mode != _BgmMode.none) stop();
+      return;
+    }
+    if (!_lastBgmEnabled) {
+      _lastBgmEnabled = true;
+      // オフ→オンに戻されたら、場面に応じた曲を鳴らす。
+      restartCurrent();
+      return;
+    }
+    // 🔊 音量が変わったら、鳴っている曲に即反映。
+    if (p.bgmVolume != _lastBgmVolume) {
+      _lastBgmVolume = p.bgmVolume;
+      if (_current != null) {
+        _serialize(() => _player.setVolume(_currentVolume * volumeScale));
+      }
+      return;
+    }
+    // 🎵 ホーム曲が変わったら、ホーム場面なら再再生する。
+    if (_mode == _BgmMode.home && p.selectedHomeBgm != _lastHomeBgm) {
+      _lastHomeBgm = p.selectedHomeBgm;
+      restartCurrent();
+    }
+  }
 
   Future<void> _play(String key, {double volume = 0.35}) =>
       _serialize(() => _playCore(key, volume: volume * volumeScale));

@@ -51,37 +51,56 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
     final p = PlayerProfile.instance;
     // 🧑💻 開発者モードではロックを無視して全部読める（動作確認用）。
     if (!p.devMode && !p.hasArticle(a.id)) {
-      final ok = await showDialog<bool>(
+      final choice = await showDialog<String>(
         context: context,
         builder: (c) => AlertDialog(
           title: Text(a.title(m.ja),
               style:
                   const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          content: Text(m.articleBuyConfirm(a.cost, p.coins)),
+          content: Text(m.articleUnlockDialog),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(c, false),
+                onPressed: () => Navigator.pop(c, null),
                 child: Text(m.cancel)),
-            ElevatedButton(
-                onPressed: () => Navigator.pop(c, true),
+            TextButton(
+                onPressed: () => Navigator.pop(c, 'coin'),
                 child: Text(m.articleBuy)),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(c, 'ad'),
+                child: Text(m.articleUnlockByAd)),
           ],
         ),
       );
-      if (ok != true || !mounted) return;
-      final bought = await p.unlockArticle(a.id, a.cost);
-      if (!mounted) return;
-      if (!bought) {
-        await _offerCoins(m, a);
-        return;
+      if (choice == null || !mounted) return;
+      if (choice == 'ad') {
+        final ok = await _unlockByAd(m, a);
+        if (!ok || !mounted) return;
+      } else {
+        final bought = await p.unlockArticle(a.id, a.cost);
+        if (!mounted) return;
+        if (!bought) {
+          await _offerCoins(m, a);
+          return;
+        }
+        Sfx.instance.coin();
       }
-      Sfx.instance.coin();
     }
     if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => _ArticleReaderScreen(article: a)),
     );
+  }
+
+  /// リワード広告を1本見て記事を開けるようにする。
+  Future<bool> _unlockByAd(MetaStrings m, PremiumArticle a) async {
+    var unlocked = false;
+    await _rewardAd.showOrQueue(onReward: () async {
+      await PlayerProfile.instance.unlockArticle(a.id, 0);
+      unlocked = true;
+      Sfx.instance.reward();
+    });
+    return unlocked;
   }
 
   /// コインが足りないときに、その場で貯める道を出す。
