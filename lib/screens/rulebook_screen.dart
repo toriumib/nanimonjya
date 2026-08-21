@@ -36,7 +36,7 @@ class RulebookScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'rulebook'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [

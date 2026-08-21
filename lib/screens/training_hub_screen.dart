@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/historical_figures.dart';
 import '../models/person.dart';
 import '../services/review_queue.dart';
@@ -171,7 +172,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'training_hub'),
       appBar: AppBar(
         title: Text(m.tabTraining),
         actions: const [
@@ -471,7 +472,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
           decoration: BoxDecoration(
             color: selected ? const Color(0xFF3A7BD5) : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF3A7BD5), width: 2),
+            border: Border.all(color: AppStyle.line, width: 1),
           ),
           child: Column(
             children: [
@@ -723,7 +724,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),

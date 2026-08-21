@@ -88,7 +88,7 @@ class _TrainingReportScreenState extends State<TrainingReportScreen> {
     final avgSec = (widget.avgReactionMs / 1000).toStringAsFixed(1);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'training_report'),
       appBar: AppBar(
         title: Text(m.trainingReportTitle),
         automaticallyImplyLeading: false,

@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../models/person.dart';
+import '../screens/recall_training_screen.dart';
 import '../services/player_profile.dart';
 import '../services/review_queue.dart';
+import '../services/sfx.dart';
 
 /// 🗣 ホームでナナちゃん・はなちゃんが声をかける吹き出し。
 ///
@@ -21,23 +24,35 @@ class GuideTalk extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔁 復習キューは読み込みや復習の結果で変わる。聞いていないと、
+    //    起動直後の「まだ0人」の状態のまま固まってしまう。
+    return AnimatedBuilder(
+      animation: ReviewQueue.instance,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final due = ReviewQueue.instance.dueCount();
     final line = pickGuideLine(
       profile: PlayerProfile.instance,
-      dueCount: ReviewQueue.instance.dueCount(),
+      dueCount: due,
       hour: DateTime.now().hour,
       ja: ja,
     );
     // ⚠️ ここは主役ではない。ホームの主役は遊ぶボタンなので、
     //    声かけが場所を取りすぎるとボタンが画面外へ押し出される。
     //    アイコン・文字・余白すべて控えめにして、1〜2行に収める。
-    return Container(
+    final card = Container(
       margin: const EdgeInsets.fromLTRB(14, 0, 14, 6),
       padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFD8E4F0), width: 1.2),
+        border: Border.all(
+            color: due > 0 ? const Color(0xFFE8A33D) : const Color(0xFFD8E4F0),
+            width: due > 0 ? 1.8 : 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -59,7 +74,38 @@ class GuideTalk extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          // 🔁 復習どきの人がいるときだけ「押せる」ことを見せる
+          if (due > 0)
+            const Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Icon(Icons.play_circle_fill,
+                  size: 22, color: Color(0xFFE8A33D)),
+            ),
         ],
+      ),
+    );
+
+    // 復習どきの人がいるのに「とっくんタブを開いて、カードを探す」必要があった。
+    // 声を掛けたその場から始められるようにする（気づいた瞬間が一番やる）。
+    if (due == 0) return card;
+    return InkWell(
+      onTap: () => _startReview(context),
+      borderRadius: BorderRadius.circular(14),
+      child: card,
+    );
+  }
+
+  void _startReview(BuildContext context) {
+    final people = ReviewQueue.instance.duePeople();
+    if (people.isEmpty) return;
+    Sfx.instance.fanfare();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecallTrainingScreen(
+          people: people,
+          fields: const {RecallField.name},
+        ),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'surnames.dart';
+
 /// 顔画像の種類。描画方法を切り替えるために使う。
 /// - svg   : バンドルされたオリジナルSVG（assets/images/faces/*.svg）
 /// - asset : バンドルされたフリー素材の写真風イラスト（assets/images/char*.jpg）
@@ -77,7 +79,11 @@ const List<String> kFaceAssets = [
   'assets/images/faces/face12.svg',
 ];
 
-/// フリー素材のキャラ画像一覧（12種）。なまえがお用。
+/// フリー素材のキャラ画像一覧（24種）。なまえがお用。
+///
+/// 2026-08 に 15種→24種へ増やした（char14〜22 をショップから基本に昇格）。
+/// ⚠️ **枚数は [NameCallGame.maxPeople] と必ずそろえること。** ここが少ないと
+///    生成器が足りない顔を要求して assert で落ちる。
 const List<String> kCharImageAssets = [
   'assets/images/char1.jpg',
   'assets/images/char2.jpg',
@@ -99,7 +105,58 @@ const List<String> kCharImageAssets = [
   //    ショップのカタログ（kExtraCharacters）にも戻さないこと。
   //    IDを使い回すと、以前 c13 を買った人の unlockedCharacters が
   //    別のキャラを指してしまう。
+  // 🆕 char14〜22（9枚）をショップから基本に昇格（15→24）。
+  'assets/images/char14.webp',
+  'assets/images/char15.webp',
+  'assets/images/char16.webp',
+  'assets/images/char17.webp',
+  'assets/images/char18.webp',
+  'assets/images/char19.webp',
+  'assets/images/char20.webp',
+  'assets/images/char21.webp',
+  'assets/images/char22.webp',
 ];
+
+/// 🌍 英語版で出てくる顔（16枚）。
+///
+/// 日本語版の顔ぶれのまま英語の名前（Smith / Johnson…）を付けると、
+/// 顔と名前が結びつきにくい。名前を覚える練習なのに、
+/// **顔と名前がちぐはぐだと、そこに引っかかって記憶の邪魔になる**。
+/// 表示言語が英語のときはこちらのプールを使う。
+///
+/// 素材は StyleGAN2 が生成した実在しない人の顔（Karras et al.）。
+/// 実在の人物ではないので肖像権の問題が起きない。
+///
+/// ⚠️ **枚数は [kCharImageAssets] 以上を保つこと。**
+///    なまえコールは最大 `NameCallGame.maxPeople` 人ぶんの顔を要求するので、
+///    足りないと `assert(count <= pool.length)` で落ちる。
+const List<String> kCharImageAssetsEn = [
+  'assets/images/en/en1.webp',
+  'assets/images/en/en2.webp',
+  'assets/images/en/en3.webp',
+  'assets/images/en/en4.webp',
+  'assets/images/en/en5.webp',
+  'assets/images/en/en6.webp',
+  'assets/images/en/en7.webp',
+  'assets/images/en/en8.webp',
+  'assets/images/en/en9.webp',
+  'assets/images/en/en10.webp',
+  'assets/images/en/en11.webp',
+  'assets/images/en/en12.webp',
+  'assets/images/en/en13.webp',
+  'assets/images/en/en14.webp',
+  'assets/images/en/en15.webp',
+  'assets/images/en/en16.webp',
+];
+
+/// 表示言語に合った基本の顔プールを返す。
+///
+/// ⚠️ **オンライン対戦では使わないこと。** 相手と表示言語が違うと
+///    顔ぶれが食い違い、同じ盤面にならない。オンラインは今までどおり
+///    [kCharImageAssets] を直接渡す（`rank_match` / `turn_pairs` /
+///    `match_game` のオンライン分岐）。
+List<String> charImageAssetsFor(bool ja) =>
+    ja ? kCharImageAssets : kCharImageAssetsEn;
 
 /// 名前プール（日本でよくある姓。記憶術の読み物の例とも対応）。
 const List<String> _namePoolJa = [
@@ -108,10 +165,14 @@ const List<String> _namePoolJa = [
   '山田', '佐々木', '山口', '斎藤', '井上', '木村',
 ];
 
+/// 英語版の姓。**日本語版のローマ字読み（Sato / Tanaka…）ではない。**
+/// 顔ぶれを欧米系にしたので、名前もそろえないと顔と名前が結びつかず、
+/// 「名前を覚える」練習の邪魔になる。件数は [_namePoolJa] と同じにする
+/// （`generateRecallPeople` が同じ添字で日英を引くため）。
 const List<String> _namePoolEn = [
-  'Sato', 'Tanaka', 'Matsumoto', 'Suzuki', 'Takahashi', 'Watanabe',
-  'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida',
-  'Yamada', 'Sasaki', 'Yamaguchi', 'Saito', 'Inoue', 'Kimura',
+  'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia',
+  'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Wilson', 'Anderson',
+  'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee',
 ];
 
 /// 趣味プール（属性クイズ用）。
@@ -142,7 +203,8 @@ List<Person> generatePeople(
 }) {
   final rng = random ?? Random();
   final useReal = charAssets == null || charAssets.length >= count;
-  final pool = useReal ? (charAssets ?? kCharImageAssets) : kFaceAssets;
+  // 🌍 プールを渡されなかったときは、表示言語に合った顔を使う
+  final pool = useReal ? (charAssets ?? charImageAssetsFor(ja)) : kFaceAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
   final namePool = ja ? _namePoolJa : _namePoolEn;
@@ -192,7 +254,7 @@ List<Person> generateImagePeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
   final pool = (charAssets == null || charAssets.length < count)
-      ? kCharImageAssets
+      ? charImageAssetsFor(ja) // 🌍 英語版は欧米系の顔ぶれ
       : charAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
@@ -319,7 +381,7 @@ List<Person> generateRecallPeople(int count,
     {required bool ja, Random? random, List<String>? charAssets}) {
   final rng = random ?? Random();
   final pool = (charAssets == null || charAssets.length < count)
-      ? kCharImageAssets
+      ? charImageAssetsFor(ja) // 🌍 英語版は欧米系の顔ぶれ
       : charAssets;
   assert(count <= pool.length);
   final faces = [...pool]..shuffle(rng);
@@ -354,6 +416,61 @@ List<Person> generateRecallPeople(int count,
       email: email,
     );
   });
+}
+
+/// 🎯 思い出しクイズの選択肢を4つに満たすための「実在しない人」の値を作る。
+///
+/// 出題できる人数が少ないと選択肢が正解＋1個などになってしまい、
+/// **覚えていなくても当たる**＝テストとして成立しなくなる。
+/// 実際に起きていたのは次の2つ:
+///   - 復習キュー（期限が来た人だけ）で残りが1〜2人のとき
+///   - 顔メモに2人しか登録していない状態での確認テスト
+///
+/// [like] には正解の文字列を渡す。名前は敬称の有無を正解にそろえるため
+/// （「佐藤さん」の中に「田中」が混じると、それだけで答えが割れてしまう）。
+List<String> recallDistractors(
+  RecallField field, {
+  required bool ja,
+  required int count,
+  String like = '',
+  Set<String> exclude = const <String>{},
+  Random? random,
+}) {
+  if (count <= 0) return const [];
+  final rng = random ?? Random();
+  final out = <String>[];
+  final seen = {...exclude};
+
+  if (field == RecallField.name) {
+    // 名前は実在しそうな苗字プールから借りる（造語だと練習にならない）
+    final honorific = ja && like.endsWith('さん') ? 'さん' : '';
+    final pool = [...commonNamePool(ja)]..shuffle(rng);
+    for (final s in pool) {
+      final v = '$s$honorific';
+      if (seen.contains(v)) continue;
+      seen.add(v);
+      out.add(v);
+      if (out.length >= count) break;
+    }
+    return out;
+  }
+
+  // 会社名・肩書・連絡先は、架空の人物を生成してその項目だけを借りる
+  for (var attempt = 0; attempt < 8 && out.length < count; attempt++) {
+    final filler = generateRecallPeople(
+      min(count + 2, charImageAssetsFor(ja).length),
+      ja: ja,
+      random: rng,
+    );
+    for (final p in filler) {
+      final v = recallFieldValue(p, field).trim();
+      if (v.isEmpty || seen.contains(v)) continue;
+      seen.add(v);
+      out.add(v);
+      if (out.length >= count) break;
+    }
+  }
+  return out;
 }
 
 /// 趣味クイズ用: 正解以外の選択肢を作る。

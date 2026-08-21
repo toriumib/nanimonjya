@@ -80,15 +80,8 @@ class GameCharacter {
 /// ⚠️ c13 は**欠番**。無料枠へ昇格させたあと取り下げたので、どこにも無い。
 /// IDを使い回すと、以前買った人の unlockedCharacters が別のキャラを指す。
 const List<GameCharacter> kExtraCharacters = [
-  GameCharacter(id: 'c14', asset: 'assets/images/char14.webp', emoji: '💇‍♀️', cost: 120),
-  GameCharacter(id: 'c15', asset: 'assets/images/char15.webp', emoji: '💻', cost: 150),
-  GameCharacter(id: 'c16', asset: 'assets/images/char16.webp', emoji: '🍠', cost: 150),
-  GameCharacter(id: 'c17', asset: 'assets/images/char17.webp', emoji: '👗', cost: 180),
-  GameCharacter(id: 'c18', asset: 'assets/images/char18.webp', emoji: '🍣', cost: 180),
-  GameCharacter(id: 'c19', asset: 'assets/images/char19.webp', emoji: '🦅', cost: 650, feat: UnlockFeat.hardWins3),
-  GameCharacter(id: 'c20', asset: 'assets/images/char20.webp', emoji: '🐎', cost: 260),
-  GameCharacter(id: 'c21', asset: 'assets/images/char21.webp', emoji: '🕴️', cost: 200),
-  GameCharacter(id: 'c22', asset: 'assets/images/char22.webp', emoji: '✊', cost: 200),
+  // c14〜c22 は 2026-08 に**基本キャラへ昇格**（kCharImageAssets へ移動）。
+  //    ショップには並ばないが、以前買った人は基本プールでそのまま使える。
   GameCharacter(id: 'c23', asset: 'assets/images/char23.webp', emoji: '😤', cost: 220),
   GameCharacter(id: 'c24', asset: 'assets/images/char24.webp', emoji: '😊', cost: 180),
   GameCharacter(id: 'c25', asset: 'assets/images/char25.webp', emoji: '😷', cost: 180),
@@ -114,7 +107,7 @@ const List<GameCharacter> kExtraCharacters = [
   GameCharacter(id: 'c42', asset: 'assets/images/nissinIMGL0808_TP_V4.webp', emoji: '🍜', cost: 200),
   GameCharacter(id: 'c43', asset: 'assets/images/tuchimoto07100I9A6655_TP_V4.webp', emoji: '🧑‍🏫', cost: 220),
   // 📅 ログインを続けると手に入る4体（コインでも買えるが高い）
-  GameCharacter(id: 'c44', asset: 'assets/images/mikoFTHG2083_TP_V4.webp', emoji: '⛩️', cost: 600, feat: UnlockFeat.login3),
+  GameCharacter(id: 'c44', asset: 'assets/images/mikoFTHG2083_TP_V4.webp', emoji: '', cost: 600, feat: UnlockFeat.login3),
   GameCharacter(id: 'c45', asset: 'assets/images/miuFTHG2011_TP_V4.webp', emoji: '🌸', cost: 700, feat: UnlockFeat.login7),
   GameCharacter(id: 'c46', asset: 'assets/images/yotakasanFTHG0883_TP_V4.webp', emoji: '🏮', cost: 800, feat: UnlockFeat.login14),
   GameCharacter(id: 'c47', asset: 'assets/images/yuka522032_TP_V.jpg', emoji: '👑', cost: 900, feat: UnlockFeat.login30),
@@ -150,6 +143,17 @@ List<String> applyDeckFilter(
   return kept.length >= minimum ? kept : pool;
 }
 
+/// 🎬 ゲームに出す顔の土台（基本の顔ぶれ＋買ったキャラ）。
+///
+/// ⚠️ **英語版には買ったキャラを混ぜない。**
+///    買えるキャラ（char14〜32）は日本のフリー素材なので、欧米系の顔ぶれの
+///    中に混ざると顔と名前がちぐはぐになり、名前を覚える練習の邪魔になる。
+///    （英語版の顔ぶれを入れた狙いそのものが崩れる）
+List<String> playablePool(bool ja, Set<String> unlockedIds) => [
+      ...charImageAssetsFor(ja),
+      if (ja) ...unlockedExtraAssets(unlockedIds),
+    ];
+
 /// 🎴 顔メモの人も含めた出演プールを組み立てる。
 ///
 /// 以前はキャラデッキに「自分で登録した人」の欄があるのに、
@@ -165,10 +169,17 @@ List<FaceRef> buildFacePool({
   required Set<String> excluded,
   List<FaceRef> customFaces = const [],
   int minimum = 4,
+  /// ⚠️ **必須にしてある。** 既定値を持たせていたせいで
+  ///    `name_call_screen` が渡し忘れ、英語版のなまえコールに
+  ///    日本語版の顔が出ていた（アプリの主役モードで、いちばん目立つ場所）。
+  ///    「渡さないと日本語」という既定は、静かに間違うので置かない。
+  required bool ja,
 }) {
   final all = <FaceRef>[
-    for (final a in kCharImageAssets) FaceRef.asset(a),
-    for (final a in unlockedExtraAssets(unlockedIds)) FaceRef.asset(a),
+    // 🌍 基本の顔ぶれと買ったキャラは [playablePool] の規則に従う
+    //    （英語版に日本語版の買ったキャラを混ぜない）。
+    //    顔メモの人は自分で登録した実在の相手なので、言語に関係なく出す。
+    for (final a in playablePool(ja, unlockedIds)) FaceRef.asset(a),
     ...customFaces,
   ];
   if (excluded.isEmpty) return all;

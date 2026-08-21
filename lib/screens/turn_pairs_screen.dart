@@ -106,6 +106,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen>
       OnlineMatchService.levelPairs,
       ja: ja,
       random: _rng,
+      // 🌐 オンラインは相手と顔ぶれを合わせる必要があるので言語で変えない
       charAssets: kCharImageAssets,
     );
     _cards = [
@@ -348,7 +349,7 @@ class _TurnPairsScreenState extends State<TurnPairsScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF3F7FF),
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'turn_pairs'),
         appBar: AppBar(
           title: Text(m.turnPairsTitle),
           automaticallyImplyLeading: false,

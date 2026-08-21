@@ -84,7 +84,7 @@ class _StoryScreenState extends State<StoryScreen> {
     final scene = widget.chapter.scenes[_index];
     return Scaffold(
       backgroundColor: const Color(0xFF1B2233),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'story_legacy'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
@@ -267,7 +267,7 @@ class _StoryListScreenState extends State<StoryListScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(m.ja ? '📖 ストーリー' : '📖 Story')),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'story_legacy'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [

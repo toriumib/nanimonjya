@@ -7,8 +7,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/memory_tips.dart';
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/character_catalog.dart';
 import '../models/person.dart';
+import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
@@ -125,15 +127,15 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   @override
   void dispose() {
     Speech.instance.stop();
+    // 🎵 リザルトへ進んでいるときは止めない（リザルト曲を消してしまうため）
+    Bgm.instance.stopGame();
     super.dispose();
   }
 
   /// 出演プール = 基本12＋購入済みキャラ（キャラデッキでOFFにした人は除く）。
   List<String> _photoPool() => applyDeckFilter(
-        [
-          ...kCharImageAssets,
-          ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-        ],
+        // 🌍 英語版は欧米系の顔ぶれだけ（買ったキャラは日本の素材なので混ぜない）
+        playablePool(_ja, PlayerProfile.instance.unlockedCharacters),
         PlayerProfile.instance.deckExcluded,
       );
 
@@ -191,6 +193,10 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       return;
     }
     _mainTotal = _questions.length;
+    // 🎵 ここまでは自己紹介の読み上げが主役なので無音。
+    //    思い出すフェーズに入ってから曲を鳴らす（今まではこのモードだけ
+    //    ホームの曲が止められたまま最後まで無音だった）。
+    Bgm.instance.playGame();
     setState(() {
       _phase = _Phase.recall;
       _qIndex = 0;
@@ -208,7 +214,21 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
         if (!identical(p, _q.person)) recallFieldValue(p, _q.field),
     }..removeWhere((v) => v.trim().isEmpty || v == answer);
     final pool = others.toList()..shuffle(_rng);
-    _choices = [answer, ...pool.take(3)]..shuffle(_rng);
+    final picked = pool.take(3).toList();
+    // 🎯 出題人数が少ない（＝復習キューに1〜2人しか残っていない）と
+    //    選択肢が正解＋1個になり、覚えていなくても当たってしまう。
+    //    足りない分は実在しない人の値で埋めて必ず4択にする。
+    if (picked.length < 3) {
+      picked.addAll(recallDistractors(
+        _q.field,
+        ja: _ja,
+        count: 3 - picked.length,
+        like: answer,
+        exclude: {answer, ...picked},
+        random: _rng,
+      ));
+    }
+    _choices = [answer, ...picked]..shuffle(_rng);
     _answered = false;
     _picked = null;
     _questionShownAt = DateTime.now();
@@ -297,6 +317,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     if (widget.people != null) {
       AppAnalytics.spacedReviewDone(total: total, correct: _correct);
     }
+    Bgm.instance.playResult(); // 🎵 選んだリザルト曲（他のリザルト画面とそろえる）
     InterstitialAdHelper.instance.onGameFinished(); // 3プレイに1回、全画面広告
     // 🔔 ここは「時間をおいて思い出す」を体験した直後。間隔をあけた復習が
     //    効くという説明がいちばん通じる場面なので、リマインドを持ちかける。
@@ -308,7 +329,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'recall_training'),
       appBar: AppBar(title: Text(m.recallTitle)),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(
@@ -324,33 +345,51 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
     );
   }
 
-  // 実写の人物（顔＋体）を大きく見せるカード。頭が切れないよう上寄せでクロップ。
-  // アセット画像（架空）とアップロード写真（カスタム名簿）の両方に対応。
-  Widget _personPhoto(Person p, {double height = 300}) {
+  /// 実写の人物（顔＋体）を大きく見せるカード。
+  /// アセット画像（架空）とアップロード写真（カスタム名簿）の両方に対応。
+  ///
+  /// ⚠️ **顔を切らないこと。** 顔と名前を結びつけるのが目的なので、
+  ///    あごや額が切れていると練習にならない。
+  ///    以前は `width: double.infinity` + `BoxFit.cover` で横幅いっぱいに
+  ///    広げてから縦を切っていた。日本語版の写真は横長（800×533）なので
+  ///    切れ幅が小さく気づかなかったが、英語版で足した**正方形（512×512）の顔は
+  ///    口から下が切れていた**。画像の縦横比のまま、高さに収める。
+  ///    （横長の写真は横幅で頭打ちになるので、見え方はこれまでとほぼ同じ）
+  ///
+  /// [crop] を true にすると枠いっぱいに埋める。**枠の形が決まっている
+  /// 小さな一覧写真だけに使うこと**（そこは正方形なので顔は切れない）。
+  Widget _personPhoto(Person p, {double height = 300, bool crop = false}) {
     Widget fallback() => Container(
           height: height,
+          width: crop ? null : height, // 収める側は正方形で場所を取る
           color: const Color(0xFFEAF3FF),
-          child: const Icon(Icons.person, size: 90, color: Color(0xFF8FB4DC)),
+          child: Icon(Icons.person,
+              size: height * 0.6, color: const Color(0xFF8FB4DC)),
         );
+    final BoxFit fit = crop ? BoxFit.cover : BoxFit.contain;
+    final double? width = crop ? double.infinity : null;
+    final Alignment align = crop ? Alignment.topCenter : Alignment.center;
     final Widget img;
     if (p.kind == FaceKind.file && !kIsWeb) {
       img = Image.file(File(p.face),
           height: height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
+          width: width,
+          fit: fit,
+          alignment: align,
           errorBuilder: (_, __, ___) => fallback());
     } else if (p.kind == FaceKind.asset) {
       img = Image.asset(p.face,
           height: height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
+          width: width,
+          fit: fit,
+          alignment: align,
           errorBuilder: (_, __, ___) => fallback());
     } else {
       img = fallback();
     }
-    return ClipRRect(borderRadius: BorderRadius.circular(22), child: img);
+    final clipped =
+        ClipRRect(borderRadius: BorderRadius.circular(22), child: img);
+    return crop ? clipped : Center(child: clipped);
   }
 
   Widget _buildMeet(MetaStrings m) {
@@ -597,7 +636,7 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7E0),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -781,7 +820,8 @@ class _RecallTrainingScreenState extends State<RecallTrainingScreen> {
                       SizedBox(
                         width: 64,
                         height: 64,
-                        child: _personPhoto(p, height: 64),
+                        // 64×64の正方形の枠なので、ここは埋めてよい
+                        child: _personPhoto(p, height: 64, crop: true),
                       ),
                       const SizedBox(width: 12),
                       Expanded(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
 import '../services/memory_stats.dart';
+import '../services/player_profile.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../widgets/themed_background.dart';
 import '../services/app_analytics.dart';
@@ -34,7 +35,7 @@ class _ReportScreenState extends State<ReportScreen> {
     return ThemedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'report'),
         appBar: AppBar(
           title: Text(m.ja ? '📊 成績レポート' : '📊 Stats Report'),
           backgroundColor: Colors.transparent,
@@ -60,9 +61,49 @@ class _ReportScreenState extends State<ReportScreen> {
                         ],
                         const SizedBox(height: 8),
                         _explainCard(m.ja),
+                        const SizedBox(height: 16),
+                        _premiumCard(m.ja),
                       ],
                     ),
         ),
+      ),
+    );
+  }
+
+  /// 👑 プレミアムの案内カード。加入者には「加入中」を、未加入者には導線を出す。
+  Widget _premiumCard(bool ja) {
+    final active = PlayerProfile.instance.premiumActive;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EDFF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF8A5AC2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            active
+                ? (ja ? '👑 プレミアム加入中' : '👑 Premium active')
+                : (ja ? '👑 プレミアムで詳細レポート' : '👑 Premium unlocks detailed reports'),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF5B3E9E)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            active
+                ? (ja
+                    ? '記憶の伸び・モード別の詳細グラフをご利用いただけます。'
+                    : 'Memory trends and detailed per-mode graphs are unlocked.')
+                : (ja
+                    ? '月額プランで、記憶の伸びのグラフや詳細な分析が見られます。'
+                    : 'Subscribe monthly to see memory-trend graphs and deeper analysis.'),
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
       ),
     );
   }

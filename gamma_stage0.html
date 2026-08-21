@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>選択についての実験</title>
+<style>
+:root{--bg:#0f1117;--card:#171a24;--bd:#262b39;--tx:#e6e8ef;--dm:#8b91a8;--ac:#d4a44e;--gr:#38a878;--rd:#e0445c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Hiragino Sans','Noto Sans JP',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.8;display:flex;justify-content:center;padding:24px 16px 80px}
+.wrap{width:100%;max-width:720px}
+h1{font-size:1.4rem;color:var(--ac);margin-bottom:4px}
+h2{font-size:1.05rem;margin:20px 0 8px}
+p{color:var(--dm);font-size:.92rem;margin-bottom:12px}
+p.big{color:var(--tx);font-size:1.05rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px 24px;margin:16px 0}
+button{font:inherit;background:var(--ac);color:#1a1408;border:0;border-radius:8px;padding:12px 26px;cursor:pointer;font-weight:700}
+button:hover{filter:brightness(1.12)}
+button.ghost{background:transparent;color:var(--dm);border:1px solid var(--bd);font-weight:400}
+button:disabled{opacity:.35;cursor:not-allowed}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.opt{background:#1d2130;border:2px solid var(--bd);border-radius:12px;padding:26px 18px;text-align:center;cursor:pointer;font-size:1.05rem;transition:.14s;min-height:110px;display:flex;align-items:center;justify-content:center}
+.opt:hover{border-color:var(--ac);transform:translateY(-2px)}
+.opt .k{position:absolute;top:8px;left:12px;font-size:.7rem;color:var(--dm)}
+.optwrap{position:relative}
+input[type=range]{width:100%;margin:16px 0}
+.val{text-align:center;font-size:1.6rem;color:var(--ac);font-weight:700}
+.prog{height:4px;background:var(--bd);border-radius:2px;overflow:hidden;margin-bottom:20px}
+.prog i{display:block;height:100%;background:var(--ac);transition:width .3s}
+.qbox{font-size:1.15rem;color:var(--tx);text-align:center;margin:8px 0 4px}
+.filler{text-align:center;padding:26px 0}
+.filler .eq{font-size:2rem;letter-spacing:.08em;margin:14px 0}
+.tiny{font-size:.78rem;color:var(--dm)}
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:12px 0}
+th,td{border:1px solid var(--bd);padding:7px 10px;text-align:left}
+th{background:rgba(255,255,255,.04)}
+.hi{color:var(--ac);font-weight:700}
+.ok{color:var(--gr)}.no{color:var(--rd)}
+label{display:block;margin:10px 0;font-size:.92rem;color:var(--tx);cursor:pointer}
+label input{margin-right:8px}
+textarea{width:100%;background:#1d2130;border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:10px;font:inherit;min-height:70px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   段階0 Web実験 — MacKay効果の測定
+   測るもの:  Γ (予測→選択の不一致)  −  C (選択→選択の不一致)
+   Γ単独は既知の選択不一貫性。差分こそが「予測が状態を変えたか」を示す。
+   鳥海 / 2026-08-15
+   ============================================================ */
+
+const CFG = {
+  nItems: 24,        // 価値評定する項目数
+  nPairs: 32,        // 試行数（A条件16 + B条件16）
+  fillerMs: 9000,    // 介在課題の時間（A/B条件で厳密に一致させること）
+};
+
+const ITEMS = [
+  "熱いコーヒー","冷たい緑茶","ホットミルク","炭酸水",
+  "海辺を散歩する","森を散歩する","街を散歩する","川沿いを散歩する",
+  "小説を読む","エッセイを読む","漫画を読む","詩集を読む",
+  "窓際の席","奥まった席","通路側の席","角の席",
+  "朝型の生活","夜型の生活","昼寝のある生活","規則正しい生活",
+  "深い青","くすんだ緑","淡い灰色","暖かい橙"
+];
+
+const S = {          // 状態
+  id: "P" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+  started: new Date().toISOString(),
+  ratings: {},       // item -> 0..100
+  trials: [],        // 試行データ
+  ti: 0,
+  post: {},
+};
+
+const app = document.getElementById("app");
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+/* ---------- 画面: 説明 ---------- */
+function screenIntro(){
+  app.innerHTML = `
+  <h1>選択についての実験</h1>
+  <p class="tiny">所要 約15〜20分 / ID: ${S.id}</p>
+  <div class="card">
+    <h2>この実験について</h2>
+    <p class="big">日常的な選択肢について、あなたの好みをうかがいます。</p>
+    <p>正解・不正解はありません。<strong>あなたが実際にどう感じるか</strong>だけが重要です。</p>
+    <p>実験は2部構成です。第1部で個々の項目への好みを評定し、第2部で2つずつ比べて選んでいただきます。</p>
+    <p class="tiny">・途中で中断された場合、データは記録されません<br>
+    ・回答は匿名で、個人を特定する情報は収集しません<br>
+    ・参加は任意で、いつでも中断できます</p>
+  </div>
+  <div class="card">
+    <label><input type="checkbox" id="cs"> 上記を読み、参加に同意します</label>
+    <button id="go" disabled>はじめる</button>
+  </div>`;
+  const cs=document.getElementById("cs"), go=document.getElementById("go");
+  cs.onchange = ()=> go.disabled = !cs.checked;
+  go.onclick = ()=>{ S.order = shuffle(ITEMS.slice(0,CFG.nItems)); S.ri=0; screenRate(); };
+}
+
+/* ---------- 画面: 価値評定 ---------- */
+function screenRate(){
+  if(S.ri >= S.order.length){ buildPairs(); return screenBridge(); }
+  const it = S.order[S.ri];
+  const pct = Math.round(S.ri / S.order.length * 100);
+  app.innerHTML = `
+  <div class="prog"><i style="width:${pct}%"></i></div>
+  <p class="tiny">第1部 &nbsp; ${S.ri+1} / ${S.order.length}</p>
+  <div class="card">
+    <p>次のものは、あなたにとってどのくらい好ましいですか。</p>
+    <div class="qbox" style="font-size:1.5rem;color:var(--ac);margin:22px 0">${it}</div>
+    <div class="val" id="v">50</div>
+    <input type="range" id="r" min="0" max="100" value="50">
+    <div style="display:flex;justify-content:space-between" class="tiny">
+      <span>まったく好ましくない</span><span>とても好ましい</span></div>
+    <div style="margin-top:22px"><button id="n">次へ</button></div>
+  </div>`;
+  const r=document.getElementById("r"), v=document.getElementById("v");
+  r.oninput = ()=> v.textContent = r.value;
+  document.getElementById("n").onclick = ()=>{
+    S.ratings[it] = +r.value; S.ri++; screenRate();
+  };
+}
+
+/* ---------- 対の構成: ΔV が全域に散るように ---------- */
+function buildPairs(){
+  const items = Object.keys(S.ratings);
+  const all = [];
+  for(let i=0;i<items.length;i++) for(let j=i+1;j<items.length;j++){
+    all.push({a:items[i], b:items[j], dV:Math.abs(S.ratings[items[i]]-S.ratings[items[j]])});
+  }
+  // ΔVを4ビンに分け、各ビンから均等に抽出（ΔV全域をカバーするため）
+  const mx = Math.max(...all.map(p=>p.dV), 1);
+  const bins = [[],[],[],[]];
+  all.forEach(p=> bins[Math.min(3, Math.floor(p.dV/mx*4))].push(p));
+  const per = Math.ceil(CFG.nPairs/4);
+  let sel = [];
+  bins.forEach(b=> sel = sel.concat(shuffle(b).slice(0, per)));
+  sel = shuffle(sel).slice(0, CFG.nPairs);
+
+  // 条件A/Bを半々に割付。位置（左右）もカウンターバランス
+  sel.forEach((p,i)=>{
+    p.cond   = i % 2 === 0 ? "A" : "B";   // A: 選択→選択 / B: 予測→選択
+    p.flip1  = Math.random() < .5;         // 1回目の左右
+    p.flip2  = Math.random() < .5;         // 2回目の左右（独立に反転）
+  });
+  S.trials = shuffle(sel);
+}
+
+/* ---------- 画面: 第2部の説明 ---------- */
+function screenBridge(){
+  app.innerHTML = `
+  <div class="card">
+    <h2>第2部</h2>
+    <p class="big">ここからは、2つの選択肢を比べていただきます。</p>
+    <p>1つの組について<strong>2回</strong>お尋ねします。間に簡単な計算課題が入ります。</p>
+    <p>組によって、1回目の質問が異なります。画面の指示をよく読んでお答えください。</p>
+    <p class="tiny">⚠️ 1回目の回答は表示されません。<strong>2回目は、そのときに感じたとおりにお答えください。</strong>
+    1回目に合わせようとしたり、わざと違えようとしたりする必要はありません。</p>
+    <button id="go">第2部をはじめる</button>
+  </div>`;
+  document.getElementById("go").onclick = ()=>{ S.ti=0; screenTrial1(); };
+}
+
+/* ---------- 試行: 1回目 ---------- */
+function screenTrial1(){
+  if(S.ti >= S.trials.length) return screenPost();
+  const t = S.trials[S.ti];
+  const [L,R] = t.flip1 ? [t.b,t.a] : [t.a,t.b];
+  const pct = Math.round(S.ti / S.trials.length * 100);
+  // A条件は「選んでください」、B条件は「どちらを選ぶと思いますか」
+  const q = t.cond === "A"
+    ? "どちらを選びますか。"
+    : "あとで、この2つのどちらかを選んでいただきます。<br><strong>いま、自分はどちらを選ぶと思いますか。</strong>";
+  app.innerHTML = `
+  <div class="prog"><i style="width:${pct}%"></i></div>
+  <p class="tiny">第2部 &nbsp; ${S.ti+1} / ${S.trials.length}</p>
+  <div class="card">
+    <div class="qbox">${q}</div>
+    <div class="opts">
+      <div class="optwrap"><div class="opt" data-s="L">${L}</div></div>
+      <div class="optwrap"><div class="opt" data-s="R">${R}</div></div>
+    </div>
+  </div>`;
+  const t0 = performance.now();
+  app.querySelectorAll(".opt").forEach(el=>{
+    el.onclick = ()=>{
+      const side = el.dataset.s;
+      // 左右反転を正規化して、常に元の a/b 基準で記録する
+      const chosen = (side==="L") ? (t.flip1 ? t.b : t.a) : (t.flip1 ? t.a : t.b);
+      t.resp1 = chosen; t.side1 = side; t.rt1 = Math.round(performance.now()-t0);
+      screenFiller();
+    };
+  });
+}
+
+/* ---------- 介在課題（A/B条件で厳密に同一） ---------- */
+async function screenFiller(){
+  const a=(Math.random()*40+10)|0, b=(Math.random()*40+10)|0;
+  const t0=Date.now();
+  const tick = async ()=>{
+    while(Date.now()-t0 < CFG.fillerMs){
+      const left = Math.ceil((CFG.fillerMs-(Date.now()-t0))/1000);
+      const el = document.getElementById("cd");
+      if(el) el.textContent = left;
+      await sleep(200);
+    }
+    screenTrial2();
+  };
+  app.innerHTML = `
+  <div class="card filler">
+    <p>次の計算をしてください</p>
+    <div class="eq">${a} + ${b} = ?</div>
+    <input type="range" style="display:none">
+    <p class="tiny">答えは入力しなくて構いません。頭の中で計算してください。</p>
+    <div style="font-size:1.6rem;color:var(--ac)" id="cd">9</div>
+  </div>`;
+  tick();
+}
+
+/* ---------- 試行: 2回目（両条件とも「選択」） ---------- */
+function screenTrial2(){
+  const t = S.trials[S.ti];
+  const [L,R] = t.flip2 ? [t.b,t.a] : [t.a,t.b];
+  app.innerHTML = `
+  <div class="card">
+    <div class="qbox"><strong>どちらを選びますか。</strong></div>
+    <p class="tiny" style="text-align:center">いま感じたとおりにお答えください。</p>
+    <div class="opts">
+      <div class="optwrap"><div class="opt" data-s="L">${L}</div></div>
+      <div class="optwrap"><div class="opt" data-s="R">${R}</div></div>
+    </div>
+  </div>`;
+  const t0 = performance.now();
+  app.querySelectorAll(".opt").forEach(el=>{
+    el.onclick = ()=>{
+      const side = el.dataset.s;
+      const chosen = (side==="L") ? (t.flip2 ? t.b : t.a) : (t.flip2 ? t.a : t.b);
+      t.resp2 = chosen; t.side2 = side; t.rt2 = Math.round(performance.now()-t0);
+      t.mismatch = (t.resp1 !== t.resp2) ? 1 : 0;   // ★ 中心的従属変数
+      S.ti++; screenTrial1();
+    };
+  });
+}
+
+/* ---------- 事後質問（交絡の統制に必須） ---------- */
+function screenPost(){
+  app.innerHTML = `
+  <div class="card">
+    <h2>最後に</h2>
+    <p>2回目に答えるとき、1回目の自分の回答を<strong>覚えていましたか</strong>。</p>
+    <label><input type="radio" name="mem" value="never">ほとんど覚えていなかった</label>
+    <label><input type="radio" name="mem" value="some">ときどき覚えていた</label>
+    <label><input type="radio" name="mem" value="often">たいてい覚えていた</label>
+  </div>
+  <div class="card">
+    <p>2回目に答えるとき、1回目に<strong>合わせよう</strong>、または<strong>わざと違えよう</strong>としましたか。</p>
+    <label><input type="radio" name="int" value="none">どちらもしていない</label>
+    <label><input type="radio" name="int" value="match">合わせようとした</label>
+    <label><input type="radio" name="int" value="differ">わざと違えようとした</label>
+  </div>
+  <div class="card">
+    <p>気づいたこと・お気づきの点があればご自由にお書きください（任意）</p>
+    <textarea id="fb"></textarea>
+    <div style="margin-top:16px"><button id="fin">終了する</button></div>
+  </div>`;
+  document.getElementById("fin").onclick = ()=>{
+    const g=n=>{const e=document.querySelector(`input[name=${n}]:checked`);return e?e.value:null;};
+    S.post = {memory:g("mem"), intent:g("int"), feedback:document.getElementById("fb").value.trim()};
+    S.finished = new Date().toISOString();
+    screenResult();
+  };
+}
+
+/* ---------- Wilson信頼区間（比率のCIは必ずこれで） ---------- */
+function wilson(k,n,z=1.96){
+  if(!n) return [0,0];
+  const p=k/n, d=1+z*z/n, c=(p+z*z/(2*n))/d;
+  const h=z*Math.sqrt(p*(1-p)/n + z*z/(4*n*n))/d;
+  return [Math.max(0,c-h), Math.min(1,c+h)];
+}
+
+/* ---------- 差の信頼区間: Newcombe ハイブリッドスコア法 ----------
+   単純な正規近似 se=sqrt(p1(1-p1)/n1 + p2(1-p2)/n2) は、
+   p が 0 または 1 に達すると se=0 となり幅ゼロの区間を返す（実際に起きた）。
+   Newcombe (1998) method 10 は各比率の Wilson 区間から差の区間を構成し、
+   境界でも破綻しない。比率の差を報告するときの標準的手法。
+   θ = p1 − p2 に対して
+     lower = θ − sqrt((p1−l1)² + (u2−p2)²)
+     upper = θ + sqrt((u1−p1)² + (p2−l2)²)                        */
+function newcombeDiff(k1,n1,k2,n2){
+  const p1 = n1? k1/n1 : 0, p2 = n2? k2/n2 : 0;
+  const [l1,u1] = wilson(k1,n1), [l2,u2] = wilson(k2,n2);
+  const th = p1 - p2;
+  return [
+    th - Math.sqrt((p1-l1)**2 + (u2-p2)**2),
+    th + Math.sqrt((u1-p1)**2 + (p2-l2)**2)
+  ];
+}
+
+/* ---------- 結果表示 + データ書き出し ---------- */
+function screenResult(){
+  const done = S.trials.filter(t=>t.resp2!==undefined);
+  const A = done.filter(t=>t.cond==="A"), B = done.filter(t=>t.cond==="B");
+  const cA = A.reduce((s,t)=>s+t.mismatch,0), cB = B.reduce((s,t)=>s+t.mismatch,0);
+  const C = A.length? cA/A.length : 0, G = B.length? cB/B.length : 0;
+  const [cl,ch] = wilson(cA,A.length), [gl,gh] = wilson(cB,B.length);
+  const diff = G - C;
+  const [dl,dh] = newcombeDiff(cB, B.length, cA, A.length);  // Γ − C
+  const sig = (dl>0 || dh<0);
+
+  const blob = new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  app.innerHTML = `
+  <h1>ご協力ありがとうございました</h1>
+  <div class="card">
+    <h2>あなたの結果</h2>
+    <table>
+      <tr><th>条件</th><th>試行数</th><th>不一致率</th><th>95% CI</th></tr>
+      <tr><td>A: 選択 → 選択（ベースライン C）</td><td>${A.length}</td>
+          <td class="hi">${C.toFixed(3)}</td><td>[${cl.toFixed(3)}, ${ch.toFixed(3)}]</td></tr>
+      <tr><td>B: 予測 → 選択（Γ）</td><td>${B.length}</td>
+          <td class="hi">${G.toFixed(3)}</td><td>[${gl.toFixed(3)}, ${gh.toFixed(3)}]</td></tr>
+      <tr><td><strong>差 Γ − C（MacKay効果）</strong></td><td>—</td>
+          <td class="${sig?'ok':'no'}"><strong>${diff>=0?'+':''}${diff.toFixed(3)}</strong></td>
+          <td>[${dl.toFixed(3)}, ${dh.toFixed(3)}]</td></tr>
+    </table>
+    <p class="tiny">
+      ${sig ? '差の信頼区間が0を含みません。ただし<strong>個人1名の結果であり、統計的な意味はありません</strong>。'
+            : '差の信頼区間が0を含みます（=差なし）。1名分では当然の結果です。'}
+      本実験は多数の参加者を集めて初めて解釈できます。
+    </p>
+  </div>
+  <div class="card">
+    <h2>データの保存</h2>
+    <p>下のボタンでJSONファイルとして保存できます。</p>
+    <a href="${url}" download="gamma_${S.id}.json"><button>データを保存</button></a>
+    <p class="tiny" style="margin-top:14px">
+      ⚠️ オンライン調査で運用する場合は、この保存ボタンではなく
+      サーバ送信（Pavlovia / jsPsych の save 機能等）に置き換えてください。
+    </p>
+  </div>`;
+}
+
+screenIntro();
+</script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import '../models/person.dart';
 import '../models/surnames.dart';
 import '../services/ad_ids.dart';
 import '../services/bgm.dart';
+import '../models/cpu_rank.dart';
 import '../services/interstitial_ad_helper.dart';
 import '../services/memory_stats.dart';
 import '../services/notify_prompt.dart';
@@ -216,7 +217,9 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// 1問の持ち時間。CPU対戦は難易度で変わる（むずかしいほど短い）。
   int get _answerSeconds =>
       _isCpu ? _diff.answerSeconds : NameCallGame.answerSeconds;
-  int _timeLeft = NameCallGame.answerSeconds;
+  /// 残り時間（0.1秒単位）。1秒刻みだと神モード（4秒）のバーが
+  /// 4段階でしか動かず「時間に即していない」ように見えるため細かくする。
+  int _timeLeft = NameCallGame.answerSeconds * 10;
 
   // 記録
   int _quizCorrect = 0;
@@ -266,9 +269,13 @@ class _NameCallScreenState extends State<NameCallScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
+    // 🐣 かんたん（groupSize=1）は「1人覚える→1人答える」を2セットだけ。
+    //    それ以外は選択人数（ひとり=6、みんなで=2〜12）。
     final count = _isOnline
         ? widget.online!.peopleCount.clamp(2, NameCallGame.maxPeople)
-        : widget.peopleCount.clamp(2, NameCallGame.maxPeople);
+        : (_isCpu && _diff.groupSize == 1
+            ? 2
+            : widget.peopleCount.clamp(2, NameCallGame.maxPeople));
     // オンラインは両プレイヤーで顔が一致する必要があるため基本16人プールのまま。
     // オフライン/ひとりは購入済みキャラと、**顔メモで登録した人**も出演プールに加える。
     // （以前はキャラデッキに「自分で登録した人」の欄があるのに、
@@ -276,6 +283,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     final facePool = _isOnline
         ? null
         : buildFacePool(
+            ja: ja, // 🌍 英語版は欧米系の顔ぶれ
             unlockedIds: PlayerProfile.instance.unlockedCharacters,
             excluded: PlayerProfile.instance.deckExcluded,
             customFaces: [
@@ -303,7 +311,9 @@ class _NameCallScreenState extends State<NameCallScreen>
       //    かんたん=1人ずつ、鬼=4人まとめて。カスタム名簿は命名済みなので対象外。
       // 🌐 オンラインは両端末で山札の枚数が一致しないと成立しないので、
       //    部屋に載せていない設定はここで既定へ戻す。
-      copiesPerPerson: _isOnline ? null : widget.copiesPerPerson,
+      // 🤖 CPU対戦は「各人1回だけ答える」（命名1回＋想起1回）にする。
+      //    既定の4枚だと同じ名前を何度も答えることになり、単調で分かりにくい。
+      copiesPerPerson: _isCpu ? 2 : (_isOnline ? null : widget.copiesPerPerson),
       groupSize: (_isCpu && !_isCustom)
           ? _diff.groupSize
           : 0,
@@ -341,7 +351,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   void _loadBanner() {
     if (kIsWeb) return;
     // 💳 広告除去を買ってくれた人にはバナーを出さない
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
     final ad = BannerAd(
       adUnitId: AdIds.banner,
       size: AdSize.banner,
@@ -624,9 +634,9 @@ class _NameCallScreenState extends State<NameCallScreen>
   void _startQuizTimer() {
     _quizTimer?.cancel();
     _quizShownAt = DateTime.now();
-    _timeLeft = _answerSeconds;
+    _timeLeft = _answerSeconds * 10; // 0.1秒単位
     _startCpuTimer();
-    _quizTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+    _quizTimer = Timer.periodic(const Duration(milliseconds: 100), (t) {
       // 画面が破棄されたあともタイマーが動き続けるとリークになるので止める
       if (!mounted) {
         t.cancel();
@@ -667,6 +677,14 @@ class _NameCallScreenState extends State<NameCallScreen>
       correct: correct,
       reactionMs: reactionMs,
     );
+    // 📊 1問ごとの正誤・反応時間を Firebase Analytics にも送る（正答率・速度を測る）。
+    AppAnalytics.answerLogged(
+      mode: 'namecall',
+      correct: correct,
+      reactionMs: reactionMs,
+      index: _answering + 1,
+      total: _round.length,
+    );
     _quizShownAt = null;
     if (correct) {
       _quizCorrect += 1;
@@ -694,7 +712,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     _roundHits.add(correct && !takenByCpu);
     setState(() => _pickedChoice = choice ?? '__timeout__');
 
-    Future.delayed(const Duration(milliseconds: 750), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (!mounted) return;
       _pickedChoice = null;
       _answerLocked = false;
@@ -710,13 +728,16 @@ class _NameCallScreenState extends State<NameCallScreen>
       _cardsWon[0] += gained;
       if (gained > 0) {
         Sfx.instance.get(); // 🎴 カードが手に入った音
-        // 🔥 連続しているときは、そちらを見せる。ただの獲得より嬉しい
-        _showBanner(
-          _combo >= 3 ? m.comboBanner(_combo) : m.cardGetBanner,
-          _combo >= 3
-              ? const [Color(0xFFFF3D6A), Color(0xFFFFC02E)]
-              : const [Color(0xFFFF6A3D), Color(0xFFFFC02E)],
-        );
+        // 🔥 バナー（カードゲット！）はみんなで対戦のときだけ出す。
+        //    ひとりではマル/×の結果が出れば十分で、表示はテンポを落とす。
+        if (widget.humanPlayers > 1) {
+          _showBanner(
+            _combo >= 3 ? m.comboBanner(_combo) : m.cardGetBanner,
+            _combo >= 3
+                ? const [Color(0xFFFF3D6A), Color(0xFFFFC02E)]
+                : const [Color(0xFFFF6A3D), Color(0xFFFFC02E)],
+          );
+        }
       }
       // 🤖 CPUに点が入るのは「CPUが先に思い出したとき」だけ。
       //    プレイヤーのおてつきは没収せず、誰の点にもならない。
@@ -737,18 +758,23 @@ class _NameCallScreenState extends State<NameCallScreen>
     final last = _lastClaimAt;
     if (last != null && now.difference(last).inMilliseconds < 400) return;
     _lastClaimAt = now;
-    if (player >= 0) {
+    // ⚠️ 人数（2〜12）とカードの枚数は別で、`_cardsWon` は人数ぶん確保している。
+    //    想定外の値で来ても範囲外にならないようにガードする。
+    if (player >= 0 && player < _cardsWon.length) {
       _cardsWon[player] += 1;
       // 🔊 誰かが取った瞬間は、**1台をみんなで見ている場面**。
       //    小さい音だと気づかれないので、獲得音にコインを重ねて厚くする。
       Sfx.instance.get();
       Sfx.instance.coin();
       HapticFeedback.mediumImpact();
-      // 誰が取ったかを、その人の色で出す
-      _showBanner(
-        widget.humanPlayers <= 1 ? m.cardGetBanner : m.playerGotBanner(player + 1),
-        _playerColors(player),
-      );
+      // 誰が取ったかを、その人の色で出す（みんなで対戦のときだけ。
+      // ひとりでは正誤の結果が出れば十分で、表示はテンポを落とす）。
+      if (widget.humanPlayers > 1) {
+        _showBanner(
+          m.playerGotBanner(player + 1),
+          _playerColors(player),
+        );
+      }
     } else {
       Sfx.instance.wrong();
       // 📛 みんなで（一台）＝審判モードでは、名前をつけた人が
@@ -764,6 +790,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     }
     // りょうどり: 2枚とも同じプレイヤーが取ったら演出カウント
     if (_round.length == 2 &&
+        _roundClaimer.length >= 2 &&
         _roundClaimer[0] >= 0 &&
         _roundClaimer[0] == _roundClaimer[1]) {
       _ryoudoriCount += 1;
@@ -957,9 +984,9 @@ class _NameCallScreenState extends State<NameCallScreen>
     // ⚠️ 端末の戻るボタンは ×ボタン(_confirmQuit) を通らないため、
     //    そのままだと「オンラインで降参を送らずに離脱」できてしまい、
     //    相手が結果を待ち続けることになる。戻るも確認ダイアログに寄せる。
-    //    ゲームが終わって名簿公開まで来ていれば、そのまま閉じてよい。
+    //    ゲームが終わって結果・名簿公開まで来ていれば、そのまま閉じてよい。
     return PopScope(
-      canPop: _phase == _Phase.reveal,
+      canPop: _phase == _Phase.roundResult || _phase == _Phase.reveal,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _confirmQuit();
       },
@@ -1096,7 +1123,7 @@ class _NameCallScreenState extends State<NameCallScreen>
   /// ⚠️ 固定値にすると狭い端末で溢れる。画面幅から入る大きさを出す。
   static double _faceSize(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    return ((w - 48).clamp(140.0, 260.0)) - 24;
+    return ((w - 48).clamp(140.0, 400.0)) - 24;
   }
 
   /// プレイヤーごとの色。帯とボタンで同じ色を使う。
@@ -1136,8 +1163,11 @@ class _NameCallScreenState extends State<NameCallScreen>
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFD8E4F0), width: 2),
             ),
+            // 名前をつける場面では顔をいちばん大きく見せる（1.15倍）。
             child: FaceView(
-                person: _namingPerson, size: _faceSize(context), radius: 14),
+                person: _namingPerson,
+                size: _faceSize(context) * 1.15,
+                radius: 14),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -1217,7 +1247,7 @@ class _NameCallScreenState extends State<NameCallScreen>
     final named = _game.roster.length;
     final total = _game.people.length;
     return LayoutBuilder(builder: (context, box) {
-      final faceSz = ((box.maxWidth - 60).clamp(120.0, 200.0) - 24);
+      final faceSz = ((box.maxWidth - 60).clamp(120.0, 300.0) - 24);
       return SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
         child: Column(
@@ -1546,10 +1576,10 @@ class _NameCallScreenState extends State<NameCallScreen>
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: LinearProgressIndicator(
-            value: _timeLeft / _answerSeconds,
+            value: _timeLeft / (_answerSeconds * 10),
             minHeight: 5,
             backgroundColor: Colors.grey.shade300,
-            color: _timeLeft <= 3
+            color: _timeLeft <= 30
                 ? const Color(0xFFC62828)
                 : const Color(0xFF3A7BD5),
           ),
@@ -1623,19 +1653,11 @@ class _NameCallScreenState extends State<NameCallScreen>
   Widget _refereePanel(MetaStrings m) {
     return Column(
       children: [
-        Text(
-          widget.humanPlayers <= 1
-              ? m.soloRecallPrompt
-              : (_round.length == 2
-                  ? m.refereePromptCard(_answering + 1)
-                  : m.refereePrompt),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 2),
+        // 「〜を一斉にコール！」の説明は省き、顔を大きく見せる。
+        // 「名前を呼ぼう！」だけ残す。
         Text(widget.humanPlayers <= 1 ? m.soloRecallHint : m.refereeHint,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
         Expanded(
           child: LayoutBuilder(builder: (context, box) {
@@ -1699,6 +1721,15 @@ class _NameCallScreenState extends State<NameCallScreen>
   }
 
   Widget _roundResultBanner(MetaStrings m) {
+    // 💬 「どちらも取れなかった」は出さない。寂しい表示はテンポを落とすだけ。
+    final bool missedAll;
+    if (_isReferee) {
+      missedAll = !_roundClaimer.any((c) => c >= 0);
+    } else {
+      missedAll = _roundHits.where((h) => h).isEmpty;
+    }
+    if (missedAll) return const SizedBox.shrink();
+
     final String text;
     final Color color;
     if (_isReferee) {
@@ -1778,6 +1809,13 @@ class _NameCallScreenState extends State<NameCallScreen>
     final active = !resultPhase && i == _answering;
     final ok = _isReferee ? (claimed && _roundClaimer[i] >= 0) : (answered && _roundHits[i]);
     final done = _isReferee ? claimed : answered;
+    // 🌟 神スキンのボーダー色（装備しているとき、なまえコールの顔カードが光る）
+    final skinBorder = switch (PlayerProfile.instance.selectedGodSkin) {
+      'god_skin_golden' => const Color(0xFFE9C87A),
+      'god_skin_cosmic' => const Color(0xFF8C7BFF),
+      'god_skin_neon' => const Color(0xFF00E5FF),
+      _ => null,
+    };
     // 🖼 顔は大きいほうがいい。**顔を覚えるゲームなので、顔が主役。**
     //    以前は2枚並ぶと92pxしかなく、誰なのか見分けづらかった。
     //
@@ -1787,15 +1825,16 @@ class _NameCallScreenState extends State<NameCallScreen>
     final single = _round.length == 1;
     final screenW = MediaQuery.of(context).size.width;
     final byWidth = single
-        ? (screenW - 48).clamp(140.0, 260.0)
-        : ((screenW - 60) / 2).clamp(110.0, 190.0);
+        ? (screenW - 48).clamp(140.0, 300.0)
+        : ((screenW - 60) / 2).clamp(110.0, 220.0);
     // ⚠️ **高さからも上限を出す。**
     //    得点欄・見出し・ボタンにも場所が要る。カードに使ってよいのは
     //    残り高さの半分くらいまで。ここを見ないと、P1/P2 のボタンが
     //    画面の外へ押し出されて押せなくなる。
-    final byHeight = (maxH * 0.30).clamp(100.0, 220.0);
+    //    説明文と「？」を省いたので、顔にたくさん割り当てられる。
+    final byHeight = (maxH * 0.48).clamp(100.0, 300.0);
     final maxCard = byWidth < byHeight ? byWidth : byHeight;
-    final cardWidth = (single ? 236.0 : 168.0).clamp(110.0, maxCard);
+    final cardWidth = (single ? 280.0 : 200.0).clamp(110.0, maxCard);
     // カードの内側の余白（12*2）を引いた残りが顔に使える。
     // 1枚のときは命名画面（_faceSize）とそろう。
     final faceSize = cardWidth - 24;
@@ -1809,12 +1848,13 @@ class _NameCallScreenState extends State<NameCallScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: active
-              ? const Color(0xFFE8A400)
-              : done
-                  ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
-                  : const Color(0xFFD8E4F0),
-          width: active ? 4 : 2,
+          color: skinBorder ??
+              (active
+                  ? const Color(0xFFE8A400)
+                  : done
+                      ? (ok ? const Color(0xFF2E9E5B) : const Color(0xFFC62828))
+                      : const Color(0xFFD8E4F0)),
+          width: (active || skinBorder != null) ? 3 : 2,
         ),
         boxShadow: [
           BoxShadow(
@@ -1833,23 +1873,24 @@ class _NameCallScreenState extends State<NameCallScreen>
       child: Column(
         children: [
           FaceView(person: person, size: faceSize, radius: 14),
-          const SizedBox(height: 8),
-          Text(
-            resultPhase
-                ? _displayName(person, m)
-                : (done
-                    ? (_isReferee
-                        ? (_roundClaimer[i] >= 0
-                            ? 'P${_roundClaimer[i] + 1}'
-                            : '—')
-                        : (_roundHits[i] ? '⭕' : '❌'))
-                    : '？'),
-            style: TextStyle(
-                fontSize: single ? 18 : 14,
-                fontWeight: FontWeight.w900,
-                color: won ? const Color(0xFFB8860B) : null),
-            overflow: TextOverflow.ellipsis,
-          ),
+          // 未回答の「？」は出さない（顔を大きく見せるため）。
+          if (done) ...[
+            const SizedBox(height: 8),
+            Text(
+              resultPhase
+                  ? _displayName(person, m)
+                  : (_isReferee
+                      ? (_roundClaimer[i] >= 0
+                          ? 'P${_roundClaimer[i] + 1}'
+                          : '—')
+                      : (_roundHits[i] ? '⭕' : '❌')),
+              style: TextStyle(
+                  fontSize: single ? 18 : 14,
+                  fontWeight: FontWeight.w900,
+                  color: won ? const Color(0xFFB8860B) : null),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );
@@ -1899,24 +1940,26 @@ class _NameCallScreenState extends State<NameCallScreen>
             if (i > 0) const SizedBox(width: 6),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors[i], width: 2),
+                  // ⚠️ 4色しかないので人数（2〜12人）では % 4 で循環させる
+                  border: Border.all(color: colors[i % 4], width: 2),
                 ),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text('P${i + 1}',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w900,
-                            color: colors[i])),
+                            color: colors[i % 4])),
                     Text('${_cardsWon[i]}',
                         style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 13,
                             fontWeight: FontWeight.w900,
-                            color: colors[i])),
+                            color: colors[i % 4])),
                   ],
                 ),
               ),
@@ -2004,16 +2047,16 @@ class _NameCallScreenState extends State<NameCallScreen>
                 // 名簿を1人ずつ時間差でポップイン
                 for (var i = 0; i < _game.people.length; i++)
                   SizedBox(
-                    width: 76,
+                    width: 96,
                     child: Column(
                       children: [
                         FaceView(
-                            person: _game.people[i], size: 56, radius: 10),
+                            person: _game.people[i], size: 80, radius: 10),
                         const SizedBox(height: 3),
                         Text(
                           _displayName(_game.people[i], m),
                           style: const TextStyle(
-                              fontSize: 11.5, fontWeight: FontWeight.w900),
+                              fontSize: 13, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -2055,6 +2098,28 @@ class _NameCallScreenState extends State<NameCallScreen>
                 ),
               ),
             ),
+            // ⚡ 反応速度と 🏅 段位（ひとりで対戦のとき、自分の強さが実感できるように）
+            if (_isCpu) ...[
+              const SizedBox(height: 8),
+              Builder(builder: (context) {
+                final rank = cpuRankForRating(
+                    PlayerProfile.instance.cpuRating);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text('⚡ ${_avgReactionMs}ms',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF3A7BD5))),
+                    Text(
+                        '🏅 ${m.ja ? rank.nameJa : rank.nameEn} (${PlayerProfile.instance.cpuRating})',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF8A5AC2))),
+                  ],
+                );
+              }),
+            ],
             // 🏆 実績で新しく参戦したキャラを大きく知らせる。
             // ここを出さないと、条件を満たしても本人が気づけない。
             if (_featUnlocked.isNotEmpty) ...[
@@ -2185,9 +2250,7 @@ class _NameCallScreenState extends State<NameCallScreen>
               ),
             ],
             const SizedBox(height: 14),
-            // 🛍 「次はどのキャラで遊ぶ？」でショップへ送る（他のリザルトと同じ導線）
-            const StoreCtaCard(),
-            const SizedBox(height: 16),
+            // もう一度遊ぶ（スクロールなしで見えるようにショップ誘導より上に置く）
             ElevatedButton.icon(
               onPressed: () {
                 Sfx.instance.pop();
@@ -2222,6 +2285,9 @@ class _NameCallScreenState extends State<NameCallScreen>
               icon: const Icon(Icons.home_rounded),
               label: Text(m.backToHome),
             ),
+            const SizedBox(height: 14),
+            // 🛍 「次はどのキャラで遊ぶ？」でショップへ送る（他のリザルトと同じ導線）
+            const StoreCtaCard(),
           ] else ...[
             ElevatedButton(
               onPressed: _goToResult,
@@ -2237,6 +2303,14 @@ class _NameCallScreenState extends State<NameCallScreen>
   }
 
   void _confirmQuit() {
+    // 結果・名簿公開まで来ていれば、確認せず Home へ戻る。
+    if (_phase == _Phase.roundResult || _phase == _Phase.reveal) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+        (route) => false,
+      );
+      return;
+    }
     final m = MetaStrings.of(context);
     showDialog<void>(
       context: context,

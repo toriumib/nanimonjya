@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/cpu_rank.dart';
 import '../services/bgm.dart';
 import '../services/interstitial_ad_helper.dart';
@@ -168,7 +169,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
     final rank = cpuRankForRating(_ratingAfter);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'online_result'),
       appBar: AppBar(
         title: Text(m.onlineMatchTitle),
         automaticallyImplyLeading: false,
@@ -278,7 +279,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFFF3D6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE6B54A), width: 1.5),
+              border: Border.all(color: AppStyle.line, width: 1),
             ),
             child: Text(
               '🪙 ${m.earnedCoins(_coinsEarned)}',
@@ -299,7 +300,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFFF7E0),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+              border: Border.all(color: AppStyle.line, width: 1),
             ),
             child: Wrap(
               spacing: 8,
@@ -451,7 +452,7 @@ class _OnlineResultScreenState extends State<OnlineResultScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF3EDFF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF8A5AC2), width: 1.5),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

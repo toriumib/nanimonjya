@@ -34,8 +34,12 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('article_library');
-    _rewardAd.load();
-    RewardedInterstitialHelper.instance.load();
+    // 📊 2026-08のAdMobレポート: リワード 446リクエスト→14表示（3.1%）、
+    //    リワードインタースティシャルは19リクエスト→**0表示**だった。
+    //    画面を開いただけで読み込むと、ほぼ全部が空振りになる。
+    //    どちらも `showOrQueue` が「未準備なら届き次第そのまま再生」を
+    //    やってくれるので、**押されてから読む**で足りる。
+    //    （記事を1本も買わずに閉じる人のぶんが、まるごと無駄になっていた）
   }
 
   @override
@@ -47,38 +51,58 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
   Future<void> _open(PremiumArticle a) async {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
-    if (!p.hasArticle(a.id)) {
-      final ok = await showDialog<bool>(
+    // 🧑💻 開発者モードではロックを無視して全部読める（動作確認用）。
+    if (!p.devMode && !p.hasArticle(a.id)) {
+      final choice = await showDialog<String>(
         context: context,
         builder: (c) => AlertDialog(
           title: Text(a.title(m.ja),
               style:
                   const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          content: Text(m.articleBuyConfirm(a.cost, p.coins)),
+          content: Text(m.articleUnlockDialog),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(c, false),
+                onPressed: () => Navigator.pop(c, null),
                 child: Text(m.cancel)),
-            ElevatedButton(
-                onPressed: () => Navigator.pop(c, true),
+            TextButton(
+                onPressed: () => Navigator.pop(c, 'coin'),
                 child: Text(m.articleBuy)),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(c, 'ad'),
+                child: Text(m.articleUnlockByAd)),
           ],
         ),
       );
-      if (ok != true || !mounted) return;
-      final bought = await p.unlockArticle(a.id, a.cost);
-      if (!mounted) return;
-      if (!bought) {
-        await _offerCoins(m, a);
-        return;
+      if (choice == null || !mounted) return;
+      if (choice == 'ad') {
+        final ok = await _unlockByAd(m, a);
+        if (!ok || !mounted) return;
+      } else {
+        final bought = await p.unlockArticle(a.id, a.cost);
+        if (!mounted) return;
+        if (!bought) {
+          await _offerCoins(m, a);
+          return;
+        }
+        Sfx.instance.coin();
       }
-      Sfx.instance.coin();
     }
     if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => _ArticleReaderScreen(article: a)),
     );
+  }
+
+  /// リワード広告を1本見て記事を開けるようにする。
+  Future<bool> _unlockByAd(MetaStrings m, PremiumArticle a) async {
+    var unlocked = false;
+    await _rewardAd.showOrQueue(onReward: () async {
+      await PlayerProfile.instance.unlockArticle(a.id, 0);
+      unlocked = true;
+      Sfx.instance.reward();
+    });
+    return unlocked;
   }
 
   /// コインが足りないときに、その場で貯める道を出す。
@@ -130,7 +154,7 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
     final m = MetaStrings.of(context);
     final p = PlayerProfile.instance;
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'article_library'),
       appBar: AppBar(
         title: Text(m.articleLibraryTitle),
         actions: [
@@ -162,7 +186,7 @@ class _ArticleLibraryScreenState extends State<ArticleLibraryScreen> {
                 for (var i = 0; i < kPremiumArticles.length; i++) ...[
                   _row(m, kPremiumArticles[i],
                       p.hasArticle(kPremiumArticles[i].id)),
-                  if (i == 2) const NativeAdCard(placement: 'article_library'),
+                  if (i == 2) const NativeAdCard(),
                 ],
                 const SizedBox(height: 10),
                 Text(m.articleDisclaimer,
@@ -297,7 +321,7 @@ class _ArticleReaderScreenState extends State<_ArticleReaderScreen> {
   Widget build(BuildContext context) {
     final m = MetaStrings.of(context);
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'article_library'),
       appBar: AppBar(title: Text('${article.emoji} ${article.title(m.ja)}')),
       body: SafeArea(
         child: Container(
@@ -321,7 +345,7 @@ class _ArticleReaderScreenState extends State<_ArticleReaderScreen> {
               for (final s in article.sources)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
-                  child: Text('・$s',
+                  child: Text(m.ja ? '・$s' : '• $s',
                       style: const TextStyle(fontSize: 11.5, height: 1.6)),
                 ),
               const SizedBox(height: 16),

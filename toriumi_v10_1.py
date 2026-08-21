@@ -263,7 +263,7 @@ def run_all():
     print("  self-referential decision-making. Not randomness. Not")
     print("  determinism-as-predictability. A third category.")
     print()
-    print("  Kengo Toriumi | 2026-08-13")
+    print("  Toriumi | 2026-08-13")
     print("=" * 65)
 
 

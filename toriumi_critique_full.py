@@ -6,7 +6,7 @@ CRITICAL REVIEWS OF THE TORIUMI THEORY
 
 Nomura, Tomabechi, Rovelli, Matsuda, Penrose, Witten
 
-Kengo Toriumi — 2026.08.12
+Toriumi — 2026.08.12
 ============================================================================
 """
 

@@ -26,10 +26,11 @@ void main() {
     });
 
     test('unlockedExtraAssets は購入済みIDだけを返す', () {
-      final unlocked = unlockedExtraAssets({'c14', 'c20'});
+      // c14〜c22 は基本キャラへ昇格したので、買えるキャラ（c23以降）で試す。
+      final unlocked = unlockedExtraAssets({'c23', 'c24'});
       expect(unlocked, hasLength(2));
-      expect(unlocked, contains('assets/images/char14.webp'));
-      expect(unlocked, contains('assets/images/char20.webp'));
+      expect(unlocked, contains('assets/images/char23.webp'));
+      expect(unlocked, contains('assets/images/char24.webp'));
     });
 
     test('applyDeckFilter 除外したキャラがプールから消える', () {

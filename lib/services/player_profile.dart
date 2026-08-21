@@ -6,6 +6,7 @@ import '../models/achievement.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cpu_rank.dart';
+import '../l10n/premium_articles.dart';
 import '../models/shop_items.dart';
 import 'app_analytics.dart';
 import 'daily_reminder.dart';
@@ -47,8 +48,11 @@ class PlayerProfile extends ChangeNotifier {
   ///    ままだったため、そのまま出していれば全員が無音になっていた。
   Set<String> unlockedBgm = {...kFreeBgmAssets};
   String selectedBgm = kDefaultGameBgmAsset;
-  Set<String> unlockedThemes = {'sunny'}; // ホーム着せ替え（デフォルトは最初から）
-  String selectedTheme = 'sunny';
+  // 🖤 既定は 'noir'（濃紺＋ゴールド）。'sunny' も最初から使える。
+  //    ⚠️ すでに遊んでいる人の選択は保存されているので上書きされない。
+  //       ここを変えても、変わるのは新規インストールの見た目だけ。
+  Set<String> unlockedThemes = {'noir', 'sunny'};
+  String selectedTheme = 'noir';
   String selectedResultBgm = kDefaultResultBgmAsset; // リザルト画面の曲
   /// 🏠 ホーム/試合前の曲。3場面（ホーム・試合中・リザルト）をそれぞれ選べる。
   /// 既定は [kHomeBgmRandom]（シチリアーノか運命をランダム）。
@@ -99,6 +103,10 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> unlockedCharacters = {}; // コインで購入した追加キャラのID
   /// 🔇 BGMを鳴らすか。効果音とは独立して切れる（音楽だけ邪魔なことがあるため）。
   bool bgmEnabled = true;
+  /// 🔊 BGMの音量（0.0〜1.0）。
+  double bgmVolume = 1.0;
+  /// 🔊 効果音の音量（0.0〜1.0）。
+  double sfxVolume = 1.0;
 
   /// 🌐 Web版で選んだ言語（nullなら端末の言語に従う）。
   /// shared_preferences に保存して次回も引き継ぐ。
@@ -132,6 +140,13 @@ class PlayerProfile extends ChangeNotifier {
   Set<String> deckExcluded = {};
   // 💳 広告除去を購入済みか（買い切り。バナーと全画面広告を出さなくなる）
   bool adsRemoved = false;
+  /// 💳 プレミアムサブスク（月額）に加入中か。加入中は広告なし・全機能。
+  bool premiumActive = false;
+  /// 💎 プレミアムのおまけコインを渡したか。
+  /// プレミアムは買い切りなので、機種変更のたびに「購入の復元」で
+  /// 何度でも通る。解放系は何度通っても増えないが、コインだけは
+  /// これで止めないと復元のたびに増えてしまう。
+  bool premiumCoinsGranted = false;
   /// 🔔 復習リマインドの時刻（時。既定19時）。自分で決めた時刻のほうが
   /// 生活の合図と結びつけやすく、習慣として続きやすいとされる。
   int reminderHour = 19;
@@ -142,7 +157,10 @@ class PlayerProfile extends ChangeNotifier {
 
   // 🛍 ショップ拡張アイテム（models/shop_items.dart）
   Set<String> unlockedVoices = {'none'}; // ほめボイス
+  Set<String> unlockedGodSkins = {}; // 🌟 神スキン（装備すると演出が変わる）
   String selectedVoice = 'none';
+  /// 🌟 装備中の神スキンID（'none'=未装備）。ショップで装備すると演出が変わる。
+  String selectedGodSkin = 'none';
   Set<String> unlockedCharms = {'none'}; // お守り（1つだけ装備）
 
   /// 📚 コインで開いた読み物のID。
@@ -252,11 +270,12 @@ class PlayerProfile extends ChangeNotifier {
     );
     unlockedBgm = bgm.unlocked;
     selectedBgm = bgm.game;
-    unlockedThemes = (p.getStringList('unlockedThemes') ?? ['sunny']).toSet();
-    unlockedThemes.add('sunny');
-    selectedTheme = p.getString('selectedTheme') ?? 'sunny';
+    unlockedThemes =
+        (p.getStringList('unlockedThemes') ?? ['noir', 'sunny']).toSet();
+    unlockedThemes.addAll(['noir', 'sunny']); // 無料の2つは常に選べる
+    selectedTheme = p.getString('selectedTheme') ?? 'noir';
     if (!unlockedThemes.contains(selectedTheme)) {
-      selectedTheme = 'sunny';
+      selectedTheme = 'noir';
     }
     cheerLevel = p.getInt('cheerLevel') ?? 0;
     nickname = p.getString('nickname') ?? '';
@@ -291,17 +310,23 @@ class PlayerProfile extends ChangeNotifier {
     unlockedCharacters = (p.getStringList('unlockedCharacters') ?? []).toSet();
     deckExcluded = (p.getStringList('deckExcluded') ?? []).toSet();
     bgmEnabled = p.getBool('bgmEnabled') ?? true;
+    bgmVolume = p.getDouble('bgmVolume') ?? 1.0;
+    sfxVolume = p.getDouble('sfxVolume') ?? 1.0;
     lastGachaDate = p.getString('lastGachaDate') ?? '';
     weeklyLearned = p.getInt('weeklyLearned') ?? 0;
     weekStartDate = p.getString('weekStartDate') ?? '';
     _refreshWeek();
     adsRemoved = p.getBool('adsRemoved') ?? false;
+    premiumActive = p.getBool('premiumActive') ?? false;
+    premiumCoinsGranted = p.getBool('premiumCoinsGranted') ?? false;
     reminderHour = (p.getInt('reminderHour') ?? 19).clamp(0, 23);
     awakenings = p.getInt('awakenings') ?? 0;
     unlockedVoices = (p.getStringList('unlockedVoices') ?? ['none']).toSet();
+    unlockedGodSkins = (p.getStringList('unlockedGodSkins') ?? []).toSet();
     unlockedVoices.add('none');
     selectedVoice = p.getString('selectedVoice') ?? 'none';
     if (!unlockedVoices.contains(selectedVoice)) selectedVoice = 'none';
+    selectedGodSkin = p.getString('selectedGodSkin') ?? 'none';
     unlockedCharms = (p.getStringList('unlockedCharms') ?? ['none']).toSet();
     unlockedCharms.add('none');
     unlockedArticles = (p.getStringList('unlockedArticles') ?? []).toSet();
@@ -710,12 +735,26 @@ class PlayerProfile extends ChangeNotifier {
   Future<bool> unlockVoice(String id, int cost) =>
       _buyInto(unlockedVoices, id, cost);
 
+  /// 🌟 神スキンを購入する。
+  Future<bool> unlockGodSkin(String id, int cost) =>
+      _buyInto(unlockedGodSkins, id, cost);
+
   Future<void> selectVoice(String id) async {
     if (!unlockedVoices.contains(id)) return;
     selectedVoice = id;
     await _persist();
     notifyListeners();
   }
+
+  /// 🌟 神スキンを装備する。購入済みのスキンだけ。
+  Future<void> setSelectedGodSkin(String id) async {
+    if (id != 'none' && !unlockedGodSkins.contains(id)) return;
+    selectedGodSkin = id;
+    await _persist();
+    notifyListeners();
+  }
+
+  bool get hasGodSkinEquipped => selectedGodSkin != 'none';
 
   /// お守りを購入。
   Future<bool> unlockCharm(String id, int cost) =>
@@ -734,6 +773,26 @@ class PlayerProfile extends ChangeNotifier {
   Future<void> setAdsRemoved(bool value) async {
     if (adsRemoved == value) return;
     adsRemoved = value;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 💳 プレミアムサブスク（月額）の加入状態を反映する。
+  /// 加入中は広告なし・全機能になる。購読が切れたら false に戻す。
+  Future<void> setPremiumActive(bool value) async {
+    if (premiumActive == value) return;
+    premiumActive = value;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 広告を出さない状態か（広告除去の買い切り、またはプレミアム加入中）。
+  bool get adsRemovedOrPremium => adsRemoved || premiumActive;
+
+  /// 💎 プレミアムのおまけコインを渡した印をつける。
+  Future<void> setPremiumCoinsGranted(bool value) async {
+    if (premiumCoinsGranted == value) return;
+    premiumCoinsGranted = value;
     await _persist();
     notifyListeners();
   }
@@ -937,6 +996,20 @@ class PlayerProfile extends ChangeNotifier {
   /// 🔇 BGMのON/OFF。切ったら即座に鳴っている曲を止める。
   Future<void> setBgmEnabled(bool on) async {
     bgmEnabled = on;
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 🔊 BGMの音量（0.0〜1.0）。
+  Future<void> setBgmVolume(double v) async {
+    bgmVolume = v.clamp(0.0, 1.0).toDouble();
+    await _persist();
+    notifyListeners();
+  }
+
+  /// 🔊 効果音の音量（0.0〜1.0）。
+  Future<void> setSfxVolume(double v) async {
+    sfxVolume = v.clamp(0.0, 1.0).toDouble();
     await _persist();
     notifyListeners();
   }
@@ -1193,15 +1266,21 @@ class PlayerProfile extends ChangeNotifier {
     await p.setStringList('deckExcluded', deckExcluded.toList());
     await p.setBool('hadPerfectCpuWin', hadPerfectCpuWin);
     await p.setBool('bgmEnabled', bgmEnabled);
+    await p.setDouble('bgmVolume', bgmVolume);
+    await p.setDouble('sfxVolume', sfxVolume);
     await p.setString('selectedHomeBgm', selectedHomeBgm);
     await p.setString('lastGachaDate', lastGachaDate);
     await p.setInt('weeklyLearned', weeklyLearned);
     await p.setString('weekStartDate', weekStartDate);
     await p.setBool('adsRemoved', adsRemoved);
+    await p.setBool('premiumActive', premiumActive);
+    await p.setBool('premiumCoinsGranted', premiumCoinsGranted);
     await p.setInt('reminderHour', reminderHour);
     await p.setInt('awakenings', awakenings);
     await p.setStringList('unlockedVoices', unlockedVoices.toList());
+    await p.setStringList('unlockedGodSkins', unlockedGodSkins.toList());
     await p.setString('selectedVoice', selectedVoice);
+    await p.setString('selectedGodSkin', selectedGodSkin);
     await p.setStringList('unlockedCharms', unlockedCharms.toList());
     await p.setString('selectedCharm', selectedCharm);
     await p.setString('missionDate', missionDate);
@@ -1225,6 +1304,21 @@ class PlayerProfile extends ChangeNotifier {
   Future<({String? id, String? type, int coinsBack})> pullGacha() async {
     if (coins < Gacha.cost) return (id: null, type: null, coinsBack: 0);
     final rng = Random();
+    // 🎰 1/100 でプレミアムモード（全キャラ・全記事・広告除去 = 開発者モード相当）
+    if (rng.nextInt(100) == 0) {
+      coins -= Gacha.cost;
+      for (final c in kExtraCharacters) {
+        if (!unlockedCharacters.contains(c.id)) unlockedCharacters.add(c.id);
+      }
+      for (final a in kPremiumArticles) {
+        if (!hasArticle(a.id)) unlockedArticles.add(a.id);
+      }
+      adsRemoved = true;
+      premiumActive = true;
+      await _persist();
+      notifyListeners();
+      return (id: 'premium', type: 'premium', coinsBack: 0);
+    }
     final result = Gacha.pull(rng);
     coins -= Gacha.cost;
     if (result.coinsBack > 0) coins += result.coinsBack;

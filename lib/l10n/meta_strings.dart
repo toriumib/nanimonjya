@@ -114,7 +114,7 @@ class MetaStrings {
       : 'Face & Name Memory Training';
 
   // 🎁 無料コインチェスト
-  String get freeGift => ja ? '動画で無料コイン🎁' : 'Free coins (video) 🎁';
+  String get freeGift => ja ? '動画で無料コイン' : 'Free coins (video)';
   String get giftReady => ja ? 'プレゼントがとどいたよ！' : 'A gift is ready!';
   String giftGot(int n) => ja ? '🎉 $nコインもらったよ！' : '🎉 Got $n coins!';
   String giftWaitMin(int m) => ja ? 'つぎは約$m分後' : 'Next in ~${m}min';
@@ -871,16 +871,15 @@ This tab is where you get stronger on your own.
   String get saveCoinsPitch => ja
       ? 'コインを貯めて、キャラや音楽を変えよう！🪙'
       : 'Save up coins to unlock characters and music! 🪙';
-  String get nameCallOnlineButton => ja ? '🌐 オンライン' : '🌐 Online';
+  String get nameCallOnlineButton => ja ? 'オンライン' : 'Online';
 
   // 呼んで判定（原作のボードゲームと同じ流れ）
   String get refereePrompt =>
       ja ? 'この子の名前を一斉にコール！' : 'Call out this name together!';
   String refereePromptCard(int n) =>
       ja ? '$n枚目：一斉にコール！' : 'Card $n: call it out!';
-  String get refereeHint => ja
-      ? '早く正しく呼べた人のボタンを押そう'
-      : 'Tap the button of whoever called it first & correctly';
+  String get refereeHint =>
+      ja ? '名前を呼ぼう！' : 'Call the name!';
   /// ひとりで遊ぶときは「P1がとった」だと不自然なので言い方を変える
   String get soloRecallPrompt =>
       ja ? 'この子の名前、言える？' : 'Can you name this one?';
@@ -1145,7 +1144,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get battleTwoPlayerButton =>
       ja ? '👫 1台で2人であそぶ' : '👫 Two players, one phone';
   // 🎮 やってみるチュートリアル（読ませずに、やらせて覚えてもらう）
-  String get tutPlayTitle => ja ? '🎮 やってみよう' : '🎮 Try it';
+  String get tutPlayTitle => ja ? 'やってみよう' : 'Try it';
   String get tutPlaySkip => ja ? 'とばす' : 'Skip';
   String get tutPlayIntro => ja
       ? 'ルールはひとつだけです。\n\n'
@@ -1189,13 +1188,17 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   // 📚 コインで読める読み物
   String get articleLibraryTitle => ja ? '📚 もっと読む' : '📚 Read more';
   String get articleLibraryLead => ja
-      ? 'コインで開ける読み物です。タイトルと「何の話か」は開く前から読めます。'
+      ? 'コインまたは広告で開ける読み物です。タイトルと「何の話か」は開く前から読めます。'
           '記憶の仕組み・名前の覚え方・忘れないための組み立て方を、研究や公的機関の資料をもとにまとめました。'
-      : 'Articles you can open with coins. Titles and summaries are free to read.';
+      : 'Articles you can open with coins or an ad. Titles and summaries are free to read.';
   String articleBuyConfirm(int cost, int coins) => ja
       ? 'この記事を 🪙$cost で開きますか？（持っているコイン: $coins）\n一度開けば、ずっと読めます。'
       : 'Open this article for 🪙$cost? (You have $coins.) Once opened, it stays open.';
-  String get articleBuy => ja ? '開く' : 'Open';
+  String get articleUnlockDialog => ja
+      ? '記事を開く方法を選んでください。\n（コインまたは広告をみて記事を見る）'
+      : 'Choose how to open this article — with coins or by watching an ad.';
+  String get articleBuy => ja ? '🪙 コインで開く' : '🪙 Open with coins';
+  String get articleUnlockByAd => ja ? '🎬 広告を見て開く' : '🎬 Watch ad to open';
   String get articleOwned => ja ? '読める' : 'Open';
   String get articleNotEnough => ja ? 'コインが足りません' : 'Not enough coins';
   String articleWatchToEarn(int coins) => ja
@@ -1209,7 +1212,7 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
           '日常生活に支障が出ているといった場合は医療機関にご相談ください。'
       : 'This is everyday practice, not diagnosis or treatment. Effects vary. If forgetfulness affects daily life, please consult a medical professional.';
   String get articleMoreButton =>
-      ja ? '📚 コインで読める記事をみる' : '📚 More articles (coins)';
+      ja ? '📚 コインまたは広告で記事を見る' : '📚 More articles (coins or ad)';
 
   // 🛠 開発者モード
   String get devModeTitle => ja ? '🛠 開発者モード' : '🛠 Developer mode';
@@ -1293,9 +1296,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
     }
   }
 
-  // ⚠️ featLocked（「コインで買えません」）は撤去した。
-  //    実績・ログイン枠もコインで買える（値段が高いだけ）ので、
-  //    買えないと言う文言を残すと嘘になる。条件は featCondition で見せる。
+  // ⚠️ main側の character_shop_screen.dart は featLocked を前提にした
+  //    「実績・ログイン枠はコインでは買えない」設計に戻っている。
+  //    このメソッドを消すとビルドが壊れるので復元する。
+  String featLocked(String cond) => ja
+      ? 'このキャラはコインで買えません。「$cond」で参戦します🏆'
+      : 'Not for sale. Unlock by: $cond 🏆';
   String featJoined(String name) =>
       ja ? '🏆 $name が参戦した！' : '🏆 $name joins the battle!';
 
@@ -1329,10 +1335,10 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       : 'Spend coins to grow your cast of faces.';
   String get ctaToShop => ja ? 'ショップへ →' : 'To Shop →';
 
-  // 🎬 動画でコイン2倍（リザルト画面）
+  // 🎬 動画でコイン4倍（リザルト画面）
   String doubleCoinsButton(int n) =>
-      ja ? '🎬 動画でコイン2倍！(+$n)' : '🎬 Watch ad to double coins! (+$n)';
-  String get doubleCoinsDone => ja ? '✓ コイン2倍ずみ！' : '✓ Coins doubled!';
+      ja ? '🎬 動画でコイン4倍！(+$n)' : '🎬 Watch ad for 4x coins! (+$n)';
+  String get doubleCoinsDone => ja ? '✓ コイン4倍ずみ！' : '✓ 4x coins!';
 
   // 🌌 覚醒（プレステージ）システム
   String get awakenTitle => ja ? '🌌 覚醒' : '🌌 Awakening';
@@ -1357,12 +1363,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       'permanently and your title records this awakening. This cannot be undone.';
   String get awakenDone => ja ? '覚醒した！🌌' : 'You have awakened! 🌌';
 
-  // 🛍 ショップ拡張（ほめボイス／お守り／名刺スキン）
+  // ショップ拡張（ほめボイス／装備アイテム／名刺スキン）
   String get shopVoicesTitle => ja ? '🎉 ほめボイス' : '🎉 Praise Voices';
   String get shopVoicesDesc => ja
       ? '正解や勝利のときに、声で褒めてくれます。今日のがんばりに、ひとこと。'
       : 'A voice praises you when you get it right. A word for your effort today.';
-  String get shopCharmsTitle => ja ? '🍀 お守り' : '🍀 Lucky Charms';
+  String get shopCharmsTitle => ja ? '装備アイテム' : 'Equipment';
   String get shopCharmsDesc => ja
       ? '1つだけ持てます。プレイが少しやさしくなったり、コインが増えたり。'
       : 'Equip one. Makes play a little kinder, or your coins a little more.';
@@ -1474,11 +1480,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get shopTry => ja ? '試し聞き' : 'Preview';
   String get shopBought => ja ? '手に入れた！🎉' : 'Unlocked! 🎉';
   String get charmSaved =>
-      ja ? '🛡️ お守りが守ってくれた！' : '🛡️ Your charm saved you!';
+      ja ? 'アイテムの効果で助かりました' : 'Your equipment saved you';
 
   // 📚 よみものタブ
   String get tabRead => ja ? 'よみもの' : 'Read';
   String get tabStory => ja ? 'ものがたり' : 'Story';
+  String get tabFaceMemo => ja ? '顔メモ' : 'Face Notes';
   // 📖 ルールブック（いつでも見直せるルール一覧）
   String get rulebookTitle => ja ? '📖 ルール' : '📖 Rules';
   /// ボタンに添える短いラベル（アイコンだけでは何のボタンか分からないため）。
@@ -1623,15 +1630,15 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '$players人・$peopleキャラ・$copies枚'
       : '${players}P · $people chars · $copies cards';
   String get partyButtonLabel =>
-      ja ? '🎉 みんなで対戦（1台）' : '🎉 Party (1 phone)';
+      ja ? 'みんなで対戦（1台）' : 'Party (1 phone)';
   String get partyButtonHint => ja
       ? 'いちばん人気！友だちと名前を呼びあおう'
       : 'Most popular! Call out names with friends';
-  String get cpuButtonCompact => ja ? '🤖 CPUと対戦' : '🤖 Play vs CPU';
-  String get onlineButtonCompact => ja ? '🌐 オンライン' : '🌐 Online';
-  String get rankButtonCompact => ja ? '🏆 ランク' : '🏆 Ranked';
+  String get cpuButtonCompact => ja ? 'ひとりで対戦' : 'Play Solo';
+  String get onlineButtonCompact => ja ? 'オンライン' : 'Online';
+  String get rankButtonCompact => ja ? 'ランク' : 'Ranked';
   String get trainingButtonCompact =>
-      ja ? '🏋️ ビジネス特訓' : '🏋️ Business Training';
+      ja ? 'ビジネス特訓' : 'Business Training';
   String get howManyPlayers => ja ? '何人であそぶ？' : 'How many players?';
   String get myPageTooltip => ja ? 'マイページ' : 'My Page';
   String get tutorialLabel => ja ? 'チュートリアル' : 'Tutorial';
@@ -1662,10 +1669,10 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get offerGuideLater => ja ? 'あとで' : 'Later';
   String get offerGuideRead => ja ? '読む' : 'Read';
   String get playReviewLabel => ja ? '⭐ 評価する' : '⭐ Rate app';
-  String get watchAdGetChar => ja ? '📺 動画でキャラGET' : '📺 Ad → Char';
+  String get watchAdGetChar => ja ? '動画でキャラ獲得' : 'Ad for a character';
   String get faceMemoCardTitle => ja
-      ? '🧑‍🎨 顔メモ — 会った人を忘れない'
-      : '🧑‍🎨 Face Notes — Never forget a face';
+      ? '顔メモ — 会った人を忘れない'
+      : 'Face Notes — Never forget a face';
   String get faceMemoCardBody => ja
       ? '写真か似顔絵で顔をつくって名前を登録。そのまま覚える練習や対戦ができるよ。'
       : 'Create a face from a photo or avatar, add a name, then study or play with them.';
@@ -1702,6 +1709,12 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get iapPremiumDesc => ja
       ? '広告除去＋全キャラ＋全知識記事＋コイン2000枚。いちばんお得！'
       : 'No ads + All characters + All articles + 2000 coins. Best value!';
+  String get iapPremiumMonthlyTitle =>
+      ja ? '📅 プレミアム（月額）' : '📅 Premium (Monthly)';
+  String get iapPremiumMonthlyDesc => ja
+      ? '広告なし・全キャラ・全記事・詳細レポート。毎月更新'
+      : 'No ads, all characters, all articles, detailed reports. Renews monthly';
+  String get iapPremiumMonthlyOwned => ja ? '✅ 加入中' : '✅ Subscribed';
   String get iapBuy => ja ? '買う' : 'Buy';
   String get iapOwned => ja ? '✅ 購入済み' : '✅ Purchased';
   String get iapPurchased => ja
@@ -1754,5 +1767,33 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
   String get playReviewButton => ja
       ? '⭐ Google Play で評価する'
       : '⭐ Rate on Google Play';
+
+  // 📮📣 ゲーム内フィードバック＋SNSシェア
+  String get feedbackHomeButton => ja ? 'ご意見・不具合' : 'Feedback';
+  String get shareAppButton => ja ? '📣 シェア' : '📣 Share';
+  String get feedbackTitle => ja ? 'ご意見・不具合を送る' : 'Send feedback';
+  String get feedbackHint => ja
+      ? '気づいたこと・直してほしいことを教えてください（すぐに直します）'
+      : 'Tell us what you noticed or want fixed — we\'ll fix it fast';
+  String get feedbackSend => ja ? '送る' : 'Send';
+  String get feedbackSending => ja ? '送信中…' : 'Sending…';
+  String get feedbackThanks => ja ? '送りました。すぐに直します！' : 'Sent! We\'ll fix it soon.';
+  String get shareAppText => ja
+      ? '「ペタネーム」で顔と名前を覚えよう！ #なまえがお'
+      : 'Learn faces & names with PetaName! #なまえがお';
+
+  // 🧑‍🎨 アバター編集・顔メモの文言（2026-08 英語対応）
+  String get avatarEditorFeatureTitle => ja ? 'この人の特徴' : 'Key features';
+  String get avatarEditorFeatureHint => ja
+      ? 'メガネ・ほくろ・ひげ・髪型をつけると、\n思い出す手がかりになります。'
+      : 'Glasses, moles, beards, and hairstyles give you cues to recall.';
+  String get avatarEditorConfirmFace => ja ? 'この顔で決定' : 'Use this face';
+  String get faceMemoCreateAvatarHint =>
+      ja ? '似顔絵をつくる（写真が無いとき）' : 'Create a face (if no photo)';
+  String get faceMemoCreateAvatarSub => ja
+      ? '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます'
+      : 'Photos at work are awkward — keep their look with glasses, moles, and hair.';
+  String get faceMemoCreateAvatar => ja ? '似顔絵をつくる' : 'Create a face';
+  String get faceMemoEditFace => ja ? '顔を直す' : 'Edit face';
 
 }

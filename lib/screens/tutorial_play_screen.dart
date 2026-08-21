@@ -50,7 +50,6 @@ class TutorialPlayScreen extends StatefulWidget {
 enum _Step {
   intro,
   nameFirst,
-  nameSecond,
   recall,
   won,
   reward,
@@ -77,12 +76,10 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final ja = PlatformDispatcherLocale.isJa;
-    _people = generateImagePeople(2, ja: ja, random: _rng);
+    // 1人だけで完結させる（2人にすると片方にしか回答できない不自然さがある）。
+    _people = generateImagePeople(1, ja: ja, random: _rng);
     final pool = [...kCommonSurnames]..shuffle(_rng);
-    _names = [
-      surnameWithHonorific(pool[0], ja),
-      surnameWithHonorific(pool[1], ja),
-    ];
+    _names = [surnameWithHonorific(pool[0], ja)];
     AppAnalytics.gameStart(mode: 'tutorial_play', players: 1);
   }
 
@@ -94,7 +91,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
         mode: 'tutorial_play',
         reason: 'quit',
         progressPct: _progressPct,
-        people: 2,
+        people: 1,
       );
     }
     super.dispose();
@@ -103,7 +100,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   int get _progressPct => switch (_step) {
         _Step.intro => 0,
         _Step.nameFirst => 15,
-        _Step.nameSecond => 30,
         _Step.recall => 50,
         _Step.won => 80,
         _Step.reward => 100,
@@ -118,7 +114,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
         mode: 'tutorial_play',
         progressPct: _progressPct,
         card: _cardsWon,
-        totalCards: 2,
+        totalCards: 1,
       );
     } else if (state == AppLifecycleState.resumed && _leftAt != null) {
       AppAnalytics.gameResume(
@@ -167,7 +163,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
       mode: 'tutorial_play',
       reason: 'completed',
       progressPct: 100,
-      people: 2,
+      people: 1,
     );
     Sfx.instance.reward();
     if (!mounted) return;
@@ -180,7 +176,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
       mode: 'tutorial_play',
       reason: 'quit',
       progressPct: _progressPct,
-      people: 2,
+      people: 1,
     );
     await markTutorialPlayed();
     if (mounted) Navigator.of(context).pop();
@@ -198,10 +194,30 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
           automaticallyImplyLeading: false,
           actions: [
             if (_step != _Step.reward)
-              TextButton(
-                onPressed: _skip,
-                child: Text(m.tutPlaySkip,
-                    style: const TextStyle(color: Colors.white70)),
+              // ⏭ 小さな文字リンクだと押しどころが分からない。
+              //    指で押せる大きさ（最低48dp）と枠を与える。
+              Padding(
+                // ⚠️ AppBarの高さ(56dp)に収まる範囲で最大化する。
+                //    上下に余白を積むと文字が切れる。
+                padding:
+                    const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: TextButton(
+                  onPressed: _skip,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 0),
+                    minimumSize: const Size(88, 42),
+                    side: const BorderSide(color: Colors.white54, width: 1.2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
+                  ),
+                  child: Text(m.tutPlaySkip,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4)),
+                ),
               ),
           ],
         ),
@@ -210,8 +226,8 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
             padding: const EdgeInsets.all(18),
             child: switch (_step) {
               _Step.intro => _intro(m),
-              _Step.nameFirst => _naming(m, 0, _Step.nameSecond),
-              _Step.nameSecond => _naming(m, 1, _Step.recall),
+              // 1人だけなので、名前をつけたらそのまま思い出すへ。
+              _Step.nameFirst => _naming(m, 0, _Step.recall),
               _Step.recall => _recall(m),
               _Step.won => _won(m),
               _Step.reward => _reward(m),
@@ -243,9 +259,9 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
           onPressed: onTap,
           style: ElevatedButton.styleFrom(
             backgroundColor: color ?? const Color(0xFFE8663C),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 22),
             textStyle:
-                const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w900),
+                const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
           child: Text(label),
         ),
@@ -254,7 +270,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _intro(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🎮', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           _bubble(m.tutPlayIntro),
           const Spacer(),
@@ -336,7 +351,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _won(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🎉', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 12),
           _bubble(m.tutPlayWon(_names[0])),
           const SizedBox(height: 16),
@@ -347,7 +361,7 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFE6B54A), width: 1.6),
             ),
-            child: Text('🃏 ${m.cardsWonLabel} $_cardsWon',
+            child: Text('${m.cardsWonLabel} $_cardsWon',
                 style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w900)),
           ),
@@ -360,7 +374,6 @@ class _TutorialPlayScreenState extends State<TutorialPlayScreen>
   Widget _reward(MetaStrings m) => Column(
         children: [
           const Spacer(),
-          const Text('🪙', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 12),
           Text(m.earnedCoins(_rewardCoins),
               textAlign: TextAlign.center,

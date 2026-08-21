@@ -1,13 +1,11 @@
 name: nanimonjya
-description: なまえがお - 顔と名前の記憶トレーニング（旧ナニモンジャ／ペタネーム、内部パッケージ名は互換のため維持）
+description: ペタネーム - 顔と名前の記憶トレーニング（旧ナニモンジャ、内部パッケージ名は互換のため維持）
 publish_to: 'none'
 
-version: 2.5.0+191
+version: 2.5.0+218
 
 environment:
-  # 💳 in_app_purchase_android（Billing Library 8 対応版）が Dart 3.10 を要求する。
-  #    Dart 3.10 は Flutter 3.35 に同梱。これより古い Flutter では pub get が通らない。
-  sdk: '>=3.10.0 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -44,13 +42,16 @@ dependencies:
   flutter_animate: ^4.5.0  # ポップな演出アニメーション
   in_app_review: ^2.0.9  # ストアレビュー依頼
   image_picker: ^1.1.2  # 自分の写真アップロード（おぼえるモード）
-  # 💳 買い切り（広告除去）とコインパック。Billing Library 8 必須化に
-  #    対応するため Flutter 3.35+ / Dart 3.10 が前提（environment 参照）。
-  in_app_purchase: ^3.3.0
   google_mlkit_text_recognition: ^0.13.0  # 名刺のOCR取り込み（端末内処理・モバイル限定）
   path_provider: ^2.1.4  # アップ写真の永続保存先ディレクトリ取得
   flutter_tts: ^4.2.0  # 名刺の自己紹介を音声で読み上げ（ja/en対応、思い出しトレーニング）
-  characters: ^1.4.0  # card_ocr_service が直接使う（間接依存に頼らない）
+  characters: ^1.4.0
+  # 💳 課金。Play が Billing Library 8.0.0 以降を必須化したため一度取り下げていたが、
+  #    Flutter 3.38（Dart 3.10）に上げて復活させた。これより前の Dart では
+  #    in_app_purchase_android 0.4.0+11 以降が解決できない。
+  #    ⚠️ Flutter を 3.38 未満に戻すとここで解決に失敗する。
+  in_app_purchase: ^3.3.0
+  in_app_update: ^4.2.5
 
 
 dev_dependencies:
@@ -65,6 +66,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    # 🌍 英語版で出てくる顔（StyleGAN2 が生成した実在しない人）。
+    #    Flutter はサブフォルダを自動でたどらないので、ここに書く必要がある。
+    - assets/images/en/
     - assets/images/supporters/
     - assets/images/faces/
     # チュートリアルで使う実際のゲーム画面のスクショ

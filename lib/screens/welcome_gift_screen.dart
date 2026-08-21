@@ -18,6 +18,20 @@ import '../services/sfx.dart';
 class WelcomeGiftScreen extends StatefulWidget {
   const WelcomeGiftScreen({super.key});
 
+  /// 🎁 画面を出さずに、コインとキャラ1体だけをその場で付与する。
+  /// 初回離脱を防ぐため「さあ、はじめよう！」の導入画面はもう出さない。
+  static Future<void> grantSilently() async {
+    final profile = PlayerProfile.instance;
+    await profile.grantBonusCoins(100);
+    final pool = kExtraCharacters
+        .where((c) => !profile.unlockedCharacters.contains(c.id))
+        .toList();
+    if (pool.isNotEmpty) {
+      final id = pool[DateTime.now().millisecond % pool.length].id;
+      await profile.unlockCharacter(id, 0);
+    }
+  }
+
   @override
   State<WelcomeGiftScreen> createState() => _WelcomeGiftScreenState();
 }

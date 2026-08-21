@@ -66,10 +66,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
     // ロケールは context が要るのでここで解決する（initState では読めない）
     final ja = Localizations.localeOf(context).languageCode == 'ja';
     final pool = applyDeckFilter(
-      [
-        ...kCharImageAssets,
-        ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-      ],
+      playablePool(ja, PlayerProfile.instance.unlockedCharacters),
       PlayerProfile.instance.deckExcluded,
     );
     // ⚠️ generateImagePeople は name が空文字（なまえがおは各自が命名する
@@ -189,7 +186,7 @@ class _LineMatchScreenState extends State<LineMatchScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'line_match'),
       body: SafeArea(
         child: _phase == _Phase.memorize
             ? _memorizeView(m)

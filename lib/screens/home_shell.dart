@@ -6,11 +6,10 @@ import '../services/app_analytics.dart';
 import '../services/bgm.dart';
 import '../services/sfx.dart';
 import 'character_shop_screen.dart';
+import 'custom_roster_screen.dart';
 import 'memory_tips_screen.dart';
-import 'noah_story_screen.dart';
 import 'profile_screen.dart';
 import 'top_screen.dart';
-import 'training_hub_screen.dart';
 import 'tutorial_screen.dart';
 import 'tutorial_play_screen.dart';
 import 'welcome_gift_screen.dart';
@@ -40,76 +39,54 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
       markTutorialPlayed();
       markTutorialDone();
     }
-    _maybeShowTutorial();
+    // ⚠️ initState 中に直接 showDialog を呼ぶと、Navigator が準備できる前に
+    //    実行されてダイアログが出ないことがある。build が済んでから確実に出す。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _maybeShowTutorial();
+    });
   }
 
-  /// 初回起動の人を、**まず1ゲームに入れる**。
+  /// 初回起動の人に、まずウェルカムギフトを渡してから
+  /// 「チュートリアルを見る？」を聞く。見るなら なまえがお を
+  /// ゲーム形式で1回だけ体験してもらう。
   ///
-  /// ⚠️ 以前は「あそびかた（全11ページ）を読ませてから、おためし」の順だった。
-  ///    2026-08 の計測で、**起動した162人のうちゲームを始めたのは75人**。
-  ///    半分が、遊ぶ前に消えていた。
-  ///    説明を先に置くと、読み終わる前に閉じられて、ゲームに辿りつかない。
-  ///
-  /// なので順番を逆にした。**遊ぶ → 面白かった人だけが読む。**
-  /// 説明は押しつけず、遊び終わったあとに一度だけ声をかける。
-  /// 断られたらそれ以上は勧めない（`markTutorialSkipped` が2回で諦める）。
+  /// ⚠️ 「あそびかた」（読み物）は自動で開かない。ホームの
+  ///    「あそびかた」ボタンを押したときだけ開く（押しつけは離脱の原因）。
   Future<void> _maybeShowTutorial() async {
-    final needPlay = await shouldPlayTutorial();
-    final needRead = await shouldShowTutorial();
+    if (!await shouldPlayTutorial()) return;
+    if (!mounted) return;
 
-    // 🎁 まずウェルカムギフト（コイン＋キャラ即付与）。読ませない。与える。
-    if (needPlay) {
-      if (!mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const WelcomeGiftScreen()));
-      if (!mounted) return;
-      // チュートリアルゲーム（1分で終わる簡易版）
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialPlayScreen()));
-      if (!mounted) return;
-      if (needRead) await _offerGuide();
-      return;
-    }
+    // 🎁 ウェルカムギフトは画面を出さず、その場でコイン＋キャラを渡す。
+    //    「さあ、はじめよう！」の導入画面は初回離脱の原因なので出さない。
+    await WelcomeGiftScreen.grantSilently();
 
-    if (needRead) {
-      if (!mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialScreen()));
-    }
-  }
-
-  /// 遊んだあとに「あそびかたを読む？」と一度だけ聞く。
-  Future<void> _offerGuide() async {
+    // チュートリアルを「見る／見ない」で選ばせる。
     final m = MetaStrings.of(context);
-    final read = await showDialog<bool>(
+    final watch = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFFFF8E6),
-        title: Text(m.offerGuideTitle),
-        content: Text(
-          m.offerGuideBody,
-          style: const TextStyle(height: 1.6),
-        ),
+        title: Text(m.ja ? 'チュートリアル' : 'Tutorial'),
+        content: Text(m.ja
+            ? 'なまえがお の遊びかたを、実際に遊びながら覚えられます。'
+            : 'Learn Name Call by actually playing it.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(m.offerGuideLater),
+            child: Text(m.ja ? '見ない' : 'Skip'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(m.offerGuideRead),
+            child: Text(m.ja ? '見る' : 'Watch'),
           ),
         ],
       ),
     );
-    if (read == true) {
-      if (!mounted) return;
+    if (watch == true && mounted) {
       await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => const TutorialScreen()));
-    } else {
-      // 断られた。しつこく出さない。
-      await markTutorialSkipped();
+          builder: (_) => const TutorialPlayScreen()));
     }
+    // 見る／見ない どちらでも「初回チュートリアルは済ませた」扱い。
+    await markTutorialPlayed();
   }
 
   @override
@@ -155,16 +132,43 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
         index: _index,
         children: [
           const TopScreen(), // なまえがお（メイン）
-          // active を渡す: IndexedStack は全タブを最初に組み立てるので、
-          // 「開かれたかどうか」を渡さないと初回説明が起動時に出てしまう
-          TrainingHubScreen(active: _index == 1), // ビジネス特訓
           const CharacterShopScreen(embedded: true), // ショップ
           const MemoryTipsScreen(embedded: true), // よみもの（記憶術・研究の読み物）
-          const NoahStoryScreen(embedded: true), // 📖 ものがたり
+          const CustomRosterScreen(), // 🧑🎨 顔メモ
           const ProfileScreen(), // マイページ
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      // 🖤 タブは線画アイコン＋小さな文字。選択中だけゴールドで示す。
+      //    絵文字は端末ごとに絵柄が変わるうえ、色数が増えて散らかる。
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: const Color(0xFF141A26),
+          indicatorColor: const Color(0x33E9C87A),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          height: 66,
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: 10.5,
+              letterSpacing: 0.2,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+              color: states.contains(WidgetState.selected)
+                  ? const Color(0xFFE9C87A)
+                  : const Color(0x99FFFFFF),
+            ),
+          ),
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              size: 22,
+              color: states.contains(WidgetState.selected)
+                  ? const Color(0xFFE9C87A)
+                  : const Color(0x99FFFFFF),
+            ),
+          ),
+        ),
+        child: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) {
           Sfx.instance.pop();
@@ -173,8 +177,7 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
           // （すでにホームBGMが鳴っていれば何もしない）
           // 📊 どのタブが使われているかを記録（IDのみ・個人情報は送らない）
           AppAnalytics.featureOpen(
-            const ['namecall', 'training', 'shop', 'read', 'story', 'profile']
-                [i],
+            const ['namecall', 'shop', 'read', 'face_memo', 'profile'][i],
             from: 'tab',
           );
           Bgm.instance.playHome();
@@ -182,33 +185,35 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
         },
         destinations: [
           NavigationDestination(
-            icon: const Text('📣', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.campaign_outlined),
+            selectedIcon: const Icon(Icons.campaign),
             label: m.tabNameCall,
           ),
           NavigationDestination(
-            icon: const Text('🏋️', style: TextStyle(fontSize: 22)),
-            label: m.tabTraining,
-          ),
-          NavigationDestination(
-            icon: const Text('🛍', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.shopping_bag_outlined),
+            selectedIcon: const Icon(Icons.shopping_bag),
             label: m.tabShop,
           ),
           // ⚠️ 並びは上の IndexedStack と1対1で対応させること。
           //    index 3 = よみもの（MemoryTips）／index 4 = ものがたり（NoahStory）。
           //    ここが入れ替わっていて「ものがたり」を押すと読み物が開いていた。
           NavigationDestination(
-            icon: const Text('📚', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
             label: m.tabRead,
           ),
           NavigationDestination(
-            icon: const Text('🚀', style: TextStyle(fontSize: 22)),
-            label: m.tabStory,
+            icon: const Icon(Icons.face_outlined),
+            selectedIcon: const Icon(Icons.face),
+            label: m.tabFaceMemo,
           ),
           NavigationDestination(
-            icon: const Text('🏆', style: TextStyle(fontSize: 22)),
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
             label: m.tabMyPage,
           ),
         ],
+      ),
       ),
     );
   }

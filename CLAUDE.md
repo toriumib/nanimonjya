@@ -1,5 +1,11 @@
 # なまえがお (Namaegao)
 
+> **🖥 開発メインのリポジトリはこれ（2026-08-21 決定）**
+> このリポジトリ（`C:\Users\tori\nanimonjya`、tori配下）をメインに開発する。
+> `C:\Users\tori\Downloads\nanimonjya-main\nanimonjya-main`（Downloads配下）は
+> 同じGitHubリモート（`toriumib/nanimonjya.git`）を共有する**作業用コピー**であり、
+> メインとしての更新は行わない。コード変更はここに反映し、リモートへ push する。
+
 顔と名前の記憶トレーニングアプリ（顔カード×名前カードの神経衰弱）。
 Android (Google Play: `com.nanimonjya` ※内部IDは互換維持、表示名は「なまえがお」) とWeb (Vercel / Firebase Hosting) で配信。
 
@@ -74,6 +80,36 @@ Playの同一性が壊れるので**絶対に変えないこと**。表示名だ
 - マイページ（profile_screen.dart）に常設の「🛍 キャラクターショップ」ボタンあり
 - **試合・特訓の結果画面**（match_result / local_result / online_result / recall_training の各result）に `widgets/store_cta.dart` の `StoreCtaCard`（「新しいキャラを仲間にしよう→ショップへ」誘導）を配置
 - レビュー依頼: `services/review_prompt.dart` の `maybeAskReview()`（1回きり、`reviewPrompted`でゲート）。勝利・全問正解などの好タイミングで呼ぶ。match_result側は従来通り閾値3ゲームで直接呼び出し
+
+### 🌍 英語版の顔ぶれ（2026-08 追加）
+
+- 表示言語が英語のときは `kCharImageAssetsEn`（`assets/images/en/en1〜16.webp`）を使う。
+  切り替えは `charImageAssetsFor(bool ja)` の1か所。素材は StyleGAN2 が生成した
+  実在しない人の顔なので肖像権の問題は起きない。
+- 英語版の姓も欧米系（`_namePoolEn` = Smith / Johnson …）に変えた。
+  **日本語版のローマ字読み（Sato / Tanaka）ではない。** 顔と名前がちぐはぐだと
+  そこに引っかかって、名前を覚える練習の邪魔になる。
+  `_namePoolJa` と件数をそろえること（`generateRecallPeople` が同じ添字で日英を引く）。
+- ⚠️ **オンライン対戦では言語で顔を変えない。** 相手と表示言語が違うと顔ぶれが
+  食い違い、同じ盤面にならない。`rank_match` / `turn_pairs` / `match_game` の
+  オンライン分岐は `kCharImageAssets` を直接渡したままにすること。
+- ⚠️ 枚数は `kCharImageAssets`（15枚）以上を保つ。足りないと
+  `assert(count <= pool.length)` で落ちる。テストは `test/en_faces_test.dart`。
+
+### 💳 課金（in_app_purchase、2026-08 復活）
+
+- **Flutter 3.38.10 / Dart 3.10.9 が必須**。Play が Billing Library 8.0.0+ を必須化し、
+  それを積む `in_app_purchase_android` が Dart 3.10 を要求するため。
+  **Flutter を 3.38 未満に下げると `flutter pub get` が解決に失敗する**（3.35 でも Dart 3.9 なので不可）。
+- 実装は `lib/services/iap_service.dart`（一度スタブ化していたのを実装に戻した）。
+  商品は `coins-500` / `coins-1200` / `coins-3000`（消費型）、`remove-ads` / `premium`（買い切り）。
+- ⚠️ **Play Console に商品を登録して有効化しないと `queryProductDetails` が空を返し、
+  `IapService.available` が false のまま購入UIは出ない**（＝いまはまだ1円も入らない）。
+  商品IDは登録後に変更できないので、上のIDと完全一致させること。
+- ⚠️ Android は購入を3日以内に承認しないと自動返金される。承認は `completePurchase`。
+  `pending`（コンビニ払い等）では報酬を渡さず、完了もしない。
+- ⚠️ 復元（restorePurchases）で渡していいのは買い切りだけ。消費型まで渡すとコインが無限に増える。
+  プレミアムのおまけコインは `PlayerProfile.premiumCoinsGranted` で二重付与を止めている。
 
 ### 💰 収益導線（広告・課金の再点検、v2.3.0）
 - **インタースティシャル広告を有効化**（`services/interstitial_ad_helper.dart`。3プレイに1回、リザルト画面で表示）。main.dartで先読みを開始し、match_result/local_result/online_result/recall_trainingの各`initState`/終了処理で`InterstitialAdHelper.instance.onGameFinished()`を呼ぶ。以前はコード実装のみで呼び出しが無く完全に無効化されていた（なぜなぜ分析の結論: 収益ポイントがユーザーの感情が一番盛り上がる「結果が出た直後」に配置されていなかったことが根本原因）

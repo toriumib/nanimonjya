@@ -68,10 +68,14 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
     CustomRosterService.instance.load();
   }
 
-  List<_DeckItem> _baseItems() => [
-        for (var i = 0; i < kCharImageAssets.length; i++)
-          _DeckItem.asset(kCharImageAssets[i], '${i + 1}'),
-      ];
+  List<_DeckItem> _baseItems() {
+    // 🌍 実際に出てくる顔ぶれと一覧をそろえる（英語版は欧米系）
+    final base = charImageAssetsFor(MetaStrings.of(context).ja);
+    return [
+      for (var i = 0; i < base.length; i++)
+        _DeckItem.asset(base[i], '${i + 1}'),
+    ];
+  }
 
   List<_DeckItem> _boughtItems(PlayerProfile profile) => [
         for (final c in kExtraCharacters)
@@ -129,7 +133,7 @@ class _CharacterDeckScreenState extends State<CharacterDeckScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: const BannerAdSlot(),
+          bottomNavigationBar: const BannerAdSlot(placement: 'character_deck'),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [

@@ -142,14 +142,15 @@ void main() {
   });
 
   group('基本デッキ', () {
-    test('15キャラある（重複なし・c13は欠番）', () {
-      expect(kCharImageAssets, hasLength(15));
-      expect(kCharImageAssets.toSet(), hasLength(15));
+    test('24キャラある（重複なし・c13は欠番）', () {
+      // 2026-08: char14〜22をショップから基本に昇格して15→24。
+      expect(kCharImageAssets, hasLength(NameCallGame.maxPeople));
+      expect(kCharImageAssets.toSet(), hasLength(kCharImageAssets.length));
       expect(kCharImageAssets.any((a) => a.contains('char13')), isFalse,
           reason: 'c13は欠番。IDを使い回すと購入済みの人の記録が別のキャラを指す');
     });
 
-    test('12キャラ選んでも足りる', () {
+    test('みんなで対戦の最大12人ぶんは足りる', () {
       expect(kCharImageAssets.length, greaterThanOrEqualTo(12));
     });
   });

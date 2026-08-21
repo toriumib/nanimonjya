@@ -85,6 +85,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // 📮 ゲーム内フィードバック（ご意見・不具合報告）
+    match /feedback/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.platform is string
+        && request.resource.data.platform.size() <= 20
+        && request.resource.data.screen is string
+        && request.resource.data.screen.size() <= 40;
+      allow read, update, delete: if false;
+    }
+
     // 上記以外のあらゆるドキュメントへのアクセスを全面的に禁止
     match /{document=**} {
       allow read, write: if false;

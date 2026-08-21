@@ -159,8 +159,6 @@ void main() {
       expect(praiseVoiceById('none').linesJa, isEmpty);
       // 🙏 いろいろな立場のほめ方
       expect(praiseVoiceById('miko').linesJa, isNotEmpty);
-      expect(praiseVoiceById('pastor').linesJa, isNotEmpty);
-      expect(praiseVoiceById('imam').linesJa, isNotEmpty);
     });
   });
 

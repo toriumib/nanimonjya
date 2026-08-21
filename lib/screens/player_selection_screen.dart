@@ -52,7 +52,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     final m = MetaStrings.of(context);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'player_selection'),
       appBar: AppBar(title: Text('🃏 ${m.tabPairs}')),
       // 買った着せ替えテーマをこの画面にも反映する
       body: ThemedBackground(

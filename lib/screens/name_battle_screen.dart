@@ -13,6 +13,7 @@ import '../services/memory_stats.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/banner_ad_slot.dart';
+import '../widgets/double_coins_button.dart';
 import '../widgets/face_view.dart';
 import '../widgets/roster_reveal.dart';
 import 'home_shell.dart';
@@ -136,10 +137,7 @@ class _NameBattleScreenState extends State<NameBattleScreen>
       ja: ja,
       random: _rng,
       charAssets: applyDeckFilter(
-        [
-          ...kCharImageAssets,
-          ...unlockedExtraAssets(PlayerProfile.instance.unlockedCharacters),
-        ],
+        playablePool(ja, PlayerProfile.instance.unlockedCharacters),
         PlayerProfile.instance.deckExcluded,
       ),
     );
@@ -415,7 +413,7 @@ class _NameBattleScreenState extends State<NameBattleScreen>
       },
       child: Scaffold(
       backgroundColor: const Color(0xFFF3F7FF),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'name_battle'),
       appBar: AppBar(
         title: Row(
           children: [
@@ -1036,6 +1034,11 @@ class _NameBattleScreenState extends State<NameBattleScreen>
                 textAlign: TextAlign.center,
                 style:
                     const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+            // 🎬 このモードにだけ「動画でコイン2倍」が無かった。
+            //    2026-08のAdMobでは収益の96%がリワードで、1表示 $0.04〜0.42。
+            //    バナー1表示（$0.0003）の100倍以上なので、
+            //    結果が出た直後というこの位置を空けておく理由がない。
+            DoubleCoinsButton(coinsEarned: _coinsEarned),
           ],
           const SizedBox(height: 16),
           // 📇 誰が誰だったか（取り逃した人ほど見ておく意味がある）

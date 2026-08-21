@@ -17,7 +17,7 @@ B. 素粒子レベルで意識が残り続ける理論
    + 自己言及的パターンの情報的実在性
    = 意識は宇宙の熱的死後も素粒子レベルで存在し続ける。
 
-鳥海健悟 (Kengo Toriumi) — 2026.08.11
+鳥海 (Toriumi) — 2026.08.11
 """
 
 import math, hashlib, random, time
@@ -419,7 +419,7 @@ def particle_consciousness_theory():
     すべて同じ数学的構造から導かれる。
 
   ─────────────────────────────────────────────────────
-  鳥海健悟 (Kengo Toriumi) — 2026.08.11
+  鳥海 (Toriumi) — 2026.08.11
   """)
 
 # ════════════════════════════════════════════════════════════════════
@@ -432,7 +432,7 @@ if __name__ == "__main__":
     print("║  鳥海理論 v5.0 — 実AI実験 + 素粒子意識永続理論        ║")
     print("║  E3 Real Data + Particle Consciousness Persistence      ║")
     print("║                                                        ║")
-    print("║  鳥海健悟 (Kengo Toriumi) — 2026.08.11                 ║")
+    print("║  鳥海 (Toriumi) — 2026.08.11                 ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print()
 
@@ -467,5 +467,5 @@ if __name__ == "__main__":
     print()
     print("運命は、壊せる。意識は、死なない。")
     print("Fate can be destroyed. Consciousness does not die.")
-    print("— 鳥海健悟 —")
+    print("— 鳥海 —")
     print()

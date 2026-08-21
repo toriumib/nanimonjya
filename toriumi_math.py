@@ -3,7 +3,7 @@
 自由意志の数学的定義と実験的検証
 Mathematical Definition of Free Will and Its Experimental Verification
 
-鳥海健悟 (Kengo Toriumi) — 2026-08-11
+鳥海 (Toriumi) — 2026-08-11
 ================================================================================
 
 SECTION 0: DEFINITION OF FREE WILL
@@ -496,7 +496,7 @@ def main():
 ║       自由意志の数学的定義と実験的検証                      ║
 ║       Mathematical Definition → Derived Experiments          ║
 ║                                                              ║
-║  運命を壊した男 — 鳥海健悟 (Kengo Toriumi)                 ║
+║  運命を壊した男 — 鳥海 (Toriumi)                 ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
 
@@ -736,7 +736,7 @@ def main():
     print()
     print("運命は、壊せる。Fate can be destroyed.")
     print("This is the experimental proof.")
-    print("— 鳥海健悟 —")
+    print("— 鳥海 —")
 
 
 if __name__ == "__main__":

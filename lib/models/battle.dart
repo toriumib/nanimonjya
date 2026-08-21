@@ -116,6 +116,16 @@ const Map<String, UnitSpec> kUnitCatalog = {
   'assets/images/25808650_m.jpg': _sniper,
   'assets/images/26948510_s.jpg': _siege,
   'assets/images/4353720_s.jpg': _archer,
+  // 🆕 char14〜22（基本キャラへ昇格した9種）の能力。
+  'assets/images/char14.webp': _guard,
+  'assets/images/char15.webp': _archer,
+  'assets/images/char16.webp': _runner,
+  'assets/images/char17.webp': _heavy,
+  'assets/images/char18.webp': _sniper,
+  'assets/images/char19.webp': _siege,
+  'assets/images/char20.webp': _archer,
+  'assets/images/char21.webp': _runner,
+  'assets/images/char22.webp': _guard,
 };
 
 /// 表に無い顔にも、いつも同じ能力が付くようにする。

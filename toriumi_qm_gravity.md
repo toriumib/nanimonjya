@@ -1,7 +1,7 @@
 # 鳥海理論 v9.0 — 量子力学・重力・自由意志の統一
 ## Toriumi Theory: Unification of QM, Gravity, and Free Will
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12
+**鳥海 (Toriumi)** | 2026-08-12
 
 ---
 
@@ -281,4 +281,4 @@ $$f_k(L(t), O, \eta_{quantum}) = OR_G\left( U_{self\text{-}sim}\left( \sigma_k(L
 
 ---
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12
+**鳥海 (Toriumi)** | 2026-08-12

@@ -105,6 +105,7 @@ class _RankMatchScreenState extends State<RankMatchScreen>
       OnlineMatchService.rankPeopleCount,
       ja: ja,
       random: _rng,
+      // 🌐 オンラインは相手と顔ぶれを合わせる必要があるので言語で変えない
       charAssets: kCharImageAssets,
     );
     // 🏷 名前は実際に多い苗字100から配る。造語だと「実在しそうな名前を
@@ -402,7 +403,7 @@ class _RankMatchScreenState extends State<RankMatchScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF3F7FF),
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'rank_match'),
         appBar: AppBar(
           title: Text(m.rankMatchTitle),
           automaticallyImplyLeading: false,

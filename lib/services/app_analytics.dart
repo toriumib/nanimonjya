@@ -11,17 +11,31 @@ class AppAnalytics {
   static FirebaseAnalytics get _fa => FirebaseAnalytics.instance;
 
   static void _log(String name, [Map<String, Object>? params]) {
-    // Analytics はWebでも動くが、失敗がUIに波及しないよう握りつぶす
-    _fa.logEvent(name: name, parameters: params).catchError((e) {
-      debugPrint('Analytics error ($name): $e');
-    });
+    // Analytics はWebでも動くが、失敗がUIに波及しないよう握りつぶす。
+    //
+    // ⚠️ `catchError` だけでは足りない。**`FirebaseAnalytics.instance` を
+    //    取り出すところ自体が投げる**（Firebase の初期化に失敗した端末、
+    //    そしてテスト環境）。main.dart は初期化を try で囲んでいるので、
+    //    初期化に失敗したまま起動しているとここで例外が飛び、
+    //    計測のために遊びが止まってしまう。同期側も囲む。
+    try {
+      _fa.logEvent(name: name, parameters: params).catchError((e) {
+        debugPrint('Analytics error ($name): $e');
+      });
+    } catch (e) {
+      debugPrint('Analytics unavailable ($name): $e');
+    }
   }
 
   /// 画面表示（どの画面で離脱するかの分析用）
   static void screen(String screenName) {
-    _fa
-        .logScreenView(screenName: screenName)
-        .catchError((e) => debugPrint('Analytics screen error: $e'));
+    try {
+      _fa
+          .logScreenView(screenName: screenName)
+          .catchError((e) => debugPrint('Analytics screen error: $e'));
+    } catch (e) {
+      debugPrint('Analytics unavailable (screen $screenName): $e');
+    }
     // 🩹 いまいる画面を Crashlytics にも残す。
     //
     // ⚠️ 2026-08 の時点で app_exception が 317件／11ユーザー
@@ -402,6 +416,54 @@ class AppAnalytics {
   /// 起動しただけの回数と区別するため、game_start とは別イベントにする
   /// （押したが設定シートで止めた人も、ここには残る）。
   static void modePick(String mode) => _log('mode_pick', {'mode': mode});
+
+  // ── 📊 データ経営用のこまかい記録 ─────────────────────────
+  //
+  // 「なんとなく良くなった気がする」で判断しないための土台。
+  // ⚠️ イベント名・パラメータ名は**後から変えない**。変えると
+  //    BigQuery側の集計が過去ぶんと繋がらなくなる（GA4は名前で保存する）。
+
+  /// チュートリアルのページ送り。どのページで飽きたかが分かる。
+  static void tutorialStep({required int page, required int total}) =>
+      _log('tutorial_step', {'page': page, 'total': total});
+
+  /// チュートリアルを最後まで見たか、途中で抜けたか。
+  static void tutorialDone({required bool completed, required int lastPage}) =>
+      _log('tutorial_done', {
+        'completed': completed ? 1 : 0,
+        'last_page': lastPage,
+      });
+
+  /// CPU戦でどちらのゲームを選んだか（pairs / namecall）と難易度。
+  static void cpuGamePick({required String game, required String level}) =>
+      _log('cpu_game_pick', {'game': game, 'level': level});
+
+  /// 設定の変更。何をどう変える人が続けているのかを見る。
+  /// [key] は 'people_count' / 'copies' / 'theme' / 'bgm' など。
+  static void settingChange(String key, String value) =>
+      _log('setting_change', {'key': key, 'value': value});
+
+  /// 画面の中の押しどころ。どのボタンが実際に押されているか。
+  /// [screen] は画面名、[target] はボタンの識別子。
+  static void tapAction({required String screen, required String target}) =>
+      _log('tap_action', {'screen': screen, 'target': target});
+
+  /// 1問ぶんの解答。正誤・反応時間・何人目かまで残す。
+  /// ⚠️ 出題ごとに撃つので、名前や写真など**個人が分かるものは載せない**。
+  static void answerLogged({
+    required String mode,
+    required bool correct,
+    required int reactionMs,
+    required int index,
+    required int total,
+  }) =>
+      _log('answer', {
+        'mode': mode,
+        'correct': correct ? 1 : 0,
+        'reaction_ms': reactionMs,
+        'index': index,
+        'total': total,
+      });
 
   /// 🚀 ものがたりモードの進み具合。
   ///

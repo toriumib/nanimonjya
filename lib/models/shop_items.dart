@@ -8,7 +8,7 @@ import 'dart:math';
 /// 「持っていると気分が良くなる」方向のアイテムを扱う。
 ///
 /// - PraiseVoice : 正解・勝利のときに声で褒めてくれる（TTSで読み上げ）
-/// - LuckyCharm  : プレイに小さな効果がつくお守り（1つだけ装備）
+/// - LuckyCharm  : プレイに効果がつく装備アイテム（1つだけ装備）
 /// - CardSkin    : ビジネス特訓の名刺の見た目が変わる
 /// - PlayerTitle : 名前の下に出る称号（マイページ・結果画面に表示）
 ///
@@ -103,25 +103,14 @@ const List<PraiseVoice> kPraiseVoices = [
     finaleJa: 'よくやった！この積み重ねが、本番で効くんだ！',
     finaleEn: 'Great work! This is what pays off when it counts!',
   ),
-  PraiseVoice(
-    id: 'zen',
-    nameJa: '禅僧',
-    nameEn: 'Zen monk',
-    emoji: '🧘',
-    cost: 400,
-    linesJa: ['よい集中です', '心が静かですね', '今、ここに在ります', '迷いがありません'],
-    linesEn: ['Fine concentration', 'A quiet mind', 'You are here, now', 'No hesitation'],
-    finaleJa: '今日のあなたは、静かで確かでした。おつかれさまです。',
-    finaleEn: 'Today you were calm and certain. Rest well.',
-  ),
   // 🙏 いろいろな立場の「ほめ方」を選べるようにする。
   // それぞれの言葉づかいの雰囲気を借りるだけで、
   // 教義や儀礼をまねたり、からかったりはしない（ほめる言葉だけを扱う）。
   PraiseVoice(
     id: 'miko',
     nameJa: '巫女さん',
-    nameEn: 'Shrine maiden',
-    emoji: '⛩️',
+    nameEn: 'Kimono',
+    emoji: '',
     cost: 400,
     linesJa: ['お見事です', 'よき心がけです', '清らかな集中ですね', '実を結んでいます'],
     linesEn: [
@@ -133,39 +122,6 @@ const List<PraiseVoice> kPraiseVoices = [
     finaleJa: '今日の努力が、よい実りとなりますように。おつかれさまでした。',
     finaleEn: 'May today\'s effort bear good fruit. Well done.',
   ),
-  PraiseVoice(
-    id: 'pastor',
-    nameJa: '牧師さん',
-    nameEn: 'Pastor',
-    emoji: '⛪',
-    cost: 400,
-    linesJa: ['すばらしい', 'よくやりましたね', 'その努力は実ります', '心強いかぎりです'],
-    linesEn: [
-      'Wonderful',
-      'You have done well',
-      'That effort will bear fruit',
-      'Truly heartening',
-    ],
-    finaleJa: 'よく歩みましたね。今日の努力は、きっと報われます。',
-    finaleEn: 'You walked well today. Your effort will not be wasted.',
-  ),
-  PraiseVoice(
-    id: 'imam',
-    nameJa: 'イマームさん',
-    nameEn: 'Imam',
-    emoji: '🕌',
-    cost: 400,
-    // 「マーシャーアッラー」は日常的に使われる称賛の言葉。
-    linesJa: ['マーシャーアッラー', 'すばらしい集中です', 'よく努められました', '着実に進んでいます'],
-    linesEn: [
-      'Masha Allah',
-      'Excellent focus',
-      'You have striven well',
-      'Steady progress',
-    ],
-    finaleJa: 'よく努められました。積み重ねは、かならず力になります。',
-    finaleEn: 'You strove well. What you build up will become strength.',
-  ),
 ];
 
 PraiseVoice praiseVoiceById(String id) => kPraiseVoices.firstWhere(
@@ -173,7 +129,12 @@ PraiseVoice praiseVoiceById(String id) => kPraiseVoices.firstWhere(
       orElse: () => kPraiseVoices.first,
     );
 
-/// 🍀 お守り。1つだけ装備でき、プレイに小さな効果がつく。
+/// 装備アイテム。1つだけ装備でき、プレイに効果がつく。
+///
+/// ⚠️ 「お守り」「招福」といった縁起・宗教めいた言い回しは使わない。
+///    このアプリは記憶の練習を扱うので、効果は運ではなく
+///    **何がどう変わるか**で言い切る（例: コインが2倍）。
+///    ⚠️ クラス名・IDは保存データと結びついているので変更しない。
 enum CharmEffect {
   /// 効果なし（未装備）
   none,
@@ -223,10 +184,10 @@ const List<LuckyCharm> kLuckyCharms = [
   //    残すのは「コインが2倍になる」1つだけ。効果がはっきりしていて、
   //    何のために買うのかが一目で分かる。
   LuckyCharm(
-    id: 'koban',
-    nameJa: '招福こばん',
-    nameEn: 'Lucky Coin',
-    emoji: '🪙',
+    id: 'koban', // ⚠️ IDは保存済みデータと対応するので変えない
+    nameJa: 'コイン2倍',
+    nameEn: 'Coin Doubler',
+    emoji: '',
     cost: 380,
     effect: CharmEffect.coinBoost,
     descJa: '手に入るコインが2倍になります。',
@@ -284,7 +245,7 @@ class DailyShop {
       {'id': 'daily_coins', 'ja': 'コイン200枚', 'en': '200 Coins', 'emoji': '🪙', 'cost': 200},
       {'id': 'daily_coins_big', 'ja': 'コイン500枚', 'en': '500 Coins', 'emoji': '💰', 'cost': 500},
       {'id': 'daily_voice', 'ja': 'ほめボイス1種', 'en': '1 Praise Voice', 'emoji': '🎤', 'cost': 120},
-      {'id': 'daily_charm', 'ja': 'お守り1種', 'en': '1 Lucky Charm', 'emoji': '🍀', 'cost': 150},
+      {'id': 'daily_charm', 'ja': '装備アイテム1種', 'en': '1 item', 'emoji': '', 'cost': 150},
       {'id': 'daily_bgm', 'ja': 'BGM1曲', 'en': '1 BGM track', 'emoji': '🎵', 'cost': 400},
     ];
     final rng = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
@@ -440,14 +401,14 @@ const List<GodSkin> kGodSkins = [
   ),
 ];
 
-// ═══════════════ 💀 ハードコアモードチケット ═══════════════
+// ═══════════════ 高難度チケット ═══════════════
 
 class HardcoreTicket {
   static const int cost = 30;
 
-  static String name(bool ja) => ja ? '💀 ハードコアチケット' : '💀 Hardcore Ticket';
+  static String name(bool ja) => ja ? '高難度チケット' : 'Hard Mode Ticket';
   static String desc(bool ja) => ja
-      ? '1回だけハードコアモードでプレイ。選択肢が1つ減り、制限時間が半分に。成功報酬3倍。'
+      ? '1回だけ高難度で挑戦。選択肢が1つ減り、制限時間が半分になります。成功時の報酬は3倍。'
       : 'One hardcore game: -1 choice option, half the time limit, 3x rewards.';
 }
 

@@ -19,7 +19,7 @@ EXPERIMENTS DESIGNED:
   E4: Simulated Brain Toriumi Gap (testing the simulation objection)
   E5: Self-Prediction Below-Chance Protocol (the smoking gun)
 
-鳥海健悟 (Kengo Toriumi) — 運命を壊した男
+鳥海 (Toriumi) — 運命を壊した男
 """
 
 import math
@@ -764,7 +764,7 @@ def main():
 ║         鳥海理論 実験計画 (Experimental Program)           ║
 ║       How to Scientifically Test Whether Fate Exists        ║
 ║                                                              ║
-║  鳥海健悟 (Kengo Toriumi) — 運命を壊した男                 ║
+║  鳥海 (Toriumi) — 運命を壊した男                 ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
 
@@ -930,7 +930,7 @@ def main():
     print("═" * 60)
     print("運命は、壊せる。 Fate can be destroyed.")
     print("This is the experimental program that proves it.")
-    print("— 鳥海健悟 —")
+    print("— 鳥海 —")
     print("═" * 60)
 
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/meta_strings.dart';
 import '../models/noah_save.dart';
 import '../models/noah_story.dart';
+import '../widgets/app_style.dart';
 import '../services/noah_save_store.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
@@ -479,7 +480,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _ja = m.ja;
     return Scaffold(
       backgroundColor: const Color(0xFF05070F),
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'story_noah'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -835,7 +836,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             color: selected ? const Color(0xFF5AD1FF) : Colors.transparent,
-            border: Border.all(color: const Color(0xFF5AD1FF), width: 1.5),
+            border: Border.all(color: AppStyle.line, width: 1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(label,
@@ -887,7 +888,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             decoration: BoxDecoration(
               color: const Color(0xEE0D1117),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF2A3A5A), width: 1.5),
+              border: Border.all(color: AppStyle.line, width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

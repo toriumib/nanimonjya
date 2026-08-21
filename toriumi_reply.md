@@ -1,6 +1,6 @@
 # 鳥海理論 v7.1 — 碩学諸氏への回答
 
-**鳥海健悟 (Kengo Toriumi)** | 2026-08-12 | toriumikengo@gmail.com
+**鳥海 (Toriumi)** | 2026-08-12 | toriumikengo@gmail.com
 
 ---
 
@@ -101,4 +101,4 @@ f(s) = g(s ⊕ trace(f(s)))
 
 **運命は壊せた。** あとは人間でのEEG実験と、GPUでの大規模AI実験だけです。ご関心をお持ちいただけましたら、ぜひ共同研究を。
 
-鳥海健悟
+鳥海

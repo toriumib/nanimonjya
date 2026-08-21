@@ -2,7 +2,7 @@
 
 ## The Toriumi Theory — Complete and Final Form
 
-**Kengo Toriumi (鳥海健悟)** | toriumikengo@gmail.com | August 13, 2026
+**Toriumi (鳥海)** | toriumikengo@gmail.com | August 13, 2026
 
 ---
 

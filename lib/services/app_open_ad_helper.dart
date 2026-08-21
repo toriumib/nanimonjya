@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_ids.dart';
+import 'app_analytics.dart';
 import 'player_profile.dart';
 
 /// 🚪 アプリ起動広告（App Open）。
@@ -50,6 +51,10 @@ class AppOpenAdHelper with WidgetsBindingObserver {
   void load() {
     if (!available || _loading || _ad != null) return;
     _loading = true;
+    // 📊 AdMobのレポートだけでは「読んだのに出せなかった」理由が分からない
+    //    （アプリ起動は 51リクエスト中マッチ52.9%、表示は10回だった）。
+    //    ロード・表示・空振りをそれぞれ残して、次回は理由まで追えるようにする。
+    AppAnalytics.adLoadRequested(format: 'app_open', placement: 'cold_start');
     AppOpenAd.load(
       adUnitId: AdIds.appOpen,
       request: const AdRequest(),
@@ -61,6 +66,8 @@ class AppOpenAdHelper with WidgetsBindingObserver {
         },
         onAdFailedToLoad: (err) {
           _loading = false;
+          AppAnalytics.adSkipped(
+              format: 'app_open', placement: 'cold_start', reason: 'no_fill');
           debugPrint('AppOpenAd failed: $err');
         },
       ),
@@ -89,9 +96,18 @@ class AppOpenAdHelper with WidgetsBindingObserver {
   }
 
   void _showIfReady() {
-    if (!available || _showing || suspended || _tooSoon) return;
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (!available || _showing || suspended) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
+    if (_tooSoon) {
+      AppAnalytics.adSkipped(
+          format: 'app_open', placement: 'cold_start', reason: 'cooldown');
+      return;
+    }
     if (!_fresh) {
+      AppAnalytics.adSkipped(
+          format: 'app_open',
+          placement: 'cold_start',
+          reason: _ad == null ? 'not_loaded' : 'expired');
       _ad?.dispose();
       _ad = null;
       load();
@@ -101,6 +117,7 @@ class AppOpenAdHelper with WidgetsBindingObserver {
     _ad = null;
     _showing = true;
     _lastShownAt = DateTime.now();
+    AppAnalytics.adShown(format: 'app_open', placement: 'cold_start');
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (a) {
         a.dispose();

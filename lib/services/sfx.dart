@@ -73,6 +73,9 @@ class Sfx {
     }
   }
 
+  /// ユーザー設定の音量倍率（0.0〜1.0）。プロフィールのスライダーから変更する。
+  static double volumeScale = 1.0;
+
   /// プールから次のプレイヤーを取り出して先頭から鳴らす。
   Future<void> _play(String asset, {double volume = 1.0, double speed = 1.0}) async {
     try {
@@ -86,7 +89,7 @@ class Sfx {
       final idx = _cursor[asset]!;
       _cursor[asset] = (idx + 1) % players.length;
       final player = players[idx];
-      await player.setVolume(volume);
+      await player.setVolume(volume * volumeScale);
       try { await player.setSpeed(speed); } catch (_) {}
       await player.seek(Duration.zero);
       await player.play();

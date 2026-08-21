@@ -1,6 +1,6 @@
 # Self-Referential Decision Systems and the Structural Impossibility of Perfect Self-Prediction
 
-**Kengo Toriumi (鳥海健悟)** | toriumikengo@gmail.com | August 13, 2026
+**Toriumi (鳥海)** | toriumikengo@gmail.com | August 13, 2026
 
 ---
 

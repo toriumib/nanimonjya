@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart'; // TemplateType
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/meta_strings.dart';
@@ -107,10 +106,21 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
       ..sort((a, b) => widget.pairsWon[b].compareTo(widget.pairsWon[a]));
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'local_result'),
       appBar: AppBar(
         title: Text(m.resultTitle),
         automaticallyImplyLeading: false,
+        // 左上の×でホームへ戻る
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: m.ja ? 'ホームに戻る' : 'Back to home',
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomeShell()),
+              (route) => false,
+            );
+          },
+        ),
       ),
       body: Stack(
         alignment: Alignment.topCenter,
@@ -227,9 +237,7 @@ class _LocalResultScreenState extends State<LocalResultScreen> {
                   const SizedBox(height: 12),
                   const StoreCtaCard(),
                   const SizedBox(height: 16),
-                  const NativeAdCard(
-                      placement: 'result_local',
-                      templateType: TemplateType.medium),
+                  const NativeAdCard(),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {

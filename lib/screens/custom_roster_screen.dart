@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/person.dart';
 import '../models/avatar.dart';
 import '../services/card_ocr_service.dart';
@@ -186,10 +187,10 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
             ListTile(
               leading: const Icon(Icons.face_retouching_natural,
                   color: Color(0xFF8A5AC2)),
-              title: const Text('似顔絵をつくる（写真が無いとき）'),
-              subtitle: const Text(
-                  '職場の人の写真は撮りにくいもの。メガネ・ほくろ・髪型で特徴を残せます',
-                  style: TextStyle(fontSize: 11.5)),
+              title: Text(m.faceMemoCreateAvatarHint),
+              subtitle: Text(
+                  m.faceMemoCreateAvatarSub,
+                  style: const TextStyle(fontSize: 11.5)),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _addAvatar();
@@ -230,7 +231,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
     final m = MetaStrings.of(context);
 
     return Scaffold(
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'custom_roster'),
       // 用途が分かるように、見出しは「顔メモ（会社・学校の人）」を出す。
       // タブ名（tabMemorize）は幅が狭いので短い「顔メモ」のまま。
       // ⚠️ 見出しは既定で22ptなので、このまま出すと横に収まらず切れる。
@@ -263,8 +264,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                            color: const Color(0xFFD8E4F0), width: 1.5),
+                        border: Border.all(color: AppStyle.line, width: 1),
                       ),
                       child: Text(m.customDesc,
                           style: const TextStyle(fontSize: 13, height: 1.5)),
@@ -295,7 +295,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                               onPressed: _addAvatar,
                               icon: const Icon(
                                   Icons.face_retouching_natural, size: 26),
-                              label: const Text('似顔絵をつくる'),
+                              label: Text(m.faceMemoCreateAvatar),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF8A5AC2),
                                 foregroundColor: Colors.white,
@@ -332,7 +332,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                       ),
                     // 🧩 一覧の末尾。登録・編集の導線を塞がない位置に置く。
                     if (entries.isNotEmpty)
-                      const NativeAdCard(placement: 'custom_roster'),
+                      const NativeAdCard(),
                   ],
                 ),
               );
@@ -549,7 +549,7 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFD8E4F0), width: 1.5),
+          border: Border.all(color: AppStyle.line, width: 1),
         ),
         child: Column(
           children: [
@@ -798,7 +798,7 @@ class _EntryFormScreenState extends State<_EntryFormScreen> {
                 child: TextButton.icon(
                   onPressed: _editAvatar,
                   icon: const Icon(Icons.face_retouching_natural, size: 18),
-                  label: const Text('顔を直す'),
+                  label: Text(m.faceMemoEditFace),
                 ),
               ),
               if (_avatar!.featuresJa().isNotEmpty)

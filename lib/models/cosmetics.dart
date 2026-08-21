@@ -35,6 +35,25 @@ class HomeTheme {
 }
 
 const List<HomeTheme> kHomeThemes = [
+  // 🖤 既定のテーマ。落ち着いた濃紺＋ゴールド。
+  //
+  // 「派手で子ども向け」から「大人が人前で開ける」見た目へ。
+  // ⚠️ 色を明るくしたくなったら、まず `subtle`（他画面の下地）を見ること。
+  //    ここを暗くすると、本文の黒文字が読めなくなる画面が一気に増える。
+  //    濃い色は**ホームの背景とAppBarだけ**に留めてある。
+  HomeTheme(
+    id: 'noir',
+    subtle: [Color(0xFFF7F5F2), Color(0xFFFFFDFA)],
+    nameJa: 'ノワール',
+    nameEn: 'Noir',
+    emoji: '🖤',
+    cost: 0,
+    gradient: [Color(0xFF12161F), Color(0xFF1B2333), Color(0xFF232C40)],
+    titleColor: Color(0xFFE9C87A), // シャンパンゴールド
+    titleShadow: Color(0xFF0B0E14),
+    darkBackground: true,
+    accent: Color(0xFFB08D4F), // 文字を白で置いても読める濃さのゴールド
+  ),
   HomeTheme(
     id: 'sunny',
     subtle: [Color(0xFFFFF8E0), Color(0xFFFFF3F8)],

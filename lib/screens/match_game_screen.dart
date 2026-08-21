@@ -69,6 +69,9 @@ class _CardData {
 
 class _MatchGameScreenState extends State<MatchGameScreen>
     with WidgetsBindingObserver {
+  /// 🌍 CPUの口癖など、build の外（タイマーの中）で言語が要る場面で使う。
+  ///    build の中では `MetaStrings.of(context).ja` を使うこと。
+  bool get _jaLocale => PlatformDispatcherLocale.isJa;
   // オンライン時は共有seedで両端末に同一の盤面を作る
   late final Random _rng =
       widget.online != null ? Random(widget.online!.seed) : Random();
@@ -190,13 +193,10 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       ja: ja,
       random: _rng,
       charAssets: _isOnline
+          // 🌐 オンラインは相手と顔ぶれを合わせる必要があるので言語で変えない
           ? kCharImageAssets
           : applyDeckFilter(
-              [
-                ...kCharImageAssets,
-                ...unlockedExtraAssets(
-                    PlayerProfile.instance.unlockedCharacters),
-              ],
+              playablePool(ja, PlayerProfile.instance.unlockedCharacters),
               PlayerProfile.instance.deckExcluded,
             ),
     );
@@ -286,7 +286,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
   void _loadBanner() {
     if (kIsWeb) return;
     // 💳 広告除去を買ってくれた人にはバナーを出さない
-    if (PlayerProfile.instance.adsRemoved) return;
+    if (PlayerProfile.instance.adsRemovedOrPremium) return;
     final ad = BannerAd(
       adUnitId: AdIds.banner,
       size: AdSize.banner,
@@ -511,7 +511,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
         _cpuDone.add(picked.face);
         _cpuCorrect += 1;
         _cpuPairsWon.add(picked);
-        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid);
+        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid, ja: _jaLocale);
         _cpuQuipsSaid += 1;
         if (mounted) setState(() {});
         Future.delayed(const Duration(milliseconds: 1800), () {
@@ -707,7 +707,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
       // 🤖 CPUが取ったペアを記録（おさらい用）
       if (_vsCpu && byCpu) {
         _cpuPairsWon.add(a.person);
-        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid);
+        _cpuQuip = randomCpuQuip(_cpuPersona, seed: _cpuQuipsSaid, ja: _jaLocale);
         _cpuQuipsSaid += 1;
       }
       if (_vsCpu && !byCpu) _playerPairsWon.add(a.person);
@@ -1062,13 +1062,13 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                       Text(
                         won
                             ? (m.ja ? 'あなたの勝ち！' : 'You win!')
-                            : (m.ja ? '${_cpuPersona.name}の勝ち' : '${_cpuPersona.name} wins'),
+                            : (m.ja ? '${_cpuPersona.name(true)}の勝ち' : '${_cpuPersona.name(false)} wins'),
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        won ? _cpuPersona.loseLine : _cpuPersona.winLine,
+                        won ? _cpuPersona.loseLine(m.ja) : _cpuPersona.winLine(m.ja),
                         style: const TextStyle(fontSize: 13, color: Color(0xEEFFFFFF), height: 1.4),
                       ),
                     ],
@@ -1239,7 +1239,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                       ),
                   child: Column(
                     children: [
-                      Text('${_cpuPersona.emoji} ${_cpuPersona.name}',
+                      Text('${_cpuPersona.emoji} ${_cpuPersona.name(m.ja)}',
                           style: const TextStyle(fontSize: 10, color: Color(0xCCFFFFFF))),
                       Text('$_cpuCorrect / $total',
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
@@ -1449,10 +1449,10 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_cpuPersona.name,
+                      Text(_cpuPersona.name(m.ja),
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900,
                               color: Color(0xFFE8663C))),
-                      Text('${m.ja ? '趣味' : 'Hobby'}: ${_cpuPersona.hobby}',
+                      Text('${m.ja ? '趣味' : 'Hobby'}: ${_cpuPersona.hobby(m.ja)}',
                           style: const TextStyle(fontSize: 11, color: Color(0xFF6A5A6A))),
                     ],
                   ),
@@ -1641,7 +1641,9 @@ class _MatchGameScreenState extends State<MatchGameScreen>
                     children: [
                       Text(_cpuPersona.emoji, style: const TextStyle(fontSize: 16)),
                       const SizedBox(width: 6),
-                      Text('${_cpuPersona.name}「$_cpuQuip」',
+                      Text(m.ja
+                          ? '${_cpuPersona.name(true)}「$_cpuQuip」'
+                          : '${_cpuPersona.name(false)}: "$_cpuQuip"',
                           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900,
                               color: Color(0xFF5A4A1E))),
                     ],
@@ -1688,7 +1690,7 @@ class _MatchGameScreenState extends State<MatchGameScreen>
         chip('😀 ${m.you}', _pairsWon[0], _turn == 0, const Color(0xFF3A7BD5)),
         const SizedBox(width: 10),
         chip(
-            '${_cpuPersona.emoji} ${_cpuPersona.name}',
+            '${_cpuPersona.emoji} ${_cpuPersona.name(m.ja)}',
             _pairsWon[1],
             _turn == 1,
             const Color(0xFF8A5AC2)),

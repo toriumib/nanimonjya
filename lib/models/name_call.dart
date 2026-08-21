@@ -22,33 +22,33 @@ import 'person.dart';
 class NameCallGame {
   /// 登場人数のデフォルト。
   ///
-  /// **6人**（× [defaultCopiesPerPerson] 5枚 ＝ 山札30枚）。
+  /// **6人**（× [defaultCopiesPerPerson] 4枚 ＝ 山札24枚）。
   ///
   /// 2026-08 の計測で完走率39%（12人）→ Analysis.md の改善計画で
   /// 最初の一手として6人に引き下げ。完走率60%を狙う。
-  /// 物足りない人はホームのスライダーで12人まで上げられる。
+  /// 物足りない人はホームのスライダーで24人まで上げられる。
   static const int peopleCount = 6;
 
   /// ホームのスライダーで選べる登場人数の範囲。
   /// 上限は使える顔の枚数（[maxPeople]）と同じ。
   static const int minSelectableCount = 4;
-  static const int maxSelectableCount = 15;
+  static const int maxSelectableCount = 24;
 
   /// 使える顔の最大数（フリー素材キャラ画像の枚数）。
   /// ⚠️ [kCharImageAssets] の枚数と必ずそろえること。ここが多いと
   ///    生成器が足りない顔を要求してassertで落ちる。
-  ///    （c13を欠番にしたので16→15）
-  static const int maxPeople = 15;
+  ///    （2026-08: char14〜22を基本に昇格し15→24）
+  static const int maxPeople = 24;
 
   /// 1人あたりの札の枚数の既定値。
   ///
-  /// 2枚なら「初登場で名前をつける → もう一度出たら答える」の1往復で終わる。
-  /// 枚数を増やすと同じ顔に何度も出会うことになり、間隔をあけた復習に近づく。
+  /// **4枚**にしてある。1枚目は初登場（名前をつける）、2〜4枚目が想起になる。
+  /// 同じ顔は合計4回出るので、覚える→思い出すの間隔が空いて定着しやすい。
   ///
-  /// **5枚**にしてある（[peopleCount] 12人と合わせて山札60枚）。
-  /// 同じ顔に4回出会うので、記憶の定着という意味では2枚よりずっと良い。
-  /// そのぶん1試合は長い。[peopleCount] の注意書きも読むこと。
-  static const int defaultCopiesPerPerson = 5;
+  /// ⚠️ 2026-08 に「同じ人が何度も出てくる」と報告され一時2枚にしたが、
+  ///     ゲームとしての張り（同じ人がまた出る→思い出す）が薄くなったため、
+  ///     4枚に調整した。枚数を増やしたい人はホームのスライダーで上げられる。
+  static const int defaultCopiesPerPerson = 4;
 
   /// ホームで選べる1人あたりの枚数。
   static const int minCopiesPerPerson = 2;

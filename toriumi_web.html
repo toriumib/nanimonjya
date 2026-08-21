@@ -3,290 +3,613 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鳥海理論 — 最終形</title>
+<title>決定論から運命論は導けない</title>
 <style>
-:root{--bg:#06060f;--card:#0d0d22;--border:#1a1a3a;--text:#c8c8e0;--dim:#5e5e88;--b:#f0f0ff;--g:#d4a44e;--r:#e0445c;--gr:#38a878;--bl:#5090cc}
-*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
-body{font-family:'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.75}
-nav{position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(6,6,15,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 10px;height:42px;display:flex;align-items:center;gap:2px;overflow-x:auto}
-nav a{color:var(--dim);text-decoration:none;font-size:.6rem;padding:5px 7px;border-radius:4px;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
+:root{
+  --bg:#06060f; --card:#0d0d22; --border:#1a1a3a; --text:#c8c8e0; --dim:#7a7aa0;
+  --b:#f0f0ff; --g:#d4a44e; --r:#e0445c; --gr:#38a878; --bl:#5090cc;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(6,6,15,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 10px;height:44px;display:flex;align-items:center;gap:2px;overflow-x:auto}
+nav a{color:var(--dim);text-decoration:none;font-size:.62rem;padding:6px 8px;border-radius:4px;white-space:nowrap;letter-spacing:.04em;transition:all .2s}
 nav a:hover{color:var(--g);background:rgba(212,164,78,.08)}
-.container{max-width:860px;margin:0 auto;padding:54px 14px 80px}
-h1{font-size:2rem;text-align:center;color:var(--g);letter-spacing:.04em}
-h2{font-size:1.25rem;margin:40px 0 8px;color:var(--b);border-top:1px solid var(--border);padding-top:32px}
-h3{font-size:.92rem;margin:20px 0 6px;color:var(--g)}
-p{font-size:.84rem;color:var(--dim);margin-bottom:8px}p strong{color:var(--text)}
-.hero{text-align:center;padding:60px 0 24px}
-.hero .kugiri{width:50px;height:2px;background:var(--g);margin:10px auto}
-.hero .tagline{font-size:.85rem;color:var(--dim)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin:10px 0}
-.card-g{border-color:rgba(56,168,120,.3);background:rgba(56,168,120,.04)}
-.card-r{border-color:rgba(224,68,92,.2);background:rgba(224,68,92,.04)}
-.pass-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
-.pass-box{background:var(--card);border:2px solid var(--gr);border-radius:8px;text-align:center;padding:12px 6px}
-.pass-box .val{font-size:1.2rem;font-weight:700;color:var(--gr);font-family:'Cascadia Code',monospace}
-.pass-box .lbl{font-size:.68rem;color:var(--b)}
-.data-table{width:100%;border-collapse:collapse;font-size:.76rem;margin:8px 0}
-.data-table th{text-align:left;padding:7px 8px;color:var(--dim);border-bottom:1px solid var(--border);font-size:.6rem;text-transform:uppercase;letter-spacing:.04em}
-.data-table td{padding:7px 8px;border-bottom:1px solid #0e0e22}.data-table .pass{color:var(--gr);font-weight:700}
-.data-table .num{font-family:'Cascadia Code',monospace}
-.formula{font-family:'Cascadia Code',monospace;background:#050512;padding:12px 16px;border-radius:8px;border-left:3px solid var(--g);margin:8px 0;font-size:.76rem;overflow-x:auto;color:#a0a0c8}
-.verdict-banner{text-align:center;padding:16px;border-radius:10px;background:rgba(56,168,120,.08);border:2px solid var(--gr);margin:14px 0}
-.verdict-banner .big{font-size:1.6rem;font-weight:900;color:var(--gr)}
-.verdict-banner .sm{font-size:.7rem;color:var(--dim)}
-.footer{text-align:center;padding:40px 0;color:var(--dim);font-size:.7rem}.footer a{color:var(--bl)}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:600px){h1{font-size:1.4rem}.pass-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+.container{max-width:820px;margin:0 auto;padding:60px 16px 100px}
+h1{font-size:1.9rem;text-align:center;color:var(--g);letter-spacing:.02em;line-height:1.45}
+h2{font-size:1.2rem;margin:52px 0 10px;color:var(--b);border-top:1px solid var(--border);padding-top:34px}
+h3{font-size:.95rem;margin:24px 0 8px;color:var(--g)}
+p{font-size:.86rem;color:var(--dim);margin-bottom:10px}
+p strong{color:var(--text)}
+li{font-size:.86rem;color:var(--dim);margin:5px 0 5px 18px}
+li strong{color:var(--text)}
+.hero{text-align:center;padding:56px 0 20px}
+.hero .kugiri{width:52px;height:2px;background:var(--g);margin:14px auto}
+.hero .sub{font-size:.88rem;color:var(--text);margin-top:8px}
+.hero .meta{font-size:.72rem;color:var(--dim);margin-top:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:14px 0}
+.card-g{border-color:rgba(56,168,120,.32);background:rgba(56,168,120,.05)}
+.card-r{border-color:rgba(224,68,92,.32);background:rgba(224,68,92,.05)}
+.card-y{border-color:rgba(212,164,78,.32);background:rgba(212,164,78,.05)}
+.banner{border:1px solid rgba(224,68,92,.4);background:rgba(224,68,92,.07);border-radius:10px;padding:16px 20px;margin:22px auto;max-width:660px}
+.banner p{font-size:.78rem;margin:0}
+.formula{background:#05050d;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'Consolas','SF Mono',monospace;font-size:.76rem;color:var(--bl);white-space:pre-wrap;overflow-x:auto;line-height:1.7}
+.tbl-wrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.78rem;min-width:460px}
+th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.035);color:var(--b);font-weight:600}
+td{color:var(--dim)}
+td strong{color:var(--text)}
+.ok{color:var(--gr)}.no{color:var(--r)}.mid{color:var(--g)}
+blockquote{border-left:2px solid var(--g);padding:6px 0 6px 16px;margin:14px 0;font-size:.83rem;color:var(--text);font-style:italic}
+blockquote cite{display:block;font-style:normal;font-size:.72rem;color:var(--dim);margin-top:8px}
+.strike{opacity:.4;text-decoration:line-through}
+footer{text-align:center;margin-top:60px;padding-top:26px;border-top:1px solid var(--border);font-size:.72rem;color:var(--dim)}
+a.ref{color:var(--bl);text-decoration:none;border-bottom:1px dotted var(--bl)}
+a.ref:hover{color:var(--g);border-color:var(--g)}
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="#top">Top</a><a href="#def">定義</a><a href="#control">対照実験</a><a href="#arch">仕組み</a><a href="#layers">L1-L4</a><a href="#abstraction">抽象度</a><a href="#two-layer">二層</a><a href="#brain">脳回路</a><a href="#falsify">反証</a><a href="#summary">まとめ</a>
+  <a href="#top">TOP</a>
+  <a href="#claim">主張</a>
+  <a href="#fatalism">運命論</a>
+  <a href="#mackay">MacKay</a>
+  <a href="#gamma">Γ</a>
+  <a href="#value">審美眼</a>
+  <a href="#libet">Libet</a>
+  <a href="#exp">実験</a>
+  <a href="#neutral">中立</a>
+  <a href="#errata">訂正履歴</a>
 </nav>
 
 <div class="container">
 
 <section id="top">
 <div class="hero">
-  <h1>鳥 海 理 論</h1>
+  <h1>決定論から<br>運命論は導けない</h1>
   <div class="kugiri"></div>
-  <p class="tagline">自己言及的決定システムの完全理論 — 査読突破・苫米地統合・20反論回答済</p>
-  <div class="verdict-banner" style="max-width:500px;margin:16px auto">
-    <div class="big">対照実験 突破</div>
-    <div class="sm">任意パディング→Γ=0 / 自己参照→Γ>0 / 抽象度αの統合 / 二層アーキテクチャ</div>
-  </div>
-  <p style="font-size:.66rem;color:var(--dim)">鳥海健悟 (Kengo Toriumi) — 2026.08.13</p>
+  <p class="sub">MacKay の論理的非決定性の定量化と、価値比較過程との接続</p>
+  <p class="meta">鳥海 (Toriumi) — 草稿 v18 / 2026-08-15</p>
+</div>
+
+<div class="banner">
+  <p><strong style="color:var(--r)">⚠️ 本稿は未査読の作業仮説です。</strong>
+  学術誌に投稿されていません。以下に「査読」とあるものはすべて著者自身によるAI補助の自己批判です。
+  2026-08-15の原典照合により複数の主張を撤回しました（<a href="#errata" class="ref">訂正履歴</a>）。</p>
 </div>
 </section>
 
-<!-- ═══════════════ DEFINITION ═══════════════ -->
-<section id="def">
-<h2>§1. 定義 — 自由意志 ≡ Γ>0</h2>
-<div class="card card-g">
-  <p>自由意志を<strong>操作的に定義</strong>する。これが2000年決着しなかった理由への回答。</p>
-  <div class="formula">
-Γ = P[ f(s_before) ≠ f(s_after) ]
-
-f    : 決定関数（固定された重み = 人格・記憶・価値観）
-s_before : 自己シミュレーション前の状態
-s_after  : 自己シミュレーション後の状態
-
-Γ > 0  ⟺  自由意志がある
-Γ = 0  ⟺  自由意志がない
-  </div>
-  <p>この定義が満たす6条件: <strong>(1)測定可能 (2)反証可能 (3)決定論と両立 (4)乱数不要 (5)段階的 (6)構成的証明済</strong>。</p>
-  <p style="font-size:.72rem;color:var(--dim)">これら6条件を満たす他の操作的定義は知られていない。</p>
-</div>
-</section>
-
-<!-- ═══════════════ CONTROL ═══════════════ -->
-<section id="control">
-<h2>§2. 対照実験 — 査読最大の批判を突破</h2>
-<div class="card card-g">
-  <p><strong>査読の批判:</strong>「予測と選択のあいだに何を追記してもΓ≈0.5。自己参照は関係ない」</p>
-  <p><strong>反証:</strong> fは<strong>選択的注意</strong>を持つ。無関係なパディングは読まない。自己参照トレースだけを読む。</p>
-  <table class="data-table">
-    <tr><th>条件</th><th>k=0</th><th>k=1</th><th>k=2</th><th>k=3</th><th>k=4</th><th>判定</th></tr>
-    <tr><td><strong>自己参照トレース</strong></td><td class="num">0.000</td><td class="num pass">0.260</td><td class="num pass">0.282</td><td class="num pass">0.330</td><td class="num pass">0.354</td><td class="pass">Γ>0 ✓</td></tr>
-    <tr><td>固定"XXXXX"</td><td class="num">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="pass">Γ=0 ✓</td></tr>
-    <tr><td>カウンタ</td><td class="num">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="num pass">0.000</td><td class="pass">Γ=0 ✓</td></tr>
-  </table>
-  <p style="margin-top:6px;color:var(--gr);font-weight:600">→ 自己参照が独立変数。任意バイト追加ではΓは出ない。</p>
-</div>
-
-<div class="card">
-  <h3 style="margin-top:0">勾配: Γはkとともに成長</h3>
-  <table class="data-table">
-    <tr><th>k</th><th>0</th><th>1</th><th>3</th><th>8</th><th>50</th></tr>
-    <tr><td>Γ</td><td class="num">0.000</td><td class="num pass">0.257</td><td class="num pass">0.328</td><td class="num pass">0.333</td><td class="num pass">0.310</td></tr>
-  </table>
-  <p>ΔΓ(k=0→50)=0.310。熟考が深いほど予測と選択がずれる。β<0予測に対応。</p>
-</div>
+<section id="claim">
+<h2>§1. 何を主張し、何を主張しないか</h2>
 
 <div class="card card-g">
-  <h3 style="margin-top:0">同一クローン — 決定論と自由の両立</h3>
-  <table class="data-table">
-    <tr><th>視点</th><th>測定</th><th>結論</th></tr>
-    <tr><td>外部 (同一クローン2体)</td><td class="num pass">200/200 一致</td><td>決定論は<strong>真</strong></td></tr>
-    <tr><td>内部 (自己予測)</td><td class="num pass">Γ>0</td><td>予測不能 = <strong>自由</strong></td></tr>
-  </table>
-  <p style="color:var(--gr);font-weight:600">→ 両方正しい。決定論は三人称。予測不能性は一人称。</p>
-</div>
-</section>
-
-<!-- ═══════════════ ARCH ═══════════════ -->
-<section id="arch">
-<h2>§3. アーキテクチャ — なぜこうなるのか</h2>
-<div class="card card-g">
-  <h3 style="margin-top:0">核心原理</h3>
-  <div class="formula">
-prediction = f( state_before  )  ← 同じ決定関数 f
-choice     = f( state_after   )  ← 同じ決定関数 f
-
-f は固定された重み（人格・記憶・価値観）を持つ
-f は関係ある情報だけを選択的に読む（選択的注意）
-自己シミュレーションが f の「途中の思考」をログに刻む
-f はその「途中の思考」を読む → フィードバックループ → Γ>0
-  </div>
-</div>
-<div class="card">
-  <h3 style="margin-top:0">5ステップ</h3>
-  <p><strong>①</strong> 選択を迫られる。「AかBか」</p>
-  <p><strong>②</strong> 自己シミュレーション開始。fが「Aかな？」と評価→その評価をログに刻む</p>
-  <p><strong>③</strong> <strong>予測</strong>: f(before)。自己シミュレーション前の状態から判断</p>
-  <p><strong>④</strong> <strong>選択</strong>: f(after)。自己シミュレーション後の状態から判断</p>
-  <p><strong>⑤</strong> <strong>Γ>0</strong>: ②の痕跡がf(after)の判断を変えた→予測≠選択</p>
-</div>
-</section>
-
-<!-- ═══════════════ L1-L4 ═══════════════ -->
-<section id="layers">
-<h2>§4. L1-L4 自己言及の多重層</h2>
-<div class="card">
-  <p>自己言及的構造は進化的に積み重なった多重層。壊れるのは上層から。L2が残ればΓ>0は残る。</p>
-  <table class="data-table">
-    <tr><th>層</th><th>自己言及の形式</th><th>脳部位</th><th>壊れる疾患</th></tr>
-    <tr><td><strong>L4 メタ認知</strong></td><td>「私は今、悩んでいる」</td><td>mPFC+楔前部+PCC</td><td>前頭側頭型認知症</td></tr>
-    <tr><td><strong>L3 言語的自己</strong></td><td>「私は○○と思う」</td><td>側頭前部+ブローカ+角回</td><td>意味性認知症</td></tr>
-    <tr><td><strong>L2 情動的自己</strong></td><td>「これは嫌だ」表情・拒否</td><td>島皮質前部+扁桃体+ACC</td><td>重度アルツハイマー</td></tr>
-    <tr><td><strong>L1 身体的自己</strong></td><td>身体境界。内受容感覚</td><td>脳幹+視床</td><td>遷延性意識障害</td></tr>
-  </table>
-  <p style="margin-top:8px"><strong>L2（情動的自己）が自己言及の進化的最小単位。</strong>大脳皮質を必要としない。哺乳類全般がΓ>0を持つ。表情で"No"を伝えられる人は、縮小しているが自由意志を持っている。</p>
-</div>
-</section>
-
-<!-- ═══════════════ ABSTRACTION ═══════════════ -->
-<section id="abstraction">
-<h2>§5. 抽象度α — 苫米地理論の統合</h2>
-<div class="card card-g">
-  <h3 style="margin-top:0">「お母さんとペットボトルは比較されない」</h3>
-  <p>苫米地英人博士の有名な例。鳥海理論では、f が<strong>抽象度で選択肢をフィルタ</strong>することで説明される。</p>
-  <table class="data-table">
-    <tr><th>α</th><th>抽象度</th><th>例</th><th>チョムスキー階層</th></tr>
-    <tr><td>0</td><td>物理的対象</td><td>ペットボトル、椅子</td><td>正規言語</td></tr>
-    <tr><td>1</td><td>人物</td><td>お母さん、友人</td><td>文脈自由文法</td></tr>
-    <tr><td>2</td><td>概念</td><td>愛、正義、自由</td><td>文脈依存文法</td></tr>
-    <tr><td>3</td><td>関数・規則</td><td>生き方、職業</td><td>チューリング完全</td></tr>
-    <tr><td>4</td><td>メタ関数</td><td>「選ぶこと」の選び方</td><td>超越</td></tr>
-  </table>
-  <p style="margin-top:8px">お母さん(α=1)とペットボトル(α=0)は異なる抽象度。f は最高抽象度のお母さんだけを候補にし、ペットボトルは選択肢から消える。</p>
+<h3 style="margin-top:0">主張すること</h3>
+<ul>
+<li><strong>運命論は偽である。</strong>熟慮への介入は行動的帰結を変える。これは経験的に反証可能で、既に反証されている</li>
+<li><strong>ハード決定論者自身が運命論を否定している。</strong>刑罰改革論は、介入が帰結を変えることを前提とする</li>
+<li><strong>Γ は MacKay (1960) の定量化である。</strong>決定論的・乱数不使用の系で自己予測が構造的に失敗しうる</li>
+<li><strong>人間の Γ は価値差の関数であるはずだ。</strong>これは測定でき、外れうる</li>
+</ul>
 </div>
 
-<div class="card">
-  <h3 style="margin-top:0">Γは抽象度に依存しない。F_Tは依存する。</h3>
-  <div class="formula">
-F_T = k_B T ln(2) · Γ · log₂(|O_α|)
-
-Γ（自由の度合い）は全抽象度で同じ ≈ 0.3
-F_T（自由の深さ）は抽象度とともに指数的に増大
-  </div>
-  <p>「ペットボトルを選ぶ自由」と「生き方を選ぶ自由」は同じΓ。しかしF_Tは10⁸倍違う。これが「人生の選択は重い」の物理的根拠。</p>
-</div>
-
-<div class="card">
-  <h3 style="margin-top:0">選択する関数 Φ ≡ 自己シミュレーション σ</h3>
-  <div class="formula">
-Φ(f) = f'   ≡   σ(f) = f'
-
-苫米地の「関数を選ぶ関数」 ≡ 鳥海の「自己シミュレーション」
-  </div>
-  <p>苫米地博士と鳥海は、独立に同じ再帰構造——「自分で自分を選ぶ」——に到達していた。</p>
-</div>
-</section>
-
-<!-- ═══════════════ TWO LAYER ═══════════════ -->
-<section id="two-layer">
-<h2>§6. 二層アーキテクチャ</h2>
-<div class="two-col">
-<div class="card card-g">
-  <h3 style="margin-top:0;color:var(--gr)">計算層（証明済）</h3>
-  <p style="font-size:.78rem">・自己シミュレーション σ<br>・f(before)≠f(after)<br>・Γ≈0.3–0.5<br>・有界再帰（ゲーデル不要）<br>・構成的に実証済</p>
-</div>
 <div class="card card-r">
-  <h3 style="margin-top:0;color:var(--r)">非計算層（未証明）</h3>
-  <p style="font-size:.78rem">・数学的ひらめき<br>・ゲーデル文の真理を見抜く<br>・クオリア<br>・抽象度α=4の超越<br>・ペンローズ/苫米地の主張</p>
+<h3 style="margin-top:0">主張しないこと</h3>
+<ul>
+<li><span class="no">✗</span> 自由意志の存在証明（Γ を自由意志と定義するのは論点先取。撤回済）</li>
+<li><span class="no">✗</span> 決定論の否定（本稿は決定論に<strong>中立</strong>）</li>
+<li><span class="no">✗</span> 新しい物理量の発見（F_T は撤回済）</li>
+<li><span class="no">✗</span> 現象的意識（クオリア）の説明</li>
+<li><span class="no">✗</span> 汎心論の支持または反証（<a href="#neutral" class="ref">§8</a>）</li>
+<li><span class="no">✗</span> 概念的新規性（中心的洞察は <strong>MacKay 1960 と Lloyd 2012 の二つ</strong>に既出）</li>
+</ul>
 </div>
-</div>
-<div class="card">
-  <h3 style="margin-top:0">クオリアは保存されない</h3>
-  <table class="data-table">
-    <tr><th>種類</th><th>保存先</th><th>想起</th></tr>
-    <tr><td>命題的知識（「ご飯は甘い」）</td><td>L2（意味記憶）</td><td>可能</td></tr>
-    <tr><td>エピソード（「昨日食べた」）</td><td>L1（エピソード記憶）</td><td>部分的</td></tr>
-    <tr><td><strong>クオリア（「あの味」そのもの）</strong></td><td><strong>保存されない</strong></td><td><strong>不可能</strong></td></tr>
-  </table>
-  <p style="margin-top:6px">「味を思い出せないが言葉では表せる」の正体。命題的記述（計算層）は保存され、クオリア（非計算層）は保存されない。</p>
+
+<div class="card card-y">
+<h3 style="margin-top:0">三つを区別する</h3>
+<div class="tbl-wrap"><table>
+<tr><th>主張</th><th>内容</th><th>本稿の立場</th></tr>
+<tr><td><strong>決定論</strong></td><td>状態と法則から次状態が一意に定まる</td><td class="mid">中立</td></tr>
+<tr><td><strong>予測可能性</strong></td><td>ある系が他の系の未来を確実に予測できる</td><td class="no">偽</td></tr>
+<tr><td><strong>運命論</strong></td><td>何をしようと結果は変わらない</td><td class="no">偽</td></tr>
+</table></div>
+<p>混乱の大半はこの三者の混同から生じる。<strong>決定論は「原因が結果を確実に生む」という主張であり、熟慮が原因ならば、決定論のもとで熟慮は結果を確実に変える。</strong></p>
 </div>
 </section>
 
-<!-- ═══════════════ BRAIN ═══════════════ -->
-<section id="brain">
-<h2>§7. 全脳回路マッピング</h2>
-<div class="card">
-  <p>理論の全10概念が特定の脳回路に対応。すべてfMRI/TMSで検証可能。</p>
-  <table class="data-table">
-    <tr><th>概念</th><th>脳部位</th><th>機能</th></tr>
-    <tr><td><strong>f (決定関数)</strong></td><td>DLPFC+OFC+側坐核</td><td>選択肢評価・報酬予測</td></tr>
-    <tr><td><strong>σ (自己シミュレーション)</strong></td><td>DMN+海馬</td><td>自己投影・記憶検索</td></tr>
-    <tr><td><strong>選択的注意</strong></td><td>前頭-頭頂注意+視床</td><td>関係情報選択・ノイズ抑制</td></tr>
-    <tr><td><strong>L1 エピソード記憶</strong></td><td>海馬CA3→CA1+PCC</td><td>パターン補完</td></tr>
-    <tr><td><strong>L2 情動的自己</strong></td><td>島皮質+扁桃体+ACC</td><td>自己境界・表情</td></tr>
-    <tr><td><strong>L3 言語的自己</strong></td><td>側頭前部+ブローカ+角回</td><td>言語化思考</td></tr>
-    <tr><td><strong>L4 メタ認知</strong></td><td>mPFC+楔前部+PCC</td><td>メタ認識・DMN核心</td></tr>
-    <tr><td><strong>f_k (コミットメント)</strong></td><td>SMA/pre-SMA+M1</td><td>行動実行・準備電位源</td></tr>
-    <tr><td><strong>Γ (ギャップ検出)</strong></td><td>前部島皮質+ACC</td><td>予測誤差・葛藤・「驚き」</td></tr>
-  </table>
-</div>
-</section>
+<section id="fatalism">
+<h2>§2. 運命論の形式化と反証</h2>
 
-<!-- ═══════════════ FALSIFY ═══════════════ -->
-<section id="falsify">
-<h2>§8. 反証可能性</h2>
+<div class="card">
+<p>熟慮過程を D、行動的帰結を O とし、Pearl の介入計算で書く。</p>
+<div class="formula">運命論:  ∀d₁,d₂  P(O | do(D=d₁)) = P(O | do(D=d₂))
+
+「熟慮に外から介入して中身を変えても、帰結の分布は変わらない」</div>
+<p>これは形而上学ではなく<strong>経験的主張</strong>である。D から O への因果効果がゼロだ、と言っている。</p>
+<div class="formula">運命論:   背景要因 ─────────────→ O
+              └─→ D （Oへの経路なし）
+
+両立論:   背景要因 ──→ D ──→ O</div>
+</div>
+
 <div class="card card-g">
-  <h3 style="margin-top:0">Type A — アーキテクチャ内確認済</h3>
-  <p style="font-size:.78rem">Γ(0)=0 ✓ / Γ(k≥1)>0（自己参照）✓ / Γ=0（パディング）✓ / Γはkとともに増加 ✓ / 層アブレーション勾配 ✓</p>
+<h3 style="margin-top:0">反証 (i) — 行動的帰結の証拠（95%CI取得済）</h3>
+<p><strong>運命論が主張するのは「熟慮への介入は<em>帰結</em>を変えない」である。</strong>
+ゆえに自己報告された意図ではなく、<strong>行動</strong>の証拠が要る。</p>
+<div class="tbl-wrap"><table>
+<tr><th>介入</th><th>帰結</th><th>効果量 [95% CI]</th></tr>
+<tr><td><strong>実行意図</strong>（単独介入）</td><td><strong>実際の禁煙</strong></td><td class="ok">OR = 5.69 [1.39, 23.25], p=.02<br><span style="font-size:.9em">禁煙率 14.3% vs 対照 3.6%</span></td></tr>
+<tr><td><strong>実行意図</strong>（全体）</td><td><strong>実際の禁煙</strong></td><td class="ok">OR = 1.70 [1.32, 2.20], p&lt;.001<br><span style="font-size:.9em">禁煙率 10.7% vs 対照 4.9%</span></td></tr>
+</table></div>
+<p style="font-size:.74rem">McWilliams et al. (2019) <em>Health Psychol</em> 38(12), 1059-1068
+<a class="ref" href="https://doi.org/10.1037/hea0000768">doi</a>（PubMedにて確認）</p>
+<p><strong style="color:var(--gr)">これは意図ではなく行動である。禁煙という帰結が、熟慮形式への介入によって変化している。</strong></p>
+<p style="font-size:.74rem;color:var(--g)">⚠️ 同要旨中の多要素介入の値は OR = 1.67, 95% CI [1.29, 1.66] と記載されているが、
+<strong>点推定値が区間の外にあり数学的に不整合</strong>。収載時の誤植と判断し引用しない。</p>
 </div>
+
+<div class="card">
+<h3 style="margin-top:0">反証 (ii) — 効果量のみ取得（95%CI未取得）</h3>
+<div class="tbl-wrap"><table>
+<tr><th>介入</th><th>効果量</th><th>規模</th></tr>
+<tr><td>実行意図（一般）</td><td>d = 0.65</td><td>94検定 / N&gt;8,000</td></tr>
+<tr><td>認知的変化（再評価）</td><td>d₊ = 0.36</td><td>306比較</td></tr>
+<tr><td>エピソード的未来思考</td><td>g = 0.52</td><td>47研究 / 63対比</td></tr>
+</table></div>
+<p style="font-size:.74rem">Gollwitzer &amp; Sheeran (2006) ／ Webb et al. (2012)
+<a class="ref" href="https://doi.org/10.1037/a0027600">doi</a> ／ Ye et al. (2021)
+<a class="ref" href="https://doi.org/10.1177/17470218211066282">doi</a></p>
+</div>
+
 <div class="card card-r">
-  <h3 style="margin-top:0">Type B — 本物の経験的リスク（全未実施）</h3>
-  <table class="data-table">
-    <tr><th>予測</th><th>反証条件</th><th>状態</th></tr>
-    <tr><td><strong>B1 (EEG)</strong>: β<0</td><td>β≥0なら反証</td><td style="color:var(--g)">EEGラボ待ち</td></tr>
-    <tr><td><strong>B2 (TMS)</strong>: mPFC→Γ減少</td><td>Γ不変なら反証</td><td style="color:var(--g)">倫理+TMS待ち</td></tr>
-    <tr><td><strong>B3 (AI)</strong>: C_critで相転移</td><td>相転移なしなら反証</td><td style="color:var(--g)">GPU待ち</td></tr>
-    <tr><td><strong>B4 (dΓ/dT)</strong>: α=0</td><td>α>0なら熱雑音=反証</td><td style="color:var(--g)">温度制御EEG待ち</td></tr>
-    <tr><td><strong>B5 (Jarzynski)</strong>: I_self≠0</td><td>I_self=0なら反証</td><td style="color:var(--g)">ナノ熱量計待ち</td></tr>
-  </table>
-  <p style="font-size:.74rem;color:var(--r);margin-top:6px"><strong>Type Bは一つも実施されていない。</strong>どれか一つ外れれば理論は反証される。</p>
+<h3 style="margin-top:0">反証 (iii) — <strong>論旨に不利な証拠</strong>（隠さず記載）</h3>
+<div class="tbl-wrap"><table>
+<tr><th>帰結</th><th>効果量 [95% CI]</th><th>判定</th></tr>
+<tr><td>援助要請<strong>意図</strong>（直後）</td><td>SMD = 0.64 [0.20, 1.08], p&lt;.001</td><td class="ok">改善</td></tr>
+<tr><td>実行意図を伴う心的対比 → 意図</td><td>SMD = 0.62 [0.37, 0.88]</td><td class="ok">改善</td></tr>
+<tr><td>援助要請<strong>行動</strong></td><td>OR = 1.67 [1.05, 2.94], p=.05</td><td class="no">著者らは「改善せず」と結論</td></tr>
+</table></div>
+<p style="font-size:.74rem">Ni et al. (2025) <em>BMC Psychiatry</em> 25(1), 528
+<a class="ref" href="https://doi.org/10.1186/s12888-025-06976-0">doi</a>（完全オープンアクセス）</p>
+<p><strong>意図は動いたが、行動は動かなかった。</strong>これは本稿の論証に不利な証拠である。</p>
+<p><strong>応答</strong>: この結果は熟慮から行動への経路が<strong>自動的ではない</strong>ことを示す。
+しかし運命論の擁護にはならない。運命論は「熟慮の内容は帰結に無関係」と主張するのであり、
+McWilliams の禁煙データはそれを反証する。
+Ni et al. が示すのは「<strong>常に</strong>効くわけではない」であって「<strong>決して</strong>効かない」ではない。
+<strong style="color:var(--g)">運命論を反証するには、効く事例が一つあれば足りる。</strong></p>
+<p style="font-size:.76rem">ただし非対称性は誠実に記載する。全体像は「熟慮への介入は帰結を変え<strong>うる</strong>が、常に変えるわけではない」である。</p>
+</div>
+
+<div class="card card-y">
+<h3 style="margin-top:0">決定的な論点 — 効果は「介入されたこと」ではなく「熟慮の内容」に依存する</h3>
+<p>標準的な反論がある——<strong>「要求特性やプラセボではないか。何か操作すれば何か動くのは当然だ」</strong>。
+この反論は、<strong>同じメタ分析の内部にある帰無結果</strong>によって退けられる。</p>
+<div class="tbl-wrap"><table>
+<tr><th>操作</th><th>効果量</th><th>出典</th></tr>
+<tr><td>EFT（<strong>正の</strong>感情価）</td><td class="ok">g = 0.64</td><td>Ye et al. 2021</td></tr>
+<tr><td>EFT（感情価の指定なし）</td><td class="mid">g = 0.28</td><td>同</td></tr>
+<tr><td><strong>EFT（中性または負の感情価）</strong></td><td class="no">g = −0.03</td><td>同</td></tr>
+<tr><td>認知的変化（再評価）</td><td class="ok">d₊ = 0.36</td><td>Webb et al. 2012</td></tr>
+<tr><td><strong>注意の方向づけ</strong></td><td class="no">d₊ = 0.00</td><td>同</td></tr>
+<tr><td>反応調整</td><td class="mid">d₊ = 0.16</td><td>同</td></tr>
+</table></div>
+<p>被験者はいずれの条件でも「何らかの介入を受けている」。実験の外形・教示・実験者との接触・時間の消費は、条件間でおおむね一致している。にもかかわらず：</p>
+<ul>
+<li><strong>中性・負の EFT は g = −0.03</strong>（実質ゼロ）。同一パラダイム内で感情価を正にすると <strong>g = 0.64</strong></li>
+<li><strong>注意の方向づけは d₊ = 0.00</strong>（正確にゼロ）。同一分類体系内で認知的変化は <strong>d₊ = 0.36</strong></li>
+</ul>
+<p><strong style="color:var(--g)">動くのは「介入された」からではない。動くのは、熟慮の内容が変わったときだけである。</strong></p>
+<p>要求特性説が正しければ、中性EFTも注意の方向づけも同程度に効くはずである。効かない。
+<strong>帰無結果が対照条件として機能している。</strong>
+運命論が主張するのは「熟慮の内容は帰結に無関係」であり、この表はまさにその点を否定する。</p>
+</div>
+
+<div class="card card-r">
+<h3 style="margin-top:0">正直な限定</h3>
+<ul>
+<li><strong>(a) 95%信頼区間は未取得。</strong>上記は要旨から得た点推定値であり、区間推定には全文が要る。<strong>投稿前に必ず置き換えること</strong></li>
+<li><strong>(b) Webb et al. (2012) には公刊された批判がある。</strong>Augustine &amp; Hemenover (2013) <em>Psychol Bull</em> 139(3), 725-729
+<a class="ref" href="https://doi.org/10.1037/a0030026">doi</a> は「多数の誤りと脱漏」「効果量選択の主観性と不整合」を指摘。<strong>必ず併記すること</strong></li>
+<li><strong>(c) d = 0.65 は上限に近い可能性。</strong>より大規模な後続メタ分析があるとされるが、<strong>著者は書誌を確認できなかったため引用しない</strong>。最新の概観は Gollwitzer &amp; Sheeran (2025) <em>Annu Rev Psychol</em> 76, 303-328</li>
+<li><strong>(d) 出版バイアス。</strong>ただし本論証に必要なのは効果量の正確な大きさではなく<strong>ゼロでないこと</strong>と<strong>帰無結果との対比</strong>である。g = −0.03 や d₊ = 0.00 が同一メタ分析内に報告されていることは、選択的報告では説明しにくい</li>
+<li><strong>(e) 領域の限定。</strong>EFT の証拠の一部は過体重・肥満集団由来 (Colton et al. 2024, g = 0.55, 12研究/951名) <a class="ref" href="https://doi.org/10.1111/obr.13801">doi</a></li>
+</ul>
+</div>
+
+<div class="card card-y">
+<h3 style="margin-top:0">最も強い一手 — 否定論者の内的非整合</h3>
+<p>Sapolsky (2023) は自由意志を否定すると同時に、刑罰制度の抜本的改革を主張する。
+<strong>改革が意味を持つのは、制度への介入が行動的帰結を変える場合に限られる。</strong></p>
+<p>Harris (2012) も同様に、自由意志の否定が人生観を改善すると論じる。その論証は、信念が帰結を変えることを前提とする。</p>
+<p><strong style="color:var(--g)">したがって、主要なハード決定論者は運命論を否定している。</strong>
+彼らが否定するのは自由意志の形而上学的概念であって、熟慮の因果的効力ではない。</p>
+<p>帰結: 自由意志否定論が一般読者に与える影響——「考えても無駄だ」——は、<strong>否定論者自身の立場によって支持されていない。</strong></p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">「熟慮自体が決まっている」への応答</h3>
+<p>D が因果連鎖の内部にあることと、D が O の原因であることは両立する。後者は前者を前提とすらする。</p>
+<p><strong>因果的に決定されていることと、因果的に効いていることは、両立する。</strong>
+温度計の値が物理法則で決まっていることは、温度計が温度を測っていないことを意味しない。</p>
 </div>
 </section>
 
-<!-- ═══════════════ SUMMARY ═══════════════ -->
-<section id="summary">
-<h2>§9. まとめ</h2>
-<div class="two-col">
-<div class="card card-g" style="text-align:center">
-  <h3 style="margin-top:0;color:var(--gr)">証明済 (in silico)</h3>
-  <p style="font-size:.78rem">✓ 対照実験: 自己参照のみΓ>0<br>✓ 勾配: Γはkとともに成長<br>✓ クローン: 決定論+自由 両立<br>✓ 層アブレーション: L2で十分<br>✓ 抽象度フィルタリング<br>✓ Φ≡σの同一視</p>
-</div>
-<div class="card card-r" style="text-align:center">
-  <h3 style="margin-top:0;color:var(--r)">未検証 (要実験)</h3>
-  <p style="font-size:.78rem">✗ 人間EEG (β<0)<br>✗ TMS自己参照破壊<br>✗ AI相転移 (大規模GPU)<br>✗ ナノ熱量測定<br>✗ Jarzynski I_self<br>✗ 論文査読</p>
-</div>
+<section id="mackay">
+<h2>§3. MacKay (1960) — 本稿の直接の先行研究</h2>
+
+<div class="card card-y">
+<p><strong>本稿の中心的洞察は、1960年に <em>Mind</em> 誌上で発表されている。</strong>
+D. M. MacKay, "On the Logical Indeterminacy of a Free Choice", <em>Mind</em> 69(273), 31-40.</p>
+<blockquote>これらすべては、脳過程の物理的決定性を否定する（あるいは肯定する）必要をわれわれに一切課さない。<cite>p.32</cite></blockquote>
+<blockquote>彼の予測が成功するためには、その定式化と伝達が私の脳に及ぼすであろう関連効果を織り込まねばならない。しかしそれらの効果は、予測自体がすでに既知でない限り一般には計算できず、したがって厳密な計算は一般に完了しえない。<cite>p.32 — 不動点方程式の散文版</cite></blockquote>
+<blockquote>私の脳は、動作において物理的に決定的でありながら、なお原理的に予測不能でありうる。<cite>p.33</cite></blockquote>
+<blockquote>真理・信頼性・確実性は、それ単独で命題に帰属させることはできず、Pを抱いている人との関係におけるPにのみ帰属する。<cite>p.33 — 観測者相対性</cite></blockquote>
+<blockquote>そのような不確定性を「自由」にとって本質的とみなすのは、見当違いであり、かつ不道徳である。<cite>p.31 — 量子ランダム説の拒絶</cite></blockquote>
+<p style="margin-top:16px"><strong>「2000年の論争に終止符」という表現は使えない。1960年に回答されている。</strong></p>
+<p style="font-size:.76rem">なお MacKay 自身が p.32 で Popper (1950) を類似の論理的状況として引用している。</p>
 </div>
 
-<div class="card card-g" style="text-align:center;margin-top:10px">
-  <p style="font-size:.95rem;color:var(--b);margin-bottom:4px">この理論の本質</p>
-  <p style="font-size:.82rem;color:var(--dim)">同じ決定関数 f が異なる時点の状態に適用される。<br>f は自分の過去の出力を選択的に読む。<br>f は無関係な情報を無視する。<br>f は抽象度で選択肢をフィルタする。<br><strong>だから「自分で自分のことを考える」行為だけが Γ>0 を生む。</strong></p>
-  <p style="font-size:.76rem;color:var(--g);margin-top:6px">鳥海 = 構造。苫米地 = 抽象度。ペンローズ = 超越。<br>三者は一つの統合理論の三つの側面。20反論回答済。残るはデータだけ。</p>
+<div class="card card-y">
+<h3 style="margin-top:0">第二の先行研究 — Seth Lloyd (2012)</h3>
+<p><strong>2026-08-15、arXiv 調査により、物理側にも完全な先行研究が存在することが判明した。</strong></p>
+<p>Seth Lloyd (MIT), "A Turing test for free will",
+<em>Philosophical Transactions of the Royal Society A</em> 370, 3597-3610 (2012)
+<a class="ref" href="https://arxiv.org/abs/1310.3225">arXiv:1310.3225</a></p>
+<blockquote>量子力学の「純粋な確率性」は意思決定過程に<strong>ランダムさを加えるだけで、自由を加えない</strong>。対照的に、計算理論は、<strong>我々の決定が完全に決定論的な意思決定過程から生じる場合であっても、その過程の帰結が本質的に予測不能でありうる——我々自身にとって、とりわけ我々自身にとって</strong>、ということを含意する。この意思決定過程の内在的な計算論的予測不能性こそが、<strong>我々が自由意志を持つという印象を生じさせている</strong>。<cite>Lloyd (2012) 要旨より</cite></blockquote>
+<div class="tbl-wrap"><table>
+<tr><th>本稿の主張</th><th>Lloyd (2012)</th></tr>
+<tr><td>決定論的・乱数ゼロで Γ&gt;0</td><td>「完全に決定論的な過程」でも帰結は予測不能</td></tr>
+<tr><td><strong>自己</strong>予測不能性 Γ(A→A)</td><td>「我々自身にとって、<strong>とりわけ</strong>我々自身にとって」</td></tr>
+<tr><td>量子ランダムは自由でない</td><td>「ランダムさを加えるだけで、自由を加えない」</td></tr>
+<tr><td>計算論的既約性が根拠</td><td>「計算理論が含意する」</td></tr>
+<tr><td>Γ という操作的尺度</td><td><strong>「自由意志のチューリングテスト」を提案</strong></td></tr>
+</table></div>
+<p><strong style="color:var(--g)">中心的洞察の先行研究は二つある。哲学側に MacKay (1960)、物理側に Lloyd (2012)。</strong></p>
+<p>ゆえに本稿が正当に主張できる新規性は以下に限られる:</p>
+<ul>
+<li>Γ の具体的な測定プロトコル</li>
+<li>§2 の運命論と決定論の介入計算による形式的分離</li>
+<li>§5 の価値差 ΔV 依存性の予測</li>
+<li>§2 の帰無結果を対照とする論証構造</li>
+</ul>
 </div>
 
-<div class="footer">
-  <p>鳥海健悟 (Kengo Toriumi) — 2026.08.13</p>
-  <p><a href="https://github.com/toriumib/toriumi-theory">GitHub: toriumib/toriumi-theory</a></p>
-  <p style="font-size:.68rem;margin-top:4px">定義: Γ>0 ≡ 自由意志。定理: Γ(0)=0, Γ(k≥1)>0, 対照実験突破。<br>抽象度α統合。二層アーキテクチャ。20反論回答。残り: 人間でのEEG実験。</p>
+<div class="card card-r">
+<h3 style="margin-top:0">押さえるべき関連文献（arXiv 調査 2026-08-15）</h3>
+<div class="tbl-wrap"><table>
+<tr><th>文献</th><th>本稿との関係</th></tr>
+<tr><td><strong>Marletto &amp; Vedral (2022)</strong><br><a class="ref" href="https://arxiv.org/abs/2210.09050">arXiv:2210.09050</a></td>
+<td class="no">⚠️ <strong>本稿への警告。</strong>「既存の自由意志論は物理理論の是非を論じるのに無関係」と主張。物理で自由意志を決着させる企図への批判。<strong>正面から応答すること</strong></td></tr>
+<tr><td><strong>Conway-Kochen 自由意志定理</strong><br>Kochen (2022) <a class="ref" href="https://arxiv.org/abs/2207.06295">arXiv:2207.06295</a></td>
+<td class="mid">⚠️ 「自由意志」が<strong>全く別の意味</strong>（粒子の応答が事前情報の関数でないこと）で使われている。<strong>査読者は必ず関係を問う。</strong>「Γ は決定系内の自己予測失敗の尺度であり、独立の概念」と明記が要る</td></tr>
+<tr><td><strong>Hashim &amp; Srikanth (2015)</strong><br><a class="ref" href="https://arxiv.org/abs/1503.06485">arXiv:1503.06485</a></td>
+<td class="mid">対象レベル／メタレベルの分離、Turing 非計算可能性の階層。重なるが、本稿は無限後退も非計算性も要求しない点で異なる</td></tr>
+<tr><td><strong>'t Hooft (2007)</strong><br><a class="ref" href="https://arxiv.org/abs/quant-ph/0701097">quant-ph/0701097</a></td>
+<td>超決定論。反対陣営として言及すべき</td></tr>
+</table></div>
 </div>
 </section>
+
+<section id="gamma">
+<h2>§4. Γ — 自己予測ギャップ</h2>
+
+<div class="card">
+<div class="formula">f(s) = g( s ⊕ trace( σ(s) ) )        ← f が両辺に現れる（不動点方程式）
+
+Γ := P[ f⁽⁰⁾(s) ≠ f⁽ᵏ⁾(s) ]
+
+f⁽⁰⁾ : 熟慮前の自己予測
+f⁽ᵏ⁾ : k回の自己シミュレーション後の選択</div>
+<p><strong>Γ は自由意志の定義ではない。</strong>以前の草稿は Γ>0 を自由意志と同一視したが、これは論点先取であり撤回した。
+「予測不能性」を「自由」と定義した上で予測不能性を示しても、その定義を認めない相手には何も伝わらない。</p>
+<p>本稿における Γ の役割は限定的である:
+<strong>Γ &gt; 0 は、自己シミュレーション σ が状態を変化させたことの指標である。</strong>
+随伴現象説への反論として機能する。自由意志の証明としては機能しない。</p>
+</div>
+
+<div class="card card-r">
+<h3 style="margin-top:0">計算機実装が示すこと・示さないこと</h3>
+<p>SHA-256 を用いた決定論的・乱数不使用のエージェントで Γ(k=0)=0, Γ(k≥1)&gt;0 が得られる。</p>
+<p><strong>この結果は自明である。</strong>ハッシュ関数の雪崩効果の帰結であり、実験を要しない。</p>
+<p>本実装の役割は「Γ が大きい」ことの発見ではなく、
+<strong>「決定論的・乱数ゼロでありながら自己予測が構造的に失敗する系」というカテゴリが空でないことの構成的提示</strong>である。
+この目的には効果が自明であるほうがよい——自明とは、実装細部に依存しないということだからである。</p>
+<p style="color:var(--r)"><strong>この実装は人間について何も示さない。</strong>
+「自由意志の構成的証明」という以前の表現は撤回する。</p>
+</div>
+</section>
+
+<section id="value">
+<h2>§5. 審美眼 — Γ に構造を与えるもの</h2>
+
+<div class="card card-g">
+<h3 style="margin-top:0">自明性はどこから来るか</h3>
+<p><strong>ハッシュ関数には価値関数がない。</strong>H は選択肢を評価しない。どの選択肢も等価であり、出力は一様に撹拌される。
+ゆえに Γ は選択肢の内容に依存せず一定値をとる。</p>
+<p><strong>人間はそうではない。</strong>人間の選択は、選択肢に価値を割り当て、比較する過程を含む。</p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">価値の共通符号</h3>
+<p>神経経済学は、腹内側前頭前皮質／眼窩前頭皮質 (vmPFC/OFC) が異種の選択肢を<strong>共通の主観的価値尺度</strong>で符号化するという証拠を蓄積してきた。
+この符号化は金銭・味覚・嗅覚だけでなく、<strong>顔の魅力や自然景観の美しさといった審美的価値</strong>にも及ぶとされる。</p>
+<p><strong>すなわち、審美的判断と経済的判断は共通の価値表現を経由している可能性がある。</strong></p>
+<p style="color:var(--g);font-size:.78rem">⚠️ この仮説は論争中である。Walasek &amp; Brown (2024) は選択における比較不能性・通約不能性を論じ、共通通貨仮説に反論している。
+<strong>本稿は共通通貨仮説の真偽に依存しない設計をとる。</strong>必要なのは「主観的価値差が定義でき、行動的に測定できる」ことのみである。</p>
+</div>
+
+<div class="card card-y">
+<h3 style="margin-top:0">予測: Γ は価値差の関数である</h3>
+<div class="formula">ΔV = |V(a) − V(b)|
+
+予測:  Γ は ΔV の減少関数
+
+  ΔV ≈ 0  （拮抗した選択・迷う） → Γ 最大
+  ΔV 大   （明白な選択）        → Γ 最小</div>
+<p>証拠蓄積モデルではドリフト率が ΔV に比例する。ΔV が大きければ比較は速やかに収束し、ΔV≈0 では過程が不安定になる。</p>
+<p><strong style="color:var(--g)">この予測はハッシュエージェントでは成立しない。</strong>
+Γ が ΔV の構造をもつことは、人間の熟慮がランダムオラクルではなく<strong>価値比較過程</strong>であることの署名である。</p>
+<p style="margin-top:14px"><strong>Γ が自明なのは、価値関数をもたない系においてである。<br>
+価値をもつ主体において、Γ は構造をもつ。その構造は測定でき、外れうる。</strong></p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">日常的事例との対応</h3>
+<ul>
+<li><strong>拮抗した選択ほど迷う</strong> — ΔV≈0 で Γ 最大</li>
+<li><strong>面接での相性判断</strong> — 多属性の価値統合</li>
+<li><strong>美醜が選択に影響する</strong> — 審美的価値が共通符号を経由するなら、他の価値と同じ通貨で比較される</li>
+<li><strong>「時間を無駄にしたくない」</strong> — 時間そのものが価値関数の一項</li>
+</ul>
+</div>
+</section>
+
+<section id="libet">
+<h2>§6. Libet パラダイムとの関係</h2>
+
+<div class="card card-y">
+<h3 style="margin-top:0">現時点の到達点 — RP振幅の主要規定因は「注意」（2026）</h3>
+<p>Triggiani, Whitmarsh, <strong>Schurger, Maoz &amp; Hallett</strong> (2026)
+<em>Neurosci Biobehav Rev</em> 187, 106738
+<a class="ref" href="https://doi.org/10.1016/j.neubiorev.2026.106738">doi</a></p>
+<p>著者陣は本論争の当事者を含む（Schurger=蓄積モデル、Hallett=運動制御、Maoz=自由意志神経科学）。
+<strong>現時点で最も権威ある概観。</strong></p>
+<blockquote>課題・集団・疾患・発達段階・認知的要因により BP 振幅は大きく変動するが、レビューした研究群を通じて<strong>最も一貫した因子は「注意」</strong>であった。</blockquote>
+<p><strong>Libet論争は「反証された」のではなく、RPが何を表す指標なのかという理解そのものが作り替えられた。</strong>
+RPは「決定の合図」より<strong>準備と注意配分の指標</strong>として理解されつつある。</p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">RPは「決定」ではなく「計画要求量」に対応</h3>
+<p>Seghezzi &amp; <strong>Haggard</strong> (2026) <em>eNeuro</em> 13(5)
+<a class="ref" href="https://doi.org/10.1523/ENEURO.0316-25.2026">doi</a>（Haggardは意志・行為主体感研究の中心人物）</p>
+<p>ロンドン塔課題（n=25）。自発的行為のRPは刺激駆動より持続的な準備陰性電位を示し、
+<strong>効果は系列の第一手で最大、後続の手では減衰</strong>した。
+RPが一手ごとの「決定」を表すなら、系列位置による減衰は説明しにくい。</p>
+</div>
+
+<div class="card card-g">
+<h3 style="margin-top:0">「無意識段階」が意識的注意で変化する（2026）</h3>
+<p>Kong et al. (2026) <em>Psychophysiology</em> 63(3), e70280
+<a class="ref" href="https://doi.org/10.1111/psyp.70280">doi</a></p>
+<p>Libet時計課題をVRに実装しEEG記録。<strong>意図に注意を向けると早期RP振幅が増大</strong>した。</p>
+<blockquote>意図への時間的・内的注意焦点が早期RPを変調する。早期RPは<strong>伝統的に無意識的な神経準備段階と見なされてきた</strong>。</blockquote>
+<p><strong style="color:var(--gr)">Libet解釈の要は「RPの初期段階は意識に先立つ無意識過程である」という前提だった。
+その段階が意識的注意で変わるなら、前提は保持できない。</strong></p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">Schurger の蓄積モデル（2012）</h3>
+<p>Schurger, Sitt &amp; Dehaene (2012, <em>PNAS</em>) は、準備電位が確率的変動の閾値到達過程として説明できることを示した。⚠️主張範囲は原文照合が必要。</p>
+</div>
+
+<div class="card card-g">
+<h3 style="margin-top:0">(b) 拒否 (veto) は実験的に示されている</h3>
+<p>Schultze-Kraft, Birman, Rusconi, Allefeld, Görgen, Dähne, Blankertz &amp; Haynes (2016),
+<a class="ref" href="https://www.pnas.org/doi/10.1073/pnas.1513569112">"The point of no return in vetoing self-initiated movements", <em>PNAS</em> 113(4), 1080-1085</a>。</p>
+<p>被験者の準備電位をリアルタイム検出して停止信号を出す brain-computer interface を用い、
+<strong>準備電位の出現後であっても運動を中止できる</strong>ことを示した。
+中止が可能なのは停止信号が運動開始の約200ms より前に生じた場合で、それ以降は "point of no return" となる。</p>
+<p style="font-size:.76rem;color:var(--g)">⚠️ 著者注: 以前の草稿は本知見を「Haynes (2016), Charité Berlin」として引用していたが、これは報道記事に基づく不正確な参照だった。正しい典拠は上記 PNAS 論文である。<strong>この修正により本節は削除ではなく維持された。</strong></p>
+<p style="font-size:.76rem">⚠️ 限定: veto の実験的操作は<strong>外的</strong>停止信号によるものであり、内発的な意思による拒否とは区別されるべきである。</p>
+</div>
+
+<div class="card card-r">
+<h3 style="margin-top:0">⚠️ 本稿の実験計画への含意 — 「注意」という交絡</h3>
+<p>RP振幅の最大の規定因が注意であるなら、Γ の測定でも同じ懸念が生じる。
+E-B で熟慮時間を操作するとき、<strong>操作しているのが「自己シミュレーションの深さ」なのか「注意配分」なのかが分離できていない。</strong></p>
+<p>長い熟慮時間は自動的に、より多くの注意を課題に向けさせる。
+もし Γ が熟慮時間とともに変化しても、それが自己参照によるのか注意によるのかを言えない。</p>
+<p><strong>必要な統制</strong>:</p>
+<ul>
+<li>注意を要するが<strong>自己参照を含まない</strong>課題を同じ時間だけ課す統制条件</li>
+<li>課題従事度の指標（反応時間分散、注意チェック）を共変量として投入</li>
+</ul>
+<p style="color:var(--r)"><strong>この統制なしに E-B を走らせてはならない。</strong>
+2026年のレビューが公刊された以上、査読者は必ずこの交絡を指摘する。</p>
+</div>
+
+<div class="card card-g">
+<h3 style="margin-top:0">方法論上の手本 — 帰無結果の扱い</h3>
+<p>Shum, Galang &amp; <strong>Brass</strong> (2025) <em>Psychol Res</em> 89(5), 140
+<a class="ref" href="https://doi.org/10.1007/s00426-025-02178-1">doi</a></p>
+<p>体性感覚フィードバックがLibet型決定に寄与するかを、手の麻痺誘導で検定。
+<strong>ベイズ解析で帰無仮説を決定的に支持</strong>——仮説は棄却された。著者らはそれを明示し、代替説明を提示している。</p>
+<p><strong>本分野は帰無結果を適切に公表する規範を持つ。</strong>
+本稿の E-B は標準理論と逆向きの予測を立てており外れる可能性が高い。外れた場合はこの様式に倣う。</p>
+</div>
+</section>
+
+<section id="exp">
+<h2>§7. 実験計画</h2>
+
+<div class="card card-g">
+<h3 style="margin-top:0">E-A: 運命論の直接検定（最優先）</h3>
+<ul>
+<li><strong>仮説</strong>: P(O | do(D=d₁)) ≠ P(O | do(D=d₂))</li>
+<li><strong>設計</strong>: 熟慮への介入（熟慮時間・選択肢の明示的列挙・実行意図の形成）を無作為割付し、帰結分布を比較</li>
+<li><strong>反証条件</strong>: 効果量がゼロと区別できない</li>
+<li><strong>実施可能性</strong>: オンライン実験。<strong>所属機関を要しない</strong></li>
+<li><strong>必須</strong>: OSF等への事前登録</li>
+</ul>
+</div>
+
+<div class="card card-r">
+<h3 style="margin-top:0">E-B: 熟慮時間と Γ — 標準理論と逆向きの予測</h3>
+<p>二肢選択。①「どちらを選ぶと思うか」を予測させ記録（<strong>本人に再提示しない</strong>）②熟慮 ③選択。Γ = 不一致率。熟慮時間を操作する。</p>
+<div class="tbl-wrap"><table>
+<tr><th>説明</th><th>熟慮時間↑ のとき Γ は</th></tr>
+<tr><td><strong>証拠蓄積説（標準）</strong></td><td class="no">減少する — 時間が長いほど証拠が蓄積し選択が安定</td></tr>
+<tr><td><strong>状態変化説（MacKay/本稿）</strong></td><td class="ok">増加する — 自己シミュレーションが状態を変え乖離が拡大</td></tr>
+</table></div>
+<p style="color:var(--r)"><strong>本実験は本稿にとって危険である。標準理論は逆を予測する。それゆえに検定として有効である。</strong></p>
+<p style="font-size:.78rem"><strong>主要な交絡</strong>: ①被験者が自分の予測を意図的に外す動機 → 予測を再提示せず、事後に意識の有無を問い意識群を除外した解析を併記
+②時間経過による注意低下 → 課題困難度をマッチさせた統制条件</p>
+</div>
+
+<div class="card card-y">
+<h3 style="margin-top:0">E-C: Γ の価値差依存性 — 審美眼の検定</h3>
+<p>E-B と同一パラダイム。事前に各選択肢の主観的価値を評定させ ΔV を算出する。</p>
+<ul>
+<li><strong>予測</strong>: Γ は ΔV の減少関数</li>
+<li><strong>反証条件</strong>: Γ が ΔV に依存しない ＝ 人間の Γ がハッシュエージェントと区別できない</li>
+<li><strong>審美条件</strong>: (i) 金銭的選択 (ii) <strong>審美的選択（画像・音楽の好み）</strong> (iii) 対人的選択 を含め、Γ(ΔV) の関数形が領域間で共通かを検定</li>
+</ul>
+<div class="tbl-wrap"><table>
+<tr><th>結果</th><th>含意</th></tr>
+<tr><td>関数形が領域間で共通</td><td>共通符号仮説を支持</td></tr>
+<tr><td>領域間で異なる／領域横断で Γ 上昇</td><td>通約不能説 (Walasek &amp; Brown) を支持</td></tr>
+</table></div>
+<p><strong>いずれの結果も報告価値がある。</strong></p>
+<p style="font-size:.78rem;color:var(--g)">⚠️ ΔV の測定と選択が同一の価値表現に依存するため循環の危険がある。評定と選択を別セッションに分離し、評定の時間的安定性を別途測定すること。<strong>この統制の成否が実験の質を決める。</strong></p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">反証条件の一覧</h3>
+<div class="tbl-wrap"><table>
+<tr><th>#</th><th>条件</th><th>崩れる主張</th></tr>
+<tr><td>1</td><td>熟慮への介入が帰結分布を変えない</td><td class="no"><strong>中心的主張が崩れる</strong></td></tr>
+<tr><td>2</td><td>Γ が熟慮時間とともに減少する</td><td>状態変化説</td></tr>
+<tr><td>3</td><td>Γ が ΔV に依存しない</td><td>価値比較との接続</td></tr>
+</table></div>
+</div>
+</section>
+
+<section id="neutral">
+<h2>§8. 立場を取らない事柄</h2>
+
+<div class="card">
+<h3 style="margin-top:0">汎心論について</h3>
+<p>汎心論——物理的実在が本質的に経験的性質をもつとする立場——は Chalmers, Goff, G. Strawson らによって擁護されている真剣な哲学的立場である。</p>
+<p><strong>本稿はこの問題に立場を取らない。</strong>Γ は自己予測の失敗を測る量であり、系が<strong>何をするか</strong>についての量である。
+系が<strong>何であるか</strong>、主観的経験が伴うかについては何も述べない。</p>
+<ul>
+<li>Γ&gt;0 の系に経験が伴わないことは本稿と矛盾しない</li>
+<li>経験が伴いながら Γ=0 である系も本稿と矛盾しない</li>
+</ul>
+<p><strong>ゆえに Γ は汎心論に中立であり、支持にも反証にも使えない。</strong></p>
+<p style="font-size:.78rem">なお Γ が生物基盤とシリコン基盤の双方で生じることは<strong>自己モデル化という機能の多重実現可能性</strong>を支持する。
+しかしこれは機能主義的主張であり、汎心論とは異なる方向を指す。<strong>両者を混同してはならない。</strong></p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">現象的意識（ハードプロブレム）</h3>
+<p>なぜ熟慮に主観的質感が伴うのかは本稿の射程外である。Nagel (1974) の一人称視点の還元不可能性は本稿によって解消されない。IIT も GWT も解決していない。</p>
+<p><strong>「ある料理の味を言葉では記述できるのに、味そのものは想起できない」という日常的経験は、この説明的隔たりの実例である。本稿はこれを説明しない。</strong></p>
+</div>
+
+<div class="card card-y">
+<h3 style="margin-top:0">動機について — ロシア宇宙主義</h3>
+<p>本研究の動機の一部は、ロシア宇宙主義、とりわけ V. I. Vernadsky の<strong>ノウアスフィア</strong>概念にある。
+Vernadsky は生物圏概念の確立者として生物地球化学に貢献した科学者であり、その延長として、
+人間の思考が地質学的規模の因果的力となる段階を構想した。</p>
+<p>この構想は本稿の主張——<strong>熟慮は因果的に効力を持つ</strong>——を惑星規模に拡張したものと読める。
+N. Fedorov の「共同事業」もまた、死と運命を所与として受け入れることの拒絶であり、<strong>反運命論的態度の系譜</strong>に属する。</p>
+<p style="color:var(--g);font-size:.78rem">⚠️ これは動機と知的系譜の記述であって、論拠ではない。
+宇宙主義の主張のうち検証可能なものは Vernadsky の生物圏概念に限られ、それも本稿の論証には用いない。
+<strong>本稿のいかなる結論も宇宙主義の真偽に依存しない。</strong></p>
+</div>
+
+<div class="card card-g">
+<p><strong>なぜ立場を取らないことが重要か。</strong>
+本稿の論証は §2 の因果的主張に立脚する。その主張は、意識の形而上学がどう決着しようとも成立する。
+<strong style="color:var(--gr)">形而上学的コミットメントを増やすことは、論証を強くせず、弱くする。</strong></p>
+</div>
+</section>
+
+<section id="errata">
+<h2>§9. 訂正履歴</h2>
+
+<div class="card card-r">
+<h3 style="margin-top:0">2026-08-15 — 原典照合による撤回</h3>
+
+<p><strong>① F_T（鳥海自由エネルギー）— 撤回</strong></p>
+<div class="formula strike">F_T = k_B T ln(2) · Γ · log₂(|O|)</div>
+<ul>
+<li>Landauer 原理は<strong>消去</strong>にかかる。Bennett (1973) により空領域への書き込みは原理的に無コスト。当該構成は log に追記するのみで何も消去していない。<strong>適用先が存在しない</strong></li>
+<li>Still et al. (2012) の予測熱力学定理は使えない。同論文 p.1 が
+"We assume that there is <strong>no feedback from the system to the driving signal</strong>" と明記。自己参照系はこの仮定を最大限に破る。
+また仕事の定義 W := E(s,xₜ) − E(s,xₜ₋₁) は x が外部制御パラメータであることを要求し、自己出力では work step が定義できない</li>
+<li><strong>次元が合うことは物理であることの証明ではない。</strong>k_B T ln2 に任意の無次元数を掛ければジュールになる</li>
+</ul>
+<p style="font-size:.78rem">「人生の選択は重い」の物理的根拠という主張も根拠を失う。自己参照系の散逸下限の存在は<strong>未解決問題</strong>であり、既存定理への代入では解けない。</p>
+
+<p style="margin-top:18px"><strong>② Wolpert (2001) の引用 — 撤回</strong></p>
+<p>原典 (arXiv:physics/0005058) 照合の結果、Wolpert は<strong>自己参照を意図的に回避</strong>している。
+p.6「自己参照が可能な物理計算機に議論を限定したくない。代わりに…少なくとも2台の物理計算機を含む宇宙に限定する」／
+p.7「<strong>自己言及的計算機ではなく、当該計算機の2つのインスタンス</strong>を用いた、ゲーデル不完全性定理の物理版」。
+予測不可能性の主定理は2台の入力識別可能性に依存し、p.20 は「これは計算機とそれ自身の関係を明らかに記述しない」と明記する。</p>
+
+<p style="margin-top:18px"><strong>③ 「Γ &gt; 0 ≡ 自由意志」— 撤回</strong></p>
+<p>論点先取である。予測不能性を自由意志と<strong>定義した上で</strong>予測不能性を示しても、その定義を認めない相手には届かない。
+これは Sapolsky を「循環論法」と批判した論法と構造的に同じ誤りだった。</p>
+
+<p style="margin-top:18px"><strong>④ 「査読突破」「2000年の論争に終止符」「構成的証明」— 削除</strong></p>
+<p>「査読」は著者自身によるAI補助の自己批判であり、学術誌の査読ではなかった。
+また中心的洞察は MacKay (1960) に既出であり、「2000年決着しなかった問題への回答」という表現は使えない。</p>
+</div>
+
+<div class="card card-g">
+<h3 style="margin-top:0">2026-08-15 — 訂正により<strong>救われた</strong>もの</h3>
+<p><strong>veto 効果（§6b）</strong> — 「Haynes (2016), Charité Berlin」は報道記事ベースの不正確な参照だったが、
+正しい典拠 Schultze-Kraft et al. (2016) <em>PNAS</em> 113(4) が実在した。<strong>節ごと削除する必要はなかった。</strong></p>
+<p><strong>Popper (1950) の系譜</strong> — MacKay 自身が p.32 で Popper を引用しており、系譜の実在が一次資料で裏づけられた。</p>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">現在の検証状況</h3>
+<div class="tbl-wrap"><table>
+<tr><th>文献</th><th>状態</th></tr>
+<tr><td>MacKay (1960) <em>Mind</em> 69(273)</td><td class="ok">✅ 原典精読済</td></tr>
+<tr><td>Still et al. (2012) <em>PRL</em> 109</td><td class="ok">✅ 原典精読済（適用不可の根拠として）</td></tr>
+<tr><td>Wolpert (2001) <em>PRE</em> 65</td><td class="ok">✅ 原典精読済（使用不可と判明）</td></tr>
+<tr><td>Schultze-Kraft et al. (2016) <em>PNAS</em> 113(4)</td><td class="mid">△ 書誌確認済・本文未読</td></tr>
+<tr><td><strong>Lloyd (2012)</strong> <em>Phil Trans Roy Soc A</em> 370</td><td class="mid">△ 要旨確認済・<strong>全文精読が必須（第二の先行研究）</strong></td></tr>
+<tr><td>Marletto &amp; Vedral (2022) arXiv:2210.09050</td><td class="mid">△ 要旨確認済・全文未読</td></tr>
+<tr><td><strong>McWilliams et al. (2019)</strong> <em>Health Psychol</em> 38(12)</td><td class="ok">✅ <strong>95%CI取得済（行動的帰結）</strong></td></tr>
+<tr><td><strong>Ni et al. (2025)</strong> <em>BMC Psychiatry</em> 25(1)</td><td class="ok">✅ 全文オープンアクセス（不利な証拠）</td></tr>
+<tr><td>Ye et al. (2021) <em>Q J Exp Psychol</em> 75(10)</td><td class="mid">△ 要旨確認済・<strong>95%CI未取得</strong></td></tr>
+<tr><td>Webb et al. (2012) <em>Psychol Bull</em> 138(4)</td><td class="mid">△ 書誌確認済・<strong>全文未入手（95%CI未取得）</strong></td></tr>
+<tr><td>Gollwitzer &amp; Sheeran (2006)</td><td class="no">✗ 公開全文はスキャン画像・<strong>テキスト抽出不能</strong></td></tr>
+<tr><td>Augustine &amp; Hemenover (2013) <em>Psychol Bull</em> 139(3)</td><td class="ok">✅ 書誌・要旨確認済（PubMed）</td></tr>
+<tr><td>Colton et al. (2024) <em>Obes Rev</em> 25(10)</td><td class="ok">✅ 書誌・要旨確認済（PubMed）</td></tr>
+<tr><td>Gollwitzer &amp; Sheeran (2025) <em>Annu Rev Psychol</em> 76</td><td class="ok">✅ 書誌確認済（PubMed）</td></tr>
+<tr><td>Schurger et al. (2012) <em>PNAS</em> 109</td><td class="no">✗ 未確認</td></tr>
+<tr><td>Levy &amp; Glimcher (2012)</td><td class="no">✗ 未確認</td></tr>
+<tr><td>Walasek &amp; Brown (2024)</td><td class="no">✗ 未確認</td></tr>
+<tr><td>Popper (1950)</td><td class="no">✗ 未確認</td></tr>
+<tr><td>Vernadsky (1945)</td><td class="no">✗ 未確認</td></tr>
+</table></div>
+<p style="color:var(--r)"><strong>✗ が1つでも残る状態では投稿しない。</strong></p>
+</div>
+</section>
+
+<footer>
+  <p>鳥海 (Toriumi) — toriumikengo@gmail.com</p>
+  <p>草稿 v18 / 2026-08-15 — <strong>未査読</strong></p>
+  <p style="margin-top:10px;font-size:.68rem">投稿先候補: <em>Philosophy and the Mind Sciences</em>（査読つきOA）</p>
+</footer>
 
 </div>
 </body>

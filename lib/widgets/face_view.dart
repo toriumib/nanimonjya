@@ -43,6 +43,7 @@ class FaceView extends StatelessWidget {
             child: Image.network(
               person.face,
               width: size, height: size, fit: BoxFit.cover,
+              cacheWidth: _decodePx(context, size),
               errorBuilder: (_, __, ___) => _fallback(),
             ),
           );
@@ -54,6 +55,12 @@ class FaceView extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.cover,
+            // 🧠 表示する大きさで復号する。
+            //    指定しないと**元の解像度のまま**メモリに展開されるので、
+            //    64pxのサムネイルでも1枚あたり数MBを食う。
+            //    キャラデッキやショップは顔を数十枚並べるので、
+            //    ここが効かないとヒープ上限（192MB）に届く。
+            cacheWidth: _decodePx(context, size),
             errorBuilder: (_, __, ___) => _fallback(),
           ),
         );
@@ -66,6 +73,9 @@ class FaceView extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.cover,
+            // 顔メモの写真はカメラ由来で大きい（数千px）ことがあるので、
+            // アセット以上にここが効く。
+            cacheWidth: _decodePx(context, size),
             errorBuilder: (_, __, ___) => _fallback(),
           ),
         );
@@ -86,4 +96,14 @@ class FaceView extends StatelessWidget {
       child: Icon(Icons.person, size: size * 0.6, color: const Color(0xFF8FB4DC)),
     );
   }
+}
+
+/// 表示サイズ（論理px）から、復号に使う実ピクセル数を出す。
+///
+/// 端末の画素密度ぶんは必要なので掛けるが、上限を設けて
+/// 「大きい端末だからと原寸に近づく」ことは防ぐ。
+int _decodePx(BuildContext context, double logicalSize) {
+  final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0;
+  final px = (logicalSize * dpr).round();
+  return px.clamp(64, 640);
 }

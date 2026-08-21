@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/meta_strings.dart';
 import '../models/avatar.dart';
 import '../services/sfx.dart';
 import '../widgets/avatar_view.dart';
@@ -47,11 +48,12 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final m = MetaStrings.of(context);
     final features = _a.featuresJa();
     return ThemedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: const BannerAdSlot(),
+        bottomNavigationBar: const BannerAdSlot(placement: 'avatar_editor'),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -87,16 +89,15 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('この人の特徴',
-                              style: TextStyle(
+                          Text(m.avatarEditorFeatureTitle,
+                              style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w900,
                                   color: Color(0xFF2B5CA5))),
                           const SizedBox(height: 4),
                           if (features.isEmpty)
-                            const Text(
-                              'メガネ・ほくろ・ひげ・髪型をつけると、\n'
-                              '思い出す手がかりになります。',
+                            Text(
+                              m.avatarEditorFeatureHint,
                               style: TextStyle(fontSize: 11.5, height: 1.5),
                             )
                           else
@@ -186,7 +187,10 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                             // ③ 絵にも出るが、思い出す手がかりでもあるもの
                             _tabList([
                               _picker('🚻 性別', kGenderJa, _a.gender,
-                                  (i) => _set(_a.copyWith(gender: i))),
+                                  (i) => _set(i == 2
+                                      // 女性はかわいい顔（ぱっちり目＋にっこり口）を提案
+                                      ? _a.copyWith(gender: i, eyes: 5, mouth: 1)
+                                      : _a.copyWith(gender: i))),
                               _slider(
                                   '🎂 年齢のめやす',
                                   '${_a.age}歳',
@@ -229,7 +233,7 @@ class _AvatarEditorScreenState extends State<AvatarEditorScreen> {
                     textStyle: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w900),
                   ),
-                  child: const Text('この顔で決定'),
+                  child: Text(m.avatarEditorConfirmFace),
                 ),
               ),
             ],

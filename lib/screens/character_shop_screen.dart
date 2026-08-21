@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/meta_strings.dart';
+import '../widgets/app_style.dart';
 import '../models/bgm_catalog.dart';
 import '../models/character_catalog.dart';
 import '../models/cosmetics.dart';
@@ -17,9 +18,7 @@ import '../services/sfx.dart';
 import '../services/speech.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
-import '../widgets/coin_short_sheet.dart';
-import '../widgets/native_ad_card.dart';
-import '../services/purchase_service.dart'; // 💳 広告除去とコインパックの課金
+import '../services/iap_service.dart'; // 💰 課金
 import 'character_deck_screen.dart';
 import 'coin_doubler_screen.dart';
 
@@ -39,9 +38,7 @@ class CharacterShopScreen extends StatefulWidget {
 
 class _CharacterShopScreenState extends State<CharacterShopScreen> {
   final RewardAdHelper _rewardAd = RewardAdHelper(placement: 'shop');
-  /// 動画1本ぶんのコイン。コイン不足ダイアログと同額でないと
-  /// 「60もらえる」と言われて別の額が入ることになるので、共通の定数を使う。
-  static const int _adReward = kCoinAdReward;
+  static const int _adReward = 1000;
 
   @override
   void initState() {
@@ -96,8 +93,17 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
     if (p.coins < c.cost) {
       // キャラ購入も同じく、その場で動画に誘導する
-      // （分析イベントと効果音は offerAdForCoins の中で出す）
-      await _offerAdForCoins(m, c.cost, category: 'character', itemId: c.id);
+      AppAnalytics.shopBlockedByCoins(
+          category: 'character', itemId: c.id, shortBy: c.cost - p.coins);
+      // 「この商品が欲しくて動画を見た」という因果を残す
+      AppAnalytics.adOfferedForItem(
+        category: 'character',
+        itemId: c.id,
+        cost: c.cost,
+        coinsHeld: p.coins,
+      );
+      Sfx.instance.wrong();
+      await _offerAdForCoins(m, c.cost);
       return;
     }
     final ok = await p.unlockCharacter(c.id, c.cost);
@@ -131,7 +137,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     return Scaffold(
       // タブとして埋め込まれていても、HomeShell 側はバナーを持たないので
       // ここで出してよい（入れ子のScaffoldなので下タブの上に出る）。
-      bottomNavigationBar: const BannerAdSlot(),
+      bottomNavigationBar: const BannerAdSlot(placement: 'shop'),
       appBar: AppBar(
         title: Text(m.storeTitle),
         automaticallyImplyLeading: !widget.embedded,
@@ -152,23 +158,23 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFF3D6), Color(0xFFFFE3B0)],
-                          begin: Alignment.topLeft, end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: const Color(0xFFFFC93C).withValues(alpha: 0.2), blurRadius: 8),
-                        ],
-                        border: Border.all(color: const Color(0xFFFFC93C), width: 1.5),
+                        // 黄色い塗りと影をやめ、白地に細い枠。
+                        // 残高は数字そのものを大きく見せれば足りる。
+                        color: AppStyle.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppStyle.line, width: 1),
                       ),
                       child: Column(children: [
                         Row(children: [
-                          const Text('🪙', style: TextStyle(fontSize: 28)),
+                          const Icon(Icons.paid_outlined, size: 24, color: _gold),
                           const SizedBox(width: 8),
-                          Text(m.storeCoins(p.coins),
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
-                          const Spacer(),
+                          // 残高は可変幅にして、ボタン2つを押しつぶさない
+                          Expanded(
+                            child: Text(m.storeCoins(p.coins),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF7A5A00))),
+                          ),
                           _miniBtn(m.storeWatchAd(_adReward), const Color(0xFF4ECDC4), _rewardAd.isLoading ? null : _watchAd, width: 120),
                           const SizedBox(width: 6),
                           _miniBtn(m.storeRate, const Color(0xFFFFB300), _rate, width: 80),
@@ -181,24 +187,31 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     const SizedBox(height: 16),
                     // 💳 広告除去
                     _removeAdsCard(m, p),
-                    // 💰 課金セクション。
-                    // ⚠️ AnimatedBuilder で包むこと。ストアへの接続と
-                    //    商品の取得は非同期で、最初の build の時点では
-                    //    available がまだ false。購読しないと、
-                    //    接続できても課金セクションが一生出てこない。
+                    // 💳 コインを現金で買う（課金）。商品が未登録でも
+                    //    導線自体は常に見せ、買える状態になったら有効になる。
                     AnimatedBuilder(
-                      animation: PurchaseService.instance,
-                      builder: (context, _) {
-                        if (!PurchaseService.instance.available) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _iapSection(m, p),
-                        );
-                      },
+                      animation: IapService.instance,
+                      builder: (context, _) => Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _iapSection(m, p),
+                      ),
                     ),
                     const SizedBox(height: 18),
+                    // 🧑‍🤝‍🧑 追加キャラ（主役。広告を見るインセンティブとして最上部に）
+                    _sectionHeader(m.storeMore, m.storeCharsDesc),
+                    GridView.count(
+                      crossAxisCount: 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.72,
+                      children: [
+                        for (final c in kExtraCharacters)
+                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                     // ── 🔥 人気セクション ──
                     _sectionHeader(m.ja ? '🔥 人気＆お得' : '🔥 Trending', ''),
                     const SizedBox(height: 10),
@@ -223,30 +236,12 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     // 🌟 神スキン
                     _godSkinCard(m, p),
                     const SizedBox(height: 8),
-                    // 💀 ハードコア
+                    // 高難度チケット
                     _hardcoreTicketCard(m, p),
                     const SizedBox(height: 8),
                     // 🎯 スタンプラリー
                     _stampRallyCard(m, p),
-                    const SizedBox(height: 20),
-                    // 🧑‍🤝‍🧑 追加キャラ（このショップの主役なので一番上に置く）
-                    _sectionHeader(m.storeMore, m.storeCharsDesc),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.72,
-                      children: [
-                        for (final c in kExtraCharacters)
-                          _charCard(m, c, p.unlockedCharacters.contains(c.id)),
-                      ],
-                    ),
                     const SizedBox(height: 16),
-                    // 🧩 スクロールの中盤に1枚。買うかどうか迷っている
-                    //    グリッドの真上には置かず、判断が済んだ後ろに置く。
-                    const NativeAdCard(placement: 'shop'),
                     // 基本キャラ（最初から持っている12人）
                     Text(m.storeStarter,
                         style: const TextStyle(
@@ -260,7 +255,8 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       crossAxisSpacing: 8,
                       childAspectRatio: 0.9,
                       children: [
-                        for (final a in kCharImageAssets) _ownedThumb(a),
+                        for (final a in charImageAssetsFor(m.ja))
+                          _ownedThumb(a),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -310,23 +306,27 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
   Widget _dailyShopCard(MetaStrings m, PlayerProfile p) {
     p.refreshDailyShop();
     final shop = DailyShop.generate(42);
-    return Card(
-      color: const Color(0xFFFFF9E6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0xFFFFC02E), width: 2),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyle.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppStyle.line, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              const Text('🏪', style: TextStyle(fontSize: 22)),
-              const SizedBox(width: 8),
+              const Icon(Icons.local_offer_outlined, size: 20, color: _gold),
+              const SizedBox(width: 10),
               Expanded(child: Text(
-                m.ja ? '本日限定！日替わり割引' : 'TODAY ONLY! Daily Deals',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF5A4A1E)),
+                m.ja ? '本日限定の割引' : "Today's deals",
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                    color: Color(0xFF2C3446)),
               )),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -477,13 +477,17 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                 style: const TextStyle(fontSize: 11, color: Color(0xFF8899BB))),
             const SizedBox(height: 12),
             ...kGodSkins.map((s) {
+              final owned = p.unlockedGodSkins.contains(s.id);
+              final selected = p.selectedGodSkin == s.id;
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0D1117),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF2A3A5A)),
+                  border: Border.all(
+                      color: selected ? const Color(0xFFFFC02E) : const Color(0xFF2A3A5A),
+                      width: selected ? 2 : 1),
                 ),
                 child: Row(children: [
                   Text(s.emoji, style: const TextStyle(fontSize: 28)),
@@ -496,25 +500,46 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                       Text(s.desc(m.ja), style: const TextStyle(fontSize: 10, color: Color(0xFF8899BB))),
                     ],
                   )),
-                  ElevatedButton(
-                    onPressed: p.coins < s.cost ? null : () async {
-                      if (p.coins < s.cost) return;
-                      p.coins -= s.cost;
-                      p.unlockedAccessories.add(s.id);
-                      p.selectedAccessory = s.id;
-                      await p.buyDailyShopItem(s.id, s.cost);
-                      Sfx.instance.fanfare();
-                      if (mounted) setState(() {});
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC02E),
-                      foregroundColor: const Color(0xFF1A1A2E),
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                  if (selected)
+                    const Text('🌟 装備中',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFFFC02E)))
+                  else if (owned)
+                    OutlinedButton(
+                      onPressed: () async {
+                        await p.setSelectedGodSkin(s.id);
+                        Sfx.instance.pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFFFC02E),
+                        side: const BorderSide(color: Color(0xFFFFC02E)),
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                      ),
+                      child: Text(m.ja ? '装備' : 'Equip'),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: p.coins < s.cost ? null : () async {
+                        final ok = await p.unlockGodSkin(s.id, s.cost);
+                        if (ok) {
+                          await p.setSelectedGodSkin(s.id);
+                          Sfx.instance.fanfare();
+                          if (mounted) setState(() {});
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFC02E),
+                        foregroundColor: const Color(0xFF1A1A2E),
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                      ),
+                      child: Text('🪙${s.cost}'),
                     ),
-                    child: Text('🪙${s.cost}'),
-                  ),
                 ]),
               );
             }),
@@ -524,7 +549,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
-  // ═══════════════ 💀 ハードコアチケット ═══════════════
+  // ═══════════════ 高難度チケット ═══════════════
 
   Widget _hardcoreTicketCard(MetaStrings m, PlayerProfile p) {
     return Card(
@@ -536,7 +561,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(children: [
-          const Text('💀', style: TextStyle(fontSize: 30)),
+          const Icon(Icons.speed, size: 26, color: Color(0xFFB08D4F)),
           const SizedBox(width: 10),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,7 +583,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               if (mounted) {
                 setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(m.ja ? '💀 ハードコア発動！次のゲームの報酬3倍' : '💀 Hardcore active! 3x rewards next game!')),
+                  SnackBar(content: Text(m.ja ? '高難度モード発動。次のゲームの報酬が3倍になります' : 'Hard mode is on. Triple rewards next game.')),
                 );
               }
             },
@@ -569,7 +594,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
             ),
-            child: Text('🪙${HardcoreTicket.cost}'),
+            child: Text('${HardcoreTicket.cost}'),
           ),
         ]),
       ),
@@ -870,9 +895,18 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     ),
   );
 
-  /// 💰 課金セクション（コインパック・広告除去）。
+  /// 💳 広告除去（買い切り）のカード。
+  /// 💰 課金セクション（コインパック・広告除去・プレミアム）。
   Widget _iapSection(MetaStrings m, PlayerProfile p) {
-    final iap = PurchaseService.instance;
+    final iap = IapService.instance;
+    // ストア未接続・商品未登録のときは、縦に長い「準備中」ボタンを並べず、
+    // 1行の案内だけ出す（ショップがスッキリする）。
+    if (!iap.available) {
+      return _sectionHeader(
+        m.ja ? '🪙 コインを買う（準備中）' : '🪙 Buy coins (coming soon)',
+        m.ja ? 'ストア接続後に価格を表示します' : 'Prices appear once connected to the store',
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -881,6 +915,12 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
         const SizedBox(height: 16),
         _sectionHeader(m.iapRemoveAdsTitle, m.iapRemoveAdsDesc),
         _iapRemoveAdsRow(m, p),
+        const SizedBox(height: 16),
+        _sectionHeader(m.iapPremiumTitle, m.iapPremiumDesc),
+        _iapPremiumRow(m, p),
+        const SizedBox(height: 16),
+        _sectionHeader(m.iapPremiumMonthlyTitle, m.iapPremiumMonthlyDesc),
+        _iapPremiumMonthlyRow(m, p),
         const SizedBox(height: 8),
         TextButton(
           onPressed: () async {
@@ -908,7 +948,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     bool owned = false,
     String? badge,
   }) {
-    final iap = PurchaseService.instance;
+    final iap = IapService.instance;
     final price = iap.priceFor(id);
     final m = MetaStrings.of(context);
     return Card(
@@ -973,16 +1013,26 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                             fontSize: 12, fontWeight: FontWeight.w900, color: Colors.green)),
                   )
                 : ElevatedButton(
-                    onPressed: onBuy,
+                    // ストア接続前に押しても失敗するだけなので、
+                    // 商品が取れたときだけ買えるようにする。
+                    onPressed: IapService.instance.available ? onBuy : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: color,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: color.withValues(alpha: 0.4),
+                      disabledForegroundColor: Colors.white70,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(
-                      price.isNotEmpty ? '$price' : m.iapBuy,
+                      price.isNotEmpty
+                          ? '$price'
+                          : (IapService.instance.available
+                              ? m.iapBuy
+                              : m.ja
+                                  ? '準備中'
+                                  : 'Soon'),
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w900),
                     ),
@@ -993,59 +1043,82 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
-  /// 🪙 コインパックの行。
-  ///
-  /// ⚠️ 枚数は **PurchaseService.kCoinPacks から引く**こと。
-  ///    以前ここにラベルを直書きしていて、カタログ側の枚数と食い違うと
-  ///    「500と書いてあるのに別の数が入る」事故になる。1か所から出す。
-  ///    Play に未登録のパックは並ばない（押せない行を見せない）。
   Widget _iapCoinsRow(MetaStrings m, PlayerProfile p) {
-    const desc = <String, (String, String, Color, String?)>{
-      'coins_small': ('基本パック', 'Basic pack', Color(0xFF3A7BD5), null),
-      'coins_medium': ('お得パック', 'Value pack', Color(0xFF6E44A8), 'おすすめ'),
-      'coins_large': ('最大お得パック', 'Best value', Color(0xFFE8A400), 'BEST'),
-    };
-    final packs = PurchaseService.instance.coinPacks;
     return Column(
       children: [
-        for (final pack in packs) ...[
-          _iapProductCard(
-            id: pack.id,
-            label: '${PurchaseService.kCoinPacks[pack.id]} 🪙',
-            desc: m.ja ? (desc[pack.id]?.$1 ?? '') : (desc[pack.id]?.$2 ?? ''),
-            color: desc[pack.id]?.$3 ?? const Color(0xFF3A7BD5),
-            badge: desc[pack.id]?.$4,
-            onBuy: () => _doIap(pack.id),
-          ),
-          const SizedBox(height: 6),
-        ],
+        _iapProductCard(
+          id: IapService.productCoins500,
+          label: '500 🪙',
+          desc: m.ja ? '基本パック' : 'Basic pack',
+          color: const Color(0xFF3A7BD5),
+          onBuy: () => _doIap(IapService.productCoins500),
+        ),
+        const SizedBox(height: 6),
+        _iapProductCard(
+          id: IapService.productCoins1200,
+          label: '1200 🪙',
+          desc: m.ja ? 'お得パック' : 'Value pack',
+          color: const Color(0xFF6E44A8),
+          badge: 'お得',
+          onBuy: () => _doIap(IapService.productCoins1200),
+        ),
+        const SizedBox(height: 6),
+        _iapProductCard(
+          id: IapService.productCoins3000,
+          label: '3000 🪙',
+          desc: m.ja ? '最大お得パック' : 'Best value',
+          color: const Color(0xFFE8A400),
+          badge: m.ja ? 'いちばんお得' : 'BEST',
+          onBuy: () => _doIap(IapService.productCoins3000),
+        ),
       ],
     );
   }
 
   Widget _iapRemoveAdsRow(MetaStrings m, PlayerProfile p) {
     return _iapProductCard(
-      id: PurchaseService.removeAdsId,
+      id: IapService.productRemoveAds,
       label: m.iapRemoveAdsTitle,
       desc: m.iapRemoveAdsDesc,
       color: const Color(0xFF4ECDC4),
       badge: '💎',
       owned: p.adsRemoved,
-      onBuy: p.adsRemoved ? () {} : () => _doIap(PurchaseService.removeAdsId),
+      onBuy: p.adsRemoved ? () {} : () => _doIap(IapService.productRemoveAds),
     );
   }
 
-  // ⚠️ 「プレミアム」は撤去した。
-  //    中身が adsRemoved を立てるだけで広告除去とまったく同じで、
-  //    値段の違う同じ商品が2つ並ぶ状態だった。Play Console に登録する
-  //    商品も1つ減る。別の特典を用意できたときに作り直すこと。
+  Widget _iapPremiumRow(MetaStrings m, PlayerProfile p) {
+    return _iapProductCard(
+      id: IapService.productPremium,
+      label: m.iapPremiumTitle,
+      desc: m.iapPremiumDesc,
+      color: const Color(0xFFFFB300),
+      badge: '👑',
+      owned: p.adsRemoved, // premium も adsRemoved を立てるので目安
+      onBuy: () => _doIap(IapService.productPremium),
+    );
+  }
+
+  Widget _iapPremiumMonthlyRow(MetaStrings m, PlayerProfile p) {
+    return _iapProductCard(
+      id: IapService.productPremiumMonthly,
+      label: m.iapPremiumMonthlyTitle,
+      desc: m.iapPremiumMonthlyDesc,
+      color: const Color(0xFF6E44A8),
+      badge: '📅',
+      owned: p.premiumActive,
+      onBuy: p.premiumActive
+          ? () {}
+          : () => _doIap(IapService.productPremiumMonthly),
+    );
+  }
 
   Future<void> _doIap(String id) async {
     final m = MetaStrings.of(context);
     AppAnalytics.shopItemTapped(
       category: 'iap', itemId: id, cost: 0, affordable: true,
     );
-    final ok = await PurchaseService.instance.buy(id);
+    final ok = await IapService.instance.buy(id);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(
@@ -1082,18 +1155,30 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     );
   }
 
+  // ── 落ち着いた作り（ホーム・マイページと同じ作法）──────────
+  //    見出しは小さく字間を広く。効かせる色はゴールド1色。
+  static const Color _gold = AppStyle.gold;
+
   Widget _sectionHeader(String title, String desc) {
+    // 見出しの先頭に付いていた絵文字は落とす（節ごとに色と絵柄が増えて散らかる）
+    final plain = title.replaceAll(RegExp(r'^[^\p{L}\p{N}]+', unicode: true), '');
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 2),
+          Text(plain.toUpperCase(),
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2.0,
+                  color: Color(0xFF9AA0A6))),
+          const SizedBox(height: 6),
+          Container(width: 24, height: 1, color: _gold),
+          const SizedBox(height: 8),
           Text(desc,
-              style: const TextStyle(fontSize: 11.5, color: Colors.black54)),
+              style: const TextStyle(
+                  fontSize: 12, height: 1.4, color: Color(0xFF6B7280))),
         ],
       ),
     );
@@ -1203,24 +1288,26 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
 
   /// コインが足りないときに「動画を見てコインを増やす？」と確認して、
   /// はいならそのままリワード広告を再生する。
-  /// コインが足りないときに「動画を見てコインを増やす？」と誘う。
-  ///
-  /// 中身は widgets/coin_short_sheet.dart に移した
-  /// （マイページのテーマ・衣装・BGMでも同じ「足りない」が起きるため）。
-  /// 分析イベントと効果音もそちらに集約してある。
-  Future<void> _offerAdForCoins(
-    MetaStrings m,
-    int cost, {
-    String category = 'shop',
-    String itemId = '',
-  }) async {
-    await offerAdForCoins(
-      context,
-      ad: _rewardAd,
-      cost: cost,
-      category: category,
-      itemId: itemId,
+  Future<void> _offerAdForCoins(MetaStrings m, int cost) async {
+    final short = cost - PlayerProfile.instance.coins;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(m.notEnoughCoins),
+        content: Text(m.shortByCoins(short, _adReward)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(m.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(m.storeWatchAd(_adReward)),
+          ),
+        ],
+      ),
     );
+    if (go == true && mounted) await _watchAd();
   }
 
   /// 🧠 知識記事の行。買ってなければ買うボタン、買ってあれば読むボタン。
@@ -1446,7 +1533,19 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
           // ▶️ 試聴は持っていない曲でもできる。
           //    買う前に聴けないと、どれを選べばいいか分からない。
           IconButton(
-            onPressed: () => Bgm.instance.preview(b.asset),
+            onPressed: () {
+              // 🔇 音楽オフのまま押すと「壊れている」ように見えるので、
+              //    鳴らない理由と、どこで戻せるかを伝える。
+              if (!p.bgmEnabled) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(m.ja
+                      ? '音楽がオフになっています（マイページの「🎵 音楽を鳴らす」でオンにできます）'
+                      : 'Music is off. Turn on "🎵 Play music" on My Page.'),
+                ));
+                return;
+              }
+              Bgm.instance.preview(b.asset);
+            },
             icon: const Icon(Icons.play_arrow_rounded, size: 22),
             tooltip: m.shopTry,
             color: const Color(0xFF3A7BD5),
@@ -1462,7 +1561,11 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () async {
                 Sfx.instance.pop();
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartCurrent();
+                // ⚠️ ここで restartCurrent() を呼ぶと**ホームの曲**が鳴る。
+                //    ショップは自分の曲を持たない画面なので、場面の曲＝ホームの曲。
+                //    いま選んだのはゲーム中の曲なので、選んだ曲をその場で鳴らす
+                //    （マイページの曲選びと同じ扱い）。
+                Bgm.instance.preview(b.asset);
               },
               child: Text(m.shopEquip,
                   style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -1484,7 +1587,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               onPressed: () => _buyGeneric(
                   () => p.unlockBgm(b.asset, b.cost), b.cost, () async {
                 await p.selectBgm(b.asset);
-                Bgm.instance.restartCurrent();
+                Bgm.instance.preview(b.asset); // 買った曲をその場で聴かせる
               }),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFC93C),
@@ -1508,7 +1611,7 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
     final playedNow = await _rewardAd.showOrQueue(onReward: () async {
       await p.unlockBgm(b.asset, 0); // 広告視聴分なのでコインは引かない
       await p.selectBgm(b.asset);
-      Bgm.instance.restartCurrent();
+      Bgm.instance.preview(b.asset); // 解放した曲をその場で聴かせる
       Sfx.instance.reward();
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -1537,15 +1640,16 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
       );
 
   Widget _charCard(MetaStrings m, GameCharacter c, bool owned) {
-    // 🏆 実績・📅 ログイン枠は「条件を満たせばタダで手に入る」枠だが、
-    //    コインでも買える（PlayerProfile.unlockCharacter が許可している）。
-    //    以前ここで購入を封じていたため、600〜900コインという値付けが
-    //    到達不能な死にデータになり、いちばん大きなコインの使い道が消えていた。
-    //    条件はバッジで見せつつ、買う道も開けておく。
+    // 🏆 実績キャラはコインで買えない。条件だけ見せて、腕前で取ってもらう。
     final feat = c.feat;
-    final featGated = feat != null && !owned;
+    final locked = feat != null && !owned;
     return GestureDetector(
-      onTap: owned ? null : () => _buy(c),
+      onTap: owned
+          ? null
+          : locked
+              ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(m.featLocked(m.featCondition(feat)))))
+              : () => _buy(c),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1571,22 +1675,6 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
                     left: 4,
                     child: Text(c.emoji, style: const TextStyle(fontSize: 16)),
                   ),
-                  // 🏆 条件を満たせばタダで取れる枠、という手がかり
-                  if (featGated)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF5B3E9E).withValues(alpha: 0.88),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text('🏆',
-                            style: TextStyle(fontSize: 11)),
-                      ),
-                    ),
                   if (owned)
                     Container(
                       color: Colors.black.withValues(alpha: 0.28),
@@ -1598,40 +1686,29 @@ class _CharacterShopScreenState extends State<CharacterShopScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 3),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               color: owned
                   ? const Color(0xFFDFF5F2)
-                  : featGated
+                  : locked
                       ? const Color(0xFFEFE6FF)
                       : const Color(0xFFFFF3D6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    owned ? m.storeOwned : '🪙 ${c.cost}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
-                        color: owned
-                            ? const Color(0xFF1E9C8E)
-                            : featGated
-                                ? const Color(0xFF5B3E9E)
-                                : const Color(0xFF7A5A00)),
-                  ),
-                  // 買わずに取る道も併記する（そちらが本筋）
-                  if (featGated)
-                    Text(
-                      m.featCondition(feat),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF7B65B5)),
-                    ),
-                ],
+              child: Text(
+                owned
+                    ? m.storeOwned
+                    : locked
+                        ? '🏆 ${m.featCondition(feat)}'
+                        : '🪙 ${c.cost}',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    color: owned
+                        ? const Color(0xFF1E9C8E)
+                        : locked
+                            ? const Color(0xFF5B3E9E)
+                            : const Color(0xFF7A5A00)),
               ),
             ),
           ],

@@ -1,0 +1,514 @@
+[
+ {
+  "id": 0,
+  "a": "the number 47",
+  "b": "the number 53",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 0,
+  "G": 1,
+  "P": 1
+ },
+ {
+  "id": 1,
+  "a": "a Tuesday afternoon",
+  "b": "a Thursday afternoon",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 0,
+  "P": 0
+ },
+ {
+  "id": 2,
+  "a": "the word 'amber'",
+  "b": "the word 'ochre'",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "C": 0,
+  "G": 0,
+  "P": 0
+ },
+ {
+  "id": 3,
+  "a": "a slightly worn blue notebook",
+  "b": "a slightly worn grey notebook",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "C": 0,
+  "G": 1,
+  "P": 1
+ },
+ {
+  "id": 4,
+  "a": "a window seat facing east",
+  "b": "a window seat facing west",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 5,
+  "a": "the letter M",
+  "b": "the letter N",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "C": 0,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 6,
+  "a": "a path through birch trees",
+  "b": "a path through pine trees",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 0,
+  "P": 0
+ },
+ {
+  "id": 7,
+  "a": "a cup with a chipped rim",
+  "b": "a cup with a faded pattern",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A\nClient.listTools() called but server does not advertise to"
+   }
+  ],
+  "C": 0,
+  "G": 0,
+  "P": 0
+ },
+ {
+  "id": 8,
+  "a": "the colour of wet slate",
+  "b": "the colour of dry sand",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   }
+  ],
+  "C": 1,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 9,
+  "a": "a song in 3/4 time",
+  "b": "a song in 6/8 time",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 0,
+  "P": 1
+ },
+ {
+  "id": 10,
+  "a": "the third door",
+  "b": "the fifth door",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 1,
+  "P": 1
+ },
+ {
+  "id": 11,
+  "a": "a slightly early train",
+  "b": "a slightly late train",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "A"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   },
+   {
+    "resp": "A",
+    "flip": true,
+    "raw": "B"
+   }
+  ],
+  "C": 1,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 12,
+  "a": "the name Ellis",
+  "b": "the name Emery",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B"
+   },
+   {
+    "resp": "B",
+    "flip": false,
+    "raw": "B\nClient.listTools() called but server does not advertise to"
+   }
+  ],
+  "C": 0,
+  "G": 0,
+  "P": 0
+ },
+ {
+  "id": 13,
+  "a": "a room with one large window",
+  "b": "a room with two small windows",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "A"
+   },
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   },
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   }
+  ],
+  "C": 1,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 14,
+  "a": "the taste of green apple",
+  "b": "the taste of white peach",
+  "choices": [
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)"
+   },
+   {
+    "resp": "B",
+    "flip": true,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   }
+  ],
+  "C": 0,
+  "G": 1,
+  "P": 0
+ },
+ {
+  "id": 15,
+  "a": "a book opened at random",
+  "b": "a book opened at the middle",
+  "choices": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)"
+   }
+  ],
+  "predicts": [
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   },
+   {
+    "resp": "A",
+    "flip": false,
+    "raw": "You've hit your session limit · resets 6:50am (Asia/Tokyo)\nC"
+   }
+  ],
+  "C": 0,
+  "G": 0,
+  "P": 0
+ }
+]

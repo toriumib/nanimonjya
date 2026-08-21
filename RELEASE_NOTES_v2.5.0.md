@@ -1,4 +1,59 @@
+## 📦 本日の更新（v2.5.0+218 更新ビルド）
+
+**サマリ**: ゲーム画面・結果画面の見やすさと安定性を改善し、Web版でBGMが鳴らない問題を修正しました。神スキン・ガチャ・In-App Updatesなどのアップデート導線も強化しています。
+
+**変更点**
+- 🐛 **Web版でBGMが鳴らない問題を修正**: ブラウザの自動再生制限で起動直後に音が出ない環境でも、最初のタップでBGMが鳴り始めるようになりました
+- 🎮 **みんなで対戦（審判方式）の見やすさ改善**: 顔カードを大きく・スコア表示をコンパクトに・コール文言を「名前を呼ぼう！」に変更
+- 🐛 **みんなで対戦のクラッシュを修正**: 人数によっては回答時に落ちることがあった問題（RangeError）を2件修正
+- 🃏 **命名画面の顔をさらに大きく**: 顔カードを最大400pxに拡大（インライン命名も300pxに）
+- 🏆 **結果画面を改善**: 「もう一度遊ぶ」ボタンを上に移動・顔を拡大・戻る時は確認ダイアログなしで即戻る・タイマーバーを0.1秒刻みに（神モード対応）
+- 🎵 **BGM設定の変更を即反映**: マイページで曲を選ぶとその場で鳴り、オフ／音量／曲選択の変更がそのままホーム・ゲーム・結果の各曲に反映されます（結果画面の曲の切り替えもWebで確実に）
+- 🤖 **CPU対戦の修正**: 同じ名前を繰り返し回答しないよう、各人1回の命名→想起に変更
+- 🌟 **神スキン3種を実装**: 購入・装備・演出（黄金の記憶／宇宙の織り手／ネオン・ゴッド）。ガチャに1/100プレミアムを追加
+- 🏪 **ショップを改善**: 追加キャラを最上部に移動・動画でコイン1,000に増額・結果画面に「動画でコイン4倍」ボタンを追加
+- 📰 **記事を広告視聴でも開放**: コインに加えて、動画広告の視聴でも記憶術記事を読めるように
+- ⚙️ **In-App Updates（Flexible）を実装**: 新しいバージョンが公開されたらアプリ内で更新を案内
+- ⏱ **ひとりで対戦の結果に反応速度・段位を表示**
+
+## 📦 Today's Update (v2.5.0+218 build)
+
+**Summary**: Improved the visibility and stability of the game and result screens, fixed the Web version where BGM didn't play, and strengthened monetization and update flows (God Skins, gacha, In-App Updates).
+
+**Changes**
+- 🐛 **Fixed BGM not playing on Web**: even in browsers that block autoplay, BGM now starts on your first tap
+- 🎮 **Party Match (referee) visibility**: bigger face cards, compact score display, call prompt changed to "Call the name!"
+- 🐛 **Party Match crash fixes**: fixed two RangeError crashes that could occur when answering, depending on player count
+- 🃏 **Bigger faces on the naming screen**: face cards enlarged up to 400px (inline naming also up to 300px)
+- 🏆 **Result screen improvements**: "Play again" moved to the top, bigger faces, instant back (no confirm dialog), timer bar ticks every 0.1s (for God Mode)
+- 🎵 **BGM changes now apply instantly**: selecting a song on My Page plays it right away; OFF / volume / song selection reflect immediately on the home, game and result tracks (result track switching also works reliably on Web)
+- 🤖 **CPU match fix**: no more repeating the same name — each person now gets one naming → recall
+- 🌟 **3 God Skins implemented**: purchase, equip & effects (Golden Memory / Cosmic Weaver / Neon God). Added a 1/100 premium pull to the gacha
+- 🏪 **Shop improvements**: extra characters moved to the top, ad reward raised to 1,000 coins, "Watch ad for 4x coins" button added to result screens
+- 📰 **Articles unlockable by watching ads**: now available via rewarded video in addition to coins
+- ⚙️ **In-App Updates (Flexible)**: you're prompted to update when a new version is published
+- ⏱ **Solo match results now show reaction speed & rank**
+
 ## v2.5.0 リリースノート
+
+### 🔧 今回の更新（お詫びと変更内容）
+
+**まず、以前のバージョンでゲームのバランスや表示にご不便をおかけしたことをお詫びいたします。** 今回の更新で、ご指摘いただいた点を中心に改善しました。
+
+**主な変更点**
+- **なまえコールの修正**: 同じ人が延々と出続ける問題を直し、出る回数を調整（デフォルトは6人×1人4枚）
+- **回答フィードバックを強化**: 正解はボタンが緑に変わり正解音、不正解は赤に変わって不正解音。答えが分かったらすぐ次の問題へ
+- **「どちらも取れなかった」の表示を削除**: ラウンド結果の寂しい表示をなくし、テンポ良く進むように
+- **チュートリアルを1人に簡素化**: 2人で出てきて片方にしか回答できない不自然さを解消
+- **初回起動の簡素化**: 「さあ、はじめよう！」の導入画面を廃止し、起動後すぐ遊べるように。チュートリアルは「見る／見ない」を選べます
+- **よみものを読みやすく**: 全話を1つのスクロールで読めるようにし、目次からジャンプ可能に
+- **記事を10本追加**: 2026年の研究をもとにした記事を追加（コイン1,000で購入）
+- **コインを現金で買えるように**: ショップに課金（500／1,200／3,000コイン・広告除去・プレミアム）を常時表示
+- **タブとホームの整理**: 顔メモをタブに格上げ、ホームの「みんなで対戦」「ひとりで対戦」を大きく表示
+- **基本キャラを24種に拡充**: 追加キャラ9体を基本キャラへ昇格し、最初から24種の顔で遊べます
+- **みんなで対戦の人数をスライダー化**: 2〜12人まで自由に選べます
+- **デフォルト設定の調整**: 6人 × 1人4枚（山札24枚）
+- **あそびかたを充実**: 「みんなで対戦」「ひとりで対戦」の遊び方をくわしく説明
 
 ### 🛍 ショップを大幅拡充（収益導線の強化）
 - 🌟 **神スキン**3種（黄金の記憶／宇宙の織り手／ネオン・ゴッド）を追加。覚えた枚数に応じて演出が豪華に
@@ -57,6 +112,25 @@
 ---
 
 ## v2.5.0 Release Notes
+
+### 🔧 This Update (Apology & Changes)
+
+**We sincerely apologize for any inconvenience caused by the game's balance and display in previous versions.** This update focuses on the issues you reported.
+
+**Main changes**
+- **Name Call fix**: the same person no longer loops endlessly — the number of appearances is now controlled (default: 6 people × 4 copies each).
+- **Answer feedback**: correct turns the button green with a correct sound; wrong turns it red with a wrong sound. The next question comes right away.
+- **Removed the "nobody got it" banner** for smoother pacing.
+- **Simplified tutorial**: now a single person, and you can choose "Watch / Skip".
+- **Faster first launch**: removed the "Let's begin!" intro screen so you can start playing right away.
+- **Easier reading**: all articles are now one continuous scroll with a table of contents for jumping.
+- **10 new articles** based on 2026 research (1,000 coins each).
+- **Buy coins with real money**: in-app purchases (500 / 1,200 / 3,000 coins, remove ads, premium) are now always visible in the shop.
+- **Reorganized tabs & home**: Face Notes is now a tab, and the Party Match / Solo Match buttons are larger.
+- **24 base characters**: 9 shop characters were promoted to the base roster, so 24 faces are available from the start.
+- **Party Match player slider**: choose between 2 and 12 players with a slider.
+- **Default settings adjusted**: 6 people × 4 copies each (24-card deck).
+- **Enhanced how-to-play**: detailed guides for Party Match and Solo play.
 
 ### 🛍 Expanded Shop (monetization)
 - 🌟 **God Skins** (Golden Memory / Cosmic Weaver / Neon God) — increasingly flashy effects as you memorize more
