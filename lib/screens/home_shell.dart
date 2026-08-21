@@ -194,9 +194,9 @@ class _HomeShellState extends State<HomeShell> with RouteAware {
             selectedIcon: const Icon(Icons.shopping_bag),
             label: m.tabShop,
           ),
-          // ⚠️ ここは children の並び（index 3 = よみもの、4 = ものがたり）と
-          //    そろえること。以前ラベルだけ逆になっていて、
-          //    「ものがたり」を押すと読み物が開く状態になっていた。
+          // ⚠️ 並びは上の IndexedStack と1対1で対応させること。
+          //    index 3 = よみもの（MemoryTips）／index 4 = ものがたり（NoahStory）。
+          //    ここが入れ替わっていて「ものがたり」を押すと読み物が開いていた。
           NavigationDestination(
             icon: const Icon(Icons.menu_book_outlined),
             selectedIcon: const Icon(Icons.menu_book),

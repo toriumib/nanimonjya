@@ -22,6 +22,8 @@ class PlayerProfile extends ChangeNotifier {
   // 永続化する値
   int coins = 0;
   int lifetimeCoins = 0;
+  /// 💳 課金で買ったコインの累計（LTVの分析用。ゲーム内の判定には使わない）
+  int paidCoinsLifetime = 0;
   int totalGames = 0;
   int highScore = 0;
   int onlineGames = 0; // オンライン対戦数
@@ -246,6 +248,7 @@ class PlayerProfile extends ChangeNotifier {
     final p = _prefs!;
     coins = p.getInt('coins') ?? 0;
     lifetimeCoins = p.getInt('lifetimeCoins') ?? 0;
+    paidCoinsLifetime = p.getInt('paidCoinsLifetime') ?? 0;
     totalGames = p.getInt('totalGames') ?? 0;
     highScore = p.getInt('highScore') ?? 0;
     onlineGames = p.getInt('onlineGames') ?? 0;
@@ -628,6 +631,24 @@ class PlayerProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 💳 課金で買ったコインを付与する。
+  ///
+  /// ⚠️ ここだけは **倍率を掛けない**。
+  ///    「1,000コイン」と書いて売ったものが、覚醒済みの人には 1,300 入る、
+  ///    という状態になると表示額と実額がずれる。売り物は額面どおりに渡す。
+  ///
+  /// ミッション進捗（missionCoinsEarned）にも入れない。
+  /// 課金で「今日60コイン稼ぐ」が達成されるのは筋が悪いため。
+  Future<void> grantPurchasedCoins(int amount) async {
+    if (amount <= 0) return;
+    coins += amount;
+    lifetimeCoins += amount;
+    paidCoinsLifetime += amount;
+    _checkAchievements();
+    await _persist();
+    notifyListeners();
+  }
+
   /// リワード広告視聴などで追加コインを付与。
   Future<void> grantBonusCoins(int amount) async {
     await _addCoins(amount);
@@ -687,6 +708,10 @@ class PlayerProfile extends ChangeNotifier {
     _refreshMissions();
     if (missionClaimed.contains(id)) return false;
     missionClaimed.add(id);
+    // ここだけ _addCoinsSync を使わないのは**わざと**。
+    // ミッション報酬を missionCoinsEarned に足すと、
+    // 「今日60コイン稼ぐ」ミッションが他のミッションの報酬で進んでしまう。
+    // 倍率だけは掛ける。
     final scaled = _scaled(reward);
     coins += scaled;
     lifetimeCoins += scaled;
@@ -793,13 +818,22 @@ class PlayerProfile extends ChangeNotifier {
 
   int _scaled(int amount) => (amount * coinMultiplier).round();
 
-  Future<void> _addCoins(int amount) async {
+  /// コイン付与の**唯一の入口**。倍率（覚醒＋招福こばん）とミッション進捗が
+  /// ここにまとまっている。同期版なので `_checkAchievements` のような
+  /// 非async の場所からも呼べる。
+  ///
+  /// ⚠️ ここを通さずに `coins += n` と書かないこと。
+  ///    倍率が効かない付与経路ができてしまい、倍率を買った人ほど損をする。
+  ///    （実際にガチャの残念賞と実績報酬がその状態だった）
+  void _addCoinsSync(int amount) {
     final scaled = _scaled(amount);
     coins += scaled;
     lifetimeCoins += scaled;
     _refreshMissions();
     missionCoinsEarned += scaled; // 今日かせいだコイン（ミッション用）
   }
+
+  Future<void> _addCoins(int amount) async => _addCoinsSync(amount);
 
   /// 覚醒できる条件（鬼段位に到達し、鬼CPUに3勝以上）。
   bool get canAwaken =>
@@ -889,7 +923,6 @@ class PlayerProfile extends ChangeNotifier {
   }
 
   /// 追加キャラをコインで購入。成功したら true。
-  /// 実績キャラはコインでは買えない（腕前でしか手に入らない枠）。
   Future<bool> unlockCharacter(String id, int cost) async {
     if (unlockedCharacters.contains(id)) return true;
     // 🏆 実績・📅 ログイン枠も**買える**。本筋は条件を満たすことだが、
@@ -1003,8 +1036,10 @@ class PlayerProfile extends ChangeNotifier {
     lastGachaDate = _today();
     final pool = _gachaPool();
     if (pool.isEmpty) {
-      coins += consolationCoins;
-      lifetimeCoins += consolationCoins;
+      // ⚠️ 直接足さずに _addCoins を通すこと。
+      //    覚醒（awakenings）と招福こばんの倍率がここだけ効かず、
+      //    倍率を買った人ほど損をする状態になっていた。
+      await _addCoins(consolationCoins);
       await _persist();
       notifyListeners();
       return null;
@@ -1104,8 +1139,8 @@ class PlayerProfile extends ChangeNotifier {
       if (unlockedAchievements.contains(a.id)) continue;
       if (_meetsAchievement(a.id)) {
         unlockedAchievements.add(a.id);
-        coins += a.rewardCoins;
-        lifetimeCoins += a.rewardCoins;
+        // ⚠️ 直接足さずに _addCoinsSync を通すこと（倍率がここだけ死んでいた）
+        _addCoinsSync(a.rewardCoins);
         newly.add(a.id);
       }
     }
@@ -1183,6 +1218,7 @@ class PlayerProfile extends ChangeNotifier {
     if (p == null) return;
     await p.setInt('coins', coins);
     await p.setInt('lifetimeCoins', lifetimeCoins);
+    await p.setInt('paidCoinsLifetime', paidCoinsLifetime);
     await p.setInt('totalGames', totalGames);
     await p.setInt('highScore', highScore);
     await p.setInt('onlineGames', onlineGames);

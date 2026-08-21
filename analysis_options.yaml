@@ -33,4 +33,11 @@ linter:
 #    あちらは project_noa/ の中で flutter analyze を回す。
 analyzer:
   exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
     - project_noa/**

@@ -1,7 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nanimonjya/models/character_catalog.dart';
 import 'package:nanimonjya/models/shop_items.dart';
 import 'package:nanimonjya/services/player_profile.dart';
+
+/// 実績の判定材料をすべて未達成に戻す。
+///
+/// PlayerProfile はシングルトンで `load()` が初回しか走らないため、
+/// 前のグループが立てたフラグ（cpuOniWins など）が残っていると
+/// 意図しない実績が発火して、付与コインの期待値がずれる。
+void _clearAchievementStats(PlayerProfile p) {
+  p.totalGames = 0;
+  p.bestDailyStreak = 0;
+  p.bestSessionStreak = 0;
+  p.highScore = 0;
+  p.onlineGames = 0;
+  p.onlineWins = 0;
+  p.randomMatches = 0;
+  p.cpuEasyWins = 0;
+  p.cpuNormalWins = 0;
+  p.cpuHardWins = 0;
+  p.cpuOniWins = 0;
+  p.hadPerfectQuiz = false;
+  p.hadFastReflex = false;
+  p.soloTrainingSessions = 0;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -136,6 +159,100 @@ void main() {
       expect(praiseVoiceById('none').linesJa, isEmpty);
       // 🙏 いろいろな立場のほめ方
       expect(praiseVoiceById('miko').linesJa, isNotEmpty);
+    });
+  });
+
+  // 🐛 倍率（覚醒・招福こばん）が効かないコイン付与経路があった。
+  //    倍率を買った人ほど損をするので、経路ごとに固定しておく。
+  group('コイン倍率がすべての付与経路に効く', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final p = PlayerProfile.instance;
+      await p.load();
+      p.awakenings = 0;
+      p.coins = 0;
+      p.lifetimeCoins = 0;
+      p.unlockedCharms = {'none'};
+      p.selectedCharm = 'none';
+      p.unlockedCharacters = {};
+      p.unlockedAchievements = {};
+      p.lastGachaDate = '';
+      _clearAchievementStats(p);
+    });
+
+    test('実績報酬に倍率がかかる', () async {
+      final p = PlayerProfile.instance;
+      p.awakenings = 2; // 1.1倍
+      p.totalGames = 1; // first_play（30コイン）の条件を満たす
+      final newly = await p.refreshAchievements();
+      expect(newly, contains('first_play'));
+      expect(p.coins, 33); // 30 × 1.1
+    });
+
+    test('ガチャの残念賞に倍率がかかる', () async {
+      final p = PlayerProfile.instance;
+      p.awakenings = 2; // 1.1倍
+      // 買えるキャラを全部持っている＝プールが空＝残念賞に落ちる
+      p.unlockedCharacters = {
+        for (final c in kExtraCharacters)
+          if (!c.isFeatCharacter) c.id,
+      };
+      final got = await p.pullDailyGacha(consolationCoins: 80);
+      expect(got, isNull); // キャラは出ない
+      expect(p.coins, 88); // 80 × 1.1
+    });
+
+    test('倍率なしなら額面どおり入る', () async {
+      final p = PlayerProfile.instance;
+      p.totalGames = 1;
+      await p.refreshAchievements();
+      expect(p.coins, 30);
+    });
+  });
+
+  group('実績・ログイン枠のキャラもコインで買える', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final p = PlayerProfile.instance;
+      await p.load();
+      p.coins = 0;
+      p.lifetimeCoins = 0;
+      p.awakenings = 0;
+      p.selectedCharm = 'none';
+      p.unlockedCharacters = {};
+      p.unlockedAchievements = {};
+      p.lastGachaDate = '';
+      _clearAchievementStats(p);
+    });
+
+    test('条件を満たしていなくても、コインが足りていれば買える', () async {
+      final feat = kExtraCharacters.firstWhere((c) => c.isFeatCharacter);
+      final p = PlayerProfile.instance;
+      p.coins = feat.cost;
+      final ok = await p.unlockCharacter(feat.id, feat.cost);
+      expect(ok, isTrue);
+      expect(p.unlockedCharacters, contains(feat.id));
+      expect(p.coins, 0);
+    });
+
+    test('コインが足りなければ買えない', () async {
+      final feat = kExtraCharacters.firstWhere((c) => c.isFeatCharacter);
+      final p = PlayerProfile.instance;
+      p.coins = feat.cost - 1;
+      final ok = await p.unlockCharacter(feat.id, feat.cost);
+      expect(ok, isFalse);
+      expect(p.unlockedCharacters, isNot(contains(feat.id)));
+      expect(p.coins, feat.cost - 1); // 減っていない
+    });
+
+    test('実績キャラはガチャのプールには入らない', () async {
+      final p = PlayerProfile.instance;
+      p.unlockedCharacters = {};
+      p.lastGachaDate = '';
+      final got = await p.pullDailyGacha();
+      expect(got, isNotNull);
+      final won = kExtraCharacters.firstWhere((c) => c.id == got);
+      expect(won.isFeatCharacter, isFalse);
     });
   });
 }

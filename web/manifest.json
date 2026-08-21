@@ -1,6 +1,6 @@
 {
-    "name": "PetaName — Face & Name Memory Training",
-    "short_name": "PetaName",
+    "name": "なまえがお — 顔と名前の記憶トレーニング",
+    "short_name": "なまえがお",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF9EC",

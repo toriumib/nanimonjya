@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nanimonjya/models/avatar.dart';
+import 'package:nanimonjya/models/noah_save.dart';
 import 'package:nanimonjya/models/noah_story.dart';
 
 /// 🚀 ストーリーモード「プロジェクト・ノア」のロジック。
@@ -12,9 +13,28 @@ import 'package:nanimonjya/models/noah_story.dart';
 /// 崩れると4択が実質2択になってしまう要点なのでテストで守る。
 void main() {
   group('キャスト', () {
-    test('8人いて、IDが重複していない', () {
-      expect(kNoahCast.length, 8);
-      expect(kNoahCast.map((c) => c.id).toSet().length, 8);
+    test('十六人いて、IDが重複していない', () {
+      expect(kNoahCast.length, 16);
+      expect(kNoahCast.map((c) => c.id).toSet().length, 16);
+    });
+
+    test('男女が8人ずつ（好みで絞っても8人残る）', () {
+      expect(kNoahCast.where((c) => c.male).length, 8);
+      expect(kNoahCast.where((c) => !c.male).length, 8);
+    });
+
+    test('全員が意識の理論を持ち、日英そろっている', () {
+      for (final c in kNoahCast) {
+        expect(c.theory, isNotEmpty, reason: c.id);
+        expect(c.theoryEn, isNotEmpty, reason: c.id);
+        expect(c.theoryShort, isNotEmpty, reason: c.id);
+        expect(c.theoryShortEn, isNotEmpty, reason: c.id);
+        expect(c.uploadEnding, isNotEmpty, reason: c.id);
+        expect(c.uploadEndingEn, isNotEmpty, reason: c.id);
+      }
+      // 理論が使い回されていない（16人＝16理論）
+      expect(kNoahCast.map((c) => c.theory).toSet().length, 16);
+      expect(kNoahCast.map((c) => c.theoryEn).toSet().length, 16);
     });
 
     test('出題に使う項目が全員そろっている（空欄だと3択が作れない）', () {
@@ -143,12 +163,12 @@ void main() {
   group('乗船定員（覚えるほど助かる人が増える）', () {
     test('全問正解で全員ぶんに届く', () {
       expect(noahCapacityFor(12, 12), kNoahCapacitySteps.last);
-      expect(noahCapacityFor(12, 12), 500);
+      expect(noahCapacityFor(12, 12), 16);
     });
 
     test('思い出せないと最初の計画のまま', () {
       expect(noahCapacityFor(0, 12), kNoahCapacitySteps.first);
-      expect(noahCapacityFor(0, 12), 12);
+      expect(noahCapacityFor(0, 12), 4);
     });
 
     test('思い出した数に応じて段階的に増える', () {
@@ -207,6 +227,9 @@ void main() {
     test('正解のセリフはキャラごとに違う（使い回しをしない）', () {
       final lines = kNoahCast.map(noahHitLineJa).toSet();
       expect(lines.length, kNoahCast.length);
+      // 英語側も同じく使い回さない
+      final linesEn = kNoahCast.map(noahHitLineEn).toSet();
+      expect(linesEn.length, kNoahCast.length);
     });
 
     test('出題のセリフは項目ごとに用意されている', () {
@@ -261,6 +284,83 @@ void main() {
         expect(Avatar.decode(c.avatar.encode()).encode(), c.avatar.encode(),
             reason: c.id);
       }
+    });
+  });
+  _saveAndEndingTests();
+}
+
+/// 💾 途中セーブと、統合で足した結末の回帰テスト。
+void _saveAndEndingTests() {
+  group('途中セーブ', () {
+    test('書き出して読み直すと同じ中身になる', () {
+      const data = NoahSaveData(
+        phase: 'recall',
+        gender: 'female',
+        pref: 'all',
+        castIds: ['hibino', 'kiryu'],
+        talkableIds: ['hibino'],
+        metIds: ['hibino'],
+        affection: {'hibino': 2},
+        remembered: {
+          'hibino': ['name', 'hobby']
+        },
+        mysterySolved: 1,
+        index: 1,
+        line: 0,
+        correct: 3,
+        total: 4,
+        noteTitles: [],
+        noteIndex: 0,
+        mysteryCulpritIds: ['hibino'],
+        mysteryChoiceIds: [
+          ['hibino', 'kiryu']
+        ],
+        mysteryIndex: 0,
+        qTargetId: 'kiryu',
+        qField: 'name',
+        qChoices: ['桐生 悟', '日比野 楓', '楠 玲'],
+      );
+      final back = NoahSaveData.decode(data.encode())!;
+      expect(back.phase, 'recall');
+      expect(back.castIds, ['hibino', 'kiryu']);
+      expect(back.correct, 3);
+      expect(back.mysterySolved, 1);
+      // ⚠️ 出題中の3択も残ること。作り直せると答えを引き直せてしまう
+      expect(back.qChoices, hasLength(3));
+      expect(back.question()?.target.id, 'kiryu');
+    });
+
+    test('壊れた文字列でも落ちない', () {
+      expect(NoahSaveData.decode(null), isNull);
+      expect(NoahSaveData.decode(''), isNull);
+      expect(NoahSaveData.decode('{壊れている'), isNull);
+      expect(NoahSaveData.decode('{"v":999}'), isNull); // 版が違う
+    });
+  });
+
+  group('統合で足した結末', () {
+    test('全部そろえば真エンド（世界線Ω）', () {
+      final r = resolveNoahEnding({'hibino': 5, 'kiryu': 2},
+          divergence: 1.0, romantic: true);
+      expect(r.ending, NoahEnding.trueEnd);
+    });
+
+    test('恋愛を選ばなければ見守りエンド（失敗の lonely とは別）', () {
+      final r = resolveNoahEnding({'hibino': 5, 'kiryu': 2},
+          divergence: 0.5, romantic: false);
+      expect(r.ending, NoahEnding.watching);
+      expect(r.partner?.id, 'hibino'); // いちばん覚えていた人の理論が採られる
+    });
+
+    test('覚えられなかったときは今までどおり lonely', () {
+      final r = resolveNoahEnding({'hibino': 0}, divergence: 0, romantic: true);
+      expect(r.ending, NoahEnding.lonely);
+    });
+
+    test('世界線は思い出した割合で決まり、1.0を超えない', () {
+      expect(noahDivergence({'a': {NoahField.name}}, 2), 0.5);
+      expect(noahDivergence({'a': {NoahField.name}}, 1, extra: 5), 1.0);
+      expect(noahDivergence(const {}, 0), 0); // 0除算しない
     });
   });
 }

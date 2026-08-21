@@ -3,8 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../l10n/meta_strings.dart';
-import '../widgets/app_style.dart';
+import '../models/noah_save.dart';
 import '../models/noah_story.dart';
+import '../widgets/app_style.dart';
+import '../services/noah_save_store.dart';
 import '../services/player_profile.dart';
 import '../services/sfx.dart';
 import '../widgets/avatar_view.dart';
@@ -32,6 +34,7 @@ class NoahStoryScreen extends StatefulWidget {
 enum _Phase {
   setup, // 性別・恋愛対象を選ぶ
   prologue, // 序章
+  capacity, // 定員四名の宣告と「さよならの手紙」
   whyNames, // なぜ名前なのか（物語の主題）
   coldShoulder, // 🥶 無視されるシーン
   physics, // 🌀 量子重力研 — 時空の構造と名前
@@ -43,8 +46,13 @@ enum _Phase {
   beforeSleep, // 出発前夜
   awake, // 目覚め
   recall, // 記憶テスト（名前・趣味）
+  forgot, // 十七人目の名前を落としていたことに気づく
   date, // デート
+  beforeMystery, // 幕間の前口上
+  mystery, // 船内の小さな謎（心残りから当てる）
+  midVoyage, // 航行中の危機（引き返せなくなる）
   climax, // 減速危機
+  consciousness, // 意識の淘汰（量子論が残る）
   note, // 研究にもとづく覚え方のメモ
   finalTest, // 最終テスト（所属・通信ID・学生時代）
   beforeResult, // 着陸準備
@@ -56,6 +64,9 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   void initState() {
     super.initState();
     AppAnalytics.screen('story_noah');
+    NoahSaveStore.instance.load().then((v) {
+      if (mounted) setState(() => _save = v);
+    });
   }
 
   final _rng = Random();
@@ -65,10 +76,36 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   NoahPreference _pref = NoahPreference.all;
   bool _ja = true; // updated each build
 
-  /// この周回に出てくる科学者。4人だと1周が20分ほどで収まる。
+  /// この周回に出てくる科学者。**一周で十六人全員**と名刺を交換する。
   List<NoahCharacter> _cast = [];
+
+  /// 腰を据えて話す相手（＝理論が採択されうる相手）。好みで絞る。
+  List<NoahCharacter> _talkable = [];
   final List<NoahCharacter> _met = [];
   final Map<String, int> _affection = {};
+
+  // 🔍 船内の謎
+  List<NoahMysteryQuestion> _mysteries = const [];
+  int _mysteryIndex = 0;
+  NoahCharacter? _mysteryPicked;
+
+  /// 謎を解いた数。項目の正解とは別勘定にする
+  /// （集合に混ぜると重複で潰れて、世界線が1.000000に届かなくなる）。
+  int _mysterySolved = 0;
+
+  /// 🌐 「この人のこの項目は思い出せた」の記録。世界線はこれで決まる。
+  /// 好感度（♥）とは別物で、♥は相手を決めるためだけに使う。
+  final Map<String, Set<NoahField>> _remembered = {};
+
+  /// 実際に出す問題の総数。
+  /// 一人あたり「思い出す」で1問、「最終確認」で1問。それに謎の数を足す。
+  /// ⚠️ ここを出題数と揃えていないと 1.000000 に到達できない。
+  int get _askable => _cast.length * 2 + _mysteries.length;
+
+  double get _divergence =>
+      noahDivergence(_remembered, _askable, extra: _mysterySolved);
+
+  bool get _mysteryAnswered => _mysteryPicked != null;
 
   int _index = 0; // 何人目か
   int _line = 0; // 台詞の何行目か
@@ -85,10 +122,114 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   /// いま何人まで乗れるか。思い出した数で伸びる。
   int get _capacity => noahCapacityFor(_correct, _total);
 
+
+  // ── 💾 セーブ ──
+  //
+  // 一周が長い（十六人と会って、十六人ぶん思い出して、船内で話して、
+  // 最終確認まで）ので、中断して戻れないと詰む。
+
+  /// 読み込み済みの途中セーブ。無ければ null。
+  NoahSaveData? _save;
+  bool get _hasSave => _save != null;
+
+  /// いまの進行をまるごと書き出す。
+  /// ⚠️ 出題中の3択も一緒に保存する。作り直すと引き直せてしまうため。
+  NoahSaveData _snapshot() => NoahSaveData(
+        phase: _phase.name,
+        gender: _gender.name,
+        pref: _pref.name,
+        castIds: [for (final c in _cast) c.id],
+        talkableIds: [for (final c in _talkable) c.id],
+        metIds: [for (final c in _met) c.id],
+        affection: Map.of(_affection),
+        remembered: {
+          for (final e in _remembered.entries)
+            e.key: [for (final f in e.value) f.name],
+        },
+        mysterySolved: _mysterySolved,
+        index: _index,
+        line: _line,
+        correct: _correct,
+        total: _total,
+        noteTitles: [for (final n in _notes) n.title],
+        noteIndex: _noteIndex,
+        mysteryCulpritIds: [for (final m in _mysteries) m.culprit.id],
+        mysteryChoiceIds: [
+          for (final m in _mysteries) [for (final c in m.choices) c.id],
+        ],
+        mysteryIndex: _mysteryIndex,
+        mysteryPickedId: _mysteryPicked?.id,
+        qTargetId: _q?.target.id,
+        qField: _q?.field.name,
+        qChoices: _q?.choices ?? const [],
+        qPicked: _picked,
+      );
+
+  void _persist() {
+    if (_phase == _Phase.setup) return;
+    NoahSaveStore.instance.save(_snapshot());
+  }
+
+  void _resume(NoahSaveData s) {
+    _cast = s.cast();
+    if (_cast.isEmpty) return; // 壊れていたら最初から
+    _talkable = s.talkable();
+    if (_talkable.isEmpty) _talkable = _cast;
+    _met
+      ..clear()
+      ..addAll(s.met());
+    _affection
+      ..clear()
+      ..addAll(s.affection);
+    _remembered
+      ..clear()
+      ..addAll(s.rememberedFields());
+    _mysterySolved = s.mysterySolved;
+    _index = s.index;
+    _line = s.line;
+    _correct = s.correct;
+    _total = s.total;
+    _notes = s.notes();
+    _noteIndex = s.noteIndex;
+    _mysteries = s.mysteries();
+    _mysteryIndex = s.mysteryIndex;
+    _mysteryPicked =
+        s.mysteryPickedId == null ? null : noahCharacterById(s.mysteryPickedId!);
+    _q = s.question();
+    _picked = s.qPicked;
+    _gender = NoahGender.values
+        .firstWhere((g) => g.name == s.gender, orElse: () => _gender);
+    _pref = NoahPreference.values
+        .firstWhere((p) => p.name == s.pref, orElse: () => _pref);
+    _phase = _Phase.values
+        .firstWhere((p) => p.name == s.phase, orElse: () => _Phase.prologue);
+    // 範囲外に飛ばないよう念のため丸める
+    if (_index >= _cast.length) _index = 0;
+    if (_noteIndex >= _notes.length) _noteIndex = 0;
+    if (_mysteryIndex >= _mysteries.length) _mysteryIndex = 0;
+  }
+
+  /// 途中から再開する。壊れたセーブなら捨てて最初から始める。
+  void _resumeFromSave() {
+    final s = _save;
+    if (s == null) return;
+    Sfx.instance.pop();
+    setState(() {
+      _resume(s);
+      // _resume は cast が空なら何もせず返る（＝setup のまま）。
+      // その場合は読めないセーブなので、持っておかずに消す。
+      if (_phase == _Phase.setup) {
+        NoahSaveStore.instance.clear();
+        _save = null;
+      }
+    });
+  }
+
   // ── 進行 ──
 
   List<NoahLine> get _script => noahStoryLines(_ja, switch (_phase) {
         _Phase.prologue => kNoahPrologue,
+        _Phase.capacity => kNoahCapacityScene,
         _Phase.whyNames => kNoahWhyNames,
         _Phase.coldShoulder => kNoahColdShoulder,
         _Phase.physics => kNoahPhysics,
@@ -96,11 +237,16 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.beforeMeeting => kNoahBeforeMeeting,
         _Phase.beforeSleep => kNoahBeforeSleep,
         _Phase.awake => kNoahAwake,
+        _Phase.forgot => kNoahForgot,
+        _Phase.beforeMystery => kNoahBeforeMystery,
+        _Phase.midVoyage => kNoahMidVoyage,
         _Phase.climax => kNoahClimax,
+        _Phase.consciousness => kNoahConsciousness,
         _Phase.beforeResult => kNoahBeforeResult,
         _ => const [],
       }, switch (_phase) {
         _Phase.prologue => kNoahPrologueEn,
+        _Phase.capacity => kNoahCapacitySceneEn,
         _Phase.whyNames => kNoahWhyNamesEn,
         _Phase.coldShoulder => kNoahColdShoulderEn,
         _Phase.physics => kNoahPhysicsEn,
@@ -108,16 +254,21 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         _Phase.beforeMeeting => kNoahBeforeMeetingEn,
         _Phase.beforeSleep => kNoahBeforeSleepEn,
         _Phase.awake => kNoahAwakeEn,
+        _Phase.forgot => kNoahForgotEn,
+        _Phase.beforeMystery => kNoahBeforeMysteryEn,
+        _Phase.midVoyage => kNoahMidVoyageEn,
         _Phase.climax => kNoahClimaxEn,
+        _Phase.consciousness => kNoahConsciousnessEn,
         _Phase.beforeResult => kNoahBeforeResultEn,
         _ => const [],
       });
 
   void _startGame() {
-    final pool = _pref.filter(kNoahCast);
-    // 絞りこんだ結果が少なすぎると3択の相手が作れないので、全員から補う
-    final base = pool.length >= 4 ? pool : kNoahCast;
-    _cast = ([...base]..shuffle(_rng)).take(4).toList();
+    // 🧑‍🤝‍🧑 一周で十六人**全員**と名刺を交換し、全員が記憶テストに出る。
+    //    腰を据えて話す相手（＝理論が採択されうる相手）だけを _talkable で絞る。
+    _cast = [...kNoahCast]..shuffle(_rng);
+    _talkable = [..._pref.filter(_cast)]..shuffle(_rng);
+    if (_talkable.isEmpty) _talkable = _cast;
     _affection.clear();
     for (final c in _cast) {
       _affection[c.id] = 0;
@@ -127,9 +278,19 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     _line = 0;
     _correct = 0;
     _total = 0;
+    _mysterySolved = 0;
+    _remembered.clear();
     _notes = ([...(_ja ? kNoahNotes : kNoahNotesEn)]..shuffle(_rng)).take(3).toList();
+    // 謎の手がかりは船内で聞いた心残りなので、話した相手からだけ出す
+    _mysteries = buildNoahMysteries(cast: _talkable, random: _rng);
+    _mysteryIndex = 0;
+    _mysteryPicked = null;
     _noteIndex = 0;
     _phase = _Phase.prologue;
+    // 前の周回のセーブは捨てる。残すと「つづきから」が
+    // 始めたばかりの周ではなく古い周を指してしまう。
+    _save = null;
+    NoahSaveStore.instance.clear();
   }
 
   void _next() {
@@ -147,6 +308,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           AppAnalytics.storyStart(); // story_progress の分母
           _startGame();
         case _Phase.prologue:
+          _phase = _Phase.capacity;
+        case _Phase.capacity:
           _phase = _Phase.whyNames;
         case _Phase.whyNames:
           _phase = _Phase.coldShoulder;
@@ -181,15 +344,36 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _prepare(const [NoahField.name, NoahField.hobby]);
           } else {
             _index = 0;
-            _phase = _Phase.note; // 一息いれて、覚え方の話をする
+            // 十六人は言えたのに、十七人目で止まる
+            _phase = _Phase.forgot;
           }
+        case _Phase.forgot:
+          _phase = _Phase.note; // 一息いれて、覚え方の話をする
         case _Phase.date:
           if (_index + 1 < _cast.length) {
             _index += 1;
           } else {
             _index = 0;
-            _phase = _Phase.climax;
+            // 謎を出せる顔ぶれがそろっていないときは飛ばす
+            _phase = _mysteries.isEmpty
+                ? _Phase.midVoyage
+                : _Phase.beforeMystery;
           }
+        case _Phase.beforeMystery:
+          _phase = _Phase.mystery;
+          _mysteryIndex = 0;
+          _mysteryPicked = null;
+        case _Phase.mystery:
+          if (_mysteryIndex + 1 < _mysteries.length) {
+            _mysteryIndex += 1;
+            _mysteryPicked = null;
+          } else {
+            _mysteryIndex = 0;
+            _mysteryPicked = null;
+            _phase = _Phase.midVoyage;
+          }
+        case _Phase.midVoyage:
+          _phase = _Phase.climax;
         case _Phase.note:
           if (_noteIndex + 1 < _notes.length) {
             _noteIndex += 1;
@@ -198,6 +382,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             _phase = _Phase.date;
           }
         case _Phase.climax:
+          _phase = _Phase.consciousness;
+        case _Phase.consciousness:
           _phase = _Phase.finalTest;
           _prepare(const [
             NoahField.affiliation,
@@ -218,6 +404,9 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
         case _Phase.beforeResult:
           _phase = _Phase.ending;
           _grantReward();
+          // 読み終えた周回のセーブは残さない（結果画面から再開しても意味がない）
+          NoahSaveStore.instance.clear();
+          _save = null;
         case _Phase.ending:
           // タブの中では閉じられないので、最初から遊べるように戻す
           if (widget.embedded) {
@@ -227,6 +416,8 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
           }
       }
     });
+    // 💾 1行進むたびに保存する。落ちても、閉じても、ここまで戻れる。
+    _persist();
     // 📊 章が変わったときだけ撃つ。1行送るたびに撃つと
     //    イベントが膨れて、どこまで進んだかが逆に読めなくなる。
     if (_phase != before) {
@@ -260,11 +451,14 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       _correct += 1;
       // 思い出せたぶんだけ、相手との距離が縮まる
       _affection[q.target.id] = (_affection[q.target.id] ?? 0) + 1;
+      // どの項目を覚えていたかを記録する（世界線の材料）
+      (_remembered[q.target.id] ??= <NoahField>{}).add(q.field);
       Sfx.instance.correct();
     } else {
       Sfx.instance.wrong();
     }
     setState(() => _picked = choice);
+    _persist();
   }
 
   Future<void> _grantReward() async {
@@ -272,7 +466,11 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
     await PlayerProfile.instance.grantBonusCoins(20 + _correct * 10);
   }
 
-  NoahResult get _result => resolveNoahEnding(_affection);
+  NoahResult get _result => resolveNoahEnding(
+        _affection,
+        divergence: _divergence,
+        romantic: _pref.romantic,
+      );
 
   // ── 画面 ──
 
@@ -321,6 +519,7 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
               _Phase.recall || _Phase.finalTest => _quiz(),
               _Phase.date => _date(),
               _Phase.note => _noteView(),
+              _Phase.mystery => _mysteryView(),
               _Phase.ending => _ending(),
               _ => _advView(m),
             },
@@ -329,6 +528,150 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
       ),
     );
   }
+
+
+  // ── 🔍 船内の謎 ──
+  //
+  // 名前を覚えるだけでなく、**心残りを覚えているか**を問う。
+  // 船内で聞いた「やり残したこと」が手がかりになる。
+
+  void _answerMystery(NoahCharacter picked) {
+    if (_mysteryPicked != null) return;
+    final q = _mysteries[_mysteryIndex];
+    _total += 1;
+    if (q.isCorrect(picked)) {
+      _correct += 1;
+      _affection[q.culprit.id] = (_affection[q.culprit.id] ?? 0) + 1;
+      // 心残りは項目ではないので別勘定（集合に混ぜると重複で潰れる）
+      _mysterySolved += 1;
+      Sfx.instance.correct();
+    } else {
+      Sfx.instance.wrong();
+    }
+    setState(() => _mysteryPicked = picked);
+    _persist();
+  }
+
+  Widget _mysteryView() {
+    final q = _mysteries[_mysteryIndex];
+    return ListView(
+      children: [
+        Text(
+            _ja
+                ? '船内の小さな謎 ${_mysteryIndex + 1} / ${_mysteries.length}'
+                : 'A small shipboard mystery ${_mysteryIndex + 1} / ${_mysteries.length}',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
+        const SizedBox(height: 14),
+        const Center(child: Text('🔍', style: TextStyle(fontSize: 44))),
+        const SizedBox(height: 14),
+        Center(
+          child: Text(q.mystery.titleOf(_ja),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 16.5,
+                  height: 1.6,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFFF9A3C))),
+        ),
+        const SizedBox(height: 16),
+        _body(q.mystery.sceneOf(_ja), size: 14, color: const Color(0xFFA8B6D6)),
+        const SizedBox(height: 18),
+        if (!_mysteryAnswered) ...[
+          Center(
+            child: Text(
+                _ja ? '——これは、誰の習慣だろう。' : '—Whose habit is this?',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5AD1FF))),
+          ),
+          const SizedBox(height: 14),
+          for (final c in q.choices)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _mysteryChoice(c),
+            ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Color(q.culprit.colorValue).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: Color(q.culprit.colorValue).withValues(alpha: 0.5)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _portrait(q.culprit, size: 46),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(q.culprit.name,
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Color(q.culprit.colorValue))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _body(q.mystery.answerOf(_ja), size: 14),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          _body(
+            q.isCorrect(_mysteryPicked!)
+                ? noahMysteryHitLine(q.culprit, _ja)
+                : noahMysteryMissLine(_mysteryPicked!, q.culprit, _ja),
+            size: 14,
+            color: q.isCorrect(_mysteryPicked!)
+                ? const Color(0xFF7DFFB0)
+                : const Color(0xFFFFB4B4),
+          ),
+          const SizedBox(height: 18),
+          _nextButton(_mysteryIndex + 1 < _mysteries.length
+              ? (_ja ? '次の謎へ' : 'Next mystery')
+              : (_ja ? '航行をつづける' : 'Continue the voyage')),
+        ],
+      ],
+    );
+  }
+
+  Widget _mysteryChoice(NoahCharacter c) => GestureDetector(
+        onTap: () => _answerMystery(c),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0B1020),
+            border: Border.all(color: Color(c.colorValue), width: 1.6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              _portrait(c, size: 42),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(c.name,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFD7E2FF))),
+                    Text('${c.field}・${c.hobby}',
+                        style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF8FA3C8))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 
   /// 🧑‍🎨 立ち絵。顔メモと同じアバターで描く。
   ///
@@ -400,6 +743,41 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
                 style: const TextStyle(fontSize: 12, color: Color(0xFF8FA3C8))),
           ),
           const SizedBox(height: 22),
+          // 💾 途中セーブがあるときだけ出す。一周が長いので、
+          //    中断して戻れないと詰む。
+          if (_hasSave) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _resumeFromSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFC93C),
+                  foregroundColor: const Color(0xFF3A2A00),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+                child: Text(_ja ? 'つづきから' : 'Continue'),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: Text(
+                  _ja
+                      ? _save!.summaryJa
+                      : '${_save!.correct} / ${_save!.total} correct'
+                          ' · ${_save!.castIds.length} of sixteen aboard',
+                  style: const TextStyle(
+                      fontSize: 11.5, color: Color(0xFF8FA3C8))),
+            ),
+            const SizedBox(height: 18),
+            Center(
+              child: Text(_ja ? '― または、はじめから ―' : '— or start over —',
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0xFF5C6B8A))),
+            ),
+            const SizedBox(height: 14),
+          ],
           _pickerCard(
             _ja ? 'あなたは' : 'You are',
             [
@@ -956,6 +1334,9 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
             children: [
               _statRow(_ja ? '思い出せた' : 'Remembered',
                   '$_correct / $_total'),
+              _statRow(noahWorldLineLabel(_ja),
+                  '${noahWorldLineJa(_divergence)} '
+                  '${noahDivergenceLabel(_divergence)}'),
               _statRow(_ja ? '乗船できた人数' : 'Carried aboard',
                   _ja ? '$_capacity 名' : '$_capacity'),
               for (final e in ranked)
@@ -1007,6 +1388,52 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   }
 
   (String, String, String) _endingTextJa(NoahResult r) => switch (r.ending) {
+    // 🌟 全項目＋船内の謎まで、ひとつ残らず思い出した世界線。
+    NoahEnding.trueEnd => (
+      '真エンド ─ 世界線 Ω', '🌟',
+      '転送権は三対。地球で作って積んできたぶんが、全部だ。\n'
+          'もつれは局所操作では増やせない。使えば消える。\n'
+          'そして移せば、元の身体は必ず壊れる。控えは残らない。\n\n'
+          '誰に使うか、という会議が開かれた。\n'
+          '候補は出た。だが、どれも要らなかった。\n\n'
+          '「十七人、全員生きています」\n'
+          '「一度も死んでいない。証明されました」\n'
+          '「引っ越す必要のある人が、いま、ひとりもいない」\n\n'
+          '三対は封をして、新東戸塚の最初の図書館に納めた。\n'
+          '「さよならの手紙」の隣に。\n'
+          '札には一行だけ書いた。——「いつか、要る人が来たら」\n\n'
+          'それから、名簿をもう一度読んだ。全員ぶん、言えた。\n\n'
+          '——十七人目の名前も。\n\n'
+          'あの人の量子状態は、赤色巨星の中で散った。'
+          '転送する相手が、もう宇宙のどこにも無い。\n'
+          'それでも情報は消えていない。どこかへ移っただけだ。\n\n'
+          '回収する術は、永遠に無い。\n'
+          'だから呼ぶ。届かないと分かっていても、在ることは確かだから。',
+    ),
+    // 🛰️ 恋愛を選ばなかったルート。失敗ではなく、選んで行く場所。
+    NoahEnding.watching => (
+      '見守りエンド ─ ${r.partner?.theory ?? ''} 採択', '🛰️',
+      '受精卵カプセル一万個、無事に着床。\n'
+          '人類は太陽系の外へ出て、この星で続いていくことになった。\n\n'
+          '——誰とも結ばれなかった。選ばなかったからだ。\n'
+          'そのかわり、十六人全員の話を最後まで聞いた。\n\n'
+          'いちばんよく覚えていたのは、${r.partner?.name ?? ''}だった。\n'
+          'だからこの人の理論が採られた。\n\n'
+          '【${r.partner?.theory ?? ''}】\n'
+          '${r.partner?.theoryShort ?? ''}\n\n'
+          '${r.partner?.uploadEnding ?? ''}\n\n'
+          '——そして、最初に引っ越したのは自分だった。\n\n'
+          '志願者はほかにもいた。だが名簿を全部そらで言えるのは一人しかいない。\n'
+          '誰が誰かを取り違えない人間が、最初に行くべきだった。\n\n'
+          '十六人が眠っているあいだ、船を静かに回し、ポッドを拭き、\n'
+          '毎晩ひとつずつ名札を磨いて、名前を声に出した。\n\n'
+          '着陸の朝、全員が目を覚ます。\n'
+          '「……あなたは？」\n'
+          '「呼名官です。おはようございます。全員、そろっています」\n\n'
+          '誰も欠けていない。一人も。\n'
+          'それを言えるのが、この星でただ一人の自分だった。\n\n'
+          'それで、じゅうぶんだった。',
+    ),
     NoahEnding.happy => (
       'ハッピーエンド', '🌅',
       '${r.partner?.name ?? ''}と、ターミネータの浜に降りた。\n'
@@ -1052,6 +1479,50 @@ class _NoahStoryScreenState extends State<NoahStoryScreen> {
   };
 
   (String, String, String) _endingTextEn(NoahResult r) => switch (r.ending) {
+    NoahEnding.trueEnd => (
+      'True ending — World line Ω', '🌟',
+      'Three entangled pairs. That is all of them, made on Earth and carried here.\n'
+          'Entanglement cannot be increased by local operations. Spend it and it is gone.\n'
+          'And to move someone is always to destroy the original. No spare remains.\n\n'
+          'A meeting was held to decide who should use them.\n'
+          'Candidates were put forward. None of them were needed.\n\n'
+          '"All seventeen are alive."\n'
+          '"Not one of them ever died. It has been proven."\n'
+          '"There is no one, right now, who needs to move."\n\n'
+          'The three pairs were sealed and placed in the first library of New Higashi-Totsuka,\n'
+          'beside the goodbye letters.\n'
+          'The label carries one line. —"If someone should ever need them."\n\n'
+          'Then the roster was read once more. Every name came.\n\n'
+          '—Including the seventeenth.\n\n'
+          'That person\'s quantum state scattered inside a red giant. '
+          'There is nowhere left in the universe to transfer them to.\n'
+          'And yet the information is not gone. It only moved somewhere else.\n\n'
+          'There will never be a way to recover it.\n'
+          'So we call the name. Knowing it will not arrive, because it is certainly there.',
+    ),
+    NoahEnding.watching => (
+      'Keeping watch — ${r.partner?.theoryEn ?? ''} adopted', '🛰️',
+      'Ten thousand embryo capsules, safely implanted.\n'
+          'Humanity left the solar system, and will go on here.\n\n'
+          '—You ended up with no one. Because you did not choose.\n'
+          'Instead, you heard all sixteen of them out, to the end.\n\n'
+          'The one you remembered best was ${r.partner?.name ?? ''}.\n'
+          'So it was their theory that was adopted.\n\n'
+          '[${r.partner?.theoryEn ?? ''}]\n'
+          '${r.partner?.theoryShortEn ?? ''}\n\n'
+          '${r.partner?.uploadEndingEn ?? ''}\n\n'
+          '—And the first to move was you.\n\n'
+          'There were other volunteers. But only one person could recite the whole roster.\n'
+          'The one who never mistakes who is who should go first.\n\n'
+          'While the sixteen slept, you turned the ship quietly, wiped the pods,\n'
+          'and each night polished one plate and said the name aloud.\n\n'
+          'On the morning of the landing, all of them wake.\n'
+          '"…And you are?"\n'
+          '"The name-caller. Good morning. Everyone is here."\n\n'
+          'No one is missing. Not one.\n'
+          'And you were the only person on this world who could say so.\n\n'
+          'That was enough.',
+    ),
     NoahEnding.happy => (
       'Happy End', '🌅',
       'You landed on the terminator shore with ${r.partner?.name ?? ''}.\n'

@@ -307,7 +307,7 @@ class MetaStrings {
       ? '【$titleForShare】なまえがおで顔と名前の記憶トレ中！🔥 最高$topScore点\nこの覚えゲー、地味にクセになる…🏷️\nいっしょにあそぼ👇'
       : "[$titleForShare] Training my name-memory in Name Call! 🔥 Top score $topScore\nThis memory game is weirdly addictive 🏷️ Come play 👇";
   String get shareHashtag =>
-      ja ? '#名前を覚えよう #顔と名前の記憶トレ' : '#NameCall #NameMemoryTraining';
+      ja ? '#なまえがお #顔と名前の記憶トレ' : '#Namaegao #NameMemoryTraining';
   // シェア文に埋め込む現在の称号（シェア直前に設定）。constクラスなのでstatic。
   static String titleForShare = '';
 
@@ -1296,6 +1296,9 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
     }
   }
 
+  // ⚠️ main側の character_shop_screen.dart は featLocked を前提にした
+  //    「実績・ログイン枠はコインでは買えない」設計に戻っている。
+  //    このメソッドを消すとビルドが壊れるので復元する。
   String featLocked(String cond) => ja
       ? 'このキャラはコインで買えません。「$cond」で参戦します🏆'
       : 'Not for sale. Unlock by: $cond 🏆';
@@ -1445,6 +1448,13 @@ It needs on-device photo storage, so it does not run in the browser. Nothing you
       ? '💎 広告なしでご利用いただけます。ありがとうございます！'
       : '💎 Ads are off. Thank you for your support!';
   String get restorePurchase => ja ? '購入を復元' : 'Restore purchase';
+  // 🪙 コインパック（消費型課金）
+  String get coinPackTitle => ja ? '🪙 コインをふやす' : '🪙 Get more coins';
+  String get coinPackDesc => ja
+      ? 'キャラ・きせかえ・BGM・読み物に使えます。動画を見て貯めることもできます。'
+      : 'Spend on characters, themes, music and articles. You can also earn coins by watching videos.';
+  String get coinPackPopular => ja ? 'おすすめ' : 'POPULAR';
+  String get coinPackBest => ja ? 'いちばんお得' : 'BEST VALUE';
   String get shopBgmTitle => ja ? '🎵 BGM' : '🎵 Music';
   String get shopBgmDesc => ja
       ? 'ゲーム中に流れる曲。コインで買うか、動画1本でも解放できます。'

@@ -21,6 +21,7 @@ import 'study_screen.dart';
 import '../widgets/themed_background.dart';
 import '../widgets/banner_ad_slot.dart';
 import '../services/app_analytics.dart';
+import '../widgets/native_ad_card.dart';
 
 /// 「おぼえる」= 自分の名簿の管理画面。
 /// 職場・学校などの写真＋名前を登録し、学習・テスト・対戦の起点になる。
@@ -329,6 +330,9 @@ class _CustomRosterScreenState extends State<CustomRosterScreen> {
                           for (final e in entries) _entryCard(e),
                         ],
                       ),
+                    // 🧩 一覧の末尾。登録・編集の導線を塞がない位置に置く。
+                    if (entries.isNotEmpty)
+                      const NativeAdCard(),
                   ],
                 ),
               );
